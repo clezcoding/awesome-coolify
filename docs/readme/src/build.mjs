@@ -44,7 +44,7 @@ ${badgeRow}
 
 <p><sub>${nav}</sub></p>
 
-<img src="assets/social-preview.svg" alt="${meta.name} banner" width="100%" />
+<img src="assets/hero-banner.png" alt="${meta.name} — ${meta.tagline}" width="100%" />
 
 </div>`;
 }

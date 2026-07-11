@@ -28,7 +28,7 @@
 
 <p><sub>[Quick Start](#quick-start) · [Features](#features) · [Architecture](#architecture) · [Deutsch](#deutsch) · [English](#english) · [Roadmap](#roadmap) · [Contributing](#contributing)</sub></p>
 
-<img src="assets/social-preview.svg" alt="Coolify MCP Server banner" width="100%" />
+<img src="assets/hero-banner.png" alt="Coolify MCP Server — One MCP server. Multiple Coolify instances. Zero workarounds." width="100%" />
 
 </div>
 
@@ -586,11 +586,16 @@ npm run build --prefix docs/readme
 
 ### Assets
 
-| File | Purpose |
-|------|---------|
-| `assets/logo.png` | Primary logo (1024×1024) |
-| `assets/logo.svg` | Vector variant |
-| `assets/social-preview.svg` | GitHub social / banner |
+| File | Purpose | Source |
+|------|---------|--------|
+| `assets/logo.png` | Primary logo (1024×1024) | Higgsfield Recraft v4.1 → resvg render |
+| `assets/logo.svg` | Vector variant | Higgsfield Recraft v4.1 |
+| `assets/hero-banner.png` | README hero banner (1920×640, 3:1) | Higgsfield GPT Image 2 |
+| `assets/social-preview.png` | GitHub social preview card (1280×640, 1.91:1) | Higgsfield GPT Image 2 |
+| `assets/logo-legacy.png` | Previous hand-crafted logo (backup) | manual SVG → PNG |
+| `assets/logo-legacy.svg` | Previous hand-crafted vector (backup) | manual |
+
+Regenerate Higgsfield assets: see `scripts/fix-higgsfield.sh` and the `higgsfield-generate` skill.
 
 
 ---
