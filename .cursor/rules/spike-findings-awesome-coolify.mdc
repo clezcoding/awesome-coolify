@@ -1,0 +1,7 @@
+---
+description: Auto-load spike findings skill during implementation work
+globs:
+alwaysApply: true
+---
+
+- **Spike findings for awesome-coolify** (implementation patterns, constraints, gotchas) → `Skill("spike-findings-awesome-coolify")`
