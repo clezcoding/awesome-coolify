@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-label="Coolify MCP social preview">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="75%" cy="30%" r="45%">
+      <stop offset="0%" stop-color="#9333ea" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#9333ea" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+  <circle cx="1080" cy="120" r="180" fill="#6366f1" opacity="0.08"/>
+  <circle cx="180" cy="520" r="140" fill="#a855f7" opacity="0.1"/>
+  <g transform="translate(120 120)">
+    <path fill="url(#accent)" d="M200 20l173.2 100v200L200 420 26.8 320V120z" opacity="0.95"/>
+    <path fill="none" stroke="#ddd6fe" stroke-width="4" opacity="0.5" d="M200 48l145.6 84v168L200 372 54.4 300V132z"/>
+    <g fill="#fff">
+      <rect x="186" y="132" width="28" height="156" rx="6"/>
+      <rect x="132" y="168" width="56" height="14" rx="5" transform="rotate(-30 160 175)"/>
+      <rect x="132" y="202" width="56" height="14" rx="5" transform="rotate(-30 160 209)"/>
+      <rect x="132" y="236" width="56" height="14" rx="5" transform="rotate(-30 160 243)"/>
+      <rect x="212" y="168" width="56" height="14" rx="5" transform="rotate(30 240 175)"/>
+      <rect x="212" y="202" width="56" height="14" rx="5" transform="rotate(30 240 209)"/>
+      <rect x="212" y="236" width="56" height="14" rx="5" transform="rotate(30 240 243)"/>
+    </g>
+  </g>
+  <text x="500" y="250" fill="#f8fafc" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="72" font-weight="700">Coolify MCP Server</text>
+  <text x="500" y="320" fill="#c4b5fd" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="34" font-weight="500">One MCP · Multiple Coolify instances · Zero workarounds</text>
+  <rect x="500" y="360" width="220" height="44" rx="22" fill="url(#accent)"/>
+  <text x="610" y="390" text-anchor="middle" fill="#fff" font-family="ui-sans-serif, system-ui, sans-serif" font-size="20" font-weight="600">Model Context Protocol</text>
+  <text x="500" y="470" fill="#94a3b8" font-family="ui-monospace, Menlo, monospace" font-size="22">Deploy · Logs · Diagnose · Multi-Instance</text>
+</svg>

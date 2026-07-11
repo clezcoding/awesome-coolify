@@ -1,0 +1,9 @@
+{
+  "name": "awesome-coolify",
+  "private": true,
+  "description": "Coolify MCP Server — planning repo and documentation",
+  "scripts": {
+    "readme:build": "npm run build --prefix docs/readme",
+    "higgsfield:fix": "bash scripts/fix-higgsfield.sh"
+  }
+}

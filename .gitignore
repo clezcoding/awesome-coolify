@@ -1,5 +1,7 @@
 .DS_Store
 node_modules/
+docs/readme/node_modules/
 dist/
 .env
 .env.*
+graphify-out/
