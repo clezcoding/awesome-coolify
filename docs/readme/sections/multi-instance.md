@@ -43,4 +43,5 @@ All instances live in **`~/.coolify-mcp/instances.json`** — portable across MC
 | `switch` / `use` | Switch active instance |
 | `verify` | Test connection + API version |
 
-Per-request **token override** supported — never persisted to disk.
+> [!TIP]
+> Per-request **token override** is supported — the override never touches disk.

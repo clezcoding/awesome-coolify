@@ -6,14 +6,14 @@ Three overlapping tools. One confused agent. Maintenance nightmare.
 
 ```mermaid
 flowchart LR
-    subgraph Today["Today"]
-        CLI["Coolify CLI"]
-        MCP1["user-coolify MCP"]
-        MCP2["coolify-backup-mcp"]
+    subgraph Today["Today — fragmented tooling"]
+        CLI["Scattered CLI"]
+        MCP1["MCP server A"]
+        MCP2["MCP server B"]
     end
 
     subgraph Agent["AI Agent"]
-        Cursor["Cursor / Claude"]
+        Cursor["Cursor / Claude / others"]
     end
 
     subgraph Future["Coolify MCP"]
@@ -38,4 +38,5 @@ flowchart LR
 | Destructive ops without guardrails | `confirm: true` required |
 | Three docs, three schemas | One README, one source of truth |
 
+> [!IMPORTANT]
 > **Design principle:** optimize for *agent recovery* and *context efficiency*, not API endpoint parity on day one.

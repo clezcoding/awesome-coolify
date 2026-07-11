@@ -2,7 +2,8 @@
 
 ## Quick Start
 
-> **Note:** npm package not published yet. Local dev / `npm link` until Phase 7.
+> [!NOTE]
+> npm package not published yet. Use local dev / `npm link` until Phase 7.
 
 ### 1 · Install (soon)
 
@@ -30,9 +31,9 @@ Create `~/.coolify-mcp/instances.json`:
 
 Get your token: **Coolify UI → Keys & Tokens → Create API Token**.
 
-### 3 · Connect Cursor
+### 3 · Connect your MCP client
 
-`~/.cursor/mcp.json`:
+`~/.cursor/mcp.json` (Cursor):
 
 ```json
 {
@@ -45,13 +46,14 @@ Get your token: **Coolify UI → Keys & Tokens → Create API Token**.
 }
 ```
 
-Reload Cursor → ask your agent:
+For Claude Desktop on macOS, drop the same `mcpServers` block into
+`~/Library/Application Support/Claude/claude_desktop_config.json`.
+
+### 4 · Talk to your agent
+
+Reload your client, then ask:
 
 > *"Verify my Coolify connection and list all applications on production."*
-
-### Claude Desktop
-
-`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) — same `mcpServers` block.
 
 ### Local development
 

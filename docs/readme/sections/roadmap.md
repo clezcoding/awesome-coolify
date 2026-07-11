@@ -21,7 +21,7 @@ gantt
 
 ### v2 preview
 
-After v1: **full parity** with Coolify CLI + legacy MCPs. Details in [`.planning/REQUIREMENTS.md`](.planning/REQUIREMENTS.md).
+After v1: **full parity** with the broader Coolify ecosystem. Details in [`.planning/REQUIREMENTS.md`](.planning/REQUIREMENTS.md).
 
 | Group | Scope |
 |-------|-------|
@@ -32,6 +32,7 @@ After v1: **full parity** with Coolify CLI + legacy MCPs. Details in [`.planning
 | **V2-SVC / V2-DB / V2-BAK** | One-click services, 8 DB types, backups |
 | **V2-CICD / V2-TEN** | Webhooks, RBAC, snapshots |
 
-*Container exec blocked until Coolify 4.1.x API supports it.*
+> [!NOTE]
+> Container exec is blocked until Coolify 4.1.x API supports it.
 
 Full roadmap: [`.planning/ROADMAP.md`](.planning/ROADMAP.md)

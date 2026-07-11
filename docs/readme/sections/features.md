@@ -12,7 +12,7 @@
 | **4** | Deploy | Start/stop/restart, deploy + wait-mode, batch deploy |
 | **5** | Logs | Runtime/build logs, service & DB lifecycle |
 | **6** | Safety | Bulk ops, `confirm` gate, secret masking |
-| **7** | Ship | npm publish, docs, Cursor/Claude setup |
+| **7** | Ship | npm publish, docs, client setup guides |
 
 ### Capability matrix
 

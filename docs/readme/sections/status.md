@@ -13,11 +13,11 @@
 
 ### Documentation tooling
 
-README generated from modular sections:
+README is generated from modular sections:
 
 ```bash
 npm install --prefix docs/readme
 npm run build --prefix docs/readme
 ```
 
-Source: [`docs/readme/sections/`](docs/readme/sections/)
+Source: [`docs/readme/sections/`](docs/readme/sections/) (English) · [`docs/readme/sections.de/`](docs/readme/sections.de/) (German)

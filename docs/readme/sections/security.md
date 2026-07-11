@@ -11,6 +11,9 @@
 | **Payload limits** | `max_chars` caps large log/output payloads |
 | **SSL** | `verifySsl` per instance (homelab-friendly) |
 
+> [!WARNING]
+> Destructive operations are rejected without explicit confirmation.
+
 ```json
 // Rejected — missing confirm
 { "tool": "emergency", "arguments": { "action": "stop-all-apps" } }
