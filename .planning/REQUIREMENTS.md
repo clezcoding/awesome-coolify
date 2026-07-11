@@ -282,13 +282,64 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | — | Pending |
+| CTX-01 | 1 — Foundation & Multi-Instance Auth | Pending |
+| CTX-02 | 1 — Foundation & Multi-Instance Auth | Pending |
+| CTX-03 | 1 — Foundation & Multi-Instance Auth | Pending |
+| CTX-04 | 1 — Foundation & Multi-Instance Auth | Pending |
+| CTX-05 | 1 — Foundation & Multi-Instance Auth | Pending |
+| CTX-06 | 1 — Foundation & Multi-Instance Auth | Pending |
+| CTX-07 | 1 — Foundation & Multi-Instance Auth | Pending |
+| ERR-01 | 1 — Foundation & Multi-Instance Auth | Pending |
+| ERR-02 | 1 — Foundation & Multi-Instance Auth | Pending |
+| ERR-03 | 1 — Foundation & Multi-Instance Auth | Pending |
+| DX-01 | 1 — Foundation & Multi-Instance Auth | Pending |
+| DX-02 | 1 — Foundation & Multi-Instance Auth | Pending |
+| DIST-03 | 1 — Foundation & Multi-Instance Auth | Pending |
+| SYS-01 | 2 — Discovery & Read Projections | Pending |
+| SYS-02 | 2 — Discovery & Read Projections | Pending |
+| SYS-06 | 2 — Discovery & Read Projections | Pending |
+| SYS-07 | 2 — Discovery & Read Projections | Pending |
+| APP-01 | 2 — Discovery & Read Projections | Pending |
+| APP-02 | 2 — Discovery & Read Projections | Pending |
+| SVC-01 | 2 — Discovery & Read Projections | Pending |
+| SVC-02 | 2 — Discovery & Read Projections | Pending |
+| OUT-01 | 2 — Discovery & Read Projections | Pending |
+| OUT-03 | 2 — Discovery & Read Projections | Pending |
+| OUT-04 | 2 — Discovery & Read Projections | Pending |
+| OUT-05 | 2 — Discovery & Read Projections | Pending |
+| DX-03 | 2 — Discovery & Read Projections | Pending |
+| SYS-03 | 3 — Diagnose & Issue Scan | Pending |
+| SYS-04 | 3 — Diagnose & Issue Scan | Pending |
+| SYS-05 | 3 — Diagnose & Issue Scan | Pending |
+| OUT-06 | 3 — Diagnose & Issue Scan | Pending |
+| APP-03 | 4 — App Deploy Lifecycle | Pending |
+| APP-04 | 4 — App Deploy Lifecycle | Pending |
+| APP-05 | 4 — App Deploy Lifecycle | Pending |
+| APP-06 | 4 — App Deploy Lifecycle | Pending |
+| APP-07 | 4 — App Deploy Lifecycle | Pending |
+| APP-08 | 4 — App Deploy Lifecycle | Pending |
+| APP-09 | 4 — App Deploy Lifecycle | Pending |
+| DEP-01 | 4 — App Deploy Lifecycle | Pending |
+| DEP-02 | 4 — App Deploy Lifecycle | Pending |
+| DEP-03 | 4 — App Deploy Lifecycle | Pending |
+| APP-10 | 5 — Logs & Service/DB Ops | Pending |
+| APP-11 | 5 — Logs & Service/DB Ops | Pending |
+| SVC-03 | 5 — Logs & Service/DB Ops | Pending |
+| SVC-04 | 5 — Logs & Service/DB Ops | Pending |
+| SVC-05 | 5 — Logs & Service/DB Ops | Pending |
+| EMG-01 | 6 — Bulk, Emergency & Safety | Pending |
+| EMG-02 | 6 — Bulk, Emergency & Safety | Pending |
+| EMG-03 | 6 — Bulk, Emergency & Safety | Pending |
+| OUT-02 | 6 — Bulk, Emergency & Safety | Pending |
+| OUT-07 | 6 — Bulk, Emergency & Safety | Pending |
+| DIST-01 | 7 — Distribution & Docs | Pending |
+| DIST-02 | 7 — Distribution & Docs | Pending |
 
 **Coverage:**
-- v1 requirements: 47 total
-- Mapped to phases: 0
-- Unmapped: 47 ⚠️
+- v1 requirements: 52 total (CTX 7 + SYS 7 + APP 11 + SVC 5 + DEP 3 + EMG 3 + OUT 7 + ERR 3 + DX 3 + DIST 3)
+- Mapped to phases: 52
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-11*
-*Last updated: 2026-07-11 after initial definition*
+*Last updated: 2026-07-12 after roadmap traceability*
