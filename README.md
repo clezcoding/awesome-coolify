@@ -65,19 +65,19 @@
 
 ---
 
-## At a glance
+## ⚡ At a glance
 
 <table>
 <tr>
 <td width="55%" valign="top">
 
-### What you get
+### ✨ What you get
 
-- **One MCP server** for every Coolify ops workflow
-- **Multi-instance** from a single `~/.coolify-mcp/instances.json`
-- **Action-based tools** — ~10 domains, not 60+ endpoints
-- **Agent-first DX** — structured errors, recovery hints, payload caps
-- **Self-hosted only** — Coolify API **4.1.x**
+- 💻 **One MCP server** for every Coolify ops workflow
+- 🌐 **Multi-instance** from a single `~/.coolify-mcp/instances.json`
+- 🎯 **Action-based tools** — ~10 domains, not 60+ endpoints
+- 🤖 **Agent-first DX** — structured errors, recovery hints, payload caps
+- 🔒 **Self-hosted only** — Coolify API **4.1.x**
 
 </td>
 <td width="45%" valign="top" align="center">
@@ -91,18 +91,29 @@
 </tr>
 </table>
 
+<details>
+<summary><b>🗺️ View Project Milestones (v1 & v2)</b></summary>
+
 | Milestone | Scope | Target |
 |-----------|-------|--------|
 | **v1** | Deploy, logs, diagnose, multi-instance, safety gates | Ops MVP |
 | **v2** | Full CRUD parity, teams, cloud tokens, backups | Feature parity |
 
+</details>
+
 > [!TIP]
 > Built for **agents first**, humans second. Every response is structured, every error is recoverable, every secret is masked by default.
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🧬 Tool Schema](#tool-schema) · [🌐 Multi-instance](#multi-instance) · [🔐 Security](#security) · [📅 Roadmap](#roadmap)
+
 
 
 ---
 
-## Why Coolify MCP?
+## ❓ Why Coolify MCP?
 
 Three overlapping tools. One confused agent. Maintenance nightmare.
 
@@ -131,6 +142,9 @@ flowchart LR
     style Today fill:#1e1b4b,color:#e9d5ff
 ```
 
+<details>
+<summary><b>📊 View Comparison: Fragmented Today vs. Unified Coolify MCP</b></summary>
+
 | Problem today | Coolify MCP answer |
 |---------------|-------------------|
 | 60+ single-purpose MCP tools | Domain tools + `action` parameter |
@@ -140,26 +154,37 @@ flowchart LR
 | Destructive ops without guardrails | `confirm: true` required |
 | Three docs, three schemas | One README, one source of truth |
 
+</details>
+
 > [!IMPORTANT]
 > **Design principle:** optimize for *agent recovery* and *context efficiency*, not API endpoint parity on day one.
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🧬 Tool Schema](#tool-schema)
+
 
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 > [!NOTE]
 > npm package not published yet. Use local dev / `npm link` until Phase 7.
 
-### 1 · Install (soon)
+### 1️⃣ Install (soon)
 
 ```bash
 npx -y @clezcoding/coolify-mcp
 ```
 
-### 2 · Configure instances
+### 2️⃣ Configure instances
 
-Create `~/.coolify-mcp/instances.json`:
+<details>
+<summary><b>⚙️ Click to expand configuration instructions (`instances.json`)</b></summary>
+
+Create the configuration file at `~/.coolify-mcp/instances.json`:
 
 ```json
 {
@@ -177,9 +202,15 @@ Create `~/.coolify-mcp/instances.json`:
 
 Get your token: **Coolify UI → Keys & Tokens → Create API Token**.
 
-### 3 · Connect your MCP client
+</details>
 
-`~/.cursor/mcp.json` (Cursor):
+### 3️⃣ Connect your MCP client
+
+<details>
+<summary><b>🔌 Click to expand client setup guides (Cursor, Claude Desktop, etc.)</b></summary>
+
+#### Cursor Setup
+Add this to `~/.cursor/mcp.json` (Cursor):
 
 ```json
 {
@@ -192,16 +223,20 @@ Get your token: **Coolify UI → Keys & Tokens → Create API Token**.
 }
 ```
 
-For Claude Desktop on macOS, drop the same `mcpServers` block into
-`~/Library/Application Support/Claude/claude_desktop_config.json`.
+#### Claude Desktop Setup
+For Claude Desktop on macOS, drop the same `mcpServers` block into:
+`~/Library/Application Support/Claude/claude_desktop_config.json`
 
-### 4 · Talk to your agent
+</details>
 
-Reload your client, then ask:
+### 4️⃣ Talk to your agent
 
-> *"Verify my Coolify connection and list all applications on production."*
+Reload your client, then ask your agent:
 
-### Local development
+> 💬 *"Verify my Coolify connection and list all applications on production."*
+
+<details>
+<summary><b>🛠️ Local development & manual setup</b></summary>
 
 ```json
 {
@@ -215,10 +250,23 @@ Reload your client, then ask:
 }
 ```
 
+</details>
 
 ---
 
-## Features
+### 🔗 Quick Links
+[🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance) · [🔐 Security](#security)
+
+
+
+---
+
+## 🛠 Features
+
+Explore the modular, powerful layout of Coolify MCP.
+
+<details>
+<summary><b>🗺️ View Phase-by-Phase Roadmap (v1 — Ops MVP)</b></summary>
 
 ### v1 — Ops MVP (52 requirements · 7 phases)
 
@@ -232,6 +280,11 @@ Reload your client, then ask:
 | **6** | Safety | Bulk ops, `confirm` gate, secret masking |
 | **7** | Ship | npm publish, docs, client setup guides |
 
+</details>
+
+<details>
+<summary><b>📊 View Capability Matrix (v1 vs v2)</b></summary>
+
 ### Capability matrix
 
 | Area | v1 | v2 |
@@ -244,6 +297,11 @@ Reload your client, then ask:
 | Teams & cloud tokens | — | ✅ |
 | Backups & scheduled tasks | — | ✅ |
 | Container exec | — | ⏳ API blocked |
+
+</details>
+
+<details>
+<summary><b>🔌 View Domain Tools & Available Actions</b></summary>
 
 ### Domain tools (v1)
 
@@ -259,12 +317,22 @@ Reload your client, then ask:
 | `project` | `redeploy-all`, `restart-all` |
 | `emergency` | `stop-all-apps` |
 
+</details>
+
 Full catalog: [`mcp_features.md`](mcp_features.md)
+
+---
+
+### 🔗 Quick Links
+[📐 Architecture](#architecture) · [🧬 Tool Schema](#tool-schema) · [🌐 Multi-instance](#multi-instance) · [🔐 Security](#security)
+
 
 
 ---
 
-## Architecture
+## 📐 Architecture
+
+Detailed overview of the inner workings of Coolify MCP.
 
 ```mermaid
 flowchart TB
@@ -300,6 +368,13 @@ flowchart TB
     class P,R accent
 ```
 
+### 🧠 Architecture Mindmap
+
+<img src="assets/architecture-mindmap.png" alt="Coolify MCP Server Architecture Mindmap" width="100%" />
+
+<details>
+<summary><b>🗂️ View Layer Responsibilities Table</b></summary>
+
 ### Layer responsibilities
 
 | Layer | Responsibility |
@@ -309,6 +384,11 @@ flowchart TB
 | **Context** | Multi-instance registry, default, active switch |
 | **HTTP client** | Token injection, exponential backoff |
 | **Formatters** | Summary/full projection, secret masking |
+
+</details>
+
+<details>
+<summary><b>⚙️ View Technical Tech Stack Details</b></summary>
 
 ### Tech stack
 
@@ -320,12 +400,23 @@ flowchart TB
 | Transport | stdio |
 | Distribution | npm (`npx @clezcoding/coolify-mcp`) |
 
+</details>
 
 ---
 
-## Tool schema
+### 🔗 Quick Links
+[🧬 Tool Schema](#tool-schema) · [🌐 Multi-instance](#multi-instance) · [🔐 Security](#security) · [📅 Roadmap](#roadmap)
+
+
+
+---
+
+## 🧬 Tool schema
 
 Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** with an **`action`** field.
+
+<details>
+<summary><b>🔄 View Legacy Pattern vs. Coolify MCP Design Pattern</b></summary>
 
 ### Before vs after
 
@@ -362,10 +453,12 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </tr>
 </table>
 
+</details>
+
 ### Examples
 
 <details>
-<summary><strong>Deploy with wait-mode</strong></summary>
+<summary><strong>🚀 Deploy with wait-mode</strong></summary>
 
 ```json
 {
@@ -383,7 +476,7 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </details>
 
 <details>
-<summary><strong>Diagnose by domain</strong></summary>
+<summary><strong>🔍 Diagnose by domain</strong></summary>
 
 ```json
 {
@@ -399,7 +492,7 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </details>
 
 <details>
-<summary><strong>Global issue scan</strong></summary>
+<summary><strong>⚠️ Global issue scan</strong></summary>
 
 ```json
 {
@@ -411,7 +504,7 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </details>
 
 <details>
-<summary><strong>Structured error response</strong></summary>
+<summary><strong>🧱 Structured error response</strong></summary>
 
 ```json
 {
@@ -430,12 +523,21 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 
 </details>
 
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+
+
 
 ---
 
-## Multi-instance
+## 🌐 Multi-instance
 
 All instances live in **`~/.coolify-mcp/instances.json`** — portable across MCP clients.
+
+<details>
+<summary><b>⚙️ View Configuration Example (`instances.json`)</b></summary>
 
 ```json
 {
@@ -463,6 +565,11 @@ All instances live in **`~/.coolify-mcp/instances.json`** — portable across MC
 }
 ```
 
+</details>
+
+<details>
+<summary><b>🛠️ View Available Instance Actions</b></summary>
+
 ### Instance actions
 
 | Action | Description |
@@ -476,13 +583,26 @@ All instances live in **`~/.coolify-mcp/instances.json`** — portable across MC
 | `switch` / `use` | Switch active instance |
 | `verify` | Test connection + API version |
 
+</details>
+
 > [!TIP]
 > Per-request **token override** is supported — the override never touches disk.
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🔐 Security](#security)
+
 
 
 ---
 
-## Security
+## 🔐 Security
+
+Multi-layered security features keep your self-hosted setup safe.
+
+<details>
+<summary><b>🛡️ View Security Measures & Safeguards Table</b></summary>
 
 | Measure | Behavior |
 |---------|----------|
@@ -492,6 +612,8 @@ All instances live in **`~/.coolify-mcp/instances.json`** — portable across MC
 | **Confirm gate** | Destructive ops require `confirm: true` |
 | **Payload limits** | `max_chars` caps large log/output payloads |
 | **SSL** | `verifySsl` per instance (homelab-friendly) |
+
+</details>
 
 > [!WARNING]
 > Destructive operations are rejected without explicit confirmation.
@@ -503,6 +625,12 @@ All instances live in **`~/.coolify-mcp/instances.json`** — portable across MC
 // Allowed
 { "tool": "emergency", "arguments": { "action": "stop-all-apps", "confirm": true } }
 ```
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+
 
 
 ---
@@ -547,7 +675,12 @@ Full roadmap: [`.planning/ROADMAP.md`](.planning/ROADMAP.md)
 
 ---
 
-## Development status
+## 📈 Development status
+
+Current progress and tooling details for Coolify MCP.
+
+<details>
+<summary><b>📋 View Detailed Development Status Table</b></summary>
 
 | Aspect | State |
 |--------|-------|
@@ -558,7 +691,9 @@ Full roadmap: [`.planning/ROADMAP.md`](.planning/ROADMAP.md)
 | **npm** | `@clezcoding/coolify-mcp` — **coming soon** |
 | **First milestone** | Phase 1 — Foundation & Multi-Instance Auth |
 
-### Documentation tooling
+</details>
+
+### 🛠️ Documentation tooling
 
 README is generated from modular sections:
 
@@ -569,10 +704,16 @@ npm run build --prefix docs/readme
 
 Source: [`docs/readme/sections/`](docs/readme/sections/) (English) · [`docs/readme/sections.de/`](docs/readme/sections.de/) (German)
 
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+
+
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 Community OSS — contributions welcome.
 
@@ -584,13 +725,16 @@ Community OSS — contributions welcome.
 
 **v1 priority:** deploy, logs, diagnose, multi-instance — before CRUD.
 
-### Regenerate README
+### 🔄 Regenerate README
 
 ```bash
 npm run build --prefix docs/readme
 ```
 
 This writes both `README.md` (English) and `README.de.md` (German).
+
+<details>
+<summary><b>🎨 View Project Design Assets & Sources Table</b></summary>
 
 ### Assets
 
@@ -606,6 +750,14 @@ This writes both `README.md` (English) and `README.de.md` (German).
 | `assets/logo-legacy.svg` | Previous hand-crafted vector (backup) | manual |
 
 Regenerate Higgsfield assets: see `scripts/fix-higgsfield.sh` and the `higgsfield-generate` skill.
+
+</details>
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+
 
 
 ---

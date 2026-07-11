@@ -1,6 +1,11 @@
 ---
 
-## Sicherheit
+## 🔐 Sicherheit
+
+Mehrschichtige Sicherheitsfunktionen schützen deine selbstgehostete Infrastruktur.
+
+<details>
+<summary><b>🛡️ Sicherheitsmaßnahmen & Schutzmechanismen anzeigen</b></summary>
 
 | Maßnahme | Verhalten |
 |----------|----------|
@@ -10,6 +15,8 @@
 | **Confirm-Gate** | Destructive Ops brauchen `confirm: true` |
 | **Payload-Limits** | `max_chars` cappen große Log-/Output-Payloads |
 | **SSL** | `verifySsl` pro Instanz (homelab-freundlich) |
+
+</details>
 
 > [!WARNING]
 > Destructive Operationen werden ohne explizite Bestätigung abgelehnt.
@@ -21,3 +28,9 @@
 // Erlaubt
 { "tool": "emergency", "arguments": { "action": "stop-all-apps", "confirm": true } }
 ```
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance)
+

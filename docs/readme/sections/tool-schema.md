@@ -1,8 +1,11 @@
 ---
 
-## Tool schema
+## 🧬 Tool schema
 
 Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** with an **`action`** field.
+
+<details>
+<summary><b>🔄 View Legacy Pattern vs. Coolify MCP Design Pattern</b></summary>
 
 ### Before vs after
 
@@ -39,10 +42,12 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </tr>
 </table>
 
+</details>
+
 ### Examples
 
 <details>
-<summary><strong>Deploy with wait-mode</strong></summary>
+<summary><strong>🚀 Deploy with wait-mode</strong></summary>
 
 ```json
 {
@@ -60,7 +65,7 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </details>
 
 <details>
-<summary><strong>Diagnose by domain</strong></summary>
+<summary><strong>🔍 Diagnose by domain</strong></summary>
 
 ```json
 {
@@ -76,7 +81,7 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </details>
 
 <details>
-<summary><strong>Global issue scan</strong></summary>
+<summary><strong>⚠️ Global issue scan</strong></summary>
 
 ```json
 {
@@ -88,7 +93,7 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 </details>
 
 <details>
-<summary><strong>Structured error response</strong></summary>
+<summary><strong>🧱 Structured error response</strong></summary>
 
 ```json
 {
@@ -106,3 +111,9 @@ Instead of **60+ granular tools**, Coolify MCP groups operations by **domain** w
 ```
 
 </details>
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+

@@ -1,6 +1,11 @@
 ---
 
-## Security
+## 🔐 Security
+
+Multi-layered security features keep your self-hosted setup safe.
+
+<details>
+<summary><b>🛡️ View Security Measures & Safeguards Table</b></summary>
 
 | Measure | Behavior |
 |---------|----------|
@@ -10,6 +15,8 @@
 | **Confirm gate** | Destructive ops require `confirm: true` |
 | **Payload limits** | `max_chars` caps large log/output payloads |
 | **SSL** | `verifySsl` per instance (homelab-friendly) |
+
+</details>
 
 > [!WARNING]
 > Destructive operations are rejected without explicit confirmation.
@@ -21,3 +28,9 @@
 // Allowed
 { "tool": "emergency", "arguments": { "action": "stop-all-apps", "confirm": true } }
 ```
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+

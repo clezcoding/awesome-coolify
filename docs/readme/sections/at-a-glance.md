@@ -1,18 +1,18 @@
 ---
 
-## At a glance
+## ⚡ At a glance
 
 <table>
 <tr>
 <td width="55%" valign="top">
 
-### What you get
+### ✨ What you get
 
-- **One MCP server** for every Coolify ops workflow
-- **Multi-instance** from a single `~/.coolify-mcp/instances.json`
-- **Action-based tools** — ~10 domains, not 60+ endpoints
-- **Agent-first DX** — structured errors, recovery hints, payload caps
-- **Self-hosted only** — Coolify API **4.1.x**
+- 💻 **One MCP server** for every Coolify ops workflow
+- 🌐 **Multi-instance** from a single `~/.coolify-mcp/instances.json`
+- 🎯 **Action-based tools** — ~10 domains, not 60+ endpoints
+- 🤖 **Agent-first DX** — structured errors, recovery hints, payload caps
+- 🔒 **Self-hosted only** — Coolify API **4.1.x**
 
 </td>
 <td width="45%" valign="top" align="center">
@@ -26,10 +26,21 @@
 </tr>
 </table>
 
+<details>
+<summary><b>🗺️ View Project Milestones (v1 & v2)</b></summary>
+
 | Milestone | Scope | Target |
 |-----------|-------|--------|
 | **v1** | Deploy, logs, diagnose, multi-instance, safety gates | Ops MVP |
 | **v2** | Full CRUD parity, teams, cloud tokens, backups | Feature parity |
 
+</details>
+
 > [!TIP]
 > Built for **agents first**, humans second. Every response is structured, every error is recoverable, every secret is masked by default.
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🧬 Tool Schema](#tool-schema) · [🌐 Multi-instance](#multi-instance) · [🔐 Security](#security) · [📅 Roadmap](#roadmap)
+

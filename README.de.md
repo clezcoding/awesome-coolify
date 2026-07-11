@@ -65,19 +65,19 @@
 
 ---
 
-## Auf einen Blick
+## ⚡ Auf einen Blick
 
 <table>
 <tr>
 <td width="55%" valign="top">
 
-### Was du bekommst
+### ✨ Was du bekommst
 
-- **Ein MCP-Server** für alle Coolify-Ops-Workflows
-- **Multi-Instance** über eine zentrale `~/.coolify-mcp/instances.json`
-- **Action-basierte Tools** — ~10 Domänen statt 60+ Endpunkte
-- **Agent-first DX** — strukturierte Errors, Recovery-Hints, Payload-Caps
-- **Nur self-hosted** — Coolify API **4.1.x**
+- 💻 **Ein MCP-Server** für alle Coolify-Ops-Workflows
+- 🌐 **Multi-Instance** über eine zentrale `~/.coolify-mcp/instances.json`
+- 🎯 **Action-basierte Tools** — ~10 Domänen statt 60+ Endpunkte
+- 🤖 **Agent-first DX** — strukturierte Errors, Recovery-Hints, Payload-Caps
+- 🔒 **Nur self-hosted** — Coolify API **4.1.x**
 
 </td>
 <td width="45%" valign="top" align="center">
@@ -91,18 +91,29 @@
 </tr>
 </table>
 
+<details>
+<summary><b>🗺️ Meilensteine des Projekts anzeigen (v1 & v2)</b></summary>
+
 | Meilenstein | Umfang | Ziel |
 |-------------|--------|------|
 | **v1** | Deploy, Logs, Diagnose, Multi-Instance, Safety-Gates | Ops-MVP |
 | **v2** | Volle CRUD-Parität, Teams, Cloud-Tokens, Backups | Feature-Parität |
 
+</details>
+
 > [!TIP]
 > Gebaut **zuerst für Agents**, dann für Menschen. Jede Response strukturiert, jeder Fehler reparierbar, jedes Secret standardmäßig maskiert.
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🧬 Tool-Schema](#tool-schema) · [🌐 Multi-Instance](#multi-instance) · [🔐 Sicherheit](#sicherheit) · [📅 Roadmap](#roadmap)
+
 
 
 ---
 
-## Warum Coolify MCP?
+## ❓ Warum Coolify MCP?
 
 Drei überlappende Tools. Ein verwirrter Agent. Wartungs-Albtraum.
 
@@ -131,6 +142,9 @@ flowchart LR
     style Today fill:#1e1b4b,color:#e9d5ff
 ```
 
+<details>
+<summary><b>📊 Vergleich anzeigen: Fragmentiertes Heute vs. Unified Coolify MCP</b></summary>
+
 | Problem heute | Coolify MCP Antwort |
 |---------------|---------------------|
 | 60+ MCP-Einzeltools | Domänen-Tools + `action`-Parameter |
@@ -140,26 +154,37 @@ flowchart LR
 | Destructive Ops ohne Guardrails | `confirm: true` Pflicht |
 | Drei Docs, drei Schemas | Ein README, eine Wahrheit |
 
+</details>
+
 > [!IMPORTANT]
 > **Design-Prinzip:** optimiere auf *Agent-Recovery* und *Kontext-Effizienz*, nicht auf API-Endpunkt-Parität am Tag eins.
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🧬 Tool-Schema](#tool-schema)
+
 
 
 ---
 
-## Schnellstart
+## 🚀 Schnellstart
 
 > [!NOTE]
 > npm-Paket noch nicht veröffentlicht. Lokales Dev / `npm link` bis Phase 7.
 
-### 1 · Installieren (bald)
+### 1️⃣ Installieren (bald)
 
 ```bash
 npx -y @clezcoding/coolify-mcp
 ```
 
-### 2 · Instanzen konfigurieren
+### 2️⃣ Instanzen konfigurieren
 
-`~/.coolify-mcp/instances.json` anlegen:
+<details>
+<summary><b>⚙️ Klicken, um Konfigurationsanweisungen anzuzeigen (`instances.json`)</b></summary>
+
+Erstelle die Konfigurationsdatei unter `~/.coolify-mcp/instances.json`:
 
 ```json
 {
@@ -177,9 +202,15 @@ npx -y @clezcoding/coolify-mcp
 
 Token holen: **Coolify UI → Keys & Tokens → Create API Token**.
 
-### 3 · Mit MCP-Client verbinden
+</details>
 
-`~/.cursor/mcp.json` (Cursor):
+### 3️⃣ Mit MCP-Client verbinden
+
+<details>
+<summary><b>🔌 Klicken, um Client-Installationsanleitungen anzuzeigen (Cursor, Claude Desktop, etc.)</b></summary>
+
+#### Einrichtung in Cursor
+Füge dies zu `~/.cursor/mcp.json` (Cursor) hinzu:
 
 ```json
 {
@@ -192,16 +223,20 @@ Token holen: **Coolify UI → Keys & Tokens → Create API Token**.
 }
 ```
 
-Für Claude Desktop (macOS) denselben `mcpServers`-Block in
+#### Einrichtung in Claude Desktop
+Für Claude Desktop (macOS) denselben `mcpServers`-Block in:
 `~/Library/Application Support/Claude/claude_desktop_config.json` eintragen.
 
-### 4 · Mit dem Agent reden
+</details>
+
+### 4️⃣ Mit dem Agent reden
 
 Client neu laden, dann fragen:
 
-> *"Verifiziere meine Coolify-Verbindung und liste alle Applications auf Production."*
+> 💬 *"Verifiziere meine Coolify-Verbindung und liste alle Applications auf Production."*
 
-### Lokale Entwicklung
+<details>
+<summary><b>🛠️ Lokale Entwicklung & manuelles Setup</b></summary>
 
 ```json
 {
@@ -215,10 +250,23 @@ Client neu laden, dann fragen:
 }
 ```
 
+</details>
 
 ---
 
-## Features
+### 🔗 Quick Links
+[🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance) · [🔐 Sicherheit](#sicherheit)
+
+
+
+---
+
+## 🛠 Features
+
+Entdecke die modulare und leistungsstarke Struktur von Coolify MCP.
+
+<details>
+<summary><b>🗺️ Phasen-Roadmap anzeigen (v1 — Ops-MVP)</b></summary>
 
 ### v1 — Ops-MVP (52 Requirements · 7 Phasen)
 
@@ -232,6 +280,11 @@ Client neu laden, dann fragen:
 | **6** | Safety | Bulk-Ops, `confirm`-Gate, Secret-Masking |
 | **7** | Ship | npm publish, Docs, Client-Setup-Guides |
 
+</details>
+
+<details>
+<summary><b>📊 Capability-Matrix anzeigen (v1 vs v2)</b></summary>
+
 ### Capability-Matrix
 
 | Bereich | v1 | v2 |
@@ -244,6 +297,11 @@ Client neu laden, dann fragen:
 | Teams & Cloud-Tokens | — | ✅ |
 | Backups & Scheduled Tasks | — | ✅ |
 | Container-Exec | — | ⏳ API blockiert |
+
+</details>
+
+<details>
+<summary><b>🔌 Domänen-Tools und Aktionen anzeigen</b></summary>
 
 ### Domänen-Tools (v1)
 
@@ -259,12 +317,22 @@ Client neu laden, dann fragen:
 | `project` | `redeploy-all`, `restart-all` |
 | `emergency` | `stop-all-apps` |
 
+</details>
+
 Vollständiger Katalog: [`mcp_features.md`](mcp_features.md)
+
+---
+
+### 🔗 Quick Links
+[📐 Architektur](#architektur) · [🧬 Tool-Schema](#tool-schema) · [🌐 Multi-Instance](#multi-instance) · [🔐 Sicherheit](#sicherheit)
+
 
 
 ---
 
-## Architektur
+## 📐 Architektur
+
+Detaillierter Überblick über die Funktionsweise von Coolify MCP.
 
 ```mermaid
 flowchart TB
@@ -300,6 +368,13 @@ flowchart TB
     class P,R accent
 ```
 
+### 🧠 Architektur-Mindmap
+
+<img src="assets/architecture-mindmap.png" alt="Coolify MCP Server Architektur-Mindmap" width="100%" />
+
+<details>
+<summary><b>🗂️ Layer-Verantwortlichkeiten anzeigen</b></summary>
+
 ### Layer-Verantwortlichkeiten
 
 | Layer | Verantwortung |
@@ -309,6 +384,11 @@ flowchart TB
 | **Context** | Multi-Instance-Registry, Default, aktiver Switch |
 | **HTTP-Client** | Token-Injection, exponentielles Backoff |
 | **Formatter** | Summary/Full-Projektion, Secret-Masking |
+
+</details>
+
+<details>
+<summary><b>⚙️ Technischen Tech-Stack anzeigen</b></summary>
 
 ### Tech-Stack
 
@@ -320,12 +400,23 @@ flowchart TB
 | Transport | stdio |
 | Distribution | npm (`npx @clezcoding/coolify-mcp`) |
 
+</details>
 
 ---
 
-## Tool-Schema
+### 🔗 Quick Links
+[🧬 Tool-Schema](#tool-schema) · [🌐 Multi-Instance](#multi-instance) · [🔐 Sicherheit](#sicherheit) · [📅 Roadmap](#roadmap)
+
+
+
+---
+
+## 🧬 Tool-Schema
 
 Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** mit einem **`action`**-Feld.
+
+<details>
+<summary><b>🔄 Legacy-Pattern vs. Coolify MCP Entwurfsmuster anzeigen</b></summary>
 
 ### Vorher vs nachher
 
@@ -362,10 +453,12 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </tr>
 </table>
 
+</details>
+
 ### Beispiele
 
 <details>
-<summary><strong>Deploy mit Wait-Mode</strong></summary>
+<summary><strong>🚀 Deploy mit Wait-Mode</strong></summary>
 
 ```json
 {
@@ -383,7 +476,7 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </details>
 
 <details>
-<summary><strong>Diagnose nach Domäne</strong></summary>
+<summary><strong>🔍 Diagnose nach Domäne</strong></summary>
 
 ```json
 {
@@ -399,7 +492,7 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </details>
 
 <details>
-<summary><strong>Globaler Issue-Scan</strong></summary>
+<summary><strong>⚠️ Globaler Issue-Scan</strong></summary>
 
 ```json
 {
@@ -411,7 +504,7 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </details>
 
 <details>
-<summary><strong>Strukturierte Error-Response</strong></summary>
+<summary><strong>🧱 Strukturierte Error-Response</strong></summary>
 
 ```json
 {
@@ -430,12 +523,21 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 
 </details>
 
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance)
+
+
 
 ---
 
-## Multi-Instance
+## 🌐 Multi-Instance
 
 Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über alle MCP-Clients.
+
+<details>
+<summary><b>⚙️ Konfigurationsbeispiel anzeigen (`instances.json`)</b></summary>
 
 ```json
 {
@@ -463,6 +565,11 @@ Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über a
 }
 ```
 
+</details>
+
+<details>
+<summary><b>🛠️ Verfügbare Instanz-Aktionen anzeigen</b></summary>
+
 ### Instance-Actions
 
 | Action | Beschreibung |
@@ -476,13 +583,26 @@ Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über a
 | `switch` / `use` | Aktive Instanz wechseln |
 | `verify` | Verbindung + API-Version testen |
 
+</details>
+
 > [!TIP]
 > **Token-Override** pro Request ist unterstützt — der Override wird nie auf Platte geschrieben.
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🔐 Sicherheit](#sicherheit)
+
 
 
 ---
 
-## Sicherheit
+## 🔐 Sicherheit
+
+Mehrschichtige Sicherheitsfunktionen schützen deine selbstgehostete Infrastruktur.
+
+<details>
+<summary><b>🛡️ Sicherheitsmaßnahmen & Schutzmechanismen anzeigen</b></summary>
 
 | Maßnahme | Verhalten |
 |----------|----------|
@@ -492,6 +612,8 @@ Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über a
 | **Confirm-Gate** | Destructive Ops brauchen `confirm: true` |
 | **Payload-Limits** | `max_chars` cappen große Log-/Output-Payloads |
 | **SSL** | `verifySsl` pro Instanz (homelab-freundlich) |
+
+</details>
 
 > [!WARNING]
 > Destructive Operationen werden ohne explizite Bestätigung abgelehnt.
@@ -503,6 +625,12 @@ Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über a
 // Erlaubt
 { "tool": "emergency", "arguments": { "action": "stop-all-apps", "confirm": true } }
 ```
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance)
+
 
 
 ---
@@ -547,7 +675,12 @@ Vollständige Roadmap: [`.planning/ROADMAP.md`](.planning/ROADMAP.md)
 
 ---
 
-## Entwicklungsstatus
+## 📈 Entwicklungsstatus
+
+Aktueller Fortschritt und Tooling-Details für Coolify MCP.
+
+<details>
+<summary><b>📋 Detaillierten Entwicklungsstatus anzeigen</b></summary>
 
 | Aspekt | Stand |
 |--------|-------|
@@ -558,7 +691,9 @@ Vollständige Roadmap: [`.planning/ROADMAP.md`](.planning/ROADMAP.md)
 | **npm** | `@clezcoding/coolify-mcp` — **kommt bald** |
 | **Erster Meilenstein** | Phase 1 — Foundation & Multi-Instance-Auth |
 
-### Doku-Tooling
+</details>
+
+### 🛠️ Doku-Tooling
 
 README wird aus modularen Sektionen generiert:
 
@@ -569,10 +704,16 @@ npm run build --prefix docs/readme
 
 Quelle: [`docs/readme/sections/`](docs/readme/sections/) (Englisch) · [`docs/readme/sections.de/`](docs/readme/sections.de/) (Deutsch)
 
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance)
+
+
 
 ---
 
-## Mitwirken
+## 🤝 Mitwirken
 
 Community-OSS — Beiträge willkommen.
 
@@ -584,13 +725,16 @@ Community-OSS — Beiträge willkommen.
 
 **v1-Priorität:** Deploy, Logs, Diagnose, Multi-Instance — vor CRUD.
 
-### README regenerieren
+### 🔄 README regenerieren
 
 ```bash
 npm run build --prefix docs/readme
 ```
 
 Schreibt sowohl `README.md` (Englisch) als auch `README.de.md` (Deutsch).
+
+<details>
+<summary><b>🎨 Projektdesign-Assets & Quellen anzeigen</b></summary>
 
 ### Assets
 
@@ -606,6 +750,14 @@ Schreibt sowohl `README.md` (Englisch) als auch `README.de.md` (Deutsch).
 | `assets/logo-legacy.svg` | Alter hand-crafted Vektor (Backup) | manuell |
 
 Higgsfield-Assets regenerieren: siehe `scripts/fix-higgsfield.sh` und den `higgsfield-generate`-Skill.
+
+</details>
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance)
+
 
 
 ---

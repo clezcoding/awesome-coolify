@@ -1,8 +1,11 @@
 ---
 
-## Multi-Instance
+## 🌐 Multi-Instance
 
 Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über alle MCP-Clients.
+
+<details>
+<summary><b>⚙️ Konfigurationsbeispiel anzeigen (`instances.json`)</b></summary>
 
 ```json
 {
@@ -30,6 +33,11 @@ Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über a
 }
 ```
 
+</details>
+
+<details>
+<summary><b>🛠️ Verfügbare Instanz-Aktionen anzeigen</b></summary>
+
 ### Instance-Actions
 
 | Action | Beschreibung |
@@ -43,5 +51,13 @@ Alle Instanzen leben in **`~/.coolify-mcp/instances.json`** — portabel über a
 | `switch` / `use` | Aktive Instanz wechseln |
 | `verify` | Verbindung + API-Version testen |
 
+</details>
+
 > [!TIP]
 > **Token-Override** pro Request ist unterstützt — der Override wird nie auf Platte geschrieben.
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🔐 Sicherheit](#sicherheit)
+

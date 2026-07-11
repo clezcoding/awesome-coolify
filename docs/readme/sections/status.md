@@ -1,6 +1,11 @@
 ---
 
-## Development status
+## 📈 Development status
+
+Current progress and tooling details for Coolify MCP.
+
+<details>
+<summary><b>📋 View Detailed Development Status Table</b></summary>
 
 | Aspect | State |
 |--------|-------|
@@ -11,7 +16,9 @@
 | **npm** | `@clezcoding/coolify-mcp` — **coming soon** |
 | **First milestone** | Phase 1 — Foundation & Multi-Instance Auth |
 
-### Documentation tooling
+</details>
+
+### 🛠️ Documentation tooling
 
 README is generated from modular sections:
 
@@ -21,3 +28,9 @@ npm run build --prefix docs/readme
 ```
 
 Source: [`docs/readme/sections/`](docs/readme/sections/) (English) · [`docs/readme/sections.de/`](docs/readme/sections.de/) (German)
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+

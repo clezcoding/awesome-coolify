@@ -1,6 +1,6 @@
 ---
 
-## Contributing
+## 🤝 Contributing
 
 Community OSS — contributions welcome.
 
@@ -12,13 +12,16 @@ Community OSS — contributions welcome.
 
 **v1 priority:** deploy, logs, diagnose, multi-instance — before CRUD.
 
-### Regenerate README
+### 🔄 Regenerate README
 
 ```bash
 npm run build --prefix docs/readme
 ```
 
 This writes both `README.md` (English) and `README.de.md` (German).
+
+<details>
+<summary><b>🎨 View Project Design Assets & Sources Table</b></summary>
 
 ### Assets
 
@@ -34,3 +37,11 @@ This writes both `README.md` (English) and `README.de.md` (German).
 | `assets/logo-legacy.svg` | Previous hand-crafted vector (backup) | manual |
 
 Regenerate Higgsfield assets: see `scripts/fix-higgsfield.sh` and the `higgsfield-generate` skill.
+
+</details>
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🌐 Multi-instance](#multi-instance)
+

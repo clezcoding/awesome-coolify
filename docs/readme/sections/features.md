@@ -1,6 +1,11 @@
 ---
 
-## Features
+## 🛠 Features
+
+Explore the modular, powerful layout of Coolify MCP.
+
+<details>
+<summary><b>🗺️ View Phase-by-Phase Roadmap (v1 — Ops MVP)</b></summary>
 
 ### v1 — Ops MVP (52 requirements · 7 phases)
 
@@ -14,6 +19,11 @@
 | **6** | Safety | Bulk ops, `confirm` gate, secret masking |
 | **7** | Ship | npm publish, docs, client setup guides |
 
+</details>
+
+<details>
+<summary><b>📊 View Capability Matrix (v1 vs v2)</b></summary>
+
 ### Capability matrix
 
 | Area | v1 | v2 |
@@ -26,6 +36,11 @@
 | Teams & cloud tokens | — | ✅ |
 | Backups & scheduled tasks | — | ✅ |
 | Container exec | — | ⏳ API blocked |
+
+</details>
+
+<details>
+<summary><b>🔌 View Domain Tools & Available Actions</b></summary>
 
 ### Domain tools (v1)
 
@@ -41,4 +56,12 @@
 | `project` | `redeploy-all`, `restart-all` |
 | `emergency` | `stop-all-apps` |
 
+</details>
+
 Full catalog: [`mcp_features.md`](mcp_features.md)
+
+---
+
+### 🔗 Quick Links
+[📐 Architecture](#architecture) · [🧬 Tool Schema](#tool-schema) · [🌐 Multi-instance](#multi-instance) · [🔐 Security](#security)
+

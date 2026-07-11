@@ -1,6 +1,6 @@
 ---
 
-## Why Coolify MCP?
+## ❓ Why Coolify MCP?
 
 Three overlapping tools. One confused agent. Maintenance nightmare.
 
@@ -29,6 +29,9 @@ flowchart LR
     style Today fill:#1e1b4b,color:#e9d5ff
 ```
 
+<details>
+<summary><b>📊 View Comparison: Fragmented Today vs. Unified Coolify MCP</b></summary>
+
 | Problem today | Coolify MCP answer |
 |---------------|-------------------|
 | 60+ single-purpose MCP tools | Domain tools + `action` parameter |
@@ -38,5 +41,13 @@ flowchart LR
 | Destructive ops without guardrails | `confirm: true` required |
 | Three docs, three schemas | One README, one source of truth |
 
+</details>
+
 > [!IMPORTANT]
 > **Design principle:** optimize for *agent recovery* and *context efficiency*, not API endpoint parity on day one.
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🧬 Tool Schema](#tool-schema)
+

@@ -1,8 +1,11 @@
 ---
 
-## Multi-instance
+## 🌐 Multi-instance
 
 All instances live in **`~/.coolify-mcp/instances.json`** — portable across MCP clients.
+
+<details>
+<summary><b>⚙️ View Configuration Example (`instances.json`)</b></summary>
 
 ```json
 {
@@ -30,6 +33,11 @@ All instances live in **`~/.coolify-mcp/instances.json`** — portable across MC
 }
 ```
 
+</details>
+
+<details>
+<summary><b>🛠️ View Available Instance Actions</b></summary>
+
 ### Instance actions
 
 | Action | Description |
@@ -43,5 +51,13 @@ All instances live in **`~/.coolify-mcp/instances.json`** — portable across MC
 | `switch` / `use` | Switch active instance |
 | `verify` | Test connection + API version |
 
+</details>
+
 > [!TIP]
 > Per-request **token override** is supported — the override never touches disk.
+
+---
+
+### 🔗 Quick Links
+[⚡ Quick Start](#quick-start) · [🛠 Features](#features) · [📐 Architecture](#architecture) · [🔐 Security](#security)
+

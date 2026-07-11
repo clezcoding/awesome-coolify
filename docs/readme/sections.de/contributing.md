@@ -1,6 +1,6 @@
 ---
 
-## Mitwirken
+## 🤝 Mitwirken
 
 Community-OSS — Beiträge willkommen.
 
@@ -12,13 +12,16 @@ Community-OSS — Beiträge willkommen.
 
 **v1-Priorität:** Deploy, Logs, Diagnose, Multi-Instance — vor CRUD.
 
-### README regenerieren
+### 🔄 README regenerieren
 
 ```bash
 npm run build --prefix docs/readme
 ```
 
 Schreibt sowohl `README.md` (Englisch) als auch `README.de.md` (Deutsch).
+
+<details>
+<summary><b>🎨 Projektdesign-Assets & Quellen anzeigen</b></summary>
 
 ### Assets
 
@@ -34,3 +37,11 @@ Schreibt sowohl `README.md` (Englisch) als auch `README.de.md` (Deutsch).
 | `assets/logo-legacy.svg` | Alter hand-crafted Vektor (Backup) | manuell |
 
 Higgsfield-Assets regenerieren: siehe `scripts/fix-higgsfield.sh` und den `higgsfield-generate`-Skill.
+
+</details>
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance)
+

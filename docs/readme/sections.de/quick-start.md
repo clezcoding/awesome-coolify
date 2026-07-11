@@ -1,19 +1,22 @@
 ---
 
-## Schnellstart
+## 🚀 Schnellstart
 
 > [!NOTE]
 > npm-Paket noch nicht veröffentlicht. Lokales Dev / `npm link` bis Phase 7.
 
-### 1 · Installieren (bald)
+### 1️⃣ Installieren (bald)
 
 ```bash
 npx -y @clezcoding/coolify-mcp
 ```
 
-### 2 · Instanzen konfigurieren
+### 2️⃣ Instanzen konfigurieren
 
-`~/.coolify-mcp/instances.json` anlegen:
+<details>
+<summary><b>⚙️ Klicken, um Konfigurationsanweisungen anzuzeigen (`instances.json`)</b></summary>
+
+Erstelle die Konfigurationsdatei unter `~/.coolify-mcp/instances.json`:
 
 ```json
 {
@@ -31,9 +34,15 @@ npx -y @clezcoding/coolify-mcp
 
 Token holen: **Coolify UI → Keys & Tokens → Create API Token**.
 
-### 3 · Mit MCP-Client verbinden
+</details>
 
-`~/.cursor/mcp.json` (Cursor):
+### 3️⃣ Mit MCP-Client verbinden
+
+<details>
+<summary><b>🔌 Klicken, um Client-Installationsanleitungen anzuzeigen (Cursor, Claude Desktop, etc.)</b></summary>
+
+#### Einrichtung in Cursor
+Füge dies zu `~/.cursor/mcp.json` (Cursor) hinzu:
 
 ```json
 {
@@ -46,16 +55,20 @@ Token holen: **Coolify UI → Keys & Tokens → Create API Token**.
 }
 ```
 
-Für Claude Desktop (macOS) denselben `mcpServers`-Block in
+#### Einrichtung in Claude Desktop
+Für Claude Desktop (macOS) denselben `mcpServers`-Block in:
 `~/Library/Application Support/Claude/claude_desktop_config.json` eintragen.
 
-### 4 · Mit dem Agent reden
+</details>
+
+### 4️⃣ Mit dem Agent reden
 
 Client neu laden, dann fragen:
 
-> *"Verifiziere meine Coolify-Verbindung und liste alle Applications auf Production."*
+> 💬 *"Verifiziere meine Coolify-Verbindung und liste alle Applications auf Production."*
 
-### Lokale Entwicklung
+<details>
+<summary><b>🛠️ Lokale Entwicklung & manuelles Setup</b></summary>
 
 ```json
 {
@@ -68,3 +81,11 @@ Client neu laden, dann fragen:
   }
 }
 ```
+
+</details>
+
+---
+
+### 🔗 Quick Links
+[🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance) · [🔐 Sicherheit](#sicherheit)
+

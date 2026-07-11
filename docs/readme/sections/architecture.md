@@ -1,6 +1,8 @@
 ---
 
-## Architecture
+## 📐 Architecture
+
+Detailed overview of the inner workings of Coolify MCP.
 
 ```mermaid
 flowchart TB
@@ -36,6 +38,13 @@ flowchart TB
     class P,R accent
 ```
 
+### 🧠 Architecture Mindmap
+
+<img src="assets/architecture-mindmap.png" alt="Coolify MCP Server Architecture Mindmap" width="100%" />
+
+<details>
+<summary><b>🗂️ View Layer Responsibilities Table</b></summary>
+
 ### Layer responsibilities
 
 | Layer | Responsibility |
@@ -46,6 +55,11 @@ flowchart TB
 | **HTTP client** | Token injection, exponential backoff |
 | **Formatters** | Summary/full projection, secret masking |
 
+</details>
+
+<details>
+<summary><b>⚙️ View Technical Tech Stack Details</b></summary>
+
 ### Tech stack
 
 | Component | Choice |
@@ -55,3 +69,11 @@ flowchart TB
 | Validation | Zod |
 | Transport | stdio |
 | Distribution | npm (`npx @clezcoding/coolify-mcp`) |
+
+</details>
+
+---
+
+### 🔗 Quick Links
+[🧬 Tool Schema](#tool-schema) · [🌐 Multi-instance](#multi-instance) · [🔐 Security](#security) · [📅 Roadmap](#roadmap)
+

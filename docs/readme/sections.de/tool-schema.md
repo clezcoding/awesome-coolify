@@ -1,8 +1,11 @@
 ---
 
-## Tool-Schema
+## 🧬 Tool-Schema
 
 Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** mit einem **`action`**-Feld.
+
+<details>
+<summary><b>🔄 Legacy-Pattern vs. Coolify MCP Entwurfsmuster anzeigen</b></summary>
 
 ### Vorher vs nachher
 
@@ -39,10 +42,12 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </tr>
 </table>
 
+</details>
+
 ### Beispiele
 
 <details>
-<summary><strong>Deploy mit Wait-Mode</strong></summary>
+<summary><strong>🚀 Deploy mit Wait-Mode</strong></summary>
 
 ```json
 {
@@ -60,7 +65,7 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </details>
 
 <details>
-<summary><strong>Diagnose nach Domäne</strong></summary>
+<summary><strong>🔍 Diagnose nach Domäne</strong></summary>
 
 ```json
 {
@@ -76,7 +81,7 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </details>
 
 <details>
-<summary><strong>Globaler Issue-Scan</strong></summary>
+<summary><strong>⚠️ Globaler Issue-Scan</strong></summary>
 
 ```json
 {
@@ -88,7 +93,7 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 </details>
 
 <details>
-<summary><strong>Strukturierte Error-Response</strong></summary>
+<summary><strong>🧱 Strukturierte Error-Response</strong></summary>
 
 ```json
 {
@@ -106,3 +111,9 @@ Statt **60+ granularer Tools** gruppt Coolify MCP Operationen nach **Domäne** m
 ```
 
 </details>
+
+---
+
+### 🔗 Quick Links
+[⚡ Schnellstart](#schnellstart) · [🛠 Features](#features) · [📐 Architektur](#architektur) · [🌐 Multi-Instance](#multi-instance)
+
