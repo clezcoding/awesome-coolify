@@ -138,11 +138,26 @@ Plans:
   5. Agent cancels in-flight deployment
   6. Agent deploys by resource name, batch-deploys comma-separated UUIDs or tags; deployment responses include `logs_available` hint without inline log bloat
 
-**Plans:** TBD
+**Plans:** 5 plans
 
 Plans:
 
-- [ ] 04-01: TBD
+**Wave 1**
+
+- [x] 04-01-PLAN.md — App lifecycle (start/stop/restart) + COOLIFY_AMBIGUOUS_MATCH + strict mutation resolver (APP-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — Single deploy + force + wait-mode polling + logs_available hint (APP-04, APP-05, APP-06, DEP-01, DEP-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-03-PLAN.md — deployment tool: list/get/cancel with graceful 400 (APP-07, APP-08, APP-09)
+- [ ] 04-04-PLAN.md — Batch deploy by uuids/tags with sequential best-effort wait (DEP-02, DEP-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 04-05-PLAN.md — Integration sign-off: deploy-flow.test.ts + VALIDATION.md + build green (APP-03–09, DEP-01–03)
 
 ### Phase 5: Logs & Service/DB Ops
 
@@ -213,7 +228,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Foundation & Multi-Instance Auth | 5/5 | Complete    | 2026-07-12 |
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
-| 4. App Deploy Lifecycle | 0/TBD | Not started | - |
+| 4. App Deploy Lifecycle | 0/5 | Planned | - |
 | 5. Logs & Service/DB Ops | 0/TBD | Not started | - |
 | 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |
 | 7. Distribution & Docs | 0/TBD | Not started | - |

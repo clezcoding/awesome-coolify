@@ -107,7 +107,7 @@ Each task was committed atomically:
 1. **Task 1: COOLIFY_AMBIGUOUS_MATCH + client helpers + RED tests** - `19b74b5` (test)
 2. **Task 2: Schema + resolver + handler + server annotation** - `ba20368` (feat)
 
-**Plan metadata:** pending (this commit)
+**Plan metadata:** `910683e` (docs: complete plan)
 
 ## Files Created/Modified
 

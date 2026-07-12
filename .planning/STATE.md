@@ -4,16 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 4
 current_phase_name: App Deploy Lifecycle
-status: "Phase 03 shipped — PR #4"
-stopped_at: Completed 03-07-PLAN.md
-last_updated: "2026-07-12T21:26:08.722Z"
-last_activity: 2026-07-12
+status: "Phase 04 plan 01 complete — Wave 2 ready (04-02 deploy)"
+stopped_at: Phase 4 plan 01 complete
+last_updated: "2026-07-13T00:00:00.000Z"
+last_activity: 2026-07-13
+last_activity_desc: Phase 04-01 complete — app lifecycle start/stop/restart (APP-03)
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 17
-  completed_plans: 17
-  percent: 43
+  total_plans: 22
+  completed_plans: 18
+  percent: 46
 ---
 
 # Project State
@@ -23,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** AI agent manages multiple self-hosted Coolify instances — deploy, logs, diagnose — via one MCP server.
-**Current focus:** Phase 03 — Diagnose & Issue Scan
+**Current focus:** Phase 04 — App Deploy Lifecycle (planned)
 
 ## Current Position
 
 Phase: 4 — App Deploy Lifecycle
-Plan: Not started
-Status: Phase 03 shipped — PR #4
-Last activity: 2026-07-12
+Plan: 04-02 next (Wave 2 — single deploy + wait-mode)
+Status: Phase 04 plan 01 complete — Wave 2 ready (04-02 deploy)
+Last activity: 2026-07-13 — Phase 04-01 complete — app lifecycle start/stop/restart (APP-03)
 
-Progress: [████████████████████] 17/17 plans (100%)
+Progress: [█████████████████████░░░░] 18/22 plans
 
 ## Performance Metrics
 
@@ -96,6 +97,11 @@ Progress: [████████████████████] 17/17 p
 - [Phase 03-diagnose-issue-scan]: tsc --noEmit has pre-existing errors predating Phase 3 — npm run build (tsup) is green sign-off gate
 - [Phase 03-diagnose-issue-scan]: toolOutputSchema must declare _meta/_formattedText/_size_warning matching ReadResponse — JSON Schema additionalProperties:false caused live MCP -32602 when _meta omitted (03-07)
 - [Phase 03-diagnose-issue-scan]: MCP schema regression via child-process test + z.toJSONSchema key parity — in-process SDK validation alone strips unknown keys without failing (03-07)
+- [Phase 04-app-deploy-lifecycle]: COOLIFY_AMBIGUOUS_MATCH error on mutation multi-match — NO mutation executes; ranked Top 10 in recoveryHints (D-16)
+- [Phase 04-app-deploy-lifecycle]: Strict mutation identifier uuid|name|fqdn only — no fuzzy query on start/stop/restart/deploy (D-15)
+- [Phase 04-app-deploy-lifecycle]: application tool drops readOnlyHint — openWorldHint only for mutating lifecycle (D-05)
+- [Phase 04-app-deploy-lifecycle]: restart schema .strict() rejects force param — deploy-only rebuild flag (D-22)
+- [Phase 04-app-deploy-lifecycle]: resolveAppMutationUuid colocated in application.ts — reuse by 04-02 deploy and 04-04 batch
 
 ### Pending Todos
 
@@ -108,6 +114,6 @@ Progress: [████████████████████] 17/17 p
 
 ## Session Continuity
 
-Last session: 2026-07-12T20:40:38.286Z
-Stopped at: Completed 03-07-PLAN.md
-Resume file: None
+Last session: 2026-07-13T00:00:00.000Z
+Stopped at: Phase 4 plan 01 complete
+Resume file: .planning/phases/04-app-deploy-lifecycle/04-02-PLAN.md
