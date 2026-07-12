@@ -36,12 +36,12 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
   5. API failures return structured codes (401, 404, 422, 500) with recovery hints; transient errors retry with exponential backoff
   6. Domain tools register as action-based handlers (e.g. `application({ action: 'list' })`) with Zod-validated inputs — not 60+ granular tools
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Walking skeleton: scaffold, MCP stdio, system health
+- [x] 01-01-PLAN.md — Walking skeleton: scaffold, MCP stdio, system health
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -186,7 +186,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Multi-Instance Auth | 0/5 | Not started | - |
+| 1. Foundation & Multi-Instance Auth | 1/5 | In Progress|  |
 | 2. Discovery & Read Projections | 0/TBD | Not started | - |
 | 3. Diagnose & Issue Scan | 0/TBD | Not started | - |
 | 4. App Deploy Lifecycle | 0/TBD | Not started | - |
