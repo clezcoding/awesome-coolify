@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "coolify": {
+      "command": "node",
+      "args": ["./dist/index.js"],
+      "env": {
+        "COOLIFY_URL": "https://coolify.example.com",
+        "COOLIFY_TOKEN": "YOUR_API_TOKEN_HERE",
+        "COOLIFY_MCP_LOG": "info"
+      }
+    }
+  }
+}
