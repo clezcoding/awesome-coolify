@@ -1,5 +1,12 @@
 import https from 'node:https';
 import { ofetch } from 'ofetch';
+import {
+  CoolifyApiError,
+  mapApiError,
+  toStructuredError,
+} from '../utils/errors.js';
+
+const MAX_RETRIES = 3;
 
 function createFetchOptions(token: string, verifySsl: boolean) {
   return {
@@ -15,15 +22,55 @@ function createFetchOptions(token: string, verifySsl: boolean) {
   };
 }
 
+function createRetryOptions(token: string, verifySsl: boolean) {
+  return {
+    retry: MAX_RETRIES,
+    retryDelay: (context: { options: { retry?: number } }) =>
+      1000 * 2 ** (MAX_RETRIES - (context.options.retry ?? 0)),
+    retryStatusCodes: [429, 500, 502, 503, 504],
+    ...createFetchOptions(token, verifySsl),
+    onResponseError({
+      response,
+    }: {
+      response: { status: number };
+    }) {
+      mapApiError(null, response.status);
+    },
+    onRequestError({ error }: { error: unknown }) {
+      mapApiError(error);
+    },
+  };
+}
+
+function withMappedErrors<T extends (...args: never[]) => Promise<unknown>>(
+  fn: T,
+): T {
+  return (async (...args: Parameters<T>) => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      throw new CoolifyApiError(toStructuredError(error));
+    }
+  }) as T;
+}
+
+export function createAuthenticatedFetch(token: string, verifySsl = true) {
+  return withMappedErrors(
+    ofetch.create(createRetryOptions(token, verifySsl)),
+  );
+}
+
 export function createCoolifyClient(
   url: string,
   token: string,
   verifySsl = true,
 ) {
-  return ofetch.create({
-    baseURL: `${url.replace(/\/$/, '')}/api/v1`,
-    ...createFetchOptions(token, verifySsl),
-  });
+  return withMappedErrors(
+    ofetch.create({
+      baseURL: `${url.replace(/\/$/, '')}/api/v1`,
+      ...createRetryOptions(token, verifySsl),
+    }),
+  );
 }
 
 export async function fetchHealth(
@@ -32,8 +79,7 @@ export async function fetchHealth(
   verifySsl = true,
 ): Promise<void> {
   const baseUrl = url.replace(/\/$/, '');
-  const options = createFetchOptions(token, verifySsl);
-  const rawFetch = ofetch.create(options);
+  const rawFetch = createAuthenticatedFetch(token, verifySsl);
 
   try {
     await rawFetch(`${baseUrl}/api/health`, { method: 'GET' });
@@ -41,3 +87,5 @@ export async function fetchHealth(
     await rawFetch(`${baseUrl}/api/v1/version`, { method: 'GET' });
   }
 }
+
+export { createRetryOptions, createFetchOptions };
