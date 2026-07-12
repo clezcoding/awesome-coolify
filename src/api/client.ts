@@ -5,6 +5,7 @@ import {
   mapApiError,
   toStructuredError,
 } from '../utils/errors.js';
+import { redactSecrets } from '../utils/redact.js';
 
 const MAX_RETRIES = 3;
 
@@ -37,6 +38,9 @@ function createRetryOptions(token: string, verifySsl: boolean) {
       mapApiError(null, response.status);
     },
     onRequestError({ error }: { error: unknown }) {
+      if (error instanceof Error) {
+        error.message = redactSecrets(error.message);
+      }
       mapApiError(error);
     },
   };
@@ -86,6 +90,15 @@ export async function fetchHealth(
   } catch {
     await rawFetch(`${baseUrl}/api/v1/version`, { method: 'GET' });
   }
+}
+
+export async function fetchVersion(
+  url: string,
+  token: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/version');
 }
 
 export { createRetryOptions, createFetchOptions };

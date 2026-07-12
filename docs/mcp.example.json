@@ -5,7 +5,8 @@
       "args": ["./dist/index.js"],
       "env": {
         "COOLIFY_URL": "https://coolify.example.com",
-        "COOLIFY_TOKEN": "YOUR_API_TOKEN_HERE",
+        "COOLIFY_TOKEN": "YOUR_COOLIFY_API_TOKEN",
+        "COOLIFY_VERIFY_SSL": "true",
         "COOLIFY_MCP_LOG": "info"
       }
     }

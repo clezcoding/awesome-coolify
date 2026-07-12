@@ -1,3 +1,5 @@
+import { redactSecrets } from './redact.js';
+
 export type CoolifyErrorCode =
   | 'COOLIFY_401'
   | 'COOLIFY_404'
@@ -50,10 +52,10 @@ const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   ],
 };
 
+import { redactSecrets } from './redact.js';
+
 function sanitizeMessage(message: string): string {
-  return message
-    .replace(/Bearer\s+[a-zA-Z0-9\-_.]+/gi, 'Bearer ***')
-    .replace(/Authorization:\s*Bearer\s+[a-zA-Z0-9\-_.]+/gi, 'Authorization: Bearer ***');
+  return redactSecrets(message);
 }
 
 function statusToCode(status: number): CoolifyErrorCode {
@@ -148,7 +150,12 @@ export interface McpErrorResult {
 }
 
 export function wrapMcpError(error: unknown): McpErrorResult {
-  const envelope = toStructuredError(error);
+  const raw = toStructuredError(error);
+  const envelope: CoolifyErrorEnvelope = {
+    ...raw,
+    message: redactSecrets(raw.message),
+    recoveryHints: raw.recoveryHints.map((hint) => redactSecrets(hint)),
+  };
   return {
     isError: true,
     content: [{ type: 'text', text: JSON.stringify(envelope, null, 2) }],

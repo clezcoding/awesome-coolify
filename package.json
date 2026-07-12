@@ -10,8 +10,12 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
+    "prepare": "npm run build",
     "higgsfield:fix": "bash scripts/fix-higgsfield.sh"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0-beta.3",
     "ofetch": "^1.4.0",

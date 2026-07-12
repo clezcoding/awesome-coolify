@@ -1,7 +1,38 @@
+# OS
 .DS_Store
+
+# Dependencies
 node_modules/
 docs/readme/node_modules/
+
+# Build
 dist/
+
+# Environment & secrets
 .env
 .env.*
+.coolify-mcp/
+
+# Local IDE / MCP (tokens, personal settings)
+.cursor/mcp.json
+.cursor/settings.json
+
+# Local cursor rules
+.cursor/rules/caveman-activate-md.mdc
+.cursor/rules/specialized-mcp-builder.mdc
+
+# Local agent tooling (installed skills cache)
+.agents/
+skills-lock.json
+
+# GSD planning workflow (local only)
+.planning/
+
+# Generated analysis
 graphify-out/
+
+# Test artifacts
+coverage/
+
+# Local MCP integration smoke test (uses live credentials)
+scripts/test-mcp-stdio.mjs
