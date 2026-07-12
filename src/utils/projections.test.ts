@@ -4,6 +4,8 @@ import {
   projectApplicationSummary,
   projectServiceSummary,
   projectDatabaseSummary,
+  projectDeploymentSummary,
+  projectDeploymentFull,
   sanitizeFullProjection,
   resolveProjection,
   projectAppDiagnose,
@@ -328,5 +330,76 @@ describe('projectScanIssue', () => {
       hint,
     };
     expect(projectScanIssue(issue)).toEqual(issue);
+  });
+});
+
+describe('projectDeploymentSummary', () => {
+  it('extracts deployment fields with coalescing', () => {
+    const raw = {
+      id: 'dep-fallback',
+      deployment_uuid: 'dep-uuid-1',
+      git_commit_sha: 'sha-abc',
+      status: 'finished',
+      created_at: '2026-07-01T00:00:00Z',
+      finished_at: '2026-07-01T00:05:00Z',
+    };
+    expect(projectDeploymentSummary(raw)).toEqual({
+      deployment_uuid: 'dep-uuid-1',
+      commit: 'sha-abc',
+      status: 'finished',
+      created_at: '2026-07-01T00:00:00Z',
+      finished_at: '2026-07-01T00:05:00Z',
+    });
+  });
+
+  it('falls back commit from commit and finished_at from updated_at', () => {
+    const raw = {
+      deployment_uuid: 'dep-2',
+      commit: 'legacy-sha',
+      status: 'in_progress',
+      created_at: '2026-07-02T00:00:00Z',
+      updated_at: '2026-07-02T00:01:00Z',
+    };
+    expect(projectDeploymentSummary(raw)).toEqual({
+      deployment_uuid: 'dep-2',
+      commit: 'legacy-sha',
+      status: 'in_progress',
+      created_at: '2026-07-02T00:00:00Z',
+      finished_at: '2026-07-02T00:01:00Z',
+    });
+  });
+});
+
+describe('projectDeploymentFull', () => {
+  it('returns summary fields plus capped logs and sanitized raw_deployment', () => {
+    const longLogs = 'x'.repeat(200);
+    const raw = {
+      deployment_uuid: 'dep-uuid-1',
+      git_commit_sha: 'abc',
+      status: 'finished',
+      created_at: '2026-07-01T00:00:00Z',
+      finished_at: '2026-07-01T00:05:00Z',
+      logs: longLogs,
+      password: 'secret',
+      token: 'tok',
+    };
+    const full = projectDeploymentFull(raw, 50);
+    expect(full.deployment_uuid).toBe('dep-uuid-1');
+    expect(full.commit).toBe('abc');
+    expect(full.logs).toBe('x'.repeat(50) + '…[truncated]');
+    const rawDep = full.raw_deployment as Record<string, unknown>;
+    expect(rawDep.password).toBe('***');
+    expect(rawDep.token).toBe('***');
+    expect(full).not.toHaveProperty('password');
+  });
+
+  it('omits logs when raw.logs is not a string', () => {
+    const full = projectDeploymentFull({
+      deployment_uuid: 'dep-1',
+      status: 'queued',
+      logs: null,
+    });
+    expect(full).not.toHaveProperty('logs');
+    expect(full.raw_deployment).toBeDefined();
   });
 });

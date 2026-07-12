@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateHints, type FollowUpHint } from './diagnose-hints.js';
+import { generateHints, logsAvailableHint, type FollowUpHint } from './diagnose-hints.js';
 
 function findHint(
   hints: FollowUpHint[],
@@ -89,5 +89,30 @@ describe('generateHints', () => {
       expect(hint).toHaveProperty('label');
       expect(hint).toHaveProperty('available_in_phase');
     }
+  });
+});
+
+describe('logsAvailableHint', () => {
+  it('returns D-19 FollowUpHint shape for deployment_uuid', () => {
+    const hint = logsAvailableHint('dep-123');
+    expect(hint).toEqual({
+      tool: 'application',
+      action: 'logs',
+      args: { deployment_uuid: 'dep-123' },
+      label: 'View build logs',
+      available_in_phase: 5,
+    });
+  });
+
+  it('satisfies FollowUpHint interface with no extra keys', () => {
+    const hint = logsAvailableHint('dep-uuid-123');
+    const keys = Object.keys(hint).sort();
+    expect(keys).toEqual([
+      'action',
+      'args',
+      'available_in_phase',
+      'label',
+      'tool',
+    ]);
   });
 });

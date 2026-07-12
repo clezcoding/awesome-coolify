@@ -6,9 +6,11 @@ import {
   fetchProjects,
   fetchResources,
   fetchServers,
+  fetchDeployment,
   triggerAppRestart,
   triggerAppStart,
   triggerAppStop,
+  triggerDeploy,
 } from './client.js';
 import { CoolifyApiError } from '../utils/errors.js';
 
@@ -235,5 +237,85 @@ describe('triggerAppStart triggerAppStop triggerAppRestart', () => {
     await expect(
       triggerAppStart('https://coolify.example.com', 'test-token', 'missing'),
     ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('triggerDeploy fetchDeployment', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('triggerDeploy POST /deploy?uuid=&force=false', async () => {
+    const deployResp = {
+      deployments: [
+        {
+          deployment_uuid: 'dep-uuid-1',
+          resource_uuid: 'app-uuid-1',
+          message: 'queued',
+        },
+      ],
+    };
+    fetchMock.mockResolvedValueOnce(
+      Response.json(deployResp, { status: 200 }),
+    );
+
+    const result = await triggerDeploy(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      false,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/deploy');
+    expect(url).toContain('uuid=app-uuid-1');
+    expect(url).toContain('force=false');
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+    expect(result).toEqual(deployResp);
+  });
+
+  it('triggerDeploy passes force=true in query', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ deployments: [] }, { status: 200 }),
+    );
+
+    await triggerDeploy(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      true,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('force=true');
+  });
+
+  it('fetchDeployment GET /deployments/{uuid}', async () => {
+    const deployment = {
+      deployment_uuid: 'dep-uuid-1',
+      status: 'in_progress',
+    };
+    fetchMock.mockResolvedValueOnce(
+      Response.json(deployment, { status: 200 }),
+    );
+
+    const result = await fetchDeployment(
+      'https://coolify.example.com',
+      'test-token',
+      'dep-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/deployments/dep-uuid-1',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('GET');
+    expect(result).toEqual(deployment);
   });
 });

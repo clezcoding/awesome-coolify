@@ -238,6 +238,12 @@ function countByStatus(
 }
 
 function mapDeployment(raw: Record<string, unknown>): DeploymentSummary {
+  return projectDeploymentSummary(raw);
+}
+
+export function projectDeploymentSummary(
+  raw: Record<string, unknown>,
+): DeploymentSummary {
   return {
     deployment_uuid: String(raw.deployment_uuid ?? raw.id ?? ''),
     commit: String(raw.git_commit_sha ?? raw.commit ?? ''),
@@ -247,9 +253,24 @@ function mapDeployment(raw: Record<string, unknown>): DeploymentSummary {
   };
 }
 
-function truncateLogs(logs: string, maxChars: number): string {
+export function truncateLogs(logs: string, maxChars: number): string {
   if (logs.length <= maxChars) return logs;
   return logs.slice(0, maxChars) + '…[truncated]';
+}
+
+export function projectDeploymentFull(
+  raw: Record<string, unknown>,
+  maxChars = 16000,
+): DeploymentSummary & { logs?: string; raw_deployment: unknown } {
+  const summary = projectDeploymentSummary(raw);
+  const logs = raw.logs;
+  return {
+    ...summary,
+    ...(typeof logs === 'string'
+      ? { logs: truncateLogs(logs, maxChars) }
+      : {}),
+    raw_deployment: sanitizeFullProjection(raw),
+  };
 }
 
 export function projectAppDiagnose(

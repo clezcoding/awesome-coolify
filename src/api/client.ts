@@ -257,4 +257,25 @@ export async function triggerAppRestart(
   return client(`/applications/${uuid}/restart`, { method: 'POST' });
 }
 
+export async function triggerDeploy(
+  url: string,
+  token: string,
+  uuid: string,
+  force = false,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/deploy', { method: 'POST', query: { uuid, force } });
+}
+
+export async function fetchDeployment(
+  url: string,
+  token: string,
+  deploymentUuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/deployments/${deploymentUuid}`, { method: 'GET' });
+}
+
 export { createRetryOptions, createFetchOptions };

@@ -128,3 +128,13 @@ export function generateHints(
 
   return hints;
 }
+
+export function logsAvailableHint(deployment_uuid: string): FollowUpHint {
+  return {
+    tool: 'application',
+    action: 'logs',
+    args: { deployment_uuid },
+    label: 'View build logs',
+    available_in_phase: 5,
+  };
+}
