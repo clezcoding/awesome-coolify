@@ -13,6 +13,7 @@ import {
   rejectTableFormatOnFullProjection,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
+import { generateHints } from '../../utils/diagnose-hints.js';
 
 export const serviceActionSchema = z.discriminatedUnion('action', [
   z.object({
@@ -54,10 +55,20 @@ export async function handleServiceAction(
       env.COOLIFY_VERIFY_SSL,
     );
 
+    const rawRecord = isRecord(raw) ? raw : {};
+    const hints = generateHints(
+      'service',
+      parsed.uuid,
+      String(rawRecord.status ?? 'unknown'),
+      rawRecord.health_check_status !== undefined
+        ? String(rawRecord.health_check_status)
+        : undefined,
+    );
+
     const data =
       projection === 'full'
-        ? sanitizeFullProjection(raw)
-        : projectServiceSummary(isRecord(raw) ? raw : {});
+        ? { ...(sanitizeFullProjection(raw) as Record<string, unknown>), hints }
+        : { ...projectServiceSummary(rawRecord), hints };
 
     return buildReadResponse(data, {
       format: parsed.format,

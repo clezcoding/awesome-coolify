@@ -8,18 +8,56 @@ import { applicationActionSchema } from './tools/application.js';
 import { serviceActionSchema } from './tools/service.js';
 import { databaseActionSchema } from './tools/database.js';
 import { docsActionSchema } from './tools/docs.js';
+import { diagnoseToolSchema } from './tools/diagnose.js';
+import { toolOutputSchema } from './server.js';
+
+describe('toolOutputSchema', () => {
+  it('accepts ReadResponse-shaped structuredContent with _meta', () => {
+    const result = toolOutputSchema.safeParse({
+      ok: true,
+      data: { critical: [], high: [], info: [] },
+      _meta: {
+        truncated: false,
+        chars: 100,
+        max_chars: 10000,
+        page: 1,
+        per_page: 10,
+        total: 0,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts minimal _meta without pagination fields', () => {
+    const result = toolOutputSchema.safeParse({
+      ok: true,
+      data: {},
+      _meta: { truncated: false, chars: 0, max_chars: 10000 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts error path without _meta', () => {
+    const result = toolOutputSchema.safeParse({
+      ok: false,
+      error: { code: 'COOLIFY_422', message: 'Invalid projection' },
+    });
+    expect(result.success).toBe(true);
+  });
+});
 
 describe('MCP server tool registration', () => {
-  it('registers system meta resource application service database and docs tools', () => {
+  it('registers system meta resource diagnose application service database and docs tools', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(7);
+    expect(matches.length).toBe(8);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
+    expect(source).toContain("registerTool(\n    'diagnose'");
     expect(source).toContain("registerTool(\n    'application'");
     expect(source).toContain("registerTool(\n    'service'");
     expect(source).toContain("registerTool(\n    'database'");
@@ -48,6 +86,25 @@ describe('MCP server tool registration', () => {
     expect(docsActionSchema.safeParse({ action: 'invalid' }).success).toBe(
       false,
     );
+    expect(
+      diagnoseToolSchema.safeParse({ action: 'invalid' }).success,
+    ).toBe(false);
+  });
+
+  it('diagnose tool has openWorldHint without readOnlyHint per D-10', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/mcp/server.ts'),
+      'utf8',
+    );
+    expect(source).toContain("registerTool(\n    'diagnose'");
+    expect(source).toMatch(/'diagnose'[\s\S]*openWorldHint:\s*true/);
+    expect(source).toMatch(/'diagnose'[\s\S]*validate/);
+    expect(source).toMatch(/'diagnose'[\s\S]*side-effect/);
+    const diagnoseBlock = source.slice(
+      source.indexOf("registerTool(\n    'diagnose'"),
+      source.indexOf("registerTool(\n    'application'"),
+    );
+    expect(diagnoseBlock).not.toMatch(/readOnlyHint:\s*true/);
   });
 
   it('registers read tools with readOnlyHint true per D-22', () => {

@@ -107,4 +107,43 @@ describe('handleDatabaseAction get', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_422');
     expect(fetchDatabase).not.toHaveBeenCalled();
   });
+
+  it('includes start hint for stopped database per OUT-06 D-16', async () => {
+    vi.mocked(fetchDatabase).mockResolvedValue({
+      ...mockDatabase,
+      status: 'exited:0',
+    });
+
+    const result = await handleDatabaseAction(
+      { action: 'get', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.hints)).toBe(true);
+    const hints = data.hints as Array<Record<string, unknown>>;
+    expect(hints.some((h) => h.action === 'start' && h.available_in_phase === 5)).toBe(
+      true,
+    );
+    expect(result.data).toMatchObject({
+      uuid: 'db-uuid-1',
+      name: 'postgres',
+    });
+  });
+
+  it('returns empty hints for healthy running database', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'get', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.hints).toEqual([]);
+  });
 });

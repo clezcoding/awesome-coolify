@@ -40,13 +40,13 @@ export type ResourceActionResult =
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const FIND_MATCH_CAP = 10;
+export const FIND_MATCH_CAP = 10;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function projectServerSummary(raw: Record<string, unknown>): FindableResource {
+export function projectServerSummary(raw: Record<string, unknown>): FindableResource {
   const reachable = (raw.settings as { is_reachable?: boolean } | undefined)
     ?.is_reachable;
   const ip = String(raw.ip ?? '');
@@ -63,7 +63,7 @@ function projectServerSummary(raw: Record<string, unknown>): FindableResource {
   };
 }
 
-function matchesQuery(item: FindableResource, query: string): boolean {
+export function matchesQuery(item: FindableResource, query: string): boolean {
   const q = query.toLowerCase();
   return (
     item.uuid.toLowerCase() === q ||
@@ -72,7 +72,7 @@ function matchesQuery(item: FindableResource, query: string): boolean {
   );
 }
 
-function matchesExplicitFields(
+export function matchesExplicitFields(
   item: FindableResource,
   fields: {
     uuid?: string;
@@ -152,7 +152,7 @@ function relevanceScore(
   return 0;
 }
 
-function rankFindMatches(
+export function rankFindMatches(
   matches: FindableResource[],
   searchTerms: {
     query?: string;

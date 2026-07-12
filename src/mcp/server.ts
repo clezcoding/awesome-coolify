@@ -38,6 +38,11 @@ import {
   handleDocsAction,
   docsActionSchema,
 } from './tools/docs.js';
+import {
+  handleDiagnoseAction,
+  isDiagnoseErrorResult,
+  diagnoseToolSchema,
+} from './tools/diagnose.js';
 
 function isInfrastructureOverviewResult(
   result: unknown,
@@ -63,6 +68,18 @@ export const toolOutputSchema = z.object({
       hint: z.string().optional(),
     })
     .optional(),
+  _meta: z
+    .object({
+      truncated: z.boolean(),
+      chars: z.number(),
+      max_chars: z.number(),
+      page: z.number().optional(),
+      per_page: z.number().optional(),
+      total: z.number().optional(),
+    })
+    .optional(),
+  _formattedText: z.string().optional(),
+  _size_warning: z.string().optional(),
 });
 
 export function registerCoolifyTools(
@@ -135,6 +152,37 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleResourceAction(args, env);
       if (isResourceErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'diagnose',
+    {
+      description:
+        'Synthesizes diagnose views for applications and servers, or runs a global fleet scan. Server action triggers validate with a non-blocking side-effect (D-10).',
+      inputSchema: diagnoseToolSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleDiagnoseAction(args, env);
+      if (isDiagnoseErrorResult(result)) {
         return {
           ...result,
           structuredContent: {

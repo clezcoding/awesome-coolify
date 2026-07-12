@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 3
-current_phase_name: Diagnose & Issue Scan
-status: "Phase 1 + Phase 2 merged to main — PR #1, PR #3"
-stopped_at: Phase 02 complete, ready to plan Phase 3
-last_updated: "2026-07-12T03:12:46.986Z"
+current_phase: 4
+current_phase_name: App Deploy Lifecycle
+status: "Phase 03 shipped — PR #4"
+stopped_at: Completed 03-07-PLAN.md
+last_updated: "2026-07-12T21:26:08.722Z"
 last_activity: 2026-07-12
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 29
+  completed_phases: 3
+  total_plans: 17
+  completed_plans: 17
+  percent: 43
 ---
 
 # Project State
@@ -27,18 +27,18 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 
 ## Current Position
 
-Phase: 3 — Diagnose & Issue Scan
+Phase: 4 — App Deploy Lifecycle
 Plan: Not started
-Status: Phase 1 + Phase 2 merged to main — PR #1, PR #3
+Status: Phase 03 shipped — PR #4
 Last activity: 2026-07-12
 
-Progress: [████████████████████] 10/10 plans (100%)
+Progress: [████████████████████] 17/17 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 12
+- Total plans completed: 33
 - Average duration: —
 - Total execution time: —
 
@@ -54,6 +54,14 @@ Progress: [████████████████████] 10/10 p
 | Phase 02-discovery-read-projections P04 | 3min | 3 tasks | 6 files |
 | Phase 02-discovery-read-projections P05 | 5 | 3 tasks | 5 files |
 | 02 | 5 | - | - |
+| Phase 03 P01 | 5min | 4 tasks | 13 files |
+| Phase 03 P02 | 8 | 2 tasks | 4 files |
+| Phase 03 P03 | 6 | 1 tasks | 2 files |
+| Phase 03 P04 | 8min | 1 tasks | 2 files |
+| Phase 03 P05 | 5min | 1 tasks | 6 files |
+| Phase 03 P06 | 5min | 2 tasks | 5 files |
+| Phase 03 P07 | 8min | 3 tasks | 5 files |
+| 03 | 7 | - | - |
 
 ## Accumulated Context
 
@@ -74,6 +82,20 @@ Progress: [████████████████████] 10/10 p
 - [Phase 02-discovery-read-projections]: docs tool uses static DOCS_INDEX not live API fetch per D-03 — Curated troubleshooting catalog avoids external fetch attack surface
 - [Phase 02-discovery-read-projections]: docs.search empty results preserve notice via buildReadResponse with data: [] — Uniform envelope without losing no-results UX from 02-04
 - [Phase 02-discovery-read-projections]: system infrastructure_overview structuredContent splits data and _meta like domain tools — Consistent _meta exposure for agent truncation recovery per D-12 D-14
+- [Phase 03-diagnose-issue-scan]: Diagnose projectors in projections.ts not separate file — CONTEXT.md wins over RESEARCH.md file placement
+- [Phase 03-diagnose-issue-scan]: fetchServer base in 03-01 — 03-03 server handler does not add conditionally
+- [Phase 03-diagnose-issue-scan]: 03-01 Wave 1 foundation only — handleDiagnoseAction not-implemented; first vertical slice in 03-02
+- [Phase 03-diagnose-issue-scan]: Inline test mocks in diagnose.test.ts avoid tsc rootDir fixture import — tests/fixtures outside src/ triggers TS6059; inline mocks match application.test.ts pattern
+- [Phase 03-diagnose-issue-scan]: First agent-callable diagnose vertical slice shipped in 03-02 (SYS-04 app only) — server/scan remain stubs until 03-03/03-04 per wave plan
+- [Phase 03-diagnose-issue-scan]: Server diagnose shipped in 03-03 (SYS-05) — 4-way Promise.allSettled, trigger_validate default true, scan remains stub until 03-04
+- [Phase 03-diagnose-issue-scan]: Reachable server hints[] empty — generateHints server branch only emits hints for unreachable status
+- [Phase 03-diagnose-issue-scan]: Global issue scan shipped in 03-04 (SYS-03) — 2-call enumeration, all 3 diagnose branches complete — Promise.all fetchServers+fetchResources; classifyIssues severity buckets; scan was last stub
+- [Phase 03-diagnose-issue-scan]: Scan pagination meta only — full severity buckets in data — paginateArray drives _meta page/per_page/total; bucket content not sliced per page
+- [Phase 03-diagnose-issue-scan]: P2 get handlers attach hints at handler level after projection — projectors unchanged per D-16 additive retrofit; generateHints single source for get and diagnose
+- [Phase 03-diagnose-issue-scan]: Handler-level integration only for diagnose-flow — real MCP stdio E2E MANUAL-ONLY per P1 01-05 pattern
+- [Phase 03-diagnose-issue-scan]: tsc --noEmit has pre-existing errors predating Phase 3 — npm run build (tsup) is green sign-off gate
+- [Phase 03-diagnose-issue-scan]: toolOutputSchema must declare _meta/_formattedText/_size_warning matching ReadResponse — JSON Schema additionalProperties:false caused live MCP -32602 when _meta omitted (03-07)
+- [Phase 03-diagnose-issue-scan]: MCP schema regression via child-process test + z.toJSONSchema key parity — in-process SDK validation alone strips unknown keys without failing (03-07)
 
 ### Pending Todos
 
@@ -86,6 +108,6 @@ Progress: [████████████████████] 10/10 p
 
 ## Session Continuity
 
-Last session: 2026-07-12T02:56:00.000Z
-Stopped at: Phase 02 complete, ready to plan Phase 3
+Last session: 2026-07-12T20:40:38.286Z
+Stopped at: Completed 03-07-PLAN.md
 Resume file: None

@@ -19,9 +19,9 @@
 
 - [x] **SYS-01**: Agent kann Infrastructure-Overview abrufen (Counts: servers, projects, apps, databases, services)
 - [x] **SYS-02**: Agent kann alle Resources unified listen (apps + DBs + services)
-- [ ] **SYS-03**: Agent kann Global Issue-Scan ausführen (unhealthy apps/DBs/services, unreachable servers)
-- [ ] **SYS-04**: Agent kann App-Diagnose per UUID, Name oder Domain (Status, Health, Env-Count, recent deployments)
-- [ ] **SYS-05**: Agent kann Server-Diagnose per UUID, Name oder IP (Resources, Domains, Validation)
+- [x] **SYS-03**: Agent kann Global Issue-Scan ausführen (unhealthy apps/DBs/services, unreachable servers)
+- [x] **SYS-04**: Agent kann App-Diagnose per UUID, Name oder Domain (Status, Health, Env-Count, recent deployments)
+- [x] **SYS-05**: Agent kann Server-Diagnose per UUID, Name oder IP (Resources, Domains, Validation)
 - [x] **SYS-06**: Agent kann Resource per UUID, Name, Domain oder IP finden (Discovery)
 - [x] **SYS-07**: Agent kann Coolify-Dokumentation durchsuchen (How-to, Config, Troubleshooting)
 
@@ -66,7 +66,7 @@
 - [x] **OUT-03**: Pagination unterstützt (page, per_page)
 - [x] **OUT-04**: Summary vs. Full-Detail Projektionen verfügbar
 - [x] **OUT-05**: `max_chars` Cap verhindert Context-Bloat bei großen Payloads
-- [ ] **OUT-06**: Follow-up Action Hints nach Get-Operationen (z.B. „Logs“, „Restart“)
+- [x] **OUT-06**: Follow-up Action Hints nach Get-Operationen (z.B. „Logs“, „Restart“)
 - [ ] **OUT-07**: Destructive-Ops erfordern `confirm: true` Gate
 
 ### Error Handling (ERR)
@@ -308,10 +308,10 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | OUT-04 | 2 — Discovery & Read Projections | Complete |
 | OUT-05 | 2 — Discovery & Read Projections | Complete |
 | DX-03 | 2 — Discovery & Read Projections | Complete |
-| SYS-03 | 3 — Diagnose & Issue Scan | Pending |
-| SYS-04 | 3 — Diagnose & Issue Scan | Pending |
-| SYS-05 | 3 — Diagnose & Issue Scan | Pending |
-| OUT-06 | 3 — Diagnose & Issue Scan | Pending |
+| SYS-03 | 3 — Diagnose & Issue Scan | Complete |
+| SYS-04 | 3 — Diagnose & Issue Scan | Complete |
+| SYS-05 | 3 — Diagnose & Issue Scan | Complete |
+| OUT-06 | 3 — Diagnose & Issue Scan | Complete |
 | APP-03 | 4 — App Deploy Lifecycle | Pending |
 | APP-04 | 4 — App Deploy Lifecycle | Pending |
 | APP-05 | 4 — App Deploy Lifecycle | Pending |

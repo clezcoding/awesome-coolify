@@ -161,4 +161,70 @@ export async function fetchDatabase(
   return client(`/databases/${uuid}`, { method: 'GET' });
 }
 
+export async function fetchApplicationEnvs(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(`/applications/${uuid}/envs`, { method: 'GET' });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchAppDeployments(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(`/deployments/applications/${uuid}`, {
+    method: 'GET',
+  });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchServer(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/servers/${uuid}`, { method: 'GET' });
+}
+
+export async function fetchServerResources(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(`/servers/${uuid}/resources`, { method: 'GET' });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchServerDomains(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(`/servers/${uuid}/domains`, { method: 'GET' });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function triggerServerValidate(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<void> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  await client(`/servers/${uuid}/validate`, { method: 'GET' });
+}
+
 export { createRetryOptions, createFetchOptions };

@@ -13,7 +13,7 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
 
 - [x] **Phase 1: Foundation & Multi-Instance Auth** — MCP stdio server, action schema, Zod, Coolify client, instances.json, structured errors (completed 2026-07-12)
 - [x] **Phase 2: Discovery & Read Projections** — Infrastructure overview, resource lists, discovery, docs search, bounded summaries (completed 2026-07-12)
-- [ ] **Phase 3: Diagnose & Issue Scan** — App/server diagnose, global unhealthy scan, follow-up hints
+- [x] **Phase 3: Diagnose & Issue Scan** — App/server diagnose, global unhealthy scan, follow-up hints (completed 2026-07-12)
 - [ ] **Phase 4: App Deploy Lifecycle** — Start/stop/restart, deploy, wait-mode, deployments, batch deploy
 - [ ] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy
 - [ ] **Phase 6: Bulk, Emergency & Safety** — Project redeploy/restart, stop-all, masking, confirm gate
@@ -99,7 +99,7 @@ Plans:
 
 ### Phase 3: Diagnose & Issue Scan
 
-**Goal:** As an AI agent, I want app/server diagnose and global issue scan, so that I can triage unhealthy deployments before acting.
+**Goal:** As a AI agent, I want to run app/server diagnose and global issue scan, so that I can triage unhealthy deployments before acting.
 **Mode:** mvp
 **Depends on:** Phase 2
 **Requirements:** SYS-03, SYS-04, SYS-05, OUT-06
@@ -110,11 +110,18 @@ Plans:
   3. Agent runs global issue scan — surfaces unhealthy apps/DBs/services and unreachable servers
   4. Get/diagnose responses include follow-up action hints (e.g. "View logs", "Restart", "Deploy")
 
-**Plans:** TBD
+**Plans:** 7/7 plans complete
 
 Plans:
 
-- [ ] 03-01: TBD
+- [x] 03-07-PLAN.md — Gap closure: toolOutputSchema _meta + MCP schema regression test + UAT heal
+
+- [x] 03-01-PLAN.md
+- [x] 03-02-PLAN.md
+- [x] 03-03-PLAN.md
+- [x] 03-04-PLAN.md
+- [x] 03-05-PLAN.md
+- [x] 03-06-PLAN.md
 
 ### Phase 4: App Deploy Lifecycle
 
@@ -205,7 +212,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Foundation & Multi-Instance Auth | 5/5 | Complete    | 2026-07-12 |
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
-| 3. Diagnose & Issue Scan | 0/TBD | Not started | - |
+| 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
 | 4. App Deploy Lifecycle | 0/TBD | Not started | - |
 | 5. Logs & Service/DB Ops | 0/TBD | Not started | - |
 | 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |

@@ -146,4 +146,64 @@ describe('handleApplicationAction get', () => {
     );
     expect(fetchApplication).not.toHaveBeenCalled();
   });
+
+  it('includes restart hint for unhealthy application per OUT-06 D-16', async () => {
+    vi.mocked(fetchApplication).mockResolvedValue({
+      ...mockApplication,
+      status: 'unhealthy',
+      health_check_status: 'unhealthy',
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.hints)).toBe(true);
+    const hints = data.hints as Array<Record<string, unknown>>;
+    expect(hints.some((h) => h.action === 'restart' && h.available_in_phase === 4)).toBe(
+      true,
+    );
+    expect(result.data).toMatchObject({
+      uuid: 'app-uuid-1',
+      name: 'my-app',
+      project_name: 'proj-a',
+    });
+  });
+
+  it('returns empty hints for healthy running application', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.hints).toEqual([]);
+  });
+
+  it('includes hints in full projection per D-16', async () => {
+    vi.mocked(fetchApplication).mockResolvedValue({
+      ...mockApplication,
+      status: 'unhealthy',
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1', projection: 'full' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.hints)).toBe(true);
+    expect((data.hints as unknown[]).length).toBeGreaterThan(0);
+  });
 });

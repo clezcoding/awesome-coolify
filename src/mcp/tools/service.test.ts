@@ -108,4 +108,43 @@ describe('handleServiceAction get', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_422');
     expect(fetchService).not.toHaveBeenCalled();
   });
+
+  it('includes restart hint for unhealthy service per OUT-06 D-16', async () => {
+    vi.mocked(fetchService).mockResolvedValue({
+      ...mockService,
+      status: 'unhealthy',
+    });
+
+    const result = await handleServiceAction(
+      { action: 'get', uuid: 'svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.hints)).toBe(true);
+    const hints = data.hints as Array<Record<string, unknown>>;
+    expect(hints.some((h) => h.action === 'restart' && h.available_in_phase === 5)).toBe(
+      true,
+    );
+    expect(result.data).toMatchObject({
+      uuid: 'svc-uuid-1',
+      name: 'redis',
+    });
+  });
+
+  it('returns empty hints for healthy running service', async () => {
+    const result = await handleServiceAction(
+      { action: 'get', uuid: 'svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.hints).toEqual([]);
+  });
 });
