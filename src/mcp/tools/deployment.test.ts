@@ -192,7 +192,7 @@ describe('handleDeploymentAction get', () => {
         action: 'get',
         deployment_uuid: 'dep-uuid-1',
         projection: 'full',
-        max_chars: 100,
+        max_chars: 1000,
       },
       testEnv,
     );
@@ -205,7 +205,7 @@ describe('handleDeploymentAction get', () => {
       raw_deployment: Record<string, unknown>;
     };
     expect(data.logs).toBeDefined();
-    expect(data.logs!.length).toBeLessThanOrEqual(100 + '…[truncated]'.length);
+    expect(data.logs!.length).toBeLessThanOrEqual(1000 + '…[truncated]'.length);
     expect(data.raw_deployment).toMatchObject({
       env: { DATABASE_PASSWORD: '***', PORT: '3000' },
       api_token: '***',

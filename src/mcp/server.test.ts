@@ -9,6 +9,7 @@ import { serviceActionSchema } from './tools/service.js';
 import { databaseActionSchema } from './tools/database.js';
 import { docsActionSchema } from './tools/docs.js';
 import { diagnoseToolSchema } from './tools/diagnose.js';
+import { deploymentToolSchema } from './tools/deployment.js';
 import { toolOutputSchema } from './server.js';
 
 describe('toolOutputSchema', () => {
@@ -47,18 +48,19 @@ describe('toolOutputSchema', () => {
 });
 
 describe('MCP server tool registration', () => {
-  it('registers system meta resource diagnose application service database and docs tools', () => {
+  it('registers system meta resource diagnose application deployment service database and docs tools', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(8);
+    expect(matches.length).toBe(9);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
     expect(source).toContain("registerTool(\n    'diagnose'");
     expect(source).toContain("registerTool(\n    'application'");
+    expect(source).toContain("registerTool(\n    'deployment'");
     expect(source).toContain("registerTool(\n    'service'");
     expect(source).toContain("registerTool(\n    'database'");
     expect(source).toContain("registerTool(\n    'docs'");
@@ -89,6 +91,24 @@ describe('MCP server tool registration', () => {
     expect(
       diagnoseToolSchema.safeParse({ action: 'invalid' }).success,
     ).toBe(false);
+    expect(
+      deploymentToolSchema.safeParse({ action: 'invalid' }).success,
+    ).toBe(false);
+  });
+
+  it('deployment tool has openWorldHint without readOnlyHint per D-05', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/mcp/server.ts'),
+      'utf8',
+    );
+    expect(source).toContain("registerTool(\n    'deployment'");
+    const deploymentBlock = source.slice(
+      source.indexOf("registerTool(\n    'deployment'"),
+      source.indexOf("registerTool(\n    'service'"),
+    );
+    expect(deploymentBlock).toMatch(/openWorldHint:\s*true/);
+    expect(deploymentBlock).not.toMatch(/readOnlyHint:\s*true/);
+    expect(deploymentBlock).toMatch(/already_finished/);
   });
 
   it('diagnose tool has openWorldHint without readOnlyHint per D-10', () => {

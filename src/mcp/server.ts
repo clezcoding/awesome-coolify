@@ -43,6 +43,11 @@ import {
   isDiagnoseErrorResult,
   diagnoseToolSchema,
 } from './tools/diagnose.js';
+import {
+  handleDeploymentAction,
+  isDeploymentErrorResult,
+  deploymentToolSchema,
+} from './tools/deployment.js';
 
 function isInfrastructureOverviewResult(
   result: unknown,
@@ -214,6 +219,37 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleApplicationAction(args, env);
       if (isApplicationErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'deployment',
+    {
+      description:
+        'List per-app deployments, get deployment details (status, commit, timestamps, optional capped inline logs), or cancel an in-flight deployment. Cancel on an already-terminal deployment returns { cancelled: false, already_finished: true, status } — no error thrown (D-21).',
+      inputSchema: deploymentToolSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleDeploymentAction(args, env);
+      if (isDeploymentErrorResult(result)) {
         return {
           ...result,
           structuredContent: {
