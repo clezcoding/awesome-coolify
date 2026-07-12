@@ -12,6 +12,8 @@ vi.mock('../../api/client.js', () => ({
   triggerAppStart: vi.fn(),
   triggerAppStop: vi.fn(),
   triggerAppRestart: vi.fn(),
+  triggerDeploy: vi.fn(),
+  fetchDeployment: vi.fn(),
 }));
 
 import {
@@ -20,6 +22,8 @@ import {
   triggerAppRestart,
   triggerAppStart,
   triggerAppStop,
+  triggerDeploy,
+  fetchDeployment,
 } from '../../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -366,5 +370,178 @@ describe('handleApplicationAction lifecycle mutations (APP-03)', () => {
       (i) => (i as { params?: { code?: string } }).params?.code === 'COOLIFY_422',
     );
     expect(issue).toBeDefined();
+  });
+});
+
+const mockDeployResponse = {
+  deployments: [
+    {
+      deployment_uuid: 'dep-uuid-1',
+      resource_uuid: 'app-uuid-1',
+      message: 'queued',
+    },
+  ],
+};
+
+describe('handleApplicationAction deploy (APP-04/05/06, DEP-01/03)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(triggerDeploy).mockReset();
+    vi.mocked(fetchDeployment).mockReset();
+    vi.mocked(triggerDeploy).mockResolvedValue(mockDeployResponse);
+  });
+
+  it('deploy by uuid calls triggerDeploy with force=false', async () => {
+    const result = await handleApplicationAction(
+      { action: 'deploy', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(triggerDeploy).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+
+    if (isApplicationErrorResult(result)) return;
+    expect(result.ok).toBe(true);
+    expect(result.data.deployment_uuid).toBe('dep-uuid-1');
+    expect(result.data.status).toBe('queued');
+    expect(result.data.logs_available).toEqual({
+      tool: 'application',
+      action: 'logs',
+      args: { deployment_uuid: 'dep-uuid-1' },
+      label: 'View build logs',
+      available_in_phase: 5,
+    });
+    expect(result.data).not.toHaveProperty('logs');
+  });
+
+  it('deploy with force=true passes force to triggerDeploy', async () => {
+    await handleApplicationAction(
+      { action: 'deploy', uuid: 'app-uuid-1', force: true },
+      testEnv,
+    );
+
+    expect(triggerDeploy).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      true,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('deploy by name single-hit resolves uuid and calls triggerDeploy', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceApp1]);
+
+    await handleApplicationAction(
+      { action: 'deploy', name: 'myapp' },
+      testEnv,
+    );
+
+    expect(triggerDeploy).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('deploy by name multi-hit returns COOLIFY_AMBIGUOUS_MATCH without triggerDeploy', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceApp1,
+      mockResourceApp2,
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'deploy', name: 'app' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(triggerDeploy).not.toHaveBeenCalled();
+  });
+
+  it('wait:true returns finished status when fetchDeployment terminal on first poll', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-uuid-1',
+      git_commit_sha: 'abc123',
+      status: 'finished',
+      created_at: '2026-07-01T00:00:00Z',
+      finished_at: '2026-07-01T00:05:00Z',
+    });
+
+    const resultPromise = handleApplicationAction(
+      { action: 'deploy', uuid: 'app-uuid-1', wait: true, timeout: 10 },
+      testEnv,
+    );
+
+    const result = await resultPromise;
+
+    vi.useRealTimers();
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data.status).toBe('finished');
+    expect(result.data.finished_at).toBe('2026-07-01T00:05:00Z');
+    expect(result.data.logs_available.action).toBe('logs');
+    expect(result.data.logs_available.available_in_phase).toBe(5);
+    expect(result.data).not.toHaveProperty('logs');
+  });
+
+  it('wait:true timeout returns status timeout with re-call hint', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-uuid-1',
+      status: 'in_progress',
+    });
+
+    const resultPromise = handleApplicationAction(
+      { action: 'deploy', uuid: 'app-uuid-1', wait: true, timeout: 10 },
+      testEnv,
+    );
+
+    await vi.runAllTimersAsync();
+
+    const result = await resultPromise;
+
+    vi.useRealTimers();
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data.status).toBe('timeout');
+    expect(result.data.hint).toContain('deployment.get');
+    expect(result.data.hint).toContain('dep-uuid-1');
+    expect(result.data.logs_available).toBeDefined();
+  });
+
+  it('deploy with no identifier fails Zod parse with COOLIFY_422', () => {
+    const parsed = applicationActionSchema.safeParse({ action: 'deploy' });
+    expect(parsed.success).toBe(false);
+    if (parsed.success) return;
+    const issue = parsed.error.issues.find(
+      (i) => (i as { params?: { code?: string } }).params?.code === 'COOLIFY_422',
+    );
+    expect(issue).toBeDefined();
+  });
+
+  it('timeout:9999 fails Zod parse at max 1800', () => {
+    const parsed = applicationActionSchema.safeParse({
+      action: 'deploy',
+      uuid: 'app-uuid-1',
+      timeout: 9999,
+    });
+    expect(parsed.success).toBe(false);
   });
 });
