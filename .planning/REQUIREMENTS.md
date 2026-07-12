@@ -33,9 +33,9 @@
 - [x] **APP-04**: Agent kann App deployen (per UUID, Name oder Tag)
 - [x] **APP-05**: Agent kann Deploy mit Force Rebuild (no cache) auslösen
 - [x] **APP-06**: Agent kann Deploy Wait-Mode nutzen (poll bis finished/failed/cancelled, Timeout)
-- [ ] **APP-07**: Agent kann App-Deployments listen (per App)
-- [ ] **APP-08**: Agent kann Deployment-Details abrufen (Status, Commit, Timestamps)
-- [ ] **APP-09**: Agent kann Deployment canceln
+- [x] **APP-07**: Agent kann App-Deployments listen (per App)
+- [x] **APP-08**: Agent kann Deployment-Details abrufen (Status, Commit, Timestamps)
+- [x] **APP-09**: Agent kann Deployment canceln
 - [ ] **APP-10**: Agent kann App Runtime-Logs lesen (limitiert, optional follow)
 - [ ] **APP-11**: Agent kann Deployment Build-Logs separat abrufen (paginiert, on-demand)
 
@@ -316,9 +316,9 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | APP-04 | 4 — App Deploy Lifecycle | Complete |
 | APP-05 | 4 — App Deploy Lifecycle | Complete |
 | APP-06 | 4 — App Deploy Lifecycle | Complete |
-| APP-07 | 4 — App Deploy Lifecycle | Pending |
-| APP-08 | 4 — App Deploy Lifecycle | Pending |
-| APP-09 | 4 — App Deploy Lifecycle | Pending |
+| APP-07 | 4 — App Deploy Lifecycle | Complete |
+| APP-08 | 4 — App Deploy Lifecycle | Complete |
+| APP-09 | 4 — App Deploy Lifecycle | Complete |
 | DEP-01 | 4 — App Deploy Lifecycle | Complete |
 | DEP-02 | 4 — App Deploy Lifecycle | Pending |
 | DEP-03 | 4 — App Deploy Lifecycle | Complete |

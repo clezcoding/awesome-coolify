@@ -152,7 +152,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 04-03-PLAN.md — deployment tool: list/get/cancel with graceful 400 (APP-07, APP-08, APP-09)
+- [x] 04-03-PLAN.md — deployment tool: list/get/cancel with graceful 400 (APP-07, APP-08, APP-09)
 - [ ] 04-04-PLAN.md — Batch deploy by uuids/tags with sequential best-effort wait (DEP-02, DEP-03)
 
 **Wave 4** *(blocked on Wave 3 completion)*
@@ -228,7 +228,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Foundation & Multi-Instance Auth | 5/5 | Complete    | 2026-07-12 |
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
-| 4. App Deploy Lifecycle | 0/5 | Planned | - |
+| 4. App Deploy Lifecycle | 3/5 | In Progress | - |
 | 5. Logs & Service/DB Ops | 0/TBD | Not started | - |
 | 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |
 | 7. Distribution & Docs | 0/TBD | Not started | - |

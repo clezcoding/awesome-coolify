@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 4
 current_phase_name: App Deploy Lifecycle
-status: "Phase 04 plan 02 complete — Wave 3 ready (04-03 deployment tool)"
-stopped_at: Phase 4 plan 02 complete
-last_updated: "2026-07-13T00:00:00.000Z"
+status: "Phase 04 plan 03 complete — Wave 4 ready (04-04 batch deploy)"
+stopped_at: Phase 4 plan 03 complete
+last_updated: "2026-07-12T23:51:00.000Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 04-02 complete — single deploy + wait-mode polling (APP-04/05/06, DEP-01/03)
+last_activity_desc: Phase 04-03 complete — deployment tool list/get/cancel (APP-07/08/09)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 22
-  completed_plans: 19
-  percent: 50
+  completed_plans: 20
+  percent: 91
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 ## Current Position
 
 Phase: 4 — App Deploy Lifecycle
-Plan: 04-03 next (Wave 3 — deployment tool list/get/cancel)
-Status: Phase 04 plan 02 complete — Wave 3 ready (04-03 deployment tool)
-Last activity: 2026-07-13 — Phase 04-02 complete — single deploy + wait-mode polling (APP-04/05/06, DEP-01/03)
+Plan: 04-04 next (Wave 4 — batch deploy by uuids/tags)
+Status: Phase 04 plan 03 complete — Wave 4 ready (04-04 batch deploy)
+Last activity: 2026-07-13 — Phase 04-03 complete — deployment tool list/get/cancel (APP-07/08/09)
 
-Progress: [██████████████████████░░░] 19/22 plans
+Progress: [████████████████████░░░░] 20/22 plans
 
 ## Performance Metrics
 
@@ -106,6 +106,10 @@ Progress: [██████████████████████░
 - [Phase 04-app-deploy-lifecycle]: Deploy responses carry logs_available FollowUpHint only — no inline logs in P4 per DEP-03/D-19
 - [Phase 04-app-deploy-lifecycle]: Batch deploy schema fields land in 04-02 — handler not-implemented guard until 04-04
 - [Phase 04-app-deploy-lifecycle]: application.deploy wait:false returns status queued immediately — wait:true polls until terminal or timeout (D-06/D-10)
+- [Phase 04-app-deploy-lifecycle]: HTTP 400 maps to COOLIFY_422 in statusToCode — enables D-21 graceful cancel detection via code or httpStatus
+- [Phase 04-app-deploy-lifecycle]: deployment tool owns list/get/cancel — per-app list via /deployments/applications/{uuid} not global /deployments (D-01/D-03, APP-07)
+- [Phase 04-app-deploy-lifecycle]: Cancel on already-terminal returns { cancelled: false, already_finished: true, status } — fetchDeployment populates status (D-21)
+- [Phase 04-app-deploy-lifecycle]: deployment.list per_page max 50 via schema override — matches CONTEXT discretion over sharedReadParams 100 cap
 
 ### Pending Todos
 
@@ -118,6 +122,6 @@ Progress: [██████████████████████░
 
 ## Session Continuity
 
-Last session: 2026-07-13T00:00:00.000Z
-Stopped at: Phase 4 plan 02 complete
-Resume file: .planning/phases/04-app-deploy-lifecycle/04-03-PLAN.md
+Last session: 2026-07-12T23:51:00.000Z
+Stopped at: Phase 4 plan 03 complete
+Resume file: .planning/phases/04-app-deploy-lifecycle/04-04-PLAN.md
