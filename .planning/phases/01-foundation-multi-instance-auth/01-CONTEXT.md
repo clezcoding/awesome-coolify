@@ -18,13 +18,13 @@ Phase 1 delivers a **single-instance** MCP stdio server foundation: Coolify API 
 ### Authentication & Instance Model
 - **D-01:** **Single instance only in P1.** One Coolify URL + one API token per MCP server process.
 - **D-02:** Credentials live in **mcp.json `env`** — required vars `COOLIFY_URL` and `COOLIFY_TOKEN`. Server must fail fast at startup if either is missing.
-- **D-03:** **No per-request token override** (CTX-06 deferred to v2). Tokens are never passed as tool arguments in P1.
+- **D-03 [deferred]:** **No per-request token override** (CTX-06 deferred to v2). Tokens are never passed as tool arguments in P1.
 - **D-04:** **No `instances.json` in P1.** Multi-instance via multiple mcp.json entries (one MCP server entry per Coolify instance) is a **v2** pattern; not implemented in Phase 1.
-- **D-05:** **Multi-instance CRUD** (add/list/get/update/delete/set-default/switch/verify across instances) → **v2**. REQUIREMENTS traceability for CTX-04/05/06 should be updated when v2 is planned.
+- **D-05 [deferred]:** **Multi-instance CRUD** (add/list/get/update/delete/set-default/switch/verify across instances) → **v2**. REQUIREMENTS traceability for CTX-04/05/06 should be updated when v2 is planned.
 
 ### Instance Selection (simplified for P1)
-- **D-06:** No `instanceId` parameter on P1 tools — implicit single connection from env.
-- **D-07:** No session `switch`/`use` state in P1 — deferred with multi-instance to v2.
+- **D-06 [deferred]:** No `instanceId` parameter on P1 tools — implicit single connection from env.
+- **D-07 [deferred]:** No session `switch`/`use` state in P1 — deferred with multi-instance to v2.
 
 ### Error Envelope & Retry
 - **D-08:** Error response shape matches README example:

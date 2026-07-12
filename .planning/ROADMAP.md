@@ -39,11 +39,24 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
 **Plans:** 5 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 01-01-PLAN.md — Walking skeleton: scaffold, MCP stdio, system health
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 01-02-PLAN.md — Structured error envelope + retry client
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 01-03-PLAN.md — Secret redaction + stderr logger
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 01-04-PLAN.md — Full system/meta tools + Zod schemas
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 01-05-PLAN.md — Build + MCP client handshake smoke (DIST-03)
 
 ### Phase 2: Discovery & Read Projections
