@@ -278,4 +278,14 @@ export async function fetchDeployment(
   return client(`/deployments/${deploymentUuid}`, { method: 'GET' });
 }
 
+export async function cancelDeployment(
+  url: string,
+  token: string,
+  deploymentUuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/deployments/${deploymentUuid}/cancel`, { method: 'POST' });
+}
+
 export { createRetryOptions, createFetchOptions };

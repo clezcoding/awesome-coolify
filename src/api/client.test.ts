@@ -7,6 +7,7 @@ import {
   fetchResources,
   fetchServers,
   fetchDeployment,
+  cancelDeployment,
   triggerAppRestart,
   triggerAppStart,
   triggerAppStop,
@@ -317,5 +318,54 @@ describe('triggerDeploy fetchDeployment', () => {
     );
     expect(fetchMock.mock.calls[0][1]?.method).toBe('GET');
     expect(result).toEqual(deployment);
+  });
+});
+
+describe('cancelDeployment', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('POST /deployments/{uuid}/cancel', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'cancelled' }, { status: 200 }),
+    );
+
+    await cancelDeployment(
+      'https://coolify.example.com',
+      'test-token',
+      'dep-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/deployments/dep-uuid-1/cancel',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('throws CoolifyApiError with COOLIFY_422 on HTTP 400', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response('Deployment already finished', { status: 400 }),
+    );
+
+    await expect(
+      cancelDeployment(
+        'https://coolify.example.com',
+        'test-token',
+        'dep-uuid-finished',
+      ),
+    ).rejects.toMatchObject({
+      envelope: {
+        code: 'COOLIFY_422',
+        httpStatus: 400,
+      },
+    });
   });
 });

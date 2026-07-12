@@ -67,6 +67,7 @@ function statusToCode(status: number): CoolifyErrorCode {
       return 'COOLIFY_401';
     case 404:
       return 'COOLIFY_404';
+    case 400:
     case 422:
       return 'COOLIFY_422';
     default:

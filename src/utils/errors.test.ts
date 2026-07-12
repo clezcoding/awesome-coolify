@@ -24,6 +24,11 @@ describe('mapApiError', () => {
     expect(mapApiError(null, 422).code).toBe('COOLIFY_422');
   });
 
+  it('maps HTTP 400 to COOLIFY_422', () => {
+    expect(mapApiError(null, 400).code).toBe('COOLIFY_422');
+    expect(mapApiError(null, 400).httpStatus).toBe(400);
+  });
+
   it('maps HTTP 500 to COOLIFY_500', () => {
     expect(mapApiError(null, 500).code).toBe('COOLIFY_500');
   });
