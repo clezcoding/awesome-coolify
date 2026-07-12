@@ -206,10 +206,10 @@ export function registerCoolifyTools(
     'application',
     {
       description:
-        'Get application details by UUID — list via resource tool (get-only)',
+        'Application lifecycle and deploy actions (get, start, stop, restart, deploy) — list via resource tool',
       inputSchema: applicationActionSchema,
       outputSchema: toolOutputSchema,
-      annotations: { openWorldHint: true, readOnlyHint: true },
+      annotations: { openWorldHint: true },
     },
     async (args) => {
       const result = await handleApplicationAction(args, env);
