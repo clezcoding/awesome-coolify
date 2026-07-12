@@ -50,7 +50,7 @@
 ### Deployments (DEP)
 
 - [x] **DEP-01**: Agent kann Deployments per Resource Name auslösen
-- [ ] **DEP-02**: Agent kann Batch-Deploy mehrerer Resources (comma-separated UUIDs oder Tags)
+- [x] **DEP-02**: Agent kann Batch-Deploy mehrerer Resources (comma-separated UUIDs oder Tags)
 - [x] **DEP-03**: Agent erhält `logs_available` Hint ohne Inline-Bloat bei Deployment-Responses
 
 ### Emergency & Bulk (EMG)
@@ -320,7 +320,7 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | APP-08 | 4 — App Deploy Lifecycle | Complete |
 | APP-09 | 4 — App Deploy Lifecycle | Complete |
 | DEP-01 | 4 — App Deploy Lifecycle | Complete |
-| DEP-02 | 4 — App Deploy Lifecycle | Pending |
+| DEP-02 | 4 — App Deploy Lifecycle | Complete |
 | DEP-03 | 4 — App Deploy Lifecycle | Complete |
 | APP-10 | 5 — Logs & Service/DB Ops | Pending |
 | APP-11 | 5 — Logs & Service/DB Ops | Pending |

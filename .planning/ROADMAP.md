@@ -153,7 +153,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 04-03-PLAN.md — deployment tool: list/get/cancel with graceful 400 (APP-07, APP-08, APP-09)
-- [ ] 04-04-PLAN.md — Batch deploy by uuids/tags with sequential best-effort wait (DEP-02, DEP-03)
+- [x] 04-04-PLAN.md — Batch deploy by uuids/tags with sequential best-effort wait (DEP-02, DEP-03)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

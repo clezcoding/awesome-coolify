@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 4
 current_phase_name: App Deploy Lifecycle
-status: "Phase 04 plan 03 complete — Wave 4 ready (04-04 batch deploy)"
-stopped_at: Phase 4 plan 03 complete
-last_updated: "2026-07-12T23:51:00.000Z"
+status: "Phase 04 plan 04 complete — Wave 4 ready (04-05 integration sign-off)"
+stopped_at: Phase 4 plan 04 complete
+last_updated: "2026-07-12T23:55:00.000Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 04-03 complete — deployment tool list/get/cancel (APP-07/08/09)
+last_activity_desc: Phase 04-04 complete — batch deploy by uuids/tags (DEP-02)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 22
-  completed_plans: 20
-  percent: 91
+  completed_plans: 21
+  percent: 95
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 ## Current Position
 
 Phase: 4 — App Deploy Lifecycle
-Plan: 04-04 next (Wave 4 — batch deploy by uuids/tags)
-Status: Phase 04 plan 03 complete — Wave 4 ready (04-04 batch deploy)
-Last activity: 2026-07-13 — Phase 04-03 complete — deployment tool list/get/cancel (APP-07/08/09)
+Plan: 04-05 next (Wave 4 — integration sign-off)
+Status: Phase 04 plan 04 complete — Wave 4 ready (04-05 integration sign-off)
+Last activity: 2026-07-13 — Phase 04-04 complete — batch deploy by uuids/tags (DEP-02)
 
-Progress: [████████████████████░░░░] 20/22 plans
+Progress: [█████████████████████░░░] 21/22 plans
 
 ## Performance Metrics
 
@@ -110,6 +110,9 @@ Progress: [████████████████████░░░
 - [Phase 04-app-deploy-lifecycle]: deployment tool owns list/get/cancel — per-app list via /deployments/applications/{uuid} not global /deployments (D-01/D-03, APP-07)
 - [Phase 04-app-deploy-lifecycle]: Cancel on already-terminal returns { cancelled: false, already_finished: true, status } — fetchDeployment populates status (D-21)
 - [Phase 04-app-deploy-lifecycle]: deployment.list per_page max 50 via schema override — matches CONTEXT discretion over sharedReadParams 100 cap
+- [Phase 04-app-deploy-lifecycle]: resolveTagUuids filters raw /resources by case-insensitive tags[] — no GET /applications?tag= fallback; missing field surfaces per-tag error
+- [Phase 04-app-deploy-lifecycle]: Batch deploy best-effort sequential — per-app try/catch, dedup via Set, aggregated results array (D-13/D-14)
+- [Phase 04-app-deploy-lifecycle]: Batch wait-mode per-app timeout reset — pollDeploymentUntilTerminal fresh startTime each app
 
 ### Pending Todos
 
@@ -122,6 +125,6 @@ Progress: [████████████████████░░░
 
 ## Session Continuity
 
-Last session: 2026-07-12T23:51:00.000Z
-Stopped at: Phase 4 plan 03 complete
-Resume file: .planning/phases/04-app-deploy-lifecycle/04-04-PLAN.md
+Last session: 2026-07-12T23:55:00.000Z
+Stopped at: Phase 4 plan 04 complete
+Resume file: .planning/phases/04-app-deploy-lifecycle/04-05-PLAN.md
