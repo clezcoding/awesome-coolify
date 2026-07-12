@@ -30,9 +30,9 @@
 - [x] **APP-01**: Agent kann Apps listen (summary projection, essential fields)
 - [x] **APP-02**: Agent kann App-Details abrufen (get, summary oder full projection)
 - [ ] **APP-03**: Agent kann App starten, stoppen, restarten
-- [ ] **APP-04**: Agent kann App deployen (per UUID, Name oder Tag)
-- [ ] **APP-05**: Agent kann Deploy mit Force Rebuild (no cache) auslösen
-- [ ] **APP-06**: Agent kann Deploy Wait-Mode nutzen (poll bis finished/failed/cancelled, Timeout)
+- [x] **APP-04**: Agent kann App deployen (per UUID, Name oder Tag)
+- [x] **APP-05**: Agent kann Deploy mit Force Rebuild (no cache) auslösen
+- [x] **APP-06**: Agent kann Deploy Wait-Mode nutzen (poll bis finished/failed/cancelled, Timeout)
 - [ ] **APP-07**: Agent kann App-Deployments listen (per App)
 - [ ] **APP-08**: Agent kann Deployment-Details abrufen (Status, Commit, Timestamps)
 - [ ] **APP-09**: Agent kann Deployment canceln
@@ -49,9 +49,9 @@
 
 ### Deployments (DEP)
 
-- [ ] **DEP-01**: Agent kann Deployments per Resource Name auslösen
+- [x] **DEP-01**: Agent kann Deployments per Resource Name auslösen
 - [ ] **DEP-02**: Agent kann Batch-Deploy mehrerer Resources (comma-separated UUIDs oder Tags)
-- [ ] **DEP-03**: Agent erhält `logs_available` Hint ohne Inline-Bloat bei Deployment-Responses
+- [x] **DEP-03**: Agent erhält `logs_available` Hint ohne Inline-Bloat bei Deployment-Responses
 
 ### Emergency & Bulk (EMG)
 
@@ -313,15 +313,15 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | SYS-05 | 3 — Diagnose & Issue Scan | Complete |
 | OUT-06 | 3 — Diagnose & Issue Scan | Complete |
 | APP-03 | 4 — App Deploy Lifecycle | Pending |
-| APP-04 | 4 — App Deploy Lifecycle | Pending |
-| APP-05 | 4 — App Deploy Lifecycle | Pending |
-| APP-06 | 4 — App Deploy Lifecycle | Pending |
+| APP-04 | 4 — App Deploy Lifecycle | Complete |
+| APP-05 | 4 — App Deploy Lifecycle | Complete |
+| APP-06 | 4 — App Deploy Lifecycle | Complete |
 | APP-07 | 4 — App Deploy Lifecycle | Pending |
 | APP-08 | 4 — App Deploy Lifecycle | Pending |
 | APP-09 | 4 — App Deploy Lifecycle | Pending |
-| DEP-01 | 4 — App Deploy Lifecycle | Pending |
+| DEP-01 | 4 — App Deploy Lifecycle | Complete |
 | DEP-02 | 4 — App Deploy Lifecycle | Pending |
-| DEP-03 | 4 — App Deploy Lifecycle | Pending |
+| DEP-03 | 4 — App Deploy Lifecycle | Complete |
 | APP-10 | 5 — Logs & Service/DB Ops | Pending |
 | APP-11 | 5 — Logs & Service/DB Ops | Pending |
 | SVC-03 | 5 — Logs & Service/DB Ops | Pending |

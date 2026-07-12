@@ -148,7 +148,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-02-PLAN.md — Single deploy + force + wait-mode polling + logs_available hint (APP-04, APP-05, APP-06, DEP-01, DEP-03)
+- [x] 04-02-PLAN.md — Single deploy + force + wait-mode polling + logs_available hint (APP-04, APP-05, APP-06, DEP-01, DEP-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
