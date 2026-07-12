@@ -4,6 +4,7 @@ import type { EnvConfig } from '../config/env.js';
 import {
   formatSystemResult,
   handleSystemAction,
+  isMcpErrorResult,
   systemActionSchema,
 } from './tools/system.js';
 
@@ -18,6 +19,9 @@ export async function createAndConnectServer(env: EnvConfig): Promise<McpServer>
     },
     async (args) => {
       const result = await handleSystemAction(args, env);
+      if (isMcpErrorResult(result)) {
+        return result;
+      }
       const text = formatSystemResult(result);
       return {
         content: [{ type: 'text', text }],
