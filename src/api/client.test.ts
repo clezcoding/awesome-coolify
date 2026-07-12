@@ -1,6 +1,12 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import https from 'node:https';
-import { createCoolifyClient, createRetryOptions } from './client.js';
+import {
+  createCoolifyClient,
+  createRetryOptions,
+  fetchProjects,
+  fetchResources,
+  fetchServers,
+} from './client.js';
 import { CoolifyApiError } from '../utils/errors.js';
 
 describe('createRetryOptions', () => {
@@ -65,5 +71,92 @@ describe('createCoolifyClient retry', () => {
     expect(
       (options.agent as https.Agent).options.rejectUnauthorized,
     ).toBe(false);
+  });
+});
+
+describe('fetchResources fetchServers fetchProjects', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('fetchResources GET /resources returns array', async () => {
+    const items = [{ uuid: 'r1', type: 'application' }];
+    fetchMock.mockResolvedValueOnce(Response.json(items, { status: 200 }));
+
+    const result = await fetchResources(
+      'https://coolify.example.com',
+      'test-token',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/resources');
+    expect(result).toEqual(items);
+  });
+
+  it('fetchResources returns empty array when response is not an array', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ data: [] }, { status: 200 }),
+    );
+
+    const result = await fetchResources(
+      'https://coolify.example.com',
+      'test-token',
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it('fetchServers GET /servers returns array', async () => {
+    const items = [{ uuid: 's1', name: 'server-1' }];
+    fetchMock.mockResolvedValueOnce(Response.json(items, { status: 200 }));
+
+    const result = await fetchServers(
+      'https://coolify.example.com',
+      'test-token',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/servers');
+    expect(result).toEqual(items);
+  });
+
+  it('fetchServers returns empty array when response is not an array', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json(null, { status: 200 }));
+
+    const result = await fetchServers(
+      'https://coolify.example.com',
+      'test-token',
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it('fetchProjects GET /projects returns array', async () => {
+    const items = [{ uuid: 'p1', name: 'project-1' }];
+    fetchMock.mockResolvedValueOnce(Response.json(items, { status: 200 }));
+
+    const result = await fetchProjects(
+      'https://coolify.example.com',
+      'test-token',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/projects');
+    expect(result).toEqual(items);
+  });
+
+  it('fetchProjects returns empty array when response is not an array', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json(null, { status: 200 }));
+
+    const result = await fetchProjects(
+      'https://coolify.example.com',
+      'test-token',
+    );
+
+    expect(result).toEqual([]);
   });
 });

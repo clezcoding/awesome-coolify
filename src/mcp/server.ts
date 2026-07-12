@@ -11,8 +11,47 @@ import {
   formatSystemResult,
   handleSystemAction,
   isMcpErrorResult,
+  type InfrastructureOverviewResult,
   systemActionSchema,
 } from './tools/system.js';
+import {
+  handleResourceAction,
+  isResourceErrorResult,
+  resourceActionSchema,
+} from './tools/resource.js';
+import {
+  handleApplicationAction,
+  isApplicationErrorResult,
+  applicationActionSchema,
+} from './tools/application.js';
+import {
+  handleServiceAction,
+  isServiceErrorResult,
+  serviceActionSchema,
+} from './tools/service.js';
+import {
+  handleDatabaseAction,
+  isDatabaseErrorResult,
+  databaseActionSchema,
+} from './tools/database.js';
+import {
+  handleDocsAction,
+  docsActionSchema,
+} from './tools/docs.js';
+
+function isInfrastructureOverviewResult(
+  result: unknown,
+): result is InfrastructureOverviewResult {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'ok' in result &&
+    (result as InfrastructureOverviewResult).ok === true &&
+    '_meta' in result &&
+    '_formattedText' in result &&
+    'data' in result
+  );
+}
 
 export const toolOutputSchema = z.object({
   ok: z.boolean(),
@@ -49,6 +88,16 @@ export function registerCoolifyTools(
           },
         };
       }
+      if (isInfrastructureOverviewResult(result)) {
+        return {
+          content: [{ type: 'text', text: result._formattedText }],
+          structuredContent: {
+            ok: true,
+            data: result.data,
+            _meta: result._meta,
+          },
+        };
+      }
       const text = formatSystemResult(result);
       return {
         content: [{ type: 'text', text }],
@@ -71,6 +120,150 @@ export function registerCoolifyTools(
       return {
         content: [{ type: 'text', text }],
         structuredContent: { ok: true, data: result },
+      };
+    },
+  );
+
+  server.registerTool(
+    'resource',
+    {
+      description: 'Unified resource listing and cross-type discovery',
+      inputSchema: resourceActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true, readOnlyHint: true },
+    },
+    async (args) => {
+      const result = await handleResourceAction(args, env);
+      if (isResourceErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'application',
+    {
+      description:
+        'Get application details by UUID — list via resource tool (get-only)',
+      inputSchema: applicationActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true, readOnlyHint: true },
+    },
+    async (args) => {
+      const result = await handleApplicationAction(args, env);
+      if (isApplicationErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'service',
+    {
+      description:
+        'Get service details by UUID — list via resource tool (get-only)',
+      inputSchema: serviceActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true, readOnlyHint: true },
+    },
+    async (args) => {
+      const result = await handleServiceAction(args, env);
+      if (isServiceErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'database',
+    {
+      description:
+        'Get database details by UUID — list via resource tool (get-only)',
+      inputSchema: databaseActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true, readOnlyHint: true },
+    },
+    async (args) => {
+      const result = await handleDatabaseAction(args, env);
+      if (isDatabaseErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'docs',
+    {
+      description: 'Search static Coolify documentation guides',
+      inputSchema: docsActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { readOnlyHint: true },
+    },
+    async (args) => {
+      const result = await handleDocsAction(args);
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
       };
     },
   );

@@ -1,0 +1,49 @@
+import { describe, expect, it } from 'vitest';
+import { sharedReadParamsSchema, parseReadParams } from './shared-read-params.js';
+
+describe('sharedReadParamsSchema', () => {
+  it('defaults format pretty page 1 per_page 10 max_chars 16000 per D-09 D-13 D-15', () => {
+    const parsed = parseReadParams({});
+    expect(parsed.format).toBe('pretty');
+    expect(parsed.projection).toBe('summary');
+    expect(parsed.page).toBe(1);
+    expect(parsed.per_page).toBe(10);
+    expect(parsed.max_chars).toBe(16000);
+  });
+
+  it('returns projection full when include_full true regardless of projection per D-07', () => {
+    const parsed = parseReadParams({
+      projection: 'summary',
+      include_full: true,
+    });
+    expect(parsed.projection).toBe('full');
+    expect(parsed.include_full).toBe(true);
+  });
+
+  it('returns projection full when projection full and include_full false', () => {
+    const parsed = parseReadParams({
+      projection: 'full',
+      include_full: false,
+    });
+    expect(parsed.projection).toBe('full');
+  });
+
+  it('accepts explicit format table and json', () => {
+    expect(parseReadParams({ format: 'table' }).format).toBe('table');
+    expect(parseReadParams({ format: 'json' }).format).toBe('json');
+  });
+
+  it('spreads into Zod discriminatedUnion action objects without key collision', () => {
+    const actionSchema = {
+      action: { _def: { typeName: 'ZodLiteral' } },
+      ...sharedReadParamsSchema,
+    };
+    expect(actionSchema).toHaveProperty('format');
+    expect(actionSchema).toHaveProperty('projection');
+    expect(actionSchema).toHaveProperty('include_full');
+    expect(actionSchema).toHaveProperty('page');
+    expect(actionSchema).toHaveProperty('per_page');
+    expect(actionSchema).toHaveProperty('max_chars');
+    expect(actionSchema).toHaveProperty('action');
+  });
+});

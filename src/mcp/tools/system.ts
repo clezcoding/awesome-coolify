@@ -3,14 +3,25 @@ import type { EnvConfig } from '../config/env.js';
 import {
   fetchHealth,
   fetchVersion,
+  fetchResources,
+  fetchServers,
+  fetchProjects,
 } from '../../api/client.js';
 import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
+import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
 import { createLogger } from '../../utils/logger.js';
+import { sharedReadParamsSchema } from './shared-read-params.js';
 
 export const systemActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('health') }),
   z.object({ action: z.literal('version') }),
   z.object({ action: z.literal('verify') }),
+  z.object({
+    action: z.literal('infrastructure_overview'),
+    ...sharedReadParamsSchema,
+    // D-21 N/A: projection/include_full — aggregate overview, not per-resource projection
+    // D-21 N/A: page/per_page — single aggregate object, not paginated
+  }),
 ]);
 
 export type SystemAction = z.infer<typeof systemActionSchema>;
@@ -30,10 +41,37 @@ export interface SystemVerifyResult {
   coolifyVersion: string;
 }
 
+export interface InfrastructureOverviewData {
+  servers: { total: number; running: number; stopped: number };
+  projects: { total: number };
+  applications: {
+    total: number;
+    running: number;
+    stopped: number;
+    unhealthy: number;
+  };
+  databases: {
+    total: number;
+    running: number;
+    stopped: number;
+    unhealthy: number;
+  };
+  services: {
+    total: number;
+    running: number;
+    stopped: number;
+    unhealthy: number;
+  };
+}
+
+export type InfrastructureOverviewResult =
+  ReadResponse<InfrastructureOverviewData>;
+
 export type SystemSuccessResult =
   | SystemHealthResult
   | SystemVersionResult
-  | SystemVerifyResult;
+  | SystemVerifyResult
+  | InfrastructureOverviewResult;
 
 export type SystemActionResult = SystemSuccessResult | McpErrorResult;
 
@@ -41,14 +79,46 @@ function hostnameFromUrl(url: string): string {
   return new URL(url).hostname;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function statusStartsWith(value: unknown, prefix: string): boolean {
+  return typeof value === 'string' && value.startsWith(prefix);
+}
+
+function statusIncludes(value: unknown, substring: string): boolean {
+  return typeof value === 'string' && value.includes(substring);
+}
+
+function countByStatus(
+  items: Record<string, unknown>[],
+  statusField = 'status',
+): { running: number; stopped: number; unhealthy: number } {
+  return {
+    running: items.filter((item) =>
+      statusStartsWith(item[statusField], 'running'),
+    ).length,
+    stopped: items.filter(
+      (item) =>
+        statusStartsWith(item[statusField], 'exited') ||
+        statusStartsWith(item[statusField], 'stopped'),
+    ).length,
+    unhealthy: items.filter((item) =>
+      statusIncludes(item[statusField], 'unhealthy'),
+    ).length,
+  };
+}
+
 export async function handleSystemAction(
   args: SystemAction,
   env: EnvConfig,
 ): Promise<SystemActionResult> {
+  const parsed = systemActionSchema.parse(args);
   const logger = createLogger(env.COOLIFY_MCP_LOG);
 
   try {
-    switch (args.action) {
+    switch (parsed.action) {
       case 'health': {
         logger.httpDebug('/api/health', 0);
         await fetchHealth(
@@ -95,8 +165,73 @@ export async function handleSystemAction(
           coolifyVersion,
         };
       }
+      case 'infrastructure_overview': {
+        const [rawResources, rawServers, rawProjects] = await Promise.all([
+          fetchResources(
+            env.COOLIFY_URL,
+            env.COOLIFY_TOKEN,
+            env.COOLIFY_VERIFY_SSL,
+          ),
+          fetchServers(
+            env.COOLIFY_URL,
+            env.COOLIFY_TOKEN,
+            env.COOLIFY_VERIFY_SSL,
+          ),
+          fetchProjects(
+            env.COOLIFY_URL,
+            env.COOLIFY_TOKEN,
+            env.COOLIFY_VERIFY_SSL,
+          ),
+        ]);
+
+        const resources = rawResources.filter(isRecord);
+        const servers = rawServers.filter(isRecord);
+        const apps = resources.filter((resource) => resource.type === 'application');
+        const dbs = resources.filter((resource) => resource.type === 'database');
+        const services = resources.filter((resource) => resource.type === 'service');
+
+        const appCounts = countByStatus(apps);
+        const dbCounts = countByStatus(dbs);
+        const serviceCounts = countByStatus(services);
+
+        const overview: InfrastructureOverviewData = {
+          servers: {
+            total: servers.length,
+            running: servers.filter(
+              (server) =>
+                (server.settings as { is_reachable?: boolean } | undefined)
+                  ?.is_reachable,
+            ).length,
+            stopped: servers.filter(
+              (server) =>
+                !(server.settings as { is_reachable?: boolean } | undefined)
+                  ?.is_reachable,
+            ).length,
+          },
+          projects: {
+            total: rawProjects.length,
+          },
+          applications: {
+            total: apps.length,
+            ...appCounts,
+          },
+          databases: {
+            total: dbs.length,
+            ...dbCounts,
+          },
+          services: {
+            total: services.length,
+            ...serviceCounts,
+          },
+        };
+
+        return buildReadResponse(overview, {
+          format: parsed.format,
+          max_chars: parsed.max_chars,
+        });
+      }
       default: {
-        const _exhaustive: never = args;
+        const _exhaustive: never = parsed;
         throw new Error(`Unknown system action: ${String(_exhaustive)}`);
       }
     }
@@ -106,6 +241,9 @@ export async function handleSystemAction(
 }
 
 export function formatSystemResult(result: SystemSuccessResult): string {
+  if (result && typeof result === 'object' && '_formattedText' in result) {
+    return result._formattedText;
+  }
   return JSON.stringify(result);
 }
 

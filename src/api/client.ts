@@ -101,4 +101,64 @@ export async function fetchVersion(
   return client('/version');
 }
 
+export async function fetchResources(
+  url: string,
+  token: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client('/resources', { method: 'GET' });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchServers(
+  url: string,
+  token: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client('/servers', { method: 'GET' });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchProjects(
+  url: string,
+  token: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client('/projects', { method: 'GET' });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchApplication(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/applications/${uuid}`, { method: 'GET' });
+}
+
+export async function fetchService(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/services/${uuid}`, { method: 'GET' });
+}
+
+export async function fetchDatabase(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/databases/${uuid}`, { method: 'GET' });
+}
+
 export { createRetryOptions, createFetchOptions };
