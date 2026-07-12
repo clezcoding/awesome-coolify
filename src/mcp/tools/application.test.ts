@@ -545,3 +545,295 @@ describe('handleApplicationAction deploy (APP-04/05/06, DEP-01/03)', () => {
     expect(parsed.success).toBe(false);
   });
 });
+
+describe('handleApplicationAction batch deploy (DEP-02/03)', () => {
+  const mockDeployResponseFor = (deploymentUuid: string, appUuid: string) => ({
+    deployments: [
+      {
+        deployment_uuid: deploymentUuid,
+        resource_uuid: appUuid,
+        message: 'queued',
+      },
+    ],
+  });
+
+  beforeEach(() => {
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(triggerDeploy).mockReset();
+    vi.mocked(fetchDeployment).mockReset();
+    vi.mocked(triggerDeploy).mockImplementation(async (_url, _token, uuid) =>
+      mockDeployResponseFor(`dep-${uuid}`, uuid),
+    );
+  });
+
+  it('deploy uuids array calls triggerDeploy per uuid with queued results', async () => {
+    const result = await handleApplicationAction(
+      { action: 'deploy', uuids: ['a', 'b'] },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(triggerDeploy).toHaveBeenCalledTimes(2);
+    expect(triggerDeploy).toHaveBeenNthCalledWith(
+      1,
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'a',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    expect(triggerDeploy).toHaveBeenNthCalledWith(
+      2,
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'b',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    expect(data.results).toHaveLength(2);
+    expect(data.results[0]).toMatchObject({
+      uuid: 'a',
+      status: 'queued',
+      deployment_uuid: 'dep-a',
+    });
+    expect(data.results[1]).toMatchObject({
+      uuid: 'b',
+      status: 'queued',
+      deployment_uuid: 'dep-b',
+    });
+    for (const entry of data.results) {
+      expect(entry.logs_available).toEqual({
+        tool: 'application',
+        action: 'logs',
+        args: { deployment_uuid: entry.deployment_uuid },
+        label: 'View build logs',
+        available_in_phase: 5,
+      });
+    }
+  });
+
+  it('deploy tags array resolves and deploys matching apps', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'app-web-1',
+        type: 'application',
+        name: 'web-1',
+        tags: ['web'],
+      },
+      {
+        uuid: 'app-web-2',
+        type: 'application',
+        name: 'web-2',
+        tags: ['web', 'api'],
+      },
+      {
+        uuid: 'app-api-1',
+        type: 'application',
+        name: 'api-1',
+        tags: ['api'],
+      },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'deploy', tags: ['web'] },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(triggerDeploy).toHaveBeenCalledTimes(2);
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    expect(data.results).toHaveLength(2);
+    const uuids = data.results.map((r) => r.uuid);
+    expect(uuids).toContain('app-web-1');
+    expect(uuids).toContain('app-web-2');
+  });
+
+  it('deploy uuids and tags dedup when uuid also matches tag', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'a',
+        type: 'application',
+        name: 'app-a',
+        tags: ['web'],
+      },
+      {
+        uuid: 'b',
+        type: 'application',
+        name: 'app-b',
+        tags: ['web'],
+      },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'deploy', uuids: ['a'], tags: ['web'] },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(triggerDeploy).toHaveBeenCalledTimes(2);
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    const uuids = data.results.map((r) => r.uuid);
+    expect(new Set(uuids).size).toBe(2);
+    expect(uuids).toContain('a');
+    expect(uuids).toContain('b');
+  });
+
+  it('deploy single tag field expands to tags array', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'app-web-1',
+        type: 'application',
+        name: 'web-1',
+        tags: ['web'],
+      },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'deploy', tag: 'web' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(triggerDeploy).toHaveBeenCalledTimes(1);
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    expect(data.results[0]).toMatchObject({
+      uuid: 'app-web-1',
+      status: 'queued',
+    });
+  });
+
+  it('unmatched tag surfaces failed entry without aborting matched tags', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'app-web-1',
+        type: 'application',
+        name: 'web-1',
+        tags: ['web'],
+      },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'deploy', tags: ['web', 'nonexistent'] },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(triggerDeploy).toHaveBeenCalledTimes(1);
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    expect(data.results).toHaveLength(2);
+    expect(data.results[0]).toMatchObject({
+      tag: 'nonexistent',
+      status: 'failed',
+      error: "No applications matched tag 'nonexistent'",
+    });
+    expect(data.results[1]).toMatchObject({
+      uuid: 'app-web-1',
+      status: 'queued',
+    });
+  });
+
+  it('wait:true batch deploys and polls sequentially in input order', async () => {
+    vi.useFakeTimers();
+    const deployOrder: string[] = [];
+
+    vi.mocked(triggerDeploy).mockImplementation(async (_url, _token, uuid) => {
+      deployOrder.push(uuid);
+      return mockDeployResponseFor(`dep-${uuid}`, uuid);
+    });
+
+    vi.mocked(fetchDeployment).mockImplementation(async (_url, _token, depUuid) => ({
+      deployment_uuid: depUuid,
+      status: 'finished',
+      finished_at: '2026-07-01T00:05:00Z',
+    }));
+
+    const resultPromise = handleApplicationAction(
+      { action: 'deploy', uuids: ['a', 'b'], wait: true, timeout: 10 },
+      testEnv,
+    );
+
+    const result = await resultPromise;
+    vi.useRealTimers();
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(deployOrder).toEqual(['a', 'b']);
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    expect(data.results).toHaveLength(2);
+    expect(data.results[0]).toMatchObject({ uuid: 'a', status: 'finished' });
+    expect(data.results[1]).toMatchObject({ uuid: 'b', status: 'finished' });
+    for (const entry of data.results) {
+      expect(entry.logs_available?.available_in_phase).toBe(5);
+    }
+  });
+
+  it('partial failure on one uuid does not abort others', async () => {
+    vi.mocked(triggerDeploy).mockImplementation(async (_url, _token, uuid) => {
+      if (uuid === 'a') {
+        throw new Error('Application not found');
+      }
+      return mockDeployResponseFor(`dep-${uuid}`, uuid);
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'deploy', uuids: ['a', 'b'] },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(triggerDeploy).toHaveBeenCalledTimes(2);
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    expect(data.results[0]).toMatchObject({
+      uuid: 'a',
+      status: 'failed',
+      error: 'Application not found',
+    });
+    expect(data.results[1]).toMatchObject({
+      uuid: 'b',
+      status: 'queued',
+      deployment_uuid: 'dep-b',
+    });
+  });
+
+  it('missing tags field on resources surfaces per-tag error without crash', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'app-no-tags',
+        type: 'application',
+        name: 'no-tags',
+      },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'deploy', tags: ['web'] },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(triggerDeploy).not.toHaveBeenCalled();
+    const data = result.data as { results: Array<Record<string, unknown>> };
+    expect(data.results).toHaveLength(1);
+    expect(data.results[0]).toMatchObject({
+      tag: 'web',
+      status: 'failed',
+      error: "No applications matched tag 'web'",
+    });
+  });
+});
