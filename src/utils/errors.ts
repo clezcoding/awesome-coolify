@@ -6,7 +6,8 @@ export type CoolifyErrorCode =
   | 'COOLIFY_422'
   | 'COOLIFY_500'
   | 'COOLIFY_NETWORK'
-  | 'COOLIFY_TIMEOUT';
+  | 'COOLIFY_TIMEOUT'
+  | 'COOLIFY_AMBIGUOUS_MATCH';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -50,9 +51,11 @@ const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
     'The Coolify instance did not respond in time — retry the request.',
     'Check network latency and server load.',
   ],
+  COOLIFY_AMBIGUOUS_MATCH: [
+    'Re-run the mutation with an explicit UUID.',
+    'Multiple applications matched — narrow the name/fqdn substring or pass the UUID directly.',
+  ],
 };
-
-import { redactSecrets } from './redact.js';
 
 function sanitizeMessage(message: string): string {
   return redactSecrets(message);

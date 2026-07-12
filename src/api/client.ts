@@ -227,4 +227,34 @@ export async function triggerServerValidate(
   await client(`/servers/${uuid}/validate`, { method: 'GET' });
 }
 
+export async function triggerAppStart(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/applications/${uuid}/start`, { method: 'POST' });
+}
+
+export async function triggerAppStop(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/applications/${uuid}/stop`, { method: 'POST' });
+}
+
+export async function triggerAppRestart(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/applications/${uuid}/restart`, { method: 'POST' });
+}
+
 export { createRetryOptions, createFetchOptions };

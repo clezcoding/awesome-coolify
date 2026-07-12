@@ -4,6 +4,7 @@ import {
   toStructuredError,
   wrapMcpError,
   CoolifyApiError,
+  type CoolifyErrorCode,
 } from './errors.js';
 
 describe('mapApiError', () => {
@@ -38,6 +39,30 @@ describe('mapApiError', () => {
     const err = new Error('aborted');
     err.name = 'AbortError';
     expect(mapApiError(err).code).toBe('COOLIFY_TIMEOUT');
+  });
+});
+
+describe('COOLIFY_AMBIGUOUS_MATCH', () => {
+  it('is a valid CoolifyErrorCode literal', () => {
+    const code: CoolifyErrorCode = 'COOLIFY_AMBIGUOUS_MATCH';
+    expect(code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+  });
+
+  it('wrapMcpError preserves COOLIFY_AMBIGUOUS_MATCH with static recovery hints', () => {
+    const result = wrapMcpError(
+      new CoolifyApiError({
+        code: 'COOLIFY_AMBIGUOUS_MATCH',
+        message: 'Multiple applications matched the mutation input.',
+        recoveryHints: [
+          'Re-run the mutation with an explicit UUID.',
+          'Multiple applications matched — narrow the name/fqdn substring or pass the UUID directly.',
+          '- myapp (app-uuid-1)',
+        ],
+      }),
+    );
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(result.structuredContent.error.recoveryHints[0]).toContain('explicit UUID');
+    expect(result.structuredContent.error.recoveryHints[1]).toContain('narrow');
   });
 });
 

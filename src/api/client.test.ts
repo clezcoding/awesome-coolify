@@ -6,6 +6,9 @@ import {
   fetchProjects,
   fetchResources,
   fetchServers,
+  triggerAppRestart,
+  triggerAppStart,
+  triggerAppStop,
 } from './client.js';
 import { CoolifyApiError } from '../utils/errors.js';
 
@@ -158,5 +161,79 @@ describe('fetchResources fetchServers fetchProjects', () => {
     );
 
     expect(result).toEqual([]);
+  });
+});
+
+describe('triggerAppStart triggerAppStop triggerAppRestart', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('triggerAppStart POST /applications/{uuid}/start', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'started' }, { status: 200 }),
+    );
+
+    await triggerAppStart(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/applications/app-uuid-1/start',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerAppStop POST /applications/{uuid}/stop', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'stopped' }, { status: 200 }),
+    );
+
+    await triggerAppStop(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/applications/app-uuid-1/stop',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerAppRestart POST /applications/{uuid}/restart', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'restarted' }, { status: 200 }),
+    );
+
+    await triggerAppRestart(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/applications/app-uuid-1/restart',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('each helper throws CoolifyApiError on HTTP error via withMappedErrors', async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Not Found', { status: 404 })),
+    );
+
+    await expect(
+      triggerAppStart('https://coolify.example.com', 'test-token', 'missing'),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
   });
 });
