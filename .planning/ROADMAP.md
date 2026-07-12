@@ -14,7 +14,7 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
 - [x] **Phase 1: Foundation & Multi-Instance Auth** — MCP stdio server, action schema, Zod, Coolify client, instances.json, structured errors (completed 2026-07-12)
 - [x] **Phase 2: Discovery & Read Projections** — Infrastructure overview, resource lists, discovery, docs search, bounded summaries (completed 2026-07-12)
 - [x] **Phase 3: Diagnose & Issue Scan** — App/server diagnose, global unhealthy scan, follow-up hints (completed 2026-07-12)
-- [ ] **Phase 4: App Deploy Lifecycle** — Start/stop/restart, deploy, wait-mode, deployments, batch deploy
+- [x] **Phase 4: App Deploy Lifecycle** — Start/stop/restart, deploy, wait-mode, deployments, batch deploy (completed 2026-07-13)
 - [ ] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy
 - [ ] **Phase 6: Bulk, Emergency & Safety** — Project redeploy/restart, stop-all, masking, confirm gate
 - [ ] **Phase 7: Distribution & Docs** — npm publish, GitHub README, Cursor/Claude Desktop setup
@@ -138,7 +138,7 @@ Plans:
   5. Agent cancels in-flight deployment
   6. Agent deploys by resource name, batch-deploys comma-separated UUIDs or tags; deployment responses include `logs_available` hint without inline log bloat
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -157,7 +157,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-05-PLAN.md — Integration sign-off: deploy-flow.test.ts + VALIDATION.md + build green (APP-03–09, DEP-01–03)
+- [x] 04-05-PLAN.md — Integration sign-off: deploy-flow.test.ts + VALIDATION.md + build green (APP-03–09, DEP-01–03)
 
 ### Phase 5: Logs & Service/DB Ops
 
@@ -228,7 +228,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Foundation & Multi-Instance Auth | 5/5 | Complete    | 2026-07-12 |
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
-| 4. App Deploy Lifecycle | 3/5 | In Progress | - |
+| 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
 | 5. Logs & Service/DB Ops | 0/TBD | Not started | - |
 | 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |
 | 7. Distribution & Docs | 0/TBD | Not started | - |
