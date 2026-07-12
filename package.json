@@ -1,9 +1,26 @@
 {
-  "name": "awesome-coolify",
-  "private": true,
-  "description": "Coolify MCP Server — planning repo and documentation",
+  "name": "coolify-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Coolify — deploy, logs, diagnose via action-based tools",
+  "type": "module",
+  "bin": {
+    "coolify-mcp": "./dist/index.js"
+  },
   "scripts": {
-    "readme:build": "npm run build --prefix docs/readme",
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
     "higgsfield:fix": "bash scripts/fix-higgsfield.sh"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0-beta.3",
+    "ofetch": "^1.4.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.4.0"
   }
 }
