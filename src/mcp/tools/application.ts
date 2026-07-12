@@ -196,17 +196,40 @@ export type ApplicationMutationResult = ReadResponse<{
   status: 'requested';
 }>;
 
-export type ApplicationDeployResult = ReadResponse<{
-  uuid?: string;
-  deployment_uuid: string;
-  status: string;
-  force?: boolean;
-  commit?: string;
-  created_at?: string;
-  finished_at?: string;
-  logs_available: ReturnType<typeof logsAvailableHint>;
-  hint?: string;
-}>;
+export type ApplicationDeployResult = ReadResponse<
+  | {
+      uuid?: string;
+      deployment_uuid: string;
+      status: string;
+      force?: boolean;
+      commit?: string;
+      created_at?: string;
+      finished_at?: string;
+      logs_available: ReturnType<typeof logsAvailableHint>;
+      hint?: string;
+    }
+  | {
+      results: Array<
+        | {
+            uuid: string;
+            deployment_uuid?: string;
+            status: string;
+            force?: boolean;
+            commit?: string;
+            created_at?: string;
+            finished_at?: string;
+            logs_available?: ReturnType<typeof logsAvailableHint>;
+            hint?: string;
+            error?: string;
+          }
+        | {
+            tag: string;
+            status: 'failed';
+            error: string;
+          }
+      >;
+    }
+>;
 
 export type ApplicationActionResult =
   | ApplicationGetResult
@@ -335,12 +358,195 @@ function extractDeploymentUuid(raw: unknown): string {
   return '';
 }
 
+// Tag resolution uses /resources raw records. If items lack a `tags` field
+// (some Coolify 4.1.x instances), every tag returns empty uuids — caller
+// surfaces per-tag error entries. No fallback to GET /applications?tag=.
+async function resolveTagUuids(
+  tags: string[],
+  env: EnvConfig,
+): Promise<Array<{ tag: string; uuids: string[] }>> {
+  const raw = await fetchResources(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const apps = raw
+    .filter(isRecord)
+    .filter((record) => record.type === 'application');
+
+  return tags.map((tag) => {
+    const matched = apps.filter((record) => {
+      const recordTags = record.tags;
+      return (
+        Array.isArray(recordTags) &&
+        recordTags.some(
+          (entry) =>
+            typeof entry === 'string' &&
+            entry.toLowerCase() === tag.toLowerCase(),
+        )
+      );
+    });
+
+    return {
+      tag,
+      uuids: matched.map((record) => String(record.uuid ?? record.id ?? '')),
+    };
+  });
+}
+
+async function handleBatchApplicationDeploy(
+  parsed: DeployAction,
+  env: EnvConfig,
+): Promise<ApplicationDeployResult> {
+  const explicitUuids = parsed.uuids ?? [];
+  const tags = parsed.tags ?? (parsed.tag ? [parsed.tag] : []);
+  const tagResults =
+    tags.length > 0 ? await resolveTagUuids(tags, env) : [];
+  const tagUuids = tagResults.flatMap((result) => result.uuids);
+  const unmatchedTags = tagResults
+    .filter((result) => result.uuids.length === 0)
+    .map((result) => result.tag);
+  const allUuids = [...new Set([...explicitUuids, ...tagUuids])];
+
+  if (allUuids.length === 0 && unmatchedTags.length > 0) {
+    return buildReadResponse(
+      {
+        results: unmatchedTags.map((tag) => ({
+          tag,
+          status: 'failed' as const,
+          error: `No applications matched tag '${tag}'`,
+        })),
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
+
+  if (allUuids.length === 0 && unmatchedTags.length === 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_422',
+      message:
+        'Batch deploy requires at least one uuid, tag, or matched application.',
+      recoveryHints: [
+        'Review the request payload for missing or invalid fields.',
+        'Check Coolify API docs for required parameters.',
+      ],
+    });
+  }
+
+  const results: Array<
+    | {
+        uuid: string;
+        deployment_uuid?: string;
+        status: string;
+        force?: boolean;
+        commit?: string;
+        created_at?: string;
+        finished_at?: string;
+        logs_available?: ReturnType<typeof logsAvailableHint>;
+        hint?: string;
+        error?: string;
+      }
+    | {
+        tag: string;
+        status: 'failed';
+        error: string;
+      }
+  > = [];
+
+  for (const uuid of allUuids) {
+    try {
+      const raw = await triggerDeploy(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        uuid,
+        parsed.force,
+        env.COOLIFY_VERIFY_SSL,
+      );
+      const deploymentUuid = extractDeploymentUuid(raw);
+
+      let entry: {
+        uuid: string;
+        deployment_uuid?: string;
+        status: string;
+        force?: boolean;
+        commit?: string;
+        created_at?: string;
+        finished_at?: string;
+        logs_available?: ReturnType<typeof logsAvailableHint>;
+        hint?: string;
+      } = {
+        uuid,
+        deployment_uuid: deploymentUuid,
+        status: 'queued',
+        force: parsed.force,
+        logs_available: logsAvailableHint(deploymentUuid),
+      };
+
+      if (parsed.wait) {
+        const fetcher = async () => {
+          const dep = await fetchDeployment(
+            env.COOLIFY_URL,
+            env.COOLIFY_TOKEN,
+            deploymentUuid,
+            env.COOLIFY_VERIFY_SSL,
+          );
+          return (isRecord(dep) ? dep : {}) as Record<string, unknown>;
+        };
+        const terminal = await pollDeploymentUntilTerminal(
+          fetcher,
+          parsed.timeout * 1000,
+        );
+        const summary = projectDeploymentSummary(terminal);
+        entry = {
+          uuid,
+          ...summary,
+          logs_available: logsAvailableHint(deploymentUuid),
+          ...(summary.status === 'timeout'
+            ? {
+                hint: `Re-call deployment.get with deployment_uuid=${deploymentUuid} to continue polling`,
+              }
+            : {}),
+        };
+      }
+
+      results.push(entry);
+    } catch (error) {
+      results.push({
+        uuid,
+        status: 'failed',
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  const finalResults = [
+    ...unmatchedTags.map((tag) => ({
+      tag,
+      status: 'failed' as const,
+      error: `No applications matched tag '${tag}'`,
+    })),
+    ...results,
+  ];
+
+  return buildReadResponse(
+    { results: finalResults },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
 async function handleApplicationDeploy(
   parsed: DeployAction,
   env: EnvConfig,
 ): Promise<ApplicationDeployResult> {
   if (parsed.uuids || parsed.tags || parsed.tag) {
-    throw new Error('Batch deploy not implemented in 04-02 — see 04-04');
+    return handleBatchApplicationDeploy(parsed, env);
   }
 
   const uuid = await resolveAppMutationUuid(parsed, env);
