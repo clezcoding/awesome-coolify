@@ -13,13 +13,8 @@ dist/
 .env.*
 .coolify-mcp/
 
-# Local IDE / MCP (tokens, personal settings)
-.cursor/mcp.json
-.cursor/settings.json
-
-# Local cursor rules
-.cursor/rules/caveman-activate-md.mdc
-.cursor/rules/specialized-mcp-builder.mdc
+# Local IDE / MCP / agents / rules (tokens, personal settings, symlinks)
+.cursor/
 
 # Local agent tooling (installed skills cache)
 .agents/
