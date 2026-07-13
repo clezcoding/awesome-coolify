@@ -182,7 +182,17 @@ export async function fetchAppDeployments(
   const result = await client(`/deployments/applications/${uuid}`, {
     method: 'GET',
   });
-  return Array.isArray(result) ? result : [];
+  // Coolify 4.1.x wraps deployments in { count, deployments } envelope.
+  // Older versions returned a flat array. Accept both.
+  if (Array.isArray(result)) return result;
+  if (
+    result &&
+    typeof result === 'object' &&
+    Array.isArray((result as { deployments?: unknown }).deployments)
+  ) {
+    return (result as { deployments: unknown[] }).deployments;
+  }
+  return [];
 }
 
 export async function fetchServer(

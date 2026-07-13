@@ -16,9 +16,22 @@ requirements:
   - DEP-02
   - DEP-03
 result: pass
-tests_total: 286
+tests_total: 289
 build_status: green
-status: complete
+status: passed
+live_uat: 2026-07-13T02:38Z
+live_uat_target: https://puzzlesstool.online
+live_uat_artifacts:
+  project_uuid: h785essygwr360newm83inz6
+  app_uuid: jt4mw1b0ld3542i9w9nfmqkr
+  server_uuid: ozwpdpj5bgxax8v6gfs5lolv
+live_uat_results: 12/12 tool calls green; deployment.list envelope bug found + fixed
+bugfixes:
+  - file: src/api/client.ts
+    function: fetchAppDeployments
+    root_cause: "Coolify 4.1.x wraps /deployments/applications/{uuid} response in {count, deployments} envelope; client only accepted flat arrays"
+    fix: "Unwrap result.deployments when result is an object with deployments[] array; legacy flat array still accepted"
+    tests_added: 3
 ---
 
 # Phase 04 — Verification

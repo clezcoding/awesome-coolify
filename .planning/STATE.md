@@ -6,9 +6,9 @@ current_phase: 4
 current_phase_name: App Deploy Lifecycle
 status: "Phase 04 complete — App Deploy Lifecycle signed off"
 stopped_at: Phase 4 complete
-last_updated: "2026-07-13T00:00:00.000Z"
+last_updated: "2026-07-13T02:42:00.000Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 04-05 complete — integration sign-off (APP-03–09, DEP-01–03)
+last_activity_desc: Phase 04 live UAT against https://puzzlesstool.online — deployment.list envelope bug found + fixed, 289 tests green
 progress:
   total_phases: 7
   completed_phases: 4
@@ -115,15 +115,20 @@ Progress: [███████████████████████
 - [Phase 04-app-deploy-lifecycle]: Batch wait-mode per-app timeout reset — pollDeploymentUntilTerminal fresh startTime each app
 - [Phase 04-app-deploy-lifecycle]: Handler-level integration only for deploy-flow — real MCP stdio E2E MANUAL-ONLY per P1 01-05 + P3 03-06
 - [Phase 04-app-deploy-lifecycle]: Phase 4 validation sign-off — nyquist_compliant true, wave_0_complete true, 286 tests green
+- [Phase 04-app-deploy-lifecycle]: Live UAT 2026-07-13 against https://puzzlesstool.online — 12/12 tool calls green (application get/deploy wait+poll/restart/stop/start, deployment list/get/cancel, resource.find, diagnose app/scan, system health/infrastructure_overview)
+- [Phase 04-app-deploy-lifecycle]: Coolify 4.1.x deployment.list envelope bug found + fixed — fetchAppDeployments unwraps {count, deployments} (src/api/client.ts:175); 3 regression tests added; suite now 289 green
+- [Phase 04-app-deploy-lifecycle]: Wait-mode polling verified against live deploy — nginx:alpine first deploy, 9.9s elapsed, status=finished, deployment_uuid returned (D-07/D-08/D-09 confirmed end-to-end)
+- [Phase 04-app-deploy-lifecycle]: D-21 cancel idempotency verified live — cancel on already-terminal deployment returned { cancelled:false, already_finished:true, status:finished } exact spec match
 
 ### Pending Todos
 
-- Validate deploy wait-mode polling against slow builds (research flag from SUMMARY.md)
+- ~~Validate deploy wait-mode polling against slow builds~~ — verified 2026-07-13 via live UAT against https://puzzlesstool.online (nginx:alpine first deploy, 9.9s, status=finished). Slow-build >60s scenario remains unit-test-only (cached-warm pull); 300s timeout path not exercised against real slow build.
 
 ### Blockers/Concerns
 
 - Coolify 4.1.x: `execute_command` endpoint broken/missing — out of scope v1
 - Global deployments list unreliable — per-app list only (APP-07)
+- ~~Deployment list envelope shape~~ — fixed 2026-07-13: `fetchAppDeployments` now unwraps `{count, deployments}` envelope from Coolify 4.1.x (src/api/client.ts:175). 3 regression tests added. Suite 289 green.
 
 ## Session Continuity
 

@@ -6,6 +6,7 @@ import {
   fetchProjects,
   fetchResources,
   fetchServers,
+  fetchAppDeployments,
   fetchDeployment,
   cancelDeployment,
   triggerAppRestart,
@@ -137,6 +138,54 @@ describe('fetchResources fetchServers fetchProjects', () => {
     const result = await fetchServers(
       'https://coolify.example.com',
       'test-token',
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it('fetchAppDeployments unwraps { count, deployments } envelope (Coolify 4.1.x)', async () => {
+    const items = [
+      { deployment_uuid: 'd1', status: 'finished' },
+      { deployment_uuid: 'd2', status: 'in_progress' },
+    ];
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ count: 2, deployments: items }, { status: 200 }),
+    );
+
+    const result = await fetchAppDeployments(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/deployments/applications/app-uuid-1',
+    );
+    expect(result).toEqual(items);
+  });
+
+  it('fetchAppDeployments accepts legacy flat array response', async () => {
+    const items = [{ deployment_uuid: 'd1', status: 'finished' }];
+    fetchMock.mockResolvedValueOnce(Response.json(items, { status: 200 }));
+
+    const result = await fetchAppDeployments(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+    );
+
+    expect(result).toEqual(items);
+  });
+
+  it('fetchAppDeployments returns empty array for malformed response', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ unexpected: 'shape' }, { status: 200 }),
+    );
+
+    const result = await fetchAppDeployments(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
     );
 
     expect(result).toEqual([]);
