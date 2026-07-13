@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 4
-current_phase_name: App Deploy Lifecycle
-status: "Phase 04 complete — App Deploy Lifecycle signed off"
-stopped_at: Phase 4 complete
-last_updated: "2026-07-13T02:42:00.000Z"
+current_phase: 5
+current_phase_name: planned
+status: Phase 05 planned — 5 plans in 4 waves, ready to execute
+stopped_at: Phase 5 planned
+last_updated: "2026-07-13T04:11:00.000Z"
 last_activity: 2026-07-13
-last_activity_desc: Phase 04 live UAT against https://puzzlesstool.online — deployment.list envelope bug found + fixed, 289 tests green
+last_activity_desc: Phase 05 plan-phase complete — 5 plans across 4 waves; plan-checker passed iteration 2; SVC-04 (service/DB logs) deferred to v1.1 per RESEARCH §2 / spike 004 (no endpoint in Coolify 4.1.x)
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 22
+  total_plans: 27
   completed_plans: 22
-  percent: 100
+  percent: 57
 ---
 
 # Project State
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** AI agent manages multiple self-hosted Coolify instances — deploy, logs, diagnose — via one MCP server.
-**Current focus:** Phase 04 — App Deploy Lifecycle (planned)
+**Current focus:** Phase 05 — Logs & Service/DB Ops (planned, ready to execute)
 
 ## Current Position
 
-Phase: 4 — App Deploy Lifecycle (complete)
-Plan: 04-05 done — Phase 4 signed off
-Status: Phase 04 complete — App Deploy Lifecycle signed off
-Last activity: 2026-07-13 — Phase 04-05 complete — integration sign-off (APP-03–09, DEP-01–03)
+Phase: 5 — Logs & Service/DB Ops (planned)
+Plan: 05-01..05-05 PLAN.md written — ready for /gsd-execute-phase 5
+Status: Phase 05 planned — 5 plans in 4 waves, ready to execute
+Last activity: 2026-07-13 — Phase 05 plan-phase complete — 5 plans across 4 waves; plan-checker passed iteration 2; SVC-04 (service/DB logs) deferred to v1.1 per RESEARCH §2 / spike 004 (no endpoint in Coolify 4.1.x)
 
-Progress: [████████████████████████] 22/22 plans
+Progress: [████████████████████████] 22/27 plans
 
 ## Performance Metrics
 
@@ -119,6 +119,16 @@ Progress: [███████████████████████
 - [Phase 04-app-deploy-lifecycle]: Coolify 4.1.x deployment.list envelope bug found + fixed — fetchAppDeployments unwraps {count, deployments} (src/api/client.ts:175); 3 regression tests added; suite now 289 green
 - [Phase 04-app-deploy-lifecycle]: Wait-mode polling verified against live deploy — nginx:alpine first deploy, 9.9s elapsed, status=finished, deployment_uuid returned (D-07/D-08/D-09 confirmed end-to-end)
 - [Phase 04-app-deploy-lifecycle]: D-21 cancel idempotency verified live — cancel on already-terminal deployment returned { cancelled:false, already_finished:true, status:finished } exact spec match
+- [Phase 05-logs-service-db-ops]: Logs actions co-located on existing domain tools — application.logs, NO unified logs tool (D-01 / P1 D-17 action-per-domain)
+- [Phase 05-logs-service-db-ops]: application.logs accepts uuid (runtime logs) OR deployment_uuid (build logs) — exactly-one-of via superRefine (D-02)
+- [Phase 05-logs-service-db-ops]: Build logs shipped as JSON-array pipeline — JSON.parse → filter hidden:true (unless include_hidden) → flatten entry.output → cap; defensive fallback to plain-string slicing on parse failure (D-08/D-10/D-11 / RESEARCH §4)
+- [Phase 05-logs-service-db-ops]: sharedLogParamsSchema includes include_hidden (default false) + type ('stdout'|'stderr'|'all' default 'all') per D-07 amended
+- [Phase 05-logs-service-db-ops]: Hidden-log reveal gated by COOLIFY_403_SENSITIVE_REQUIRED — caller must pass api.sensitive token; bare COOLIFY_403 NOT used (D-09 amended)
+- [Phase 05-logs-service-db-ops]: SVC-04 (service/DB bounded log tail) DEFERRED to v1.1 — Coolify 4.1.x REST API has no /services/{uuid}/logs or /databases/{uuid}/logs endpoint (D-04 amended / RESEARCH §2 / spike 004 404 confirmed). User directive "KEINE Tools die nicht funktionieren" — no 501 stub. PR #6293 merged to `next` 2026-07-06, backport pending
+- [Phase 05-logs-service-db-ops]: service.deploy maps to POST /services/{uuid}/restart?latest=true — no dedicated /services/{uuid}/deploy endpoint (RESEARCH finding 3, D-17); restart stays pure — no pull_latest flag on restart (D-16, mirrors P4 D-22 force-only-on-deploy)
+- [Phase 05-logs-service-db-ops]: Database has NO deploy action — D-18 (DB image updates are Coolify-managed); database ships start/stop/restart only
+- [Phase 05-logs-service-db-ops]: Service/Database mutation ambiguity error includes project+environment context — services/DBs NOT globally unique (RESEARCH finding 7)
+- [Phase 05-logs-service-db-ops]: Build-logs response carries filter metadata entries_total/entries_hidden/entries_shown so agent knows what was redacted (W4 fix)
 
 ### Pending Todos
 
@@ -132,6 +142,6 @@ Progress: [███████████████████████
 
 ## Session Continuity
 
-Last session: 2026-07-13T00:00:00.000Z
-Stopped at: Phase 4 complete
-Resume file: .planning/phases/05-logs-service-db-ops/05-01-PLAN.md (TBD)
+Last session: 2026-07-13T04:11:00.000Z
+Stopped at: Phase 5 planned
+Resume file: .planning/phases/05-logs-service-db-ops/05-01-PLAN.md

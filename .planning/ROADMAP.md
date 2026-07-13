@@ -15,7 +15,7 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
 - [x] **Phase 2: Discovery & Read Projections** — Infrastructure overview, resource lists, discovery, docs search, bounded summaries (completed 2026-07-12)
 - [x] **Phase 3: Diagnose & Issue Scan** — App/server diagnose, global unhealthy scan, follow-up hints (completed 2026-07-12)
 - [x] **Phase 4: App Deploy Lifecycle** — Start/stop/restart, deploy, wait-mode, deployments, batch deploy (completed 2026-07-13)
-- [ ] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy
+- [ ] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy (planned 2026-07-13; SVC-04 service/DB logs deferred to v1.1 — no endpoint in Coolify 4.1.x)
 - [ ] **Phase 6: Bulk, Emergency & Safety** — Project redeploy/restart, stop-all, masking, confirm gate
 - [ ] **Phase 7: Distribution & Docs** — npm publish, GitHub README, Cursor/Claude Desktop setup
 
@@ -173,11 +173,27 @@ Plans:
   4. Agent reads service/DB logs with bounded tail
   5. Agent deploys/restarts service with pull-latest-images option
 
-**Plans:** TBD
+**Plans:** 5/5 plans complete
 
 Plans:
+**Wave 1**
 
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — App logs (runtime + build JSON-array pipeline) + sharedLogParamsSchema + COOLIFY_403_SENSITIVE_REQUIRED (APP-10, APP-11)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 05-02-PLAN.md — Service lifecycle (start/stop/restart) + service.deploy pull-latest via POST /services/{uuid}/restart?latest=true (SVC-03, SVC-05)
+- [ ] 05-03-PLAN.md — Database lifecycle (start/stop/restart, no deploy per D-18) (SVC-03)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-04-PLAN.md — SVC-04/SC4 deferral doc — amend ROADMAP, no code, no stubs (requirements: [])
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 05-05-PLAN.md — Integration sign-off + VALIDATION restructure (APP-10, APP-11, SVC-03, SVC-05)
+
+**Note:** SVC-04 (service/DB bounded log tail) deferred to v1.1 — Coolify 4.1.x REST API has no `/services/{uuid}/logs` or `/databases/{uuid}/logs` endpoint (RESEARCH §2 / spike 004). PR #6293 merged to `next` 2026-07-06; backport pending. User directive: "KEINE Tools die nicht funktionieren."
 
 ### Phase 6: Bulk, Emergency & Safety
 
@@ -229,7 +245,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
-| 5. Logs & Service/DB Ops | 0/TBD | Not started | - |
+| 5. Logs & Service/DB Ops | 5/5 | Planned | - |
 | 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |
 | 7. Distribution & Docs | 0/TBD | Not started | - |
 
