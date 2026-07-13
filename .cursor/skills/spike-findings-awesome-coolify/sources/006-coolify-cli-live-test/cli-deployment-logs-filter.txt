@@ -1,0 +1,8 @@
+=== default (no --debuglogs, hidden filtered) ===
+entries: 10
+hidden values: {False}
+=== with --debuglogs (all entries) ===
+entries: 23
+hidden values: {False, True}
+types: {'stderr', 'stdout'}
+batches: {8, 1, 2, 10}

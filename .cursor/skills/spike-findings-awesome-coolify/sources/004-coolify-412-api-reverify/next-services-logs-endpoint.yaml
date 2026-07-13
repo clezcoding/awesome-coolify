@@ -1,0 +1,76 @@
+      security:
+        -
+          bearerAuth: []
+  '/services/{uuid}/logs':
+    get:
+      tags:
+        - Services
+      summary: 'Get service logs.'
+      description: 'Get logs for a specific service sub-resource by service UUID. The `sub_service_name` query parameter must match the `name` field of one of the service applications or databases returned by `GET /services/{uuid}`.'
+      operationId: get-service-logs-by-uuid
+      parameters:
+        -
+          name: uuid
+          in: path
+          description: 'UUID of the service.'
+          required: true
+          schema:
+            type: string
+            format: uuid
+        -
+          name: sub_service_name
+          in: query
+          description: 'Sub-service name from `GET /services/{uuid}` under `applications[].name` or `databases[].name`. Do not use `human_name` or the Docker container name with the service UUID suffix.'
+          required: true
+          schema:
+            type: string
+            example: appwrite-console
+        -
+          name: lines
+          in: query
+          description: 'Number of lines to show from the end of the logs.'
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 100
+        -
+          name: show_timestamps
+          in: query
+          description: 'Show timestamps in the logs.'
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: 'Get service logs by UUID.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  logs: { type: string }
+                type: object
+        '401':
+          $ref: '#/components/responses/401'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+      security:
+        -
+          bearerAuth: []
+  '/services/{uuid}/envs':
+    get:
+      tags:
+        - Services
+      summary: 'List Envs'
+      description: 'List all envs by service UUID.'
+      operationId: list-envs-by-service-uuid
+      parameters:
+        -
+          name: uuid
+          in: path
+          description: 'UUID of the service.'
+          required: true
+          schema:
