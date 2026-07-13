@@ -16,7 +16,7 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - [x] Action-basiertes Tool-Schema ab v1 (Domänen + `action`, keine 60+ Einzeltools) — Validated in Phase 1
 - [x] Multi-Instance via `~/.coolify-mcp/instances.json` (add, list, get, update, delete, set-default, switch, verify) — Validated in Phase 1
 - [x] Diagnose (App/Server) + Global Issue-Scan + Follow-Up Hints — Validated in Phase 3: Diagnose & Issue Scan (SYS-03, SYS-04, SYS-05, OUT-06)
-- [x] Ops-Tools v1: Infrastructure-Overview, Diagnose (App/Server), Deploy (inkl. wait-poll), Logs (limitiert/follow), Global Issue-Scan — Infrastructure-Overview + Discovery/Read validated in Phase 2; Diagnose + Issue-Scan + Hints validated in Phase 3 (Deploy/Logs folgen in Phasen 4–6)
+- [x] Ops-Tools v1: Infrastructure-Overview, Diagnose (App/Server), Deploy (inkl. wait-poll), Logs (limitiert/follow), Global Issue-Scan — Infrastructure-Overview + Discovery/Read validated in Phase 2; Diagnose + Issue-Scan + Hints validated in Phase 3 (SYS-03/04/05, OUT-06); App Deploy Lifecycle (start/stop/restart, single/batch deploy, deployments list/get/cancel) validated in Phase 4 (APP-03–09, DEP-01–03); Logs folgen in Phase 5
 - [x] Structured Error Codes mit Recovery-Hints (401/404/422/500 etc.) — Validated in Phase 1
 
 ### Active
@@ -80,4 +80,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-12 after Phase 3 gap closure (03-07 — toolOutputSchema _meta fix, UAT healed 42/42)*
+*Last updated: 2026-07-13 after Phase 4 completion (App Deploy Lifecycle — APP-03–09, DEP-01–03 signed off)*

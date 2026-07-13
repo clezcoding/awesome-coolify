@@ -29,7 +29,7 @@
 
 - [x] **APP-01**: Agent kann Apps listen (summary projection, essential fields)
 - [x] **APP-02**: Agent kann App-Details abrufen (get, summary oder full projection)
-- [ ] **APP-03**: Agent kann App starten, stoppen, restarten
+- [x] **APP-03**: Agent kann App starten, stoppen, restarten
 - [x] **APP-04**: Agent kann App deployen (per UUID, Name oder Tag)
 - [x] **APP-05**: Agent kann Deploy mit Force Rebuild (no cache) auslösen
 - [x] **APP-06**: Agent kann Deploy Wait-Mode nutzen (poll bis finished/failed/cancelled, Timeout)
