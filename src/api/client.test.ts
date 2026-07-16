@@ -345,7 +345,7 @@ describe('triggerServiceStart triggerServiceStop triggerServiceRestart', () => {
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
   });
 
-  it('triggerServiceStop POST /services/{uuid}/stop', async () => {
+  it('triggerServiceStop POST /services/{uuid}/stop with docker_cleanup=false by default', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({ message: 'Service stopping request queued.' }, { status: 200 }),
     );
@@ -356,9 +356,27 @@ describe('triggerServiceStart triggerServiceStop triggerServiceRestart', () => {
       'svc-uuid-1',
     );
 
-    expect(fetchMock.mock.calls[0][0]).toContain(
-      '/api/v1/services/svc-uuid-1/stop',
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/services/svc-uuid-1/stop');
+    expect(url).toContain('docker_cleanup=false');
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerServiceStop with dockerCleanup=true sends docker_cleanup=true', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Service stopping request queued.' }, { status: 200 }),
     );
+
+    await triggerServiceStop(
+      'https://coolify.example.com',
+      'test-token',
+      'svc-uuid-1',
+      true,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/services/svc-uuid-1/stop');
+    expect(url).toContain('docker_cleanup=true');
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
   });
 

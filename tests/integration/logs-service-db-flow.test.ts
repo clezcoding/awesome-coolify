@@ -421,6 +421,7 @@ describe('logs-service-db-flow integration', () => {
         testEnv.COOLIFY_URL,
         testEnv.COOLIFY_TOKEN,
         'svc-uuid-prod',
+        false,
         testEnv.COOLIFY_VERIFY_SSL,
       );
     });

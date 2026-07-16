@@ -95,6 +95,12 @@ const stopActionSchema = requireServiceMutationIdentifier(
       action: z.literal('stop'),
       uuid: z.string().optional().describe('Service UUID'),
       name: z.string().optional().describe('Service name substring'),
+      docker_cleanup: z
+        .boolean()
+        .default(false)
+        .describe(
+          'Run Docker cleanup on stop — default false for reliable compose service stop on Coolify 4.1.x',
+        ),
       ...mutationResponseParamsSchema,
     })
     .strict(),
@@ -175,7 +181,10 @@ type ServiceIdentifierInput = {
   name?: string;
 };
 
-type MutationAction = z.infer<typeof startActionSchema>;
+type MutationAction =
+  | z.infer<typeof startActionSchema>
+  | z.infer<typeof stopActionSchema>
+  | z.infer<typeof restartActionSchema>;
 type DeployAction = z.infer<typeof deployActionSchema>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -270,6 +279,7 @@ async function handleServiceMutation(
         env.COOLIFY_URL,
         env.COOLIFY_TOKEN,
         uuid,
+        parsed.docker_cleanup,
         env.COOLIFY_VERIFY_SSL,
       );
       break;

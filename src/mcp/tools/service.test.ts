@@ -331,6 +331,7 @@ describe('handleServiceAction lifecycle mutations (SVC-03/SVC-05)', () => {
       testEnv.COOLIFY_URL,
       testEnv.COOLIFY_TOKEN,
       'svc-uuid-1',
+      false,
       testEnv.COOLIFY_VERIFY_SSL,
     );
   });

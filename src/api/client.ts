@@ -305,10 +305,14 @@ export async function triggerServiceStop(
   url: string,
   token: string,
   uuid: string,
+  dockerCleanup = false,
   verifySsl = true,
 ): Promise<unknown> {
   const client = createCoolifyClient(url, token, verifySsl);
-  return client(`/services/${uuid}/stop`, { method: 'POST' });
+  return client(`/services/${uuid}/stop`, {
+    method: 'POST',
+    query: dockerCleanup ? { docker_cleanup: true } : { docker_cleanup: false },
+  });
 }
 
 export async function triggerServiceRestart(
