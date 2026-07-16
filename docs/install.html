@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Install — awesome-coolify-mcp</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3348;
+      --text: #e8eaef;
+      --muted: #9aa3b5;
+      --accent: #6b16ed;
+      --accent-hover: #7c3aed;
+      --success: #22c55e;
+      --warning-bg: #1e293b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem 1rem 4rem;
+    }
+    .container { max-width: 820px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    .tagline { color: var(--muted); margin-bottom: 1.5rem; }
+    nav { margin-bottom: 2rem; font-size: 0.9rem; }
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    .notice {
+      background: var(--warning-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .notice strong { color: var(--success); }
+    form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      font-size: 0.9rem;
+    }
+    .hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; }
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+    .field-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+    .field-row input { width: auto; margin: 0; }
+    button, .btn {
+      display: inline-block;
+      padding: 0.65rem 1.25rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    button:hover, .btn:hover { background: var(--accent-hover); }
+    button.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      margin-left: 0.5rem;
+    }
+    button.secondary:hover { border-color: var(--accent); }
+    section.output { margin-top: 2rem; }
+    section.output h2 { font-size: 1.15rem; margin-bottom: 0.75rem; }
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin-bottom: 0.75rem;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .deeplink-box { margin-top: 1.5rem; }
+    .deeplink-box a.btn { word-break: break-all; }
+    footer { margin-top: 3rem; font-size: 0.85rem; color: var(--muted); }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="index.html">← Landing</a> ·
+      <a href="../README.md">README</a> ·
+      <a href="mcp.example.json">mcp.example.json</a>
+    </nav>
+
+    <h1>awesome-coolify-mcp — Install configurator</h1>
+    <p class="tagline">Generate per-client MCP config snippets. Client-side only — no backend.</p>
+
+    <div class="notice">
+      <strong>Security:</strong> All generation happens in your browser. Your URL and token never leave this page.
+      Deeplinks default to placeholder credentials — use &ldquo;Generate deeplink with my values&rdquo; only when opening locally, not for sharing.
+    </div>
+
+    <form id="config-form" novalidate>
+      <label for="coolify-url">COOLIFY_URL</label>
+      <p class="hint">Your Coolify base URL (e.g. https://coolify.example.com, no trailing slash)</p>
+      <input type="text" id="coolify-url" name="coolify-url" placeholder="https://coolify.example.com" autocomplete="off" />
+
+      <label for="coolify-token">COOLIFY_TOKEN</label>
+      <p class="hint">Coolify UI → Keys &amp; Tokens → create an API token</p>
+      <input type="password" id="coolify-token" name="coolify-token" placeholder="YOUR_COOLIFY_API_TOKEN" autocomplete="off" />
+
+      <label for="client">MCP client</label>
+      <select id="client" name="client">
+        <option value="cursor">Cursor</option>
+        <option value="vscode">VS Code / GitHub Copilot</option>
+        <option value="claude-desktop">Claude Desktop</option>
+        <option value="claude-code">Claude Code</option>
+        <option value="windsurf">Windsurf</option>
+        <option value="opencode">OpenCode</option>
+        <option value="codex">Codex CLI</option>
+        <option value="gemini">Gemini CLI</option>
+        <option value="antigravity">Google Antigravity</option>
+        <option value="openclaw">OpenClaw</option>
+        <option value="hermes">Hermes Agent</option>
+        <option value="kimi">Kimi Code</option>
+        <option value="kilo">Kilo Code</option>
+        <option value="cline">Cline</option>
+        <option value="goose">Goose</option>
+        <option value="lmstudio">LM Studio</option>
+      </select>
+      <p class="hint" id="client-note"></p>
+
+      <div class="field-row">
+        <input type="checkbox" id="verify-ssl" checked />
+        <label for="verify-ssl" style="margin:0;font-weight:400;">COOLIFY_VERIFY_SSL (default true)</label>
+      </div>
+
+      <label for="log-level">COOLIFY_MCP_LOG</label>
+      <select id="log-level">
+        <option value="info" selected>info</option>
+        <option value="debug">debug</option>
+        <option value="error">error</option>
+      </select>
+
+      <button type="submit">Generate config</button>
+    </form>
+
+    <section class="output" id="output-section" hidden>
+      <h2>Config snippet</h2>
+      <pre><code id="config-output"></code></pre>
+      <button type="button" id="copy-btn">Copy to clipboard</button>
+
+      <div class="deeplink-box">
+        <h2>One-click deeplinks</h2>
+        <p class="hint">Placeholder env by default. Fill the form above for real credentials.</p>
+        <p><a class="btn" id="cursor-deeplink" href="#">Add to Cursor</a></p>
+        <p style="margin-top:0.75rem;"><a class="btn" id="vscode-deeplink" href="#">Install in VS Code</a></p>
+        <button type="button" class="secondary" id="deeplink-with-values">Generate deeplink with my values</button>
+      </div>
+    </section>
+
+    <footer>
+      <p>Primary command: <code>npx -y awesome-coolify-mcp</code></p>
+      <p style="margin-top:0.5rem;">
+        <a href="https://github.com/clezcoding/awesome-coolify-mcp">GitHub</a> ·
+        MIT License
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    const SERVER_NAME = 'awesome-coolify-mcp';
+    const PLACEHOLDER_URL = 'https://coolify.example.com';
+    const PLACEHOLDER_TOKEN = 'YOUR_COOLIFY_API_TOKEN';
+
+    const CLIENT_NOTES = {
+      'claude-desktop': 'D-18: No Claude Desktop .mcpb packaging in Phase 7 — Claude Desktop = manual JSON paste or Pages configurator output only.',
+    };
+
+    function getEnvVars(useForm) {
+      const urlEl = document.getElementById('coolify-url');
+      const tokenEl = document.getElementById('coolify-token');
+      const sslEl = document.getElementById('verify-ssl');
+      const logEl = document.getElementById('log-level');
+      return {
+        COOLIFY_URL: useForm && urlEl.value.trim() ? urlEl.value.trim() : PLACEHOLDER_URL,
+        COOLIFY_TOKEN: useForm && tokenEl.value.trim() ? tokenEl.value.trim() : PLACEHOLDER_TOKEN,
+        COOLIFY_VERIFY_SSL: sslEl.checked ? 'true' : 'false',
+        COOLIFY_MCP_LOG: logEl.value,
+      };
+    }
+
+    function buildMcpServersJson(env) {
+      const cursorConfig = {
+        mcpServers: {
+          [SERVER_NAME]: {
+            command: 'npx',
+            args: ['-y', 'awesome-coolify-mcp'],
+            env: env,
+          },
+        },
+      };
+      return cursorConfig;
+    }
+
+    function generateCursorSnippet(env) {
+      return JSON.stringify(buildMcpServersJson(env), null, 2);
+    }
+
+    function generateClaudeCodeSnippet(env) {
+      const cfg = {
+        mcpServers: {
+          [SERVER_NAME]: {
+            type: 'stdio',
+            command: 'npx',
+            args: ['-y', 'awesome-coolify-mcp'],
+            env: env,
+          },
+        },
+      };
+      return JSON.stringify(cfg, null, 2);
+    }
+
+    // D-22 VS Code adapter: "inputs" array with ${input:coolify_url} / ${input:coolify_token}
+    function generateVsCodeSnippet(env) {
+      const cfg = {
+        inputs: [
+          {
+            type: 'promptString',
+            id: 'coolify_url',
+            description: 'Your Coolify instance URL (e.g., https://coolify.example.com)',
+            password: false,
+          },
+          {
+            type: 'promptString',
+            id: 'coolify_token',
+            description: 'Your Coolify API Token',
+            password: true,
+          },
+        ],
+        servers: {
+          [SERVER_NAME]: {
+            command: 'npx',
+            args: ['-y', 'awesome-coolify-mcp'],
+            env: {
+              COOLIFY_URL: '${input:coolify_url}',
+              COOLIFY_TOKEN: '${input:coolify_token}',
+              COOLIFY_VERIFY_SSL: env.COOLIFY_VERIFY_SSL,
+              COOLIFY_MCP_LOG: env.COOLIFY_MCP_LOG,
+            },
+          },
+        },
+      };
+      return JSON.stringify(cfg, null, 2);
+    }
+
+    function generateOpenCodeSnippet(env) {
+      const cfg = {
+        mcp: {
+          [SERVER_NAME]: {
+            type: 'local',
+            command: ['npx', '-y', 'awesome-coolify-mcp'],
+            enabled: true,
+            environment: env,
+          },
+        },
+      };
+      return JSON.stringify(cfg, null, 2);
+    }
+
+    function generateCodexSnippet(env) {
+      const lines = [
+        '[mcp_servers.awesome-coolify-mcp]',
+        'command = "npx"',
+        'args = ["-y", "awesome-coolify-mcp"]',
+        'enabled = true',
+        '',
+        '[mcp_servers.awesome-coolify-mcp.env]',
+        `COOLIFY_URL = "${env.COOLIFY_URL}"`,
+        `COOLIFY_TOKEN = "${env.COOLIFY_TOKEN}"`,
+        `COOLIFY_VERIFY_SSL = "${env.COOLIFY_VERIFY_SSL}"`,
+        `COOLIFY_MCP_LOG = "${env.COOLIFY_MCP_LOG}"`,
+      ];
+      return lines.join('\n');
+    }
+
+    function generateHermesSnippet(env) {
+      const yaml = [
+        'mcp_servers:',
+        `  ${SERVER_NAME}:`,
+        '    command: "npx"',
+        '    args: ["-y", "awesome-coolify-mcp"]',
+        '    env:',
+        `      COOLIFY_URL: "${env.COOLIFY_URL}"`,
+        `      COOLIFY_TOKEN: "${env.COOLIFY_TOKEN}"`,
+        `      COOLIFY_VERIFY_SSL: "${env.COOLIFY_VERIFY_SSL}"`,
+        `      COOLIFY_MCP_LOG: "${env.COOLIFY_MCP_LOG}"`,
+      ];
+      return yaml.join('\n');
+    }
+
+    function generateGooseSnippet(env) {
+      const yaml = [
+        'mcpServers:',
+        `  ${SERVER_NAME}:`,
+        '    command: "npx"',
+        '    args: ["-y", "awesome-coolify-mcp"]',
+        '    env:',
+        `      COOLIFY_URL: "${env.COOLIFY_URL}"`,
+        `      COOLIFY_TOKEN: "${env.COOLIFY_TOKEN}"`,
+        `      COOLIFY_VERIFY_SSL: "${env.COOLIFY_VERIFY_SSL}"`,
+        `      COOLIFY_MCP_LOG: "${env.COOLIFY_MCP_LOG}"`,
+      ];
+      return yaml.join('\n');
+    }
+
+    function generateOpenClawSnippet(env) {
+      const jsonPart = JSON.stringify(
+        {
+          mcp: {
+            servers: {
+              [SERVER_NAME]: {
+                command: ['npx', '-y', 'awesome-coolify-mcp'],
+                environment: env,
+              },
+            },
+          },
+        },
+        null,
+        2,
+      );
+      const cliAlt = `openclaw mcp set ${SERVER_NAME} --command npx --args "-y" --args "awesome-coolify-mcp"`;
+      return jsonPart + '\n\n# Alternative CLI:\n# ' + cliAlt + '\n# mcp.servers shape in ~/.openclaw/openclaw.json';
+    }
+
+    const ADAPTERS = {
+      cursor: generateCursorSnippet,
+      vscode: generateVsCodeSnippet,
+      'claude-desktop': generateCursorSnippet,
+      'claude-code': generateClaudeCodeSnippet,
+      windsurf: generateCursorSnippet,
+      opencode: generateOpenCodeSnippet,
+      codex: generateCodexSnippet,
+      gemini: generateCursorSnippet,
+      antigravity: generateCursorSnippet,
+      openclaw: generateOpenClawSnippet,
+      hermes: generateHermesSnippet,
+      kimi: generateCursorSnippet,
+      kilo: generateOpenCodeSnippet,
+      cline: generateCursorSnippet,
+      goose: generateGooseSnippet,
+      lmstudio: generateCursorSnippet,
+    };
+
+    function generateCursorDeeplink(env) {
+      const config = {
+        [SERVER_NAME]: {
+          command: 'npx',
+          args: ['-y', 'awesome-coolify-mcp'],
+          env: env,
+        },
+      };
+      const b64 = btoa(JSON.stringify(config));
+      return `cursor://anysphere.cursor-deeplink/mcp/install?name=${encodeURIComponent(SERVER_NAME)}&config=${b64}`;
+    }
+
+    function generateVsCodeDeeplink(env) {
+      const payload = {
+        inputs: [
+          { type: 'promptString', id: 'coolify_url', description: 'Coolify URL', password: false },
+          { type: 'promptString', id: 'coolify_token', description: 'Coolify API Token', password: true },
+        ],
+        servers: {
+          [SERVER_NAME]: {
+            command: 'npx',
+            args: ['-y', 'awesome-coolify-mcp'],
+            env: {
+              COOLIFY_URL: env.COOLIFY_URL.includes('example') ? '${input:coolify_url}' : env.COOLIFY_URL,
+              COOLIFY_TOKEN: env.COOLIFY_TOKEN.includes('YOUR_') ? '${input:coolify_token}' : env.COOLIFY_TOKEN,
+              COOLIFY_VERIFY_SSL: env.COOLIFY_VERIFY_SSL,
+              COOLIFY_MCP_LOG: env.COOLIFY_MCP_LOG,
+            },
+          },
+        },
+      };
+      return `vscode:mcp/install?config=${encodeURIComponent(JSON.stringify(payload))}`;
+    }
+
+    function updateDeeplinks(useForm) {
+      const env = getEnvVars(useForm);
+      document.getElementById('cursor-deeplink').href = generateCursorDeeplink(env);
+      document.getElementById('vscode-deeplink').href = generateVsCodeDeeplink(env);
+    }
+
+    function applyClientFromHash() {
+      const hash = window.location.hash.slice(1);
+      if (!hash.startsWith('client=')) return;
+      const slug = hash.slice('client='.length);
+      const select = document.getElementById('client');
+      if ([...select.options].some((o) => o.value === slug)) {
+        select.value = slug;
+        updateClientNote();
+      }
+    }
+
+    function updateClientNote() {
+      const client = document.getElementById('client').value;
+      const note = document.getElementById('client-note');
+      note.textContent = CLIENT_NOTES[client] || '';
+    }
+
+    document.getElementById('client').addEventListener('change', updateClientNote);
+
+    document.getElementById('config-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const client = document.getElementById('client').value;
+      const env = getEnvVars(true);
+      const adapter = ADAPTERS[client] || generateCursorSnippet;
+      const snippet = adapter(env);
+      document.getElementById('config-output').textContent = snippet;
+      document.getElementById('output-section').hidden = false;
+      updateDeeplinks(false);
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      const text = document.getElementById('config-output').textContent;
+      navigator.clipboard.writeText(text).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    });
+
+    document.getElementById('deeplink-with-values').addEventListener('click', () => {
+      updateDeeplinks(true);
+    });
+
+    applyClientFromHash();
+    updateClientNote();
+  </script>
+</body>
+</html>
