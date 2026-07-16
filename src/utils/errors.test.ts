@@ -30,6 +30,19 @@ describe('mapApiError', () => {
     expect(mapApiError(null, 400).httpStatus).toBe(400);
   });
 
+  it('maps HTTP 400 with coolifyMessage to COOLIFY_422 using body message', () => {
+    const envelope = mapApiError(null, 400, 'Custom Coolify message');
+    expect(envelope.code).toBe('COOLIFY_422');
+    expect(envelope.message).toBe('Custom Coolify message');
+    expect(envelope.httpStatus).toBe(400);
+  });
+
+  it('maps HTTP 400 with coolifyMessage Service is already running.', () => {
+    const envelope = mapApiError(null, 400, 'Service is already running.');
+    expect(envelope.code).toBe('COOLIFY_422');
+    expect(envelope.message).toBe('Service is already running.');
+  });
+
   it('maps HTTP 500 to COOLIFY_500', () => {
     expect(mapApiError(null, 500).code).toBe('COOLIFY_500');
   });
@@ -158,6 +171,33 @@ describe('COOLIFY_CONFIRM_REQUIRED', () => {
       sample_uuids: ['app-1'],
       action: 'stop_all',
     });
+  });
+});
+
+describe('toStructuredError', () => {
+  it('extracts Coolify message from ofetch FetchError response._data.message', () => {
+    const fetchError = {
+      response: {
+        status: 400,
+        _data: { message: 'Service is already running.' },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_422');
+    expect(envelope.message).toBe('Service is already running.');
+    expect(envelope.httpStatus).toBe(400);
+  });
+
+  it('falls back to generic HTTP message when no body message', () => {
+    const fetchError = {
+      response: {
+        status: 400,
+        _data: {},
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_422');
+    expect(envelope.message).toBe('Coolify API returned HTTP 400');
   });
 });
 

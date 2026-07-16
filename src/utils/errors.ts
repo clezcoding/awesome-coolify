@@ -86,12 +86,37 @@ function statusToCode(status: number): CoolifyErrorCode {
   }
 }
 
-export function mapApiError(error: unknown, httpStatus?: number): CoolifyErrorEnvelope {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function extractCoolifyMessage(data: unknown): string | undefined {
+  if (!isRecord(data)) {
+    return undefined;
+  }
+  const message = data.message;
+  if (typeof message === 'string' && message.trim().length > 0) {
+    return message.trim();
+  }
+  return undefined;
+}
+
+export function mapApiError(
+  error: unknown,
+  httpStatus?: number,
+  coolifyMessage?: string,
+): CoolifyErrorEnvelope {
   if (httpStatus !== undefined) {
     const code = statusToCode(httpStatus);
+    const trimmedCoolifyMessage =
+      typeof coolifyMessage === 'string' ? coolifyMessage.trim() : '';
+    const message =
+      trimmedCoolifyMessage.length > 0
+        ? sanitizeMessage(trimmedCoolifyMessage)
+        : sanitizeMessage(`Coolify API returned HTTP ${httpStatus}`);
     return {
       code,
-      message: sanitizeMessage(`Coolify API returned HTTP ${httpStatus}`),
+      message,
       recoveryHints: RECOVERY_HINTS[code],
       httpStatus,
     };
@@ -140,7 +165,7 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
   }
 
   const fetchError = error as {
-    response?: { status?: number };
+    response?: { status?: number; _data?: unknown };
     status?: number;
     statusCode?: number;
     data?: unknown;
@@ -151,8 +176,12 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
     fetchError.status ??
     fetchError.statusCode;
 
+  const coolifyMessage =
+    extractCoolifyMessage(fetchError.response?._data) ??
+    extractCoolifyMessage(fetchError.data);
+
   if (typeof status === 'number') {
-    return mapApiError(error, status);
+    return mapApiError(error, status, coolifyMessage);
   }
 
   return mapApiError(error);
