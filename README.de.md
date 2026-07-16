@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="awesome-coolify-mcp Maskottchen" width="150" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/hero-banner.png" alt="awesome-coolify-mcp — ein freundliches Maskottchen neben einem leuchtenden Dashboard mit Server-Fleet, Terminal, Deploy-Pfeil und Safety-Shield" width="100%" />
+</p>
+
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/logo.png" alt="awesome-coolify-mcp Maskottchen" width="150" />
 </p>
 
 <h1 align="center">awesome-coolify-mcp</h1>
@@ -41,10 +45,6 @@
   <a href="#-tools-referenz">Tools</a> ·
   <a href="#-sicherheitsmodell">Sicherheit</a> ·
   <a href="#-demnächst">Roadmap</a>
-</p>
-
-<p align="center">
-  <img src="docs/assets/hero-banner.png" alt="awesome-coolify-mcp — ein freundliches Maskottchen neben einem leuchtenden Dashboard mit Server-Fleet, Terminal, Deploy-Pfeil und Safety-Shield" width="100%" />
 </p>
 
 <p align="center">
@@ -125,7 +125,7 @@ Der Fokus liegt heute klar auf **Day-2-Operations**: Connectivity prüfen, herau
 ## ✨ Features
 
 <p align="center">
-  <img src="docs/assets/features.png" alt="Feature-Highlights: aktionsbasierte Tools, Safety Gates, Diagnose, Deploy und Logs" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/features.png" alt="Feature-Highlights: aktionsbasierte Tools, Safety Gates, Diagnose, Deploy und Logs" width="100%" />
 </p>
 
 - **Aktionsbasierte Tools in 10 Domänen** — z. B. `application({ action: "deploy", uuid })` statt Dutzende Tool-Namen zu durchsuchen. Jede Domäne (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`, `docs`, `meta`) folgt derselben Form.
@@ -141,7 +141,7 @@ Der Fokus liegt heute klar auf **Day-2-Operations**: Connectivity prüfen, herau
 ## 🏗️ Architektur
 
 <p align="center">
-  <img src="docs/assets/architecture.png" alt="Architektur: MCP-Clients sprechen mit den Domänen-Tools von awesome-coolify-mcp, die mit der Coolify REST API 4.1.x sprechen" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/architecture.png" alt="Architektur: MCP-Clients sprechen mit den Domänen-Tools von awesome-coolify-mcp, die mit der Coolify REST API 4.1.x sprechen" width="100%" />
 </p>
 
 ```text
@@ -480,7 +480,7 @@ Service-/Database-Log-Tailing pausiert aktuell — Coolifys 4.1.x-REST-API biete
 ## 🔮 Demnächst
 
 <p align="center">
-  <img src="docs/assets/coming-soon.png" alt="Das Maskottchen skizziert eine Roadmap kommender Features: Datenbanken, Scheduled Tasks, Private Keys, Teams und Cloud-Provisioning" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/coming-soon.png" alt="Das Maskottchen skizziert eine Roadmap kommender Features: Datenbanken, Scheduled Tasks, Private Keys, Teams und Cloud-Provisioning" width="100%" />
 </p>
 
 Der nächste Meilenstein dreht sich um **Erschaffen, nicht nur Betreiben** — awesome-coolify-mcp soll neue Infrastruktur von Grund auf aufbauen können, nicht nur Bestehendes verwalten. Geplante Bereiche, grob nach Priorität:

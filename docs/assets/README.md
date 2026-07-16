@@ -19,7 +19,17 @@ Official branding for **awesome-coolify-mcp**. Mascot **Hex Robot Helper** (winn
 
 ## Generation notes (2026-07-16)
 
-Hero banner / architecture / features / coming-soon generated with **Higgsfield Nano Banana Pro** (`nano_banana_pro`, 1K/2K, 16:9), using `logo.png` as an `image`-role reference so the mascot stays visually consistent across assets. Legacy banner kept as `social-preview.legacy.png`.
+Hero banner / architecture / features / coming-soon generated with **Higgsfield Nano Banana Pro** (`nano_banana_pro`, 2K, 16:9), using `logo.png` as an `image`-role reference so the mascot stays visually consistent across assets. Legacy assets kept as `*.legacy.png`.
+
+### CDN (jsDelivr)
+
+README images load from the public repo via [jsDelivr GitHub CDN](https://www.jsdelivr.com/?docs=gh):
+
+```
+https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/<file>
+```
+
+Both `awesome-coolify-mcp-dev` (private) and `awesome-coolify-mcp` (public) READMEs use this base — assets must be synced to the public repo (`scripts/sync-public-repo.sh`) before CDN URLs resolve. Pin `@main` for rolling updates or a commit SHA / release tag for immutable cache keys.
 
 ## Mascot variants (Round 2)
 

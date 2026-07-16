@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="awesome-coolify-mcp mascot" width="150" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/hero-banner.png" alt="awesome-coolify-mcp — a friendly mascot next to a glowing dashboard showing a server fleet, a terminal, a deploy arrow, and a safety shield" width="100%" />
+</p>
+
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/logo.png" alt="awesome-coolify-mcp mascot" width="150" />
 </p>
 
 <h1 align="center">awesome-coolify-mcp</h1>
@@ -41,10 +45,6 @@
   <a href="#-tools-reference">Tools</a> ·
   <a href="#-safety-model">Safety</a> ·
   <a href="#-coming-soon">Roadmap</a>
-</p>
-
-<p align="center">
-  <img src="docs/assets/hero-banner.png" alt="awesome-coolify-mcp — a friendly mascot next to a glowing dashboard showing a server fleet, a terminal, a deploy arrow, and a safety shield" width="100%" />
 </p>
 
 <p align="center">
@@ -125,7 +125,7 @@ Today, the focus is squarely on **day-2 operations**: verifying connectivity, di
 ## ✨ Features
 
 <p align="center">
-  <img src="docs/assets/features.png" alt="Feature highlights: action-based tools, safety gates, diagnose, deploy and logs" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/features.png" alt="Feature highlights: action-based tools, safety gates, diagnose, deploy and logs" width="100%" />
 </p>
 
 - **Action-based tools across 10 domains** — call `application({ action: "deploy", uuid })` instead of hunting through dozens of tool names. Every domain (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`, `docs`, `meta`) follows the same shape.
@@ -141,7 +141,7 @@ Today, the focus is squarely on **day-2 operations**: verifying connectivity, di
 ## 🏗️ How it works
 
 <p align="center">
-  <img src="docs/assets/architecture.png" alt="Architecture: MCP clients talk to awesome-coolify-mcp's domain tools, which talk to the Coolify REST API 4.1.x" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/architecture.png" alt="Architecture: MCP clients talk to awesome-coolify-mcp's domain tools, which talk to the Coolify REST API 4.1.x" width="100%" />
 </p>
 
 ```text
@@ -480,7 +480,7 @@ Service/database log tailing is temporarily on hold — Coolify 4.1.x's REST API
 ## 🔮 Coming soon
 
 <p align="center">
-  <img src="docs/assets/coming-soon.png" alt="The mascot sketching a roadmap of upcoming features: databases, scheduled tasks, private keys, teams, and cloud provisioning" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/coming-soon.png" alt="The mascot sketching a roadmap of upcoming features: databases, scheduled tasks, private keys, teams, and cloud provisioning" width="100%" />
 </p>
 
 The next milestone focuses on **creation**, not just operation — turning awesome-coolify-mcp into a tool that can stand up new infrastructure from scratch, not only manage what already exists. Planned areas, roughly in order of priority:
