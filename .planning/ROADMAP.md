@@ -170,7 +170,7 @@ Plans:
   1. Agent reads app runtime logs with limit and optional follow mode — output stays within `max_chars`
   2. Agent fetches deployment build logs on demand with pagination
   3. Agent starts, stops, and restarts services and databases
-  4. Agent reads service/DB logs with bounded tail
+  4. ~~Agent reads service/DB logs with bounded tail~~ **DEFERRED to v1.1** — Coolify 4.1.x REST API does not expose /services/{uuid}/logs or /databases/{uuid}/logs (404 confirmed live spike 004; PR #6293 merged 2026-07-06 to `next` branch, NOT backported to v4.1.2). Re-add when instance upgrades to v4.1.3+. Tracked in 05-CONTEXT.md <deferred>. v1 ships NO service.logs / database.logs actions (no stub, no COOLIFY_501).
   5. Agent deploys/restarts service with pull-latest-images option
 
 **Plans:** 3/5 plans executed
