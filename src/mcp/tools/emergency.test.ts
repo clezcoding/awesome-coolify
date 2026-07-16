@@ -14,6 +14,7 @@ import type { EnvConfig } from '../../config/env.js';
 vi.mock('../../api/client.js', () => ({
   fetchResources: vi.fn(),
   fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
   triggerAppStop: vi.fn(),
   triggerAppRestart: vi.fn(),
   triggerDeploy: vi.fn(),
@@ -27,6 +28,7 @@ vi.mock('../../utils/deploy-poll.js', () => ({
 import {
   fetchResources,
   fetchProjects,
+  fetchProject,
   triggerAppStop,
   triggerAppRestart,
   triggerDeploy,
@@ -327,10 +329,15 @@ describe('handleEmergencyAction redeploy_project', () => {
   beforeEach(() => {
     vi.mocked(fetchResources).mockReset();
     vi.mocked(fetchProjects).mockReset();
+    vi.mocked(fetchProject).mockReset();
     vi.mocked(triggerDeploy).mockReset();
     vi.mocked(fetchDeployment).mockReset();
     vi.mocked(pollDeploymentUntilTerminal).mockReset();
     vi.mocked(fetchResources).mockResolvedValue(mixedResourcesFixture);
+    vi.mocked(fetchProject).mockResolvedValue({
+      uuid: 'p1',
+      environments: [],
+    });
     vi.mocked(triggerDeploy).mockResolvedValue({
       deployments: [{ deployment_uuid: 'd1' }],
     });
@@ -504,9 +511,14 @@ describe('handleEmergencyAction redeploy_project', () => {
 describe('handleEmergencyAction restart_project', () => {
   beforeEach(() => {
     vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchProject).mockReset();
     vi.mocked(triggerAppRestart).mockReset();
     vi.mocked(triggerDeploy).mockReset();
     vi.mocked(fetchResources).mockResolvedValue(mixedResourcesFixture);
+    vi.mocked(fetchProject).mockResolvedValue({
+      uuid: 'p1',
+      environments: [],
+    });
     vi.mocked(triggerAppRestart).mockResolvedValue({});
     vi.mocked(triggerDeploy).mockReset();
   });
@@ -538,10 +550,59 @@ describe('handleEmergencyAction restart_project', () => {
       status: 'requested',
     });
   });
+
+  it('matches Coolify 4.1 apps via environment_id when project nest missing', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        type: 'application',
+        uuid: 'app-env-23',
+        name: 'Env Matched App',
+        status: 'running:healthy',
+        environment_id: 23,
+      },
+      {
+        type: 'application',
+        uuid: 'app-env-99',
+        name: 'Other Env App',
+        status: 'running:healthy',
+        environment_id: 99,
+      },
+    ]);
+    vi.mocked(fetchProject).mockResolvedValue({
+      uuid: 'p1',
+      environments: [{ id: 23, uuid: 'env-prod', name: 'production' }],
+    });
+
+    const preview = await handleEmergencyAction(
+      { action: 'restart_project', project_uuid: 'p1', confirm: false },
+      testEnv,
+    );
+    expect(isEmergencyErrorResult(preview)).toBe(true);
+    if (!isEmergencyErrorResult(preview)) return;
+    expect(preview.structuredContent.error.data?.would_affect).toBe(1);
+    expect(preview.structuredContent.error.data?.sample_uuids).toEqual([
+      'app-env-23',
+    ]);
+
+    const result = await handleEmergencyAction(
+      { action: 'restart_project', project_uuid: 'p1', confirm: true },
+      testEnv,
+    );
+    expect(isEmergencyErrorResult(result)).toBe(false);
+    if (isEmergencyErrorResult(result)) return;
+    expect(result.data.results).toEqual([
+      {
+        uuid: 'app-env-23',
+        name: 'Env Matched App',
+        status: 'requested',
+      },
+    ]);
+    expect(triggerAppRestart).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('emergency tool server registration', () => {
-  it('registers emergency tool with destructiveHint and confirm guidance', () => {
+  it('registers emergency tool with confirm guidance and openWorldHint', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
@@ -555,8 +616,10 @@ describe('emergency tool server registration', () => {
         ? source.indexOf("registerTool(\n    'deployment'")
         : source.length,
     );
-    expect(emergencyBlock).toMatch(/destructiveHint:\s*true/);
-    expect(emergencyBlock).toMatch(/openWorldHint:\s*true/);
+    // Cursor agent host drops tools annotated destructiveHint:true from the
+    // exposed list — keep safety in confirm gate + description instead.
+    expect(emergencyBlock).toMatch(/annotations:\s*\{\s*openWorldHint:\s*true\s*\}/);
+    expect(emergencyBlock).not.toMatch(/annotations:\s*\{[^}]*destructiveHint:\s*true/);
     expect(emergencyBlock).toMatch(/confirm:\s*true/);
     expect(emergencyBlock).toMatch(/high-impact|destructive/i);
   });

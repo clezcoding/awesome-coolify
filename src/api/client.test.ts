@@ -4,6 +4,7 @@ import {
   createCoolifyClient,
   createRetryOptions,
   fetchProjects,
+  fetchProject,
   fetchResources,
   fetchServers,
   fetchAppDeployments,
@@ -220,6 +221,24 @@ describe('fetchResources fetchServers fetchProjects', () => {
     );
 
     expect(result).toEqual([]);
+  });
+
+  it('fetchProject GET /projects/:uuid returns project payload', async () => {
+    const project = {
+      uuid: 'p1',
+      name: 'project-1',
+      environments: [{ id: 23, uuid: 'e1', name: 'production' }],
+    };
+    fetchMock.mockResolvedValueOnce(Response.json(project, { status: 200 }));
+
+    const result = await fetchProject(
+      'https://coolify.example.com',
+      'test-token',
+      'p1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/projects/p1');
+    expect(result).toEqual(project);
   });
 });
 

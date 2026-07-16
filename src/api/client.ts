@@ -131,6 +131,16 @@ export async function fetchProjects(
   return Array.isArray(result) ? result : [];
 }
 
+export async function fetchProject(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/projects/${uuid}`, { method: 'GET' });
+}
+
 export async function fetchApplication(
   url: string,
   token: string,

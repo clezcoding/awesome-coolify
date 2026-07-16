@@ -1,6 +1,6 @@
 # Brand Assets
 
-Official branding for **coolify-mcp**. Mascot **E — Hex Robot Helper** (winner).
+Official branding for **awesome-coolify-mcp**. Mascot **Hex Robot Helper** (winner).
 
 ## Primary assets
 
@@ -11,7 +11,13 @@ Official branding for **coolify-mcp**. Mascot **E — Hex Robot Helper** (winner
 | `favicon-512.png` | High-res icon source |
 | `favicon-192.png` | PWA / apple-touch size |
 | `favicon-32.png` | Small favicon |
-| `social-preview.png` | GitHub Social Preview (1280×640) — Settings → Social preview |
+| `social-preview.png` | GitHub / README hero banner (16:9) — also Settings → Social preview |
+| `architecture.png` | README architecture diagram (MCP clients → tools → Coolify API) |
+| `features.png` | README feature showcase (action tools, safety, diagnose, deploy/logs) |
+
+## Generation notes (2026-07-16)
+
+Hero / architecture / features regenerated with **Higgsfield Nano Banana Pro** (`nano_banana_pro`, 2K, 16:9), using `logo.png` as style reference. Legacy banner kept as `social-preview.legacy.png`.
 
 ## Mascot variants (Round 2)
 
@@ -34,4 +40,4 @@ Official branding for **coolify-mcp**. Mascot **E — Hex Robot Helper** (winner
 | Surface | `#181818` |
 | Accent | `#fcd34d` |
 
-Compare all variants: `.planning/sketches/001-logo-mark/index.html`
+Compare early logo variants: `.planning/sketches/001-logo-mark/index.html`

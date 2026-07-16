@@ -31,6 +31,7 @@ import { CoolifyApiError } from '../../src/utils/errors.js';
 vi.mock('../../src/api/client.js', () => ({
   fetchResources: vi.fn(),
   fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
   fetchApplication: vi.fn(),
   fetchService: vi.fn(),
   fetchDatabase: vi.fn(),
@@ -49,6 +50,7 @@ vi.mock('../../src/utils/deploy-poll.js', () => ({
 import {
   fetchResources,
   fetchProjects,
+  fetchProject,
   fetchApplication,
   fetchService,
   fetchDatabase,
@@ -188,6 +190,7 @@ const mockDeploymentFinished = {
 function setupEmergencyMocks(): void {
   vi.mocked(fetchResources).mockResolvedValue(mockResourcesWithRunningApps);
   vi.mocked(fetchProjects).mockResolvedValue([]);
+  vi.mocked(fetchProject).mockResolvedValue({ uuid: 'p1', environments: [] });
   vi.mocked(triggerAppStop).mockResolvedValue({});
   vi.mocked(triggerAppRestart).mockResolvedValue({});
   vi.mocked(triggerDeploy).mockResolvedValue(mockDeploymentQueued);

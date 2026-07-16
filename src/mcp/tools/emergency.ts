@@ -3,6 +3,7 @@ import type { EnvConfig } from '../config/env.js';
 import {
   fetchResources,
   fetchProjects,
+  fetchProject,
   triggerAppStop,
   triggerDeploy,
   triggerAppRestart,
@@ -42,19 +43,56 @@ function mapRunningApps(raw: unknown[]): EmergencyApp[] {
     }));
 }
 
-function mapProjectApps(raw: unknown[], projectUuid: string): EmergencyApp[] {
+/**
+ * Coolify 4.1.x `/resources` omits nested `project`; apps only carry `environment_id`.
+ * Prefer nested `project.uuid` when present (older shapes / tests), else match env ids.
+ */
+function mapProjectApps(
+  raw: unknown[],
+  projectUuid: string,
+  environmentIds: Set<number>,
+): EmergencyApp[] {
   return raw
     .filter(isRecord)
-    .filter(
-      (record) =>
-        record.type === 'application' &&
+    .filter((record) => {
+      if (record.type !== 'application') return false;
+      if (
         isRecord(record.project) &&
-        String(record.project.uuid) === projectUuid,
-    )
+        String(record.project.uuid) === projectUuid
+      ) {
+        return true;
+      }
+      return (
+        typeof record.environment_id === 'number' &&
+        environmentIds.has(record.environment_id)
+      );
+    })
     .map((record) => ({
       uuid: String(record.uuid ?? record.id ?? ''),
       name: String(record.name ?? ''),
     }));
+}
+
+async function resolveProjectEnvironmentIds(
+  projectUuid: string,
+  env: EnvConfig,
+): Promise<Set<number>> {
+  const project = await fetchProject(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    projectUuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const ids = new Set<number>();
+  if (!isRecord(project) || !Array.isArray(project.environments)) {
+    return ids;
+  }
+  for (const environment of project.environments) {
+    if (isRecord(environment) && typeof environment.id === 'number') {
+      ids.add(environment.id);
+    }
+  }
+  return ids;
 }
 
 export const stopAllSchema = z
@@ -302,12 +340,15 @@ export async function handleEmergencyAction(
           parsed.project_name,
           env,
         );
-        const raw = await fetchResources(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
-        );
-        const projectApps = mapProjectApps(raw, projectUuid);
+        const [raw, environmentIds] = await Promise.all([
+          fetchResources(
+            env.COOLIFY_URL,
+            env.COOLIFY_TOKEN,
+            env.COOLIFY_VERIFY_SSL,
+          ),
+          resolveProjectEnvironmentIds(projectUuid, env),
+        ]);
+        const projectApps = mapProjectApps(raw, projectUuid, environmentIds);
         await validateConfirmGate(
           'redeploy_project',
           parsed.confirm,
@@ -402,12 +443,15 @@ export async function handleEmergencyAction(
           parsed.project_name,
           env,
         );
-        const raw = await fetchResources(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
-        );
-        const projectApps = mapProjectApps(raw, projectUuid);
+        const [raw, environmentIds] = await Promise.all([
+          fetchResources(
+            env.COOLIFY_URL,
+            env.COOLIFY_TOKEN,
+            env.COOLIFY_VERIFY_SSL,
+          ),
+          resolveProjectEnvironmentIds(projectUuid, env),
+        ]);
+        const projectApps = mapProjectApps(raw, projectUuid, environmentIds);
         await validateConfirmGate(
           'restart_project',
           parsed.confirm,

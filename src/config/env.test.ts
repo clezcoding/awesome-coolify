@@ -1,6 +1,14 @@
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ZodError } from 'zod';
-import { loadEnv } from './env.js';
+import {
+  formatEnvLoadHint,
+  loadEnv,
+  mergeDotEnv,
+  parseDotEnv,
+} from './env.js';
 
 describe('loadEnv', () => {
   it('throws when COOLIFY_URL is absent', () => {
@@ -45,5 +53,61 @@ describe('loadEnv', () => {
     });
 
     expect(env.COOLIFY_MCP_LOG).toBe('debug');
+  });
+});
+
+describe('parseDotEnv', () => {
+  it('parses keys, ignores comments, strips quotes', () => {
+    const parsed = parseDotEnv(
+      [
+        '# comment',
+        'COOLIFY_URL=https://coolify.example.com',
+        "COOLIFY_TOKEN='secret-token'",
+        'COOLIFY_MCP_LOG="debug"',
+        '',
+        'IGNORED_NO_EQ',
+      ].join('\n'),
+    );
+
+    expect(parsed).toEqual({
+      COOLIFY_URL: 'https://coolify.example.com',
+      COOLIFY_TOKEN: 'secret-token',
+      COOLIFY_MCP_LOG: 'debug',
+    });
+  });
+});
+
+describe('mergeDotEnv', () => {
+  it('fills missing keys from .env and does not override existing', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'coolify-mcp-env-'));
+    const path = join(dir, '.env');
+    writeFileSync(
+      path,
+      [
+        'COOLIFY_URL=https://from-dotenv.example.com',
+        'COOLIFY_TOKEN=from-dotenv',
+        'COOLIFY_MCP_LOG=debug',
+      ].join('\n'),
+    );
+
+    const merged = mergeDotEnv(
+      {
+        COOLIFY_URL: 'https://from-process.example.com',
+      },
+      path,
+    );
+
+    expect(merged.COOLIFY_URL).toBe('https://from-process.example.com');
+    expect(merged.COOLIFY_TOKEN).toBe('from-dotenv');
+    expect(merged.COOLIFY_MCP_LOG).toBe('debug');
+  });
+});
+
+describe('formatEnvLoadHint', () => {
+  it('mentions mcp.json, .env, and npm start', () => {
+    const hint = formatEnvLoadHint(new Error('Required'));
+    expect(hint).toContain('mcp.json');
+    expect(hint).toContain('.env');
+    expect(hint).toContain('npm start');
   });
 });
