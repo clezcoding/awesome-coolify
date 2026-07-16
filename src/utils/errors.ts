@@ -8,13 +8,15 @@ export type CoolifyErrorCode =
   | 'COOLIFY_NETWORK'
   | 'COOLIFY_TIMEOUT'
   | 'COOLIFY_AMBIGUOUS_MATCH'
-  | 'COOLIFY_403_SENSITIVE_REQUIRED';
+  | 'COOLIFY_403_SENSITIVE_REQUIRED'
+  | 'COOLIFY_CONFIRM_REQUIRED';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
   message: string;
   recoveryHints: string[];
   httpStatus?: number;
+  data?: Record<string, unknown>;
 }
 
 export class CoolifyApiError extends Error {
@@ -59,6 +61,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_403_SENSITIVE_REQUIRED: [
     'The API token lacks the `api.sensitive` ability required to read deployment build logs.',
     'Regenerate the token in the Coolify UI under Keys & Tokens with the `api.sensitive` scope enabled.',
+  ],
+  COOLIFY_CONFIRM_REQUIRED: [
+    'Retry with confirm: true',
+    'This is a high-impact bulk operation — verify the preview block (would_affect, sample_uuids) before retrying.',
   ],
 };
 
@@ -158,12 +164,34 @@ export interface McpErrorResult {
   structuredContent: { ok: false; error: CoolifyErrorEnvelope };
 }
 
+function redactEnvelopeData(
+  data: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!data) return undefined;
+  const redacted: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === 'string') {
+      redacted[key] = redactSecrets(value);
+    } else if (Array.isArray(value)) {
+      redacted[key] = value.map((entry) =>
+        typeof entry === 'string' ? redactSecrets(entry) : entry,
+      );
+    } else if (value !== null && typeof value === 'object') {
+      redacted[key] = redactSecrets(JSON.stringify(value));
+    } else {
+      redacted[key] = value;
+    }
+  }
+  return redacted;
+}
+
 export function wrapMcpError(error: unknown): McpErrorResult {
   const raw = toStructuredError(error);
   const envelope: CoolifyErrorEnvelope = {
     ...raw,
     message: redactSecrets(raw.message),
     recoveryHints: raw.recoveryHints.map((hint) => redactSecrets(hint)),
+    ...(raw.data ? { data: redactEnvelopeData(raw.data) } : {}),
   };
   return {
     isError: true,

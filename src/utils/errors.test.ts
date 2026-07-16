@@ -108,6 +108,59 @@ describe('COOLIFY_AMBIGUOUS_MATCH', () => {
   });
 });
 
+describe('COOLIFY_CONFIRM_REQUIRED', () => {
+  it('is a valid CoolifyErrorCode literal', () => {
+    const code: CoolifyErrorCode = 'COOLIFY_CONFIRM_REQUIRED';
+    expect(code).toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it('RECOVERY_HINTS contains Retry with confirm: true', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED;
+    expect(hints.some((hint) => hint.includes('Retry with confirm: true'))).toBe(
+      true,
+    );
+  });
+
+  it('CoolifyApiError preserves data on the envelope when provided', () => {
+    const error = new CoolifyApiError({
+      code: 'COOLIFY_CONFIRM_REQUIRED',
+      message: 'Confirmation required',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+      data: {
+        would_affect: 2,
+        sample_uuids: ['a', 'b'],
+        action: 'stop_all',
+      },
+    });
+    expect(error.envelope.data).toEqual({
+      would_affect: 2,
+      sample_uuids: ['a', 'b'],
+      action: 'stop_all',
+    });
+  });
+
+  it('wrapMcpError preserves preview data in structuredContent', () => {
+    const result = wrapMcpError(
+      new CoolifyApiError({
+        code: 'COOLIFY_CONFIRM_REQUIRED',
+        message: 'Confirmation required',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+        data: {
+          would_affect: 1,
+          sample_uuids: ['app-1'],
+          action: 'stop_all',
+        },
+      }),
+    );
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(result.structuredContent.error.data).toEqual({
+      would_affect: 1,
+      sample_uuids: ['app-1'],
+      action: 'stop_all',
+    });
+  });
+});
+
 describe('wrapMcpError', () => {
   it('returns isError true with parseable JSON content containing code', () => {
     const result = wrapMcpError(new CoolifyApiError(mapApiError(null, 401)));
