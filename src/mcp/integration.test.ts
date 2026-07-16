@@ -11,6 +11,7 @@ vi.mock('../api/client.js', () => ({
   fetchResources: vi.fn(),
   fetchServers: vi.fn(),
   fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
   fetchApplication: vi.fn(),
 }));
 
@@ -18,6 +19,7 @@ import {
   fetchResources,
   fetchServers,
   fetchProjects,
+  fetchProject,
   fetchApplication,
 } from '../api/client.js';
 
@@ -76,6 +78,7 @@ describe('P2 read slice integration', () => {
     vi.mocked(fetchResources).mockResolvedValue(mockResources);
     vi.mocked(fetchServers).mockResolvedValue(mockServers);
     vi.mocked(fetchProjects).mockResolvedValue([{ uuid: 'proj-1' }]);
+    vi.mocked(fetchProject).mockResolvedValue({ uuid: 'proj-1', environments: [] });
     vi.mocked(fetchApplication).mockResolvedValue(mockApplication);
   });
 

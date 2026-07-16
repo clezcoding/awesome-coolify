@@ -9,6 +9,8 @@ import type { EnvConfig } from '../../config/env.js';
 vi.mock('../../api/client.js', () => ({
   fetchDatabase: vi.fn(),
   fetchResources: vi.fn(),
+  fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
   triggerDatabaseStart: vi.fn(),
   triggerDatabaseStop: vi.fn(),
   triggerDatabaseRestart: vi.fn(),
@@ -17,6 +19,8 @@ vi.mock('../../api/client.js', () => ({
 import {
   fetchDatabase,
   fetchResources,
+  fetchProjects,
+  fetchProject,
   triggerDatabaseRestart,
   triggerDatabaseStart,
   triggerDatabaseStop,
@@ -61,6 +65,8 @@ describe('handleDatabaseAction get', () => {
   beforeEach(() => {
     vi.mocked(fetchDatabase).mockReset();
     vi.mocked(fetchDatabase).mockResolvedValue(mockDatabase);
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('returns summary projection by default', async () => {
@@ -165,6 +171,8 @@ describe('handleDatabaseAction get reveal (OUT-02)', () => {
       ...mockDatabase,
       password: 'pg-pw',
     });
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('masks secrets on full projection when reveal is false', async () => {

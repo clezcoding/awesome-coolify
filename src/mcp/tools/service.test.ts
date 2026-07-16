@@ -9,6 +9,8 @@ import type { EnvConfig } from '../../config/env.js';
 vi.mock('../../api/client.js', () => ({
   fetchService: vi.fn(),
   fetchResources: vi.fn(),
+  fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
   triggerServiceStart: vi.fn(),
   triggerServiceStop: vi.fn(),
   triggerServiceRestart: vi.fn(),
@@ -17,6 +19,8 @@ vi.mock('../../api/client.js', () => ({
 import {
   fetchService,
   fetchResources,
+  fetchProjects,
+  fetchProject,
   triggerServiceRestart,
   triggerServiceStart,
   triggerServiceStop,
@@ -61,6 +65,8 @@ describe('handleServiceAction get', () => {
   beforeEach(() => {
     vi.mocked(fetchService).mockReset();
     vi.mocked(fetchService).mockResolvedValue(mockService);
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('returns summary projection by default', async () => {
@@ -166,6 +172,8 @@ describe('handleServiceAction get reveal (OUT-02)', () => {
       ...mockService,
       token: 'tok-123',
     });
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('masks secrets on full projection when reveal is false', async () => {

@@ -32,6 +32,8 @@ vi.mock('../../src/api/client.js', () => ({
   fetchApplicationEnvs: vi.fn(),
   fetchAppDeployments: vi.fn(),
   fetchResources: vi.fn(),
+  fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
   fetchServer: vi.fn(),
   fetchServerResources: vi.fn(),
   fetchServerDomains: vi.fn(),
@@ -46,6 +48,8 @@ import {
   fetchApplicationEnvs,
   fetchAppDeployments,
   fetchResources,
+  fetchProjects,
+  fetchProject,
   fetchServer,
   fetchServerResources,
   fetchServerDomains,
@@ -105,6 +109,8 @@ function setupMixedHealthMocks(): void {
   vi.mocked(fetchApplicationEnvs).mockResolvedValue(mockMixedAppEnvs);
   vi.mocked(fetchAppDeployments).mockResolvedValue(mockMixedAppDeployments);
   vi.mocked(fetchResources).mockResolvedValue(mockMixedResources);
+  vi.mocked(fetchProjects).mockResolvedValue([]);
+  vi.mocked(fetchProject).mockResolvedValue({});
   vi.mocked(fetchServer).mockResolvedValue(mockOfflineServer);
   vi.mocked(fetchServerResources).mockResolvedValue(mockMixedServerResources);
   vi.mocked(fetchServerDomains).mockResolvedValue(mockMixedServerDomains);
