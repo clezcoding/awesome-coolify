@@ -160,9 +160,9 @@ reason: no databases configured for UAT
 
 ### 29. service.start / stop cycle
 expected: service stop then start on agreed safe service both succeed; final state running
-result: issue
-reported: "stop and start both COOLIFY_422 HTTP 400; service still running:healthy"
-severity: major
+result: pass
+verified_by: "2026-07-16 live handler chain (07-05) — uat-uptime-a poo9i3gvbpa0euukp8m36zte: get running:healthy → stop {status:requested} → poll exited @25s (docker_cleanup=false) → start {status:requested} → poll running:healthy @45s; service restored running:healthy"
+source: live
 
 ### 30. emergency confirm-gate rejection
 expected: emergency actions with confirm: false or omitted never mutate; only confirm: true executes (verify gate still holds)
@@ -182,8 +182,8 @@ source: automated
 ## Summary
 
 total: 32
-passed: 28
-issues: 1
+passed: 29
+issues: 0
 pending: 0
 skipped: 3
 blocked: 0
@@ -203,20 +203,7 @@ blocked: 0
   verification: "same fix as test 19; live redeploy preview would_affect=2"
 
 - truth: "service stop then start on agreed safe service both succeed; final state running"
-  status: failed
-  reason: "User reported: stop and start both COOLIFY_422 HTTP 400; service still running:healthy"
-  severity: major
+  status: resolved
+  resolved_by: 07-05-PLAN.md
   test: 29
-  root_cause: "Coolify 4.1.2 service stop defaults docker_cleanup=true, which on one-click compose services often returns HTTP 200 without stopping; subsequent start gets HTTP 400 'Service is already running.' — mapped to generic COOLIFY_422 because triggerServiceStop omits docker_cleanup=false and mapApiError drops response body message"
-  artifacts:
-    - path: "src/api/client.ts"
-      issue: "triggerServiceStop omits docker_cleanup=false query param"
-    - path: "src/mcp/tools/service.ts"
-      issue: "Fire-and-forget status:requested on HTTP 200 even when stop no-ops"
-    - path: "src/utils/errors.ts"
-      issue: "mapApiError ignores Coolify JSON message body on HTTP 400"
-  missing:
-    - "Pass docker_cleanup=false in triggerServiceStop (optional tool param for cleanup)"
-    - "Surface Coolify response message in error envelope"
-    - "Test + re-run UAT #29 stop→exited, start→running"
-  debug_session: ".planning/debug/service-stop-start-422.md"
+  verification: "triggerServiceStop docker_cleanup=false default; live stop→exited @25s, start→running:healthy @45s on uat-uptime-a; COOLIFY_422 now surfaces Coolify message body"
