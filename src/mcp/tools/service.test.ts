@@ -159,6 +159,47 @@ describe('handleServiceAction get', () => {
   });
 });
 
+describe('handleServiceAction get reveal (OUT-02)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchService).mockReset();
+    vi.mocked(fetchService).mockResolvedValue({
+      ...mockService,
+      token: 'tok-123',
+    });
+  });
+
+  it('masks secrets on full projection when reveal is false', async () => {
+    const result = await handleServiceAction(
+      { action: 'get', uuid: 'svc-uuid-1', projection: 'full' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.token).toBe('***');
+  });
+
+  it('returns plaintext secrets on full projection when reveal is true', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'get',
+        uuid: 'svc-uuid-1',
+        projection: 'full',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.token).toBe('tok-123');
+  });
+});
+
 const mockResourceService1 = {
   uuid: 'svc-uuid-1',
   type: 'service',

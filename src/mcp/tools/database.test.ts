@@ -158,6 +158,47 @@ describe('handleDatabaseAction get', () => {
   });
 });
 
+describe('handleDatabaseAction get reveal (OUT-02)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchDatabase).mockReset();
+    vi.mocked(fetchDatabase).mockResolvedValue({
+      ...mockDatabase,
+      password: 'pg-pw',
+    });
+  });
+
+  it('masks secrets on full projection when reveal is false', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'get', uuid: 'db-uuid-1', projection: 'full' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.password).toBe('***');
+  });
+
+  it('returns plaintext secrets on full projection when reveal is true', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'get',
+        uuid: 'db-uuid-1',
+        projection: 'full',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.password).toBe('pg-pw');
+  });
+});
+
 const mockResourceDatabase1 = {
   uuid: 'db-uuid-1',
   type: 'database',

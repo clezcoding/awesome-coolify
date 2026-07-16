@@ -230,6 +230,68 @@ describe('handleDeploymentAction get', () => {
   });
 });
 
+describe('handleDeploymentAction get reveal (OUT-02)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchDeployment).mockReset();
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      ...mockDeploymentFull,
+      api_token: 'tok-reveal-test',
+    });
+  });
+
+  it('masks raw_deployment secrets when reveal is false', async () => {
+    const result = await handleDeploymentAction(
+      {
+        action: 'get',
+        deployment_uuid: 'dep-uuid-1',
+        projection: 'full',
+      },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    const data = result.data as { raw_deployment: Record<string, unknown> };
+    expect(data.raw_deployment.api_token).toBe('***');
+  });
+
+  it('returns plaintext raw_deployment secrets when reveal is true', async () => {
+    const result = await handleDeploymentAction(
+      {
+        action: 'get',
+        deployment_uuid: 'dep-uuid-1',
+        projection: 'full',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    const data = result.data as { raw_deployment: Record<string, unknown> };
+    expect(data.raw_deployment.api_token).toBe('tok-reveal-test');
+  });
+
+  it('omits raw_deployment on summary projection even when reveal is true', async () => {
+    const result = await handleDeploymentAction(
+      {
+        action: 'get',
+        deployment_uuid: 'dep-uuid-1',
+        projection: 'summary',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect(result.data).not.toHaveProperty('raw_deployment');
+  });
+});
+
 describe('handleDeploymentAction cancel', () => {
   beforeEach(() => {
     vi.mocked(cancelDeployment).mockReset();

@@ -72,6 +72,12 @@ export const sharedReadParamsSchema = {
     .max(100000)
     .default(16000)
     .describe('Maximum characters in text response before truncation'),
+  reveal: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Reveal sensitive/masked values in full projection (default false — secrets masked as ***)',
+    ),
 };
 
 const readParamsObjectSchema = z.object(sharedReadParamsSchema);
@@ -85,6 +91,7 @@ export interface ParsedReadParams {
   page: number;
   per_page: number;
   max_chars: number;
+  reveal: boolean;
 }
 
 export function rejectTableFormatOnFullProjection(
@@ -117,5 +124,6 @@ export function parseReadParams(input: ReadParamsInput): ParsedReadParams {
     page: parsed.page,
     per_page: parsed.per_page,
     max_chars: parsed.max_chars,
+    reveal: parsed.reveal,
   };
 }

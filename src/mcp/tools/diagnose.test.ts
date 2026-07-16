@@ -541,6 +541,75 @@ describe('handleDiagnoseAction app', () => {
   });
 });
 
+describe('handleDiagnoseAction app reveal (OUT-02)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchApplicationEnvs).mockReset();
+    vi.mocked(fetchAppDeployments).mockReset();
+    vi.mocked(fetchApplication).mockResolvedValue({
+      ...mockHealthyApp,
+      secret_env: 'env-secret',
+    });
+    vi.mocked(fetchApplicationEnvs).mockResolvedValue([]);
+    vi.mocked(fetchAppDeployments).mockResolvedValue(mockMixedAppDeployments);
+  });
+
+  it('masks raw_application secrets when reveal is false on full projection', async () => {
+    const result = await handleDiagnoseAction(
+      diagnoseToolSchema.parse({
+        action: 'app',
+        uuid: 'app-unhealthy',
+        projection: 'full',
+      }),
+      testEnv,
+    );
+
+    expect(isDiagnoseErrorResult(result)).toBe(false);
+    if (isDiagnoseErrorResult(result)) return;
+    if ('matches' in result.data) return;
+
+    const raw = result.data.raw_application as Record<string, unknown>;
+    expect(raw.secret_env).toBe('***');
+  });
+
+  it('returns plaintext raw_application secrets when reveal is true on full projection', async () => {
+    const result = await handleDiagnoseAction(
+      diagnoseToolSchema.parse({
+        action: 'app',
+        uuid: 'app-unhealthy',
+        projection: 'full',
+        reveal: true,
+      }),
+      testEnv,
+    );
+
+    expect(isDiagnoseErrorResult(result)).toBe(false);
+    if (isDiagnoseErrorResult(result)) return;
+    if ('matches' in result.data) return;
+
+    const raw = result.data.raw_application as Record<string, unknown>;
+    expect(raw.secret_env).toBe('env-secret');
+  });
+
+  it('omits raw_application on summary projection even when reveal is true', async () => {
+    const result = await handleDiagnoseAction(
+      diagnoseToolSchema.parse({
+        action: 'app',
+        uuid: 'app-unhealthy',
+        projection: 'summary',
+        reveal: true,
+      }),
+      testEnv,
+    );
+
+    expect(isDiagnoseErrorResult(result)).toBe(false);
+    if (isDiagnoseErrorResult(result)) return;
+    if ('matches' in result.data) return;
+
+    expect(result.data).not.toHaveProperty('raw_application');
+  });
+});
+
 describe('handleDiagnoseAction server', () => {
   beforeEach(() => {
     vi.mocked(fetchServer).mockReset();

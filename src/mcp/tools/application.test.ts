@@ -6,6 +6,7 @@ import {
   isApplicationErrorResult,
 } from './application.js';
 import type { EnvConfig } from '../../config/env.js';
+import { CoolifyApiError } from '../../utils/errors.js';
 
 vi.mock('../../api/client.js', () => ({
   fetchApplication: vi.fn(),
@@ -222,6 +223,95 @@ describe('handleApplicationAction get', () => {
     const data = result.data as Record<string, unknown>;
     expect(Array.isArray(data.hints)).toBe(true);
     expect((data.hints as unknown[]).length).toBeGreaterThan(0);
+  });
+});
+
+describe('handleApplicationAction get reveal (OUT-02)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchApplication).mockResolvedValue({
+      ...mockApplication,
+      password: 'hunter2',
+    });
+  });
+
+  it('masks secrets on full projection when reveal is false (default)', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1', projection: 'full' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.password).toBe('***');
+  });
+
+  it('returns plaintext secrets on full projection when reveal is true', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'get',
+        uuid: 'app-uuid-1',
+        projection: 'full',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.password).toBe('hunter2');
+  });
+
+  it('omits raw secret fields on summary projection even when reveal is true', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'get',
+        uuid: 'app-uuid-1',
+        projection: 'summary',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data).not.toHaveProperty('password');
+    expect(data).not.toHaveProperty('env');
+  });
+
+  it('redacts error messages even when reveal is true', async () => {
+    vi.mocked(fetchApplication).mockRejectedValueOnce(
+      new CoolifyApiError({
+        code: 'COOLIFY_401',
+        message: 'Unauthorized password=hunter2-leak',
+        recoveryHints: ['Verify token secret=leak-value'],
+        httpStatus: 401,
+      }),
+    );
+
+    const result = await handleApplicationAction(
+      {
+        action: 'get',
+        uuid: 'app-uuid-1',
+        projection: 'full',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    const errorText = result.content[0].text;
+    expect(errorText).toContain('COOLIFY_401');
+    expect(errorText).not.toContain('hunter2-leak');
+    expect(errorText).not.toContain('leak-value');
   });
 });
 

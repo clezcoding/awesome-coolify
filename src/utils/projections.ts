@@ -176,9 +176,10 @@ export function projectDatabaseSummary(raw: Record<string, unknown>): DatabaseSu
   };
 }
 
-export function sanitizeFullProjection(raw: unknown): unknown {
+export function sanitizeFullProjection(raw: unknown, reveal = false): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const clone = JSON.parse(JSON.stringify(raw)) as Record<string, unknown>;
+  if (reveal) return clone;
 
   const maskSecrets = (obj: Record<string, unknown>): void => {
     for (const key of Object.keys(obj)) {
@@ -261,6 +262,7 @@ export function truncateLogs(logs: string, maxChars: number): string {
 export function projectDeploymentFull(
   raw: Record<string, unknown>,
   maxChars = 16000,
+  reveal = false,
 ): DeploymentSummary & { logs?: string; raw_deployment: unknown } {
   const summary = projectDeploymentSummary(raw);
   const logs = raw.logs;
@@ -269,7 +271,7 @@ export function projectDeploymentFull(
     ...(typeof logs === 'string'
       ? { logs: truncateLogs(logs, maxChars) }
       : {}),
-    raw_deployment: sanitizeFullProjection(raw),
+    raw_deployment: sanitizeFullProjection(raw, reveal),
   };
 }
 
@@ -279,6 +281,7 @@ export function projectAppDiagnose(
   deployments: unknown[],
   projection: ProjectionMode,
   maxChars = 16000,
+  reveal = false,
 ): AppDiagnoseSummary | AppDiagnoseFull {
   const status = String(raw.status ?? 'unknown');
   const healthCheckStatus = String(
@@ -329,7 +332,7 @@ export function projectAppDiagnose(
 
     return {
       ...summary,
-      raw_application: sanitizeFullProjection(raw),
+      raw_application: sanitizeFullProjection(raw, reveal),
       deployments: fullDeployments,
     };
   }

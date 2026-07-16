@@ -11,6 +11,11 @@ describe('sharedReadParamsSchema', () => {
     expect(parsed.max_chars).toBe(16000);
   });
 
+  it('defaults reveal to false and accepts reveal true', () => {
+    expect(parseReadParams({}).reveal).toBe(false);
+    expect(parseReadParams({ reveal: true }).reveal).toBe(true);
+  });
+
   it('returns projection full when include_full true regardless of projection per D-07', () => {
     const parsed = parseReadParams({
       projection: 'summary',
@@ -44,6 +49,7 @@ describe('sharedReadParamsSchema', () => {
     expect(actionSchema).toHaveProperty('page');
     expect(actionSchema).toHaveProperty('per_page');
     expect(actionSchema).toHaveProperty('max_chars');
+    expect(actionSchema).toHaveProperty('reveal');
     expect(actionSchema).toHaveProperty('action');
   });
 });

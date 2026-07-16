@@ -183,6 +183,31 @@ describe('sanitizeFullProjection', () => {
     expect(sanitizeFullProjection(null)).toBe(null);
     expect(sanitizeFullProjection('text')).toBe('text');
   });
+
+  it('masks secret keys when reveal is false (default)', () => {
+    expect(sanitizeFullProjection({ password: 'secret' }, false).password).toBe(
+      '***',
+    );
+  });
+
+  it('returns plaintext secret keys when reveal is true', () => {
+    expect(sanitizeFullProjection({ password: 'secret' }, true).password).toBe(
+      'secret',
+    );
+  });
+
+  it('reveals nested secret keys when reveal is true', () => {
+    const revealed = sanitizeFullProjection(
+      { nested: { token: 'abc' } },
+      true,
+    ) as { nested: { token: string } };
+    expect(revealed.nested.token).toBe('abc');
+  });
+
+  it('passes through non-object inputs unchanged when reveal is true', () => {
+    expect(sanitizeFullProjection(null, true)).toBe(null);
+    expect(sanitizeFullProjection('text', true)).toBe('text');
+  });
 });
 
 describe('resolveProjection', () => {
@@ -279,6 +304,39 @@ describe('projectAppDiagnose', () => {
     const raw = full.raw_application as Record<string, unknown>;
     const env = raw.env as Record<string, unknown>;
     expect(env.DATABASE_PASSWORD).toBe('***');
+  });
+});
+
+describe('projectAppDiagnose reveal', () => {
+  const rawWithSecret = {
+    ...rawDiagnoseApp,
+    secret_env: 'env-secret',
+  };
+
+  it('masks raw_application when reveal is false on full projection', () => {
+    const full = projectAppDiagnose(rawWithSecret, 2, [], 'full', 16000, false);
+    if (!('raw_application' in full)) throw new Error('expected full projection');
+    const raw = full.raw_application as Record<string, unknown>;
+    expect(raw.secret_env).toBe('***');
+  });
+
+  it('leaves raw_application unmasked when reveal is true on full projection', () => {
+    const full = projectAppDiagnose(rawWithSecret, 2, [], 'full', 16000, true);
+    if (!('raw_application' in full)) throw new Error('expected full projection');
+    const raw = full.raw_application as Record<string, unknown>;
+    expect(raw.secret_env).toBe('env-secret');
+  });
+
+  it('omits raw_application on summary projection even when reveal is true', () => {
+    const summary = projectAppDiagnose(
+      rawWithSecret,
+      2,
+      [],
+      'summary',
+      16000,
+      true,
+    );
+    expect(summary).not.toHaveProperty('raw_application');
   });
 });
 
@@ -401,5 +459,28 @@ describe('projectDeploymentFull', () => {
     });
     expect(full).not.toHaveProperty('logs');
     expect(full.raw_deployment).toBeDefined();
+  });
+});
+
+describe('projectDeploymentFull reveal', () => {
+  const raw = {
+    deployment_uuid: 'dep-uuid-1',
+    git_commit_sha: 'abc',
+    status: 'finished',
+    created_at: '2026-07-01T00:00:00Z',
+    finished_at: '2026-07-01T00:05:00Z',
+    password: 'secret',
+  };
+
+  it('masks raw_deployment secrets when reveal is false', () => {
+    const full = projectDeploymentFull(raw, 16000, false);
+    const rawDep = full.raw_deployment as Record<string, unknown>;
+    expect(rawDep.password).toBe('***');
+  });
+
+  it('leaves raw_deployment secrets plaintext when reveal is true', () => {
+    const full = projectDeploymentFull(raw, 16000, true);
+    const rawDep = full.raw_deployment as Record<string, unknown>;
+    expect(rawDep.password).toBe('secret');
   });
 });
