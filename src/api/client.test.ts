@@ -16,6 +16,9 @@ import {
   triggerServiceRestart,
   triggerServiceStart,
   triggerServiceStop,
+  triggerDatabaseRestart,
+  triggerDatabaseStart,
+  triggerDatabaseStop,
   triggerDeploy,
 } from './client.js';
 import { CoolifyApiError } from '../utils/errors.js';
@@ -383,6 +386,80 @@ describe('triggerServiceStart triggerServiceStop triggerServiceRestart', () => {
 
     await expect(
       triggerServiceStart('https://coolify.example.com', 'test-token', 'missing'),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('triggerDatabaseStart triggerDatabaseStop triggerDatabaseRestart', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('triggerDatabaseStart POST /databases/{uuid}/start', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Database started.' }, { status: 200 }),
+    );
+
+    await triggerDatabaseStart(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/databases/db-uuid-1/start',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerDatabaseStop POST /databases/{uuid}/stop', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Database stopped.' }, { status: 200 }),
+    );
+
+    await triggerDatabaseStop(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/databases/db-uuid-1/stop',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerDatabaseRestart POST /databases/{uuid}/restart without query', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Database restarting request queued.' }, { status: 200 }),
+    );
+
+    await triggerDatabaseRestart(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/databases/db-uuid-1/restart');
+    expect(url).not.toContain('latest=');
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('each helper throws CoolifyApiError on HTTP error via withMappedErrors', async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Not Found', { status: 404 })),
+    );
+
+    await expect(
+      triggerDatabaseStart('https://coolify.example.com', 'test-token', 'missing'),
     ).rejects.toBeInstanceOf(CoolifyApiError);
   });
 });

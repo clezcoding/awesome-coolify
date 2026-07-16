@@ -315,6 +315,36 @@ export async function triggerServiceRestart(
   });
 }
 
+export async function triggerDatabaseStart(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/databases/${uuid}/start`, { method: 'POST' });
+}
+
+export async function triggerDatabaseStop(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/databases/${uuid}/stop`, { method: 'POST' });
+}
+
+export async function triggerDatabaseRestart(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/databases/${uuid}/restart`, { method: 'POST' });
+}
+
 export async function triggerDeploy(
   url: string,
   token: string,

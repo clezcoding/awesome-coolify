@@ -8,9 +8,19 @@ import type { EnvConfig } from '../../config/env.js';
 
 vi.mock('../../api/client.js', () => ({
   fetchDatabase: vi.fn(),
+  fetchResources: vi.fn(),
+  triggerDatabaseStart: vi.fn(),
+  triggerDatabaseStop: vi.fn(),
+  triggerDatabaseRestart: vi.fn(),
 }));
 
-import { fetchDatabase } from '../../api/client.js';
+import {
+  fetchDatabase,
+  fetchResources,
+  triggerDatabaseRestart,
+  triggerDatabaseStart,
+  triggerDatabaseStop,
+} from '../../api/client.js';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -145,5 +155,168 @@ describe('handleDatabaseAction get', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.hints).toEqual([]);
+  });
+});
+
+const mockResourceDatabase1 = {
+  uuid: 'db-uuid-1',
+  type: 'database',
+  name: 'postgres',
+  status: 'running:healthy',
+  project: { name: 'proj-a', uuid: 'proj-uuid-1' },
+  environment: { name: 'production', uuid: 'env-uuid-1' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+const mockResourceDatabase2 = {
+  uuid: 'db-uuid-2',
+  type: 'database',
+  name: 'postgres-staging',
+  status: 'running:healthy',
+  project: { name: 'proj-b', uuid: 'proj-uuid-2' },
+  environment: { name: 'staging', uuid: 'env-uuid-2' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+describe('handleDatabaseAction lifecycle mutations (SVC-03)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(triggerDatabaseStart).mockReset();
+    vi.mocked(triggerDatabaseStop).mockReset();
+    vi.mocked(triggerDatabaseRestart).mockReset();
+    vi.mocked(triggerDatabaseStart).mockResolvedValue({
+      message: 'Database started.',
+    });
+    vi.mocked(triggerDatabaseStop).mockResolvedValue({
+      message: 'Database stopped.',
+    });
+    vi.mocked(triggerDatabaseRestart).mockResolvedValue({
+      message: 'Database restarting request queued.',
+    });
+  });
+
+  it('start by uuid calls triggerDatabaseStart with correct uuid', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'start', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(triggerDatabaseStart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('start by name single-hit resolves and calls triggerDatabaseStart', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceDatabase1]);
+
+    const result = await handleDatabaseAction(
+      { action: 'start', name: 'postgres' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(triggerDatabaseStart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('stop by name single-hit calls triggerDatabaseStop', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceDatabase1]);
+
+    const result = await handleDatabaseAction(
+      { action: 'stop', name: 'postgres' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(triggerDatabaseStop).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('restart by name single-hit calls triggerDatabaseRestart with no latest param', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceDatabase1]);
+
+    const result = await handleDatabaseAction(
+      { action: 'restart', name: 'postgres' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(triggerDatabaseRestart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('start by name multi-hit returns COOLIFY_AMBIGUOUS_MATCH with project+env context', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabase1,
+      mockResourceDatabase2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      { action: 'start', name: 'postgres' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    const hints = result.structuredContent.error.recoveryHints.join(' ');
+    expect(hints).toContain('postgres');
+    expect(hints).toContain('db-uuid-1');
+    expect(hints).toContain('project=proj-a');
+    expect(hints).toContain('environment=production');
+    expect(hints).toContain('project=proj-b');
+    expect(hints).toContain('environment=staging');
+    expect(triggerDatabaseStart).not.toHaveBeenCalled();
+  });
+
+  it('zero-match returns COOLIFY_404', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceDatabase1]);
+
+    const result = await handleDatabaseAction(
+      { action: 'start', name: 'nope' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_404');
+    expect(triggerDatabaseStart).not.toHaveBeenCalled();
+  });
+
+  it('restart rejects pull_latest param per D-16/D-18', () => {
+    expect(
+      databaseActionSchema.safeParse({
+        action: 'restart',
+        uuid: 'db-uuid-1',
+        pull_latest: true,
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects deploy action per D-18', () => {
+    expect(
+      databaseActionSchema.safeParse({
+        action: 'deploy',
+        uuid: 'db-uuid-1',
+      }).success,
+    ).toBe(false);
   });
 });
