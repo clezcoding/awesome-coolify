@@ -141,6 +141,20 @@ export async function fetchApplication(
   return client(`/applications/${uuid}`, { method: 'GET' });
 }
 
+export async function fetchApplicationLogs(
+  url: string,
+  token: string,
+  uuid: string,
+  lines = 100,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/applications/${uuid}/logs`, {
+    method: 'GET',
+    query: { lines },
+  });
+}
+
 export async function fetchService(
   url: string,
   token: string,

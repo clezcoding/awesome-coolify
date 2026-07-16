@@ -7,6 +7,7 @@ import {
   fetchResources,
   fetchServers,
   fetchAppDeployments,
+  fetchApplicationLogs,
   fetchDeployment,
   cancelDeployment,
   triggerAppRestart,
@@ -416,5 +417,36 @@ describe('cancelDeployment', () => {
         httpStatus: 400,
       },
     });
+  });
+});
+
+describe('fetchApplicationLogs', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('GET /applications/{uuid}/logs?lines={lines} returns raw response', async () => {
+    const response = { logs: 'line1\nline2' };
+    fetchMock.mockResolvedValueOnce(Response.json(response, { status: 200 }));
+
+    const result = await fetchApplicationLogs(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      50,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/applications/app-uuid-1/logs',
+    );
+    expect(fetchMock.mock.calls[0][0]).toContain('lines=50');
+    expect(result).toEqual(response);
   });
 });

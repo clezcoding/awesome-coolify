@@ -7,7 +7,8 @@ export type CoolifyErrorCode =
   | 'COOLIFY_500'
   | 'COOLIFY_NETWORK'
   | 'COOLIFY_TIMEOUT'
-  | 'COOLIFY_AMBIGUOUS_MATCH';
+  | 'COOLIFY_AMBIGUOUS_MATCH'
+  | 'COOLIFY_403_SENSITIVE_REQUIRED';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -26,7 +27,7 @@ export class CoolifyApiError extends Error {
   }
 }
 
-const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
+export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_401: [
     'Verify your API token in the Coolify UI under Keys & Tokens.',
     'Ensure the token has not expired or been revoked.',
@@ -54,6 +55,10 @@ const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_AMBIGUOUS_MATCH: [
     'Re-run the mutation with an explicit UUID.',
     'Multiple applications matched — narrow the name/fqdn substring or pass the UUID directly.',
+  ],
+  COOLIFY_403_SENSITIVE_REQUIRED: [
+    'The API token lacks the `api.sensitive` ability required to read deployment build logs.',
+    'Regenerate the token in the Coolify UI under Keys & Tokens with the `api.sensitive` scope enabled.',
   ],
 };
 

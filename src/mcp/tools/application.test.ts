@@ -8,6 +8,7 @@ import type { EnvConfig } from '../../config/env.js';
 
 vi.mock('../../api/client.js', () => ({
   fetchApplication: vi.fn(),
+  fetchApplicationLogs: vi.fn(),
   fetchResources: vi.fn(),
   triggerAppStart: vi.fn(),
   triggerAppStop: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock('../../api/client.js', () => ({
 
 import {
   fetchApplication,
+  fetchApplicationLogs,
   fetchResources,
   triggerAppRestart,
   triggerAppStart,
@@ -835,5 +837,185 @@ describe('handleApplicationAction batch deploy (DEP-02/03)', () => {
       status: 'failed',
       error: "No applications matched tag 'web'",
     });
+  });
+});
+
+describe('handleApplicationAction logs (RED)', () => {
+  const buildLogsFixture = JSON.stringify([
+    { output: 'a', type: 'stdout', hidden: false },
+    { output: 'b', type: 'stderr', hidden: true },
+    { output: 'c', type: 'stdout', hidden: false },
+  ]);
+
+  beforeEach(() => {
+    vi.mocked(fetchApplicationLogs).mockReset();
+    vi.mocked(fetchDeployment).mockReset();
+    vi.mocked(fetchResources).mockReset();
+  });
+
+  it('runtime logs with uuid calls fetchApplicationLogs and returns logs_lines', async () => {
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({
+      logs: 'line1\nline2\nline3',
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1', lines: 50 },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(fetchApplicationLogs).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      50,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.logs_lines)).toBe(true);
+    expect(typeof data.logs_truncated).toBe('boolean');
+    expect(typeof data.total_lines).toBe('number');
+  });
+
+  it('build logs with deployment_uuid returns filter metadata shape', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: buildLogsFixture,
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'logs', deployment_uuid: 'dep-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.deployment_uuid).toBe('dep-uuid-1');
+    expect(Array.isArray(data.logs_lines)).toBe(true);
+    expect(typeof data.entries_total).toBe('number');
+    expect(typeof data.entries_hidden).toBe('number');
+    expect(typeof data.entries_shown).toBe('number');
+  });
+
+  it('rejects logs with neither uuid nor deployment_uuid', async () => {
+    await expect(
+      handleApplicationAction({ action: 'logs' }, testEnv),
+    ).rejects.toThrow();
+  });
+
+  it('rejects logs with both uuid and deployment_uuid', async () => {
+    await expect(
+      handleApplicationAction(
+        { action: 'logs', uuid: 'x', deployment_uuid: 'y' },
+        testEnv,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('multi-match uuid returns COOLIFY_AMBIGUOUS_MATCH without calling fetchApplicationLogs', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      { uuid: 'app-1', type: 'application', name: 'multi' },
+      { uuid: 'app-2', type: 'application', name: 'multi-app' },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'logs', name: 'multi' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(fetchApplicationLogs).not.toHaveBeenCalled();
+  });
+
+  it('build logs without logs field returns COOLIFY_403_SENSITIVE_REQUIRED', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({ status: 'finished' });
+
+    const result = await handleApplicationAction(
+      { action: 'logs', deployment_uuid: 'dep-no-logs' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_403_SENSITIVE_REQUIRED',
+    );
+    expect(
+      result.structuredContent.error.recoveryHints.some((h) =>
+        h.includes('api.sensitive'),
+      ),
+    ).toBe(true);
+  });
+
+  it('include_hidden:true includes hidden entries in build logs', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: buildLogsFixture,
+    });
+
+    const result = await handleApplicationAction(
+      {
+        action: 'logs',
+        deployment_uuid: 'dep-uuid-1',
+        include_hidden: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.entries_shown).toBe(3);
+    expect(data.logs_lines).toEqual(['a', 'b', 'c']);
+  });
+
+  it('type stderr filters build logs to stderr entries only', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: buildLogsFixture,
+    });
+
+    const result = await handleApplicationAction(
+      {
+        action: 'logs',
+        deployment_uuid: 'dep-uuid-1',
+        type: 'stderr',
+        include_hidden: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.logs_lines).toEqual(['b']);
+    expect(data.entries_shown).toBe(1);
+  });
+
+  it('max_chars cap sets logs_truncated on runtime logs', async () => {
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({
+      logs: 'x'.repeat(30000),
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1', max_chars: 20000 },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.logs_truncated).toBe(true);
   });
 });

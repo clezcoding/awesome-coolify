@@ -4,6 +4,7 @@ import {
   toStructuredError,
   wrapMcpError,
   CoolifyApiError,
+  RECOVERY_HINTS,
   type CoolifyErrorCode,
 } from './errors.js';
 
@@ -44,6 +45,42 @@ describe('mapApiError', () => {
     const err = new Error('aborted');
     err.name = 'AbortError';
     expect(mapApiError(err).code).toBe('COOLIFY_TIMEOUT');
+  });
+});
+
+describe('COOLIFY_403_SENSITIVE_REQUIRED', () => {
+  it('is a valid CoolifyErrorCode literal', () => {
+    const code: CoolifyErrorCode = 'COOLIFY_403_SENSITIVE_REQUIRED';
+    expect(code).toBe('COOLIFY_403_SENSITIVE_REQUIRED');
+  });
+
+  it('RECOVERY_HINTS has exactly 2 hints with api.sensitive mention', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_403_SENSITIVE_REQUIRED;
+    expect(hints).toHaveLength(2);
+    expect(hints[0]).toBe(
+      'The API token lacks the `api.sensitive` ability required to read deployment build logs.',
+    );
+    expect(hints[1]).toBe(
+      'Regenerate the token in the Coolify UI under Keys & Tokens with the `api.sensitive` scope enabled.',
+    );
+    expect(hints.some((h) => h.includes('api.sensitive'))).toBe(true);
+  });
+
+  it('wrapMcpError preserves COOLIFY_403_SENSITIVE_REQUIRED with recovery hints', () => {
+    const result = wrapMcpError(
+      new CoolifyApiError({
+        code: 'COOLIFY_403_SENSITIVE_REQUIRED',
+        message:
+          'Deployment build logs are not available — the API token lacks the api.sensitive ability required to read deployment logs.',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_403_SENSITIVE_REQUIRED,
+      }),
+    );
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_403_SENSITIVE_REQUIRED',
+    );
+    expect(result.structuredContent.error.recoveryHints[0]).toContain(
+      'api.sensitive',
+    );
   });
 });
 

@@ -2,6 +2,43 @@ import * as z from 'zod/v4';
 import { resolveProjection, type ProjectionMode } from '../../utils/projections.js';
 import { CoolifyApiError } from '../../utils/errors.js';
 
+export const sharedLogParamsSchema = {
+  lines: z
+    .number()
+    .int()
+    .min(1)
+    .max(1000)
+    .default(100)
+    .describe('Number of log lines to retrieve'),
+  max_chars: z
+    .number()
+    .int()
+    .min(1000)
+    .max(100000)
+    .default(20000)
+    .describe('Maximum characters in response before truncation'),
+  format: z
+    .enum(['pretty', 'json'])
+    .default('pretty')
+    .describe('Output format style'),
+  include_hidden: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Include entries with hidden:true in build-logs output (default false — hidden entries are filtered out)',
+    ),
+  type: z
+    .enum(['stdout', 'stderr', 'all'])
+    .default('all')
+    .describe(
+      'Filter build-logs entries by type (default all — no filter). Applies only to the deployment_uuid (build-logs) path; ignored on runtime logs path.',
+    ),
+};
+
+const logParamsObjectSchema = z.object(sharedLogParamsSchema);
+
+export type ParsedLogParams = z.infer<typeof logParamsObjectSchema>;
+
 export const sharedReadParamsSchema = {
   format: z
     .enum(['pretty', 'json', 'table'])
