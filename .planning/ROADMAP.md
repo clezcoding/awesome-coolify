@@ -173,7 +173,7 @@ Plans:
   4. Agent reads service/DB logs with bounded tail
   5. Agent deploys/restarts service with pull-latest-images option
 
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 **Wave 1**
@@ -183,7 +183,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 05-02-PLAN.md — Service lifecycle (start/stop/restart) + service.deploy pull-latest via POST /services/{uuid}/restart?latest=true (SVC-03, SVC-05)
-- [ ] 05-03-PLAN.md — Database lifecycle (start/stop/restart, no deploy per D-18) (SVC-03)
+- [x] 05-03-PLAN.md — Database lifecycle (start/stop/restart, no deploy per D-18) (SVC-03)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

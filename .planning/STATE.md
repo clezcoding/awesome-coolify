@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: logs-service-db-ops
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-07-16T00:59:37.547Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-07-16T01:05:30.000Z"
 last_activity: 2026-07-16
-last_activity_desc: Completed 05-02 plan (service lifecycle + deploy)
+last_activity_desc: Completed 05-03 plan (database lifecycle start/stop/restart)
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 27
-  completed_plans: 24
-  percent: 89
+  completed_plans: 25
+  percent: 93
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 ## Current Position
 
 Phase: 05 (logs-service-db-ops) — EXECUTING
-Plan: 3 of 5
-Status: Ready to execute 05-03
-Last activity: 2026-07-16 — Completed 05-02 plan (service lifecycle + deploy)
+Plan: 4 of 5
+Status: Ready to execute 05-04
+Last activity: 2026-07-16 — Completed 05-03 plan (database lifecycle start/stop/restart)
 
-Progress: [█████████████████████████] 24/27 plans
+Progress: [██████████████████████████] 25/27 plans
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [███████████████████████
 | 03 | 7 | - | - |
 | Phase 05 P01 | 5 | 2 tasks | 10 files |
 | Phase 05-logs-service-db-ops P02 | 4 | 2 tasks | 5 files |
+| Phase 05-logs-service-db-ops P03 | 5 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,9 @@ Progress: [███████████████████████
 - [Phase 05-logs-service-db-ops]: Service lifecycle shipped — start/stop/restart/deploy by uuid|name, fire-and-forget response (05-02)
 - [Phase 05-logs-service-db-ops]: resolveServiceMutationUuid derives environment_name from raw.environment.name — project+env in COOLIFY_AMBIGUOUS_MATCH (05-02)
 - [Phase 05-logs-service-db-ops]: service tool drops readOnlyHint — openWorldHint only for mutating lifecycle (05-02)
+- [Phase 05-logs-service-db-ops]: Database lifecycle shipped — start/stop/restart by uuid|name, fire-and-forget, no deploy (05-03)
+- [Phase 05-logs-service-db-ops]: resolveDatabaseMutationUuid derives environment_name from raw.environment.name — project+env in COOLIFY_AMBIGUOUS_MATCH (05-03)
+- [Phase 05-logs-service-db-ops]: database tool drops readOnlyHint — openWorldHint only for mutating lifecycle (05-03)
 
 ### Pending Todos
 
@@ -149,6 +153,6 @@ Progress: [███████████████████████
 
 ## Session Continuity
 
-Last session: 2026-07-16T00:59:37.541Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-07-16T01:05:30.000Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
