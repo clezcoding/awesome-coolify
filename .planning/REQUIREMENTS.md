@@ -55,9 +55,9 @@
 
 ### Emergency & Bulk (EMG)
 
-- [ ] **EMG-01**: Agent kann alle laufenden Apps stoppen (Emergency)
-- [ ] **EMG-02**: Agent kann alle Apps eines Projekts redeployen
-- [ ] **EMG-03**: Agent kann alle Apps eines Projekts restarten
+- [x] **EMG-01**: Agent kann alle laufenden Apps stoppen (Emergency)
+- [x] **EMG-02**: Agent kann alle Apps eines Projekts redeployen
+- [x] **EMG-03**: Agent kann alle Apps eines Projekts restarten
 
 ### Output & Ergonomics (OUT)
 
@@ -67,7 +67,7 @@
 - [x] **OUT-04**: Summary vs. Full-Detail Projektionen verfügbar
 - [x] **OUT-05**: `max_chars` Cap verhindert Context-Bloat bei großen Payloads
 - [x] **OUT-06**: Follow-up Action Hints nach Get-Operationen (z.B. „Logs“, „Restart“)
-- [ ] **OUT-07**: Destructive-Ops erfordern `confirm: true` Gate
+- [x] **OUT-07**: Destructive-Ops erfordern `confirm: true` Gate
 
 ### Error Handling (ERR)
 
@@ -327,11 +327,11 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | SVC-03 | 5 — Logs & Service/DB Ops | Complete |
 | SVC-04 | 5 — Logs & Service/DB Ops | Pending |
 | SVC-05 | 5 — Logs & Service/DB Ops | Complete |
-| EMG-01 | 6 — Bulk, Emergency & Safety | Pending |
-| EMG-02 | 6 — Bulk, Emergency & Safety | Pending |
-| EMG-03 | 6 — Bulk, Emergency & Safety | Pending |
+| EMG-01 | 6 — Bulk, Emergency & Safety | Complete |
+| EMG-02 | 6 — Bulk, Emergency & Safety | Complete |
+| EMG-03 | 6 — Bulk, Emergency & Safety | Complete |
 | OUT-02 | 6 — Bulk, Emergency & Safety | Pending |
-| OUT-07 | 6 — Bulk, Emergency & Safety | Pending |
+| OUT-07 | 6 — Bulk, Emergency & Safety | Complete |
 | DIST-01 | 7 — Distribution & Docs | Pending |
 | DIST-02 | 7 — Distribution & Docs | Pending |
 

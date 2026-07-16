@@ -161,7 +161,7 @@ Plans:
 
 ### Phase 5: Logs & Service/DB Ops
 
-**Goal:** As an AI agent, I want bounded logs and service/DB lifecycle control, so that I can debug runtime issues and operate one-click services safely.
+**Goal:** As a AI agent, I want to read bounded logs and control service/DB lifecycle, so that I can debug runtime issues and operate one-click services safely.
 **Mode:** mvp
 **Depends on:** Phase 4
 **Requirements:** APP-10, APP-11, SVC-03–05
@@ -173,7 +173,7 @@ Plans:
   4. ~~Agent reads service/DB logs with bounded tail~~ **DEFERRED to v1.1** — Coolify 4.1.x REST API does not expose /services/{uuid}/logs or /databases/{uuid}/logs (404 confirmed live spike 004; PR #6293 merged 2026-07-06 to `next` branch, NOT backported to v4.1.2). Re-add when instance upgrades to v4.1.3+. Tracked in 05-CONTEXT.md <deferred>. v1 ships NO service.logs / database.logs actions (no stub, no COOLIFY_501).
   5. Agent deploys/restarts service with pull-latest-images option
 
-**Plans:** 5/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -209,11 +209,18 @@ Plans:
   4. Sensitive values (tokens, passwords, webhooks) masked as `***` by default; reveal only on explicit opt-in
   5. All destructive ops reject without `confirm: true` and return clear recovery hint
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] 06-01: TBD
+**Wave 1**
+
+- [x] 06-01-PLAN.md — Emergency tool: stop_all / redeploy_project / restart_project with confirm gate (EMG-01, EMG-02, EMG-03, OUT-07)
+- [ ] 06-02-PLAN.md — Reveal opt-in masking on full projections (OUT-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-03-PLAN.md — Integration sign-off: emergency + reveal handler-level suite + VALIDATION (EMG-01, EMG-02, EMG-03, OUT-02, OUT-07)
 
 ### Phase 7: Distribution & Docs
 
@@ -245,8 +252,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
-| 5. Logs & Service/DB Ops | 4/5 | In Progress|  |
-| 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |
+| 5. Logs & Service/DB Ops | 5/5 | Complete    | 2026-07-16 |
+| 6. Bulk, Emergency & Safety | 0/3 | Not started | - |
 | 7. Distribution & Docs | 0/TBD | Not started | - |
 
 ---
