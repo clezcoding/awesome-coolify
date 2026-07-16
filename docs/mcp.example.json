@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "coolify": {
-      "command": "node",
-      "args": ["./dist/index.js"],
+    "awesome-coolify-mcp": {
+      "command": "npx",
+      "args": ["-y", "awesome-coolify-mcp"],
       "env": {
         "COOLIFY_URL": "https://coolify.example.com",
         "COOLIFY_TOKEN": "YOUR_COOLIFY_API_TOKEN",
