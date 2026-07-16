@@ -244,7 +244,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 / 07-01 completion)*
 
-- [ ] 07-02-PLAN.md — README.md + README.de.md full parity rewrite (10-tool / 32-action table, 3 install paths, Safety section, no .planning links, CONTRIBUTING.md pointer) + docs/mcp.example.json update; turns docs-parity test GREEN (DIST-02)
+- [x] 07-02-PLAN.md — README.md + README.de.md full parity rewrite (10-tool / 32-action table, 3 install paths, Safety section, no .planning links, CONTRIBUTING.md pointer) + docs/mcp.example.json update; turns docs-parity test GREEN (DIST-02)
 
 **Wave 3** *(blocked on Wave 2 / 07-02 completion)*
 
