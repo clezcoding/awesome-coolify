@@ -86,6 +86,5 @@ export function formatEnvLoadHint(error: unknown): string {
     'Ways to provide them (same contract as production MCP hosts):',
     '  1. IDE/host mcp.json `env` block (Cursor/Claude/Codex) — preferred',
     '  2. Project `.env` file (see .env.example) — for bare CLI',
-    '  3. `npm start` — injects env from .cursor/mcp.json like Cursor',
   ].join('\n');
 }

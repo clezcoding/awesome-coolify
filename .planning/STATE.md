@@ -8,7 +8,7 @@ status: complete
 stopped_at: Phase 07 UAT + verification passed
 last_updated: "2026-07-16T20:32:00Z"
 last_activity: 2026-07-16
-last_activity_desc: Phase 07 verify-work complete — 32/32 UAT, verification passed
+last_activity_desc: Completed quick task 260716-a1 — split into private dev repo + public repo, npm + GitHub Pages setup
 progress:
   total_phases: 7
   completed_phases: 7
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 Phase: 07 (distribution-docs) — COMPLETE
 Plan: 7 of 7
 Status: Verified — UAT 32/32, verification 27/27
-Last activity: 2026-07-16 — Phase 07 verify-work complete
+Last activity: 2026-07-16 — Completed quick task 260716-a1: split into private dev repo + public repo, npm + GitHub Pages setup
 
 Progress: [██████████] 33/33 plans (100%)
 
@@ -167,6 +167,12 @@ Progress: [██████████] 33/33 plans (100%)
 - Coolify 4.1.x: `execute_command` endpoint broken/missing — out of scope v1
 - Global deployments list unreliable — per-app list only (APP-07)
 - ~~Deployment list envelope shape~~ — fixed 2026-07-13: `fetchAppDeployments` now unwraps `{count, deployments}` envelope from Coolify 4.1.x (src/api/client.ts:175). 3 regression tests added. Suite 289 green.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260716-a1 | Split into private dev repo + public repo, npm + GitHub Pages setup | 2026-07-16 | (pending local commit) | [260716-a1-split-public-repo](./quick/260716-a1-split-public-repo/) |
 
 ## Session Continuity
 

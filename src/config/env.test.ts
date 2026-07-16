@@ -104,10 +104,9 @@ describe('mergeDotEnv', () => {
 });
 
 describe('formatEnvLoadHint', () => {
-  it('mentions mcp.json, .env, and npm start', () => {
+  it('mentions mcp.json and .env', () => {
     const hint = formatEnvLoadHint(new Error('Required'));
     expect(hint).toContain('mcp.json');
     expect(hint).toContain('.env');
-    expect(hint).toContain('npm start');
   });
 });

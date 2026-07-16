@@ -2,13 +2,20 @@
 
 Thank you for helping improve the community MCP server for self-hosted Coolify. Clone the repo, run `npm install`, `npm test`, and `npm run build` before opening a pull request.
 
-## Development
+## Repo layout
 
-Run the MCP server locally over stdio:
+This project is developed across two repos:
+
+- **`clezcoding/awesome-coolify-mcp`** (this repo, public) — source of truth for the npm package and the GitHub Pages install site (`docs/`). PRs and issues happen here.
+- **`clezcoding/awesome-coolify-mcp-dev`** (private) — the maintainer's working repo: full planning history, spikes, research notes, and dev-only tooling. Nothing from it enters this repo's git history; a maintainer periodically syncs a clean snapshot over via `scripts/sync-public-repo.sh` (run from the dev repo).
+
+External contributors only ever need this repo.
+
+## Development
 
 ```bash
 npm run dev      # watch build
-npm run start    # stdio MCP via scripts/run-mcp.mjs
+npm test         # vitest
 ```
 
 Logs go to **stderr** only (stdout is reserved for the MCP protocol).
@@ -35,8 +42,12 @@ Maintainer-only steps. Do not publish from a fork without npm publish rights on 
    - `dist/` (compiled output)
    
    It must **not** include source trees, dev scripts, tests, internal planning docs, editor config, or the docs site folder.
-3. **`npm publish --access public`** — `prepublishOnly` runs `npm run build` automatically; `--access public` matches `publishConfig.access`
+3. **`npm publish --access public`** — `prepublishOnly` runs `npm run build` automatically; `--access public` matches `publishConfig.access`. CI can also do this automatically: pushing a GitHub Release triggers `.github/workflows/publish.yml` (needs an `NPM_TOKEN` repo secret).
 4. **Post-publish** — tag the release (`git tag v0.1.0 && git push --tags`), open a GitHub Release, and link the npm package URL
+
+### GitHub Pages
+
+`docs/` is deployed automatically to `https://clezcoding.github.io/awesome-coolify-mcp/` by `.github/workflows/pages.yml` on every push to `main` that touches `docs/`.
 
 ## Version bump policy
 
