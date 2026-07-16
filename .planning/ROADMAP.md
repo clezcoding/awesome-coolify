@@ -235,11 +235,20 @@ Plans:
   3. README documents action-based tool patterns and links to v2 roadmap for deferred CRUD features
   4. Package metadata (name, version, bin) matches PROJECT.md distribution constraints
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
+**Wave 1**
 
-- [ ] 07-01: TBD
+- [ ] 07-01-PLAN.md — npm publish-ready packaging (name=awesome-coolify-mcp, bin, prepublishOnly, files+LICENSE, engines, repository/bugs/homepage, keywords) + Wave 0 docs-parity test scaffold + CONTRIBUTING.md maintainer publish workflow (DIST-01, DIST-02)
+
+**Wave 2** *(blocked on Wave 1 / 07-01 completion)*
+
+- [ ] 07-02-PLAN.md — README.md + README.de.md full parity rewrite (10-tool / 32-action table, 3 install paths, Safety section, no .planning links, CONTRIBUTING.md pointer) + docs/mcp.example.json update; turns docs-parity test GREEN (DIST-02)
+
+**Wave 3** *(blocked on Wave 2 / 07-02 completion)*
+
+- [ ] 07-03-PLAN.md — GitHub Pages configurator (docs/install.html + docs/index.html) with 15+ per-client format adapters + Cursor/VS Code deeplink generators + install-configurator.test.ts incl. `<script src=` negative grep (DIST-02)
 
 ## Progress
 
@@ -254,7 +263,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
 | 5. Logs & Service/DB Ops | 5/5 | Complete    | 2026-07-16 |
 | 6. Bulk, Emergency & Safety | 3/3 | Complete    | 2026-07-16 |
-| 7. Distribution & Docs | 0/TBD | Not started | - |
+| 7. Distribution & Docs | 0/3 | Not started | - |
 
 ---
 
