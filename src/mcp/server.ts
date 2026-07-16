@@ -76,6 +76,11 @@ export const toolOutputSchema = z.object({
       code: z.string(),
       message: z.string(),
       hint: z.string().optional(),
+      // Confirm-gate / CoolifyApiError envelope fields — required so Cursor's
+      // outputSchema validation (additionalProperties:false) accepts previews.
+      recoveryHints: z.array(z.string()).optional(),
+      httpStatus: z.number().optional(),
+      data: z.record(z.string(), z.unknown()).optional(),
     })
     .optional(),
   _meta: z
@@ -250,7 +255,10 @@ export function registerCoolifyTools(
         'Emergency and bulk operations (stop_all, redeploy_project, restart_project). High-impact destructive actions — require explicit confirm: true to execute. Call without confirm first to preview would_affect and sample_uuids; ask the human before retrying with confirm: true. Always ask the human before setting wait: true on redeploy_project.',
       inputSchema: emergencyToolSchema,
       outputSchema: toolOutputSchema,
-      annotations: { openWorldHint: true, destructiveHint: true },
+      // Note: omit destructiveHint — Cursor agent host currently drops tools
+      // with destructiveHint:true from the exposed tool list (lease stays at 9).
+      // Safety remains via confirm gate + description wording.
+      annotations: { openWorldHint: true },
     },
     async (args) => {
       const result = await handleEmergencyAction(args, env);
@@ -392,7 +400,7 @@ export function registerCoolifyTools(
 export async function createAndConnectServer(
   env: EnvConfig,
 ): Promise<McpServer> {
-  const server = new McpServer({ name: 'coolify-mcp', version: '0.1.0' });
+  const server = new McpServer({ name: 'awesome-coolify-mcp', version: '0.1.0' });
   registerCoolifyTools(server, env);
 
   const transport = new StdioServerTransport();

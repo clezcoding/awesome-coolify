@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { loadEnv } from './config/env.js';
+import { formatEnvLoadHint, loadEnv } from './config/env.js';
 import { createAndConnectServer } from './mcp/server.js';
 
 async function main(): Promise<void> {
@@ -8,7 +8,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`[coolify-mcp] Fatal: ${message}`);
+  console.error(`[awesome-coolify-mcp] Fatal:\n${formatEnvLoadHint(error)}`);
   process.exit(1);
 });
