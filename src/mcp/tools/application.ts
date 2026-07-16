@@ -10,6 +10,7 @@ import {
   triggerAppStop,
   triggerDeploy,
 } from '../../api/client.js';
+import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
 import {
   projectApplicationSummary,
   projectDeploymentSummary,
@@ -837,6 +838,7 @@ export async function handleApplicationAction(
             : undefined,
         );
 
+        const lookup = await buildProjectEnvironmentIndex(env);
         const data =
           projection === 'full'
             ? {
@@ -846,7 +848,7 @@ export async function handleApplicationAction(
                 >),
                 hints,
               }
-            : { ...projectApplicationSummary(rawRecord), hints };
+            : { ...projectApplicationSummary(rawRecord, lookup), hints };
 
         return buildReadResponse(data, {
           format: parsed.format,

@@ -1,6 +1,7 @@
 import * as z from 'zod/v4';
 import type { EnvConfig } from '../config/env.js';
 import { fetchResources, fetchServers } from '../../api/client.js';
+import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
 import { projectResourceSummary, type ResourceSummary } from '../../utils/projections.js';
 import { buildReadResponse, paginateArray, type ReadResponse } from '../../utils/formatters.js';
 import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
@@ -184,9 +185,10 @@ export async function handleResourceAction(
           env.COOLIFY_TOKEN,
           env.COOLIFY_VERIFY_SSL,
         );
+        const lookup = await buildProjectEnvironmentIndex(env);
         const projected = rawResources
           .filter(isRecord)
-          .map(projectResourceSummary);
+          .map((raw) => projectResourceSummary(raw, lookup));
 
         const filtered = parsed.type
           ? projected.filter((resource) => resource.type === parsed.type)
@@ -232,9 +234,10 @@ export async function handleResourceAction(
           ),
         ]);
 
+        const lookup = await buildProjectEnvironmentIndex(env);
         const projectedResources = rawResources
           .filter(isRecord)
-          .map(projectResourceSummary) as FindableResource[];
+          .map((raw) => projectResourceSummary(raw, lookup)) as FindableResource[];
 
         const projectedServers = rawServers
           .filter(isRecord)

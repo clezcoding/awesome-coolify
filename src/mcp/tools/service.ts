@@ -7,6 +7,7 @@ import {
   triggerServiceStart,
   triggerServiceStop,
 } from '../../api/client.js';
+import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
 import {
   projectServiceSummary,
   projectResourceSummary,
@@ -359,6 +360,7 @@ export async function handleServiceAction(
             : undefined,
         );
 
+        const lookup = await buildProjectEnvironmentIndex(env);
         const data =
           projection === 'full'
             ? {
@@ -368,7 +370,7 @@ export async function handleServiceAction(
                 >),
                 hints,
               }
-            : { ...projectServiceSummary(rawRecord), hints };
+            : { ...projectServiceSummary(rawRecord, lookup), hints };
 
         return buildReadResponse(data, {
           format: parsed.format,

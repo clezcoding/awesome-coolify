@@ -1,6 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { EnvConfig } from '../../src/config/env.js';
 import {
+  handleResourceAction,
+  isResourceErrorResult,
+} from '../../src/mcp/tools/resource.js';
+import {
   emergencyToolSchema,
   handleEmergencyAction,
   isEmergencyErrorResult,
@@ -769,6 +773,104 @@ describe('emergency-safety-flow integration', () => {
       if (!isEmergencyErrorResult(result)) return;
 
       expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    });
+  });
+
+  describe('read→emergency project_name chain (07-04)', () => {
+    const mock41xResources = [
+      {
+        type: 'application',
+        uuid: 'app-env-22',
+        name: 'mcp-uat-nginx',
+        status: 'running:healthy',
+        environment_id: 22,
+      },
+      {
+        type: 'application',
+        uuid: 'app-env-99',
+        name: 'Other Env App',
+        status: 'running:healthy',
+        environment_id: 99,
+      },
+    ];
+
+    const mock41xProjects = [
+      {
+        uuid: 'h785essygwr360newm83inz6',
+        name: 'MCP UAT Test',
+        environments: [{ id: 22, name: 'production' }],
+      },
+    ];
+
+    beforeEach(() => {
+      vi.mocked(fetchResources).mockResolvedValue(mock41xResources);
+      vi.mocked(fetchProjects).mockResolvedValue(mock41xProjects);
+      vi.mocked(fetchProject).mockResolvedValue({
+        uuid: 'h785essygwr360newm83inz6',
+        environments: [{ id: 22, name: 'production' }],
+      });
+    });
+
+    it('resource.list project_name chains to emergency restart_project preview', async () => {
+      const listResult = await handleResourceAction({ action: 'list' }, testEnv);
+
+      expect(isResourceErrorResult(listResult)).toBe(false);
+      if (isResourceErrorResult(listResult)) return;
+
+      const firstApp = listResult.data.find((r) => r.name === 'mcp-uat-nginx');
+      expect(firstApp?.project_name).toBe('MCP UAT Test');
+      expect(firstApp?.project_name).not.toBe('default');
+
+      const restartResult = await handleEmergencyAction(
+        {
+          action: 'restart_project',
+          project_name: firstApp!.project_name,
+          confirm: false,
+        },
+        testEnv,
+      );
+
+      expect(isEmergencyErrorResult(restartResult)).toBe(true);
+      if (!isEmergencyErrorResult(restartResult)) return;
+
+      expect(restartResult.structuredContent.error.code).toBe(
+        'COOLIFY_CONFIRM_REQUIRED',
+      );
+      expect(restartResult.structuredContent.error.code).not.toBe('COOLIFY_404');
+      expect(restartResult.structuredContent.error.data?.would_affect).toBeGreaterThanOrEqual(
+        1,
+      );
+      expect(triggerAppRestart).not.toHaveBeenCalled();
+    });
+
+    it('resource.list project_name chains to emergency redeploy_project preview', async () => {
+      const listResult = await handleResourceAction({ action: 'list' }, testEnv);
+
+      expect(isResourceErrorResult(listResult)).toBe(false);
+      if (isResourceErrorResult(listResult)) return;
+
+      const projectName = listResult.data[0].project_name;
+      expect(projectName).toBe('MCP UAT Test');
+
+      const redeployResult = await handleEmergencyAction(
+        {
+          action: 'redeploy_project',
+          project_name: projectName,
+          confirm: false,
+        },
+        testEnv,
+      );
+
+      expect(isEmergencyErrorResult(redeployResult)).toBe(true);
+      if (!isEmergencyErrorResult(redeployResult)) return;
+
+      expect(redeployResult.structuredContent.error.code).toBe(
+        'COOLIFY_CONFIRM_REQUIRED',
+      );
+      expect(redeployResult.structuredContent.error.data?.would_affect).toBeGreaterThanOrEqual(
+        1,
+      );
+      expect(triggerDeploy).not.toHaveBeenCalled();
     });
   });
 });

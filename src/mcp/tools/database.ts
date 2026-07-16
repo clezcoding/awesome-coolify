@@ -7,6 +7,7 @@ import {
   triggerDatabaseStart,
   triggerDatabaseStop,
 } from '../../api/client.js';
+import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
 import {
   projectDatabaseSummary,
   projectResourceSummary,
@@ -300,6 +301,7 @@ export async function handleDatabaseAction(
             : undefined,
         );
 
+        const lookup = await buildProjectEnvironmentIndex(env);
         const data =
           projection === 'full'
             ? {
@@ -309,7 +311,7 @@ export async function handleDatabaseAction(
                 >),
                 hints,
               }
-            : { ...projectDatabaseSummary(rawRecord), hints };
+            : { ...projectDatabaseSummary(rawRecord, lookup), hints };
 
         return buildReadResponse(data, {
           format: parsed.format,

@@ -12,6 +12,8 @@ vi.mock('../../api/client.js', () => ({
   fetchApplication: vi.fn(),
   fetchApplicationLogs: vi.fn(),
   fetchResources: vi.fn(),
+  fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
   triggerAppStart: vi.fn(),
   triggerAppStop: vi.fn(),
   triggerAppRestart: vi.fn(),
@@ -23,6 +25,8 @@ import {
   fetchApplication,
   fetchApplicationLogs,
   fetchResources,
+  fetchProjects,
+  fetchProject,
   triggerAppRestart,
   triggerAppStart,
   triggerAppStop,
@@ -70,6 +74,8 @@ describe('handleApplicationAction get', () => {
   beforeEach(() => {
     vi.mocked(fetchApplication).mockReset();
     vi.mocked(fetchApplication).mockResolvedValue(mockApplication);
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('returns summary projection by default', async () => {
@@ -224,6 +230,37 @@ describe('handleApplicationAction get', () => {
     expect(Array.isArray(data.hints)).toBe(true);
     expect((data.hints as unknown[]).length).toBeGreaterThan(0);
   });
+
+  it('resolves project_name from environment_id for Coolify 4.1.x payloads', async () => {
+    vi.mocked(fetchApplication).mockResolvedValue({
+      uuid: 'app-41x',
+      name: 'mcp-uat-nginx',
+      status: 'running:healthy',
+      environment_id: 22,
+      updated_at: '2026-07-01T00:00:00Z',
+    });
+    vi.mocked(fetchProjects).mockResolvedValue([
+      {
+        uuid: 'h785essygwr360newm83inz6',
+        name: 'MCP UAT Test',
+        environments: [{ id: 22, name: 'production' }],
+      },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-41x' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({
+      project_name: 'MCP UAT Test',
+      project_uuid: 'h785essygwr360newm83inz6',
+    });
+    expect(result.data.project_name).not.toBe('default');
+  });
 });
 
 describe('handleApplicationAction get reveal (OUT-02)', () => {
@@ -233,6 +270,8 @@ describe('handleApplicationAction get reveal (OUT-02)', () => {
       ...mockApplication,
       password: 'hunter2',
     });
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('masks secrets on full projection when reveal is false (default)', async () => {

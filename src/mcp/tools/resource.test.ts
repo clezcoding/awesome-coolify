@@ -9,9 +9,11 @@ import type { EnvConfig } from '../../config/env.js';
 vi.mock('../../api/client.js', () => ({
   fetchResources: vi.fn(),
   fetchServers: vi.fn(),
+  fetchProjects: vi.fn(),
+  fetchProject: vi.fn(),
 }));
 
-import { fetchResources, fetchServers } from '../../api/client.js';
+import { fetchResources, fetchServers, fetchProjects, fetchProject } from '../../api/client.js';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -124,6 +126,8 @@ describe('handleResourceAction list', () => {
   beforeEach(() => {
     vi.mocked(fetchResources).mockResolvedValue(mockResources);
     vi.mocked(fetchServers).mockResolvedValue([]);
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('returns summary-projected resources with pagination metadata', async () => {
@@ -185,12 +189,42 @@ describe('handleResourceAction list', () => {
     expect(result.data).toHaveLength(1);
     expect(result.data[0].type).toBe('database');
   });
+
+  it('resolves project_name from environment_id for Coolify 4.1.x payloads', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'app-1',
+        name: 'mcp-uat-nginx',
+        type: 'application',
+        status: 'running:healthy',
+        environment_id: 22,
+        updated_at: '2026-07-01T00:00:00Z',
+      },
+    ]);
+    vi.mocked(fetchProjects).mockResolvedValue([
+      {
+        uuid: 'h785essygwr360newm83inz6',
+        name: 'MCP UAT Test',
+        environments: [{ id: 22, name: 'production' }],
+      },
+    ]);
+
+    const result = await handleResourceAction({ action: 'list' }, testEnv);
+
+    expect(isResourceErrorResult(result)).toBe(false);
+    if (isResourceErrorResult(result)) return;
+
+    expect(result.data[0].project_name).toBe('MCP UAT Test');
+    expect(result.data[0].project_name).not.toBe('default');
+  });
 });
 
 describe('handleResourceAction find', () => {
   beforeEach(() => {
     vi.mocked(fetchResources).mockResolvedValue(mockResources);
     vi.mocked(fetchServers).mockResolvedValue(mockServers);
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
   });
 
   it('returns exact uuid match ranked first via query', async () => {
