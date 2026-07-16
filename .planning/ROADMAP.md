@@ -15,7 +15,7 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
 - [x] **Phase 2: Discovery & Read Projections** — Infrastructure overview, resource lists, discovery, docs search, bounded summaries (completed 2026-07-12)
 - [x] **Phase 3: Diagnose & Issue Scan** — App/server diagnose, global unhealthy scan, follow-up hints (completed 2026-07-12)
 - [x] **Phase 4: App Deploy Lifecycle** — Start/stop/restart, deploy, wait-mode, deployments, batch deploy (completed 2026-07-13)
-- [ ] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy (planned 2026-07-13; SVC-04 service/DB logs deferred to v1.1 — no endpoint in Coolify 4.1.x)
+- [x] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy (completed 2026-07-16; SVC-04 service/DB logs deferred to v1.1 — no endpoint in Coolify 4.1.x)
 - [ ] **Phase 6: Bulk, Emergency & Safety** — Project redeploy/restart, stop-all, masking, confirm gate
 - [ ] **Phase 7: Distribution & Docs** — npm publish, GitHub README, Cursor/Claude Desktop setup
 
@@ -173,7 +173,7 @@ Plans:
   4. ~~Agent reads service/DB logs with bounded tail~~ **DEFERRED to v1.1** — Coolify 4.1.x REST API does not expose /services/{uuid}/logs or /databases/{uuid}/logs (404 confirmed live spike 004; PR #6293 merged 2026-07-06 to `next` branch, NOT backported to v4.1.2). Re-add when instance upgrades to v4.1.3+. Tracked in 05-CONTEXT.md <deferred>. v1 ships NO service.logs / database.logs actions (no stub, no COOLIFY_501).
   5. Agent deploys/restarts service with pull-latest-images option
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans executed
 
 Plans:
 **Wave 1**
@@ -191,7 +191,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 05-05-PLAN.md — Integration sign-off + VALIDATION restructure (APP-10, APP-11, SVC-03, SVC-05)
+- [x] 05-05-PLAN.md — Integration sign-off + VALIDATION restructure (APP-10, APP-11, SVC-03, SVC-05)
 
 **Note:** SVC-04 (service/DB bounded log tail) deferred to v1.1 — Coolify 4.1.x REST API has no `/services/{uuid}/logs` or `/databases/{uuid}/logs` endpoint (RESEARCH §2 / spike 004). PR #6293 merged to `next` 2026-07-06; backport pending. User directive: "KEINE Tools die nicht funktionieren."
 
