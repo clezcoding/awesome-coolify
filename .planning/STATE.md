@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 07
-current_phase_name: distribution-docs
-status: complete
-stopped_at: Phase 07 UAT + verification passed
-last_updated: "2026-07-16T20:32:00Z"
+current_phase: 0
+status: Awaiting next milestone
+last_updated: "2026-07-16T19:39:15.550Z"
 last_activity: 2026-07-16
-last_activity_desc: Completed quick task 260716-a1 — split into private dev repo + public repo, npm + GitHub Pages setup
+last_activity_desc: Milestone v1.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
   total_plans: 37
   completed_plans: 37
   percent: 100
+stopped_at: Phase 07 UAT + verification passed
+current_phase_name: distribution-docs
 ---
 
 # Project State
@@ -23,17 +23,15 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-16)
 
-**Core value:** AI agent manages multiple self-hosted Coolify instances — deploy, logs, diagnose — via one MCP server.
-**Current focus:** Phase 07 — distribution-docs
+**Core value:** AI agent manages Coolify instances — deploy, logs, diagnose — via one MCP server.
+**Current focus:** Planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 07 (distribution-docs) — COMPLETE
-Plan: 7 of 7
-Status: Verified — UAT 32/32, verification 27/27
-Last activity: 2026-07-16 — Completed quick task 260716-a1: split into private dev repo + public repo, npm + GitHub Pages setup
-
-Progress: [██████████] 33/33 plans (100%)
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-16 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -173,9 +171,21 @@ Progress: [██████████] 33/33 plans (100%)
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260716-a1 | Split into private dev repo + public repo, npm + GitHub Pages setup | 2026-07-16 | 7cbcb8f | [260716-a1-split-public-repo](./quick/260716-a1-split-public-repo/) |
+| 260716-t80 | README hero + architecture regen, jsDelivr CDN for images | 2026-07-16 | 9f6680b | [260716-t80-task-1-erstelle-mit-dem-higgsfield-mcp-s](./quick/260716-t80-task-1-erstelle-mit-dem-higgsfield-mcp-s/) |
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-07-16:
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | project-name-default-mismatch | resolved (07-04) |
+| debug | service-stop-start-422 | resolved (07-05) |
 
 ## Session Continuity
 
-Last session: 2026-07-16T19:05:00.000Z
-Stopped at: Completed 07-05-PLAN.md
-Resume file: None
+Last activity: 2026-07-16 - Milestone v1.0 audit initiated; debug artifacts acknowledged
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
