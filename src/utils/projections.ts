@@ -131,6 +131,16 @@ export interface ServerDiagnoseView {
 import type { ProjectEnvironmentLookup } from './project-lookup.js';
 
 const SECRET_KEY_PATTERN = /password|token|secret|private|env/i;
+const SENSITIVE_URL_KEY_PATTERN = /(?:^|_)(?:db_url|connection_string|dsn)$/i;
+const CREDENTIAL_URI_PATTERN =
+  /^(?:postgres(?:ql)?|mysql|mariadb|redis|mongodb):\/\/[^:\s/]+:[^@\s/]+@/i;
+
+function shouldMaskStringValue(key: string, value: string): boolean {
+  if (SECRET_KEY_PATTERN.test(key)) return true;
+  if (SENSITIVE_URL_KEY_PATTERN.test(key)) return true;
+  if (CREDENTIAL_URI_PATTERN.test(value)) return true;
+  return false;
+}
 
 function resolveProjectFields(
   raw: Record<string, unknown>,
@@ -242,7 +252,7 @@ export function sanitizeFullProjection(raw: unknown, reveal = false): unknown {
       const value = obj[key];
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         maskSecrets(value as Record<string, unknown>);
-      } else if (SECRET_KEY_PATTERN.test(key) && typeof value === 'string') {
+      } else if (typeof value === 'string' && shouldMaskStringValue(key, value)) {
         obj[key] = '***';
       }
     }

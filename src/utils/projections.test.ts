@@ -281,6 +281,49 @@ describe('sanitizeFullProjection', () => {
     expect(sanitizeFullProjection(null, true)).toBe(null);
     expect(sanitizeFullProjection('text', true)).toBe('text');
   });
+
+  it('masks internal_db_url and external_db_url', () => {
+    const sanitized = sanitizeFullProjection({
+      internal_db_url: 'postgres://user:secret@internal:5432/db',
+      external_db_url: 'postgres://user:secret@external:5432/db',
+    }) as Record<string, string>;
+    expect(sanitized.internal_db_url).toBe('***');
+    expect(sanitized.external_db_url).toBe('***');
+  });
+
+  it('masks credential URIs in connection_string keys', () => {
+    const sanitized = sanitizeFullProjection({
+      config: {
+        nested: {
+          connection_string: 'mysql://root:pw@localhost/db',
+        },
+      },
+    }) as { config: { nested: { connection_string: string } } };
+    expect(sanitized.config.nested.connection_string).toBe('***');
+  });
+
+  it('masks credential URI values on arbitrary keys', () => {
+    const sanitized = sanitizeFullProjection({
+      description: 'postgres://user:pass@host/db',
+    }) as Record<string, string>;
+    expect(sanitized.description).toBe('***');
+  });
+
+  it('does not mask https public URLs without credentials', () => {
+    const sanitized = sanitizeFullProjection({
+      public_url: 'https://example.com',
+    }) as Record<string, string>;
+    expect(sanitized.public_url).toBe('https://example.com');
+  });
+
+  it('returns plaintext db URLs when reveal is true', () => {
+    const url = 'postgres://user:secret@host:5432/db';
+    const revealed = sanitizeFullProjection(
+      { internal_db_url: url },
+      true,
+    ) as Record<string, string>;
+    expect(revealed.internal_db_url).toBe(url);
+  });
 });
 
 describe('resolveProjection', () => {
