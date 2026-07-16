@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 7
-current_phase_name: Distribution & Docs
-status: ready
-stopped_at: Phase 6 complete, ready to plan Phase 7
-last_updated: "2026-07-16T13:16:30.000Z"
+current_phase: 07
+current_phase_name: distribution-docs
+status: executing
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-07-16T16:05:00.000Z"
 last_activity: 2026-07-16
-last_activity_desc: Phase 06 UAT passed — transitioned to Phase 7
+last_activity_desc: Completed Phase 07 Plan 01 — npm publish-ready packaging
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 30
-  completed_plans: 30
-  percent: 86
+  total_plans: 33
+  completed_plans: 31
+  percent: 91
 ---
 
 # Project State
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16)
 
 **Core value:** AI agent manages multiple self-hosted Coolify instances — deploy, logs, diagnose — via one MCP server.
-**Current focus:** Phase 07 — Distribution & Docs
+**Current focus:** Phase 07 — distribution-docs
 
 ## Current Position
 
-Phase: 7 — Distribution & Docs
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-16 — Phase 06 UAT passed (3/3), transitioned to Phase 7
+Phase: 07 (distribution-docs) — EXECUTING
+Plan: 2 of 3
+Status: Ready for 07-02-PLAN.md
+Last activity: 2026-07-16 — Completed Phase 07 Plan 01
 
-Progress: [████████████████████] 30/30 plans (100%)
+Progress: [█████████░] 31/33 plans (91%)
 
 ## Performance Metrics
 
@@ -146,7 +146,10 @@ Progress: [████████████████████] 30/30 p
 - [Phase 05-logs-service-db-ops]: resolveDatabaseMutationUuid derives environment_name from raw.environment.name — project+env in COOLIFY_AMBIGUOUS_MATCH (05-03)
 - [Phase 05-logs-service-db-ops]: Handler-level integration only for logs-service-db-flow — real MCP stdio E2E MANUAL-ONLY per P1 01-05 + P3 03-06 + P4 04-05 (05-05)
 - [Phase 06-bulk-emergency-safety]: Handler-level integration only for emergency-safety-flow — real MCP stdio E2E MANUAL-ONLY per P1–P5 precedent (06-03)
-- [Phase 06-bulk-emergency-safety]: Phase 6 validation sign-off — nyquist_compliant true, wave_0_complete true, 459 tests green, emergency.ts 94.18% line coverage (06-03)
+- [Phase 07-distribution-docs]: Package name + bin = awesome-coolify-mcp; prepublishOnly replaces prepare (D-04)
+- [Phase 07-distribution-docs]: npm files allowlist = dist, .env.example, LICENSE — verified via npm pack --dry-run (D-07)
+- [Phase 07-distribution-docs]: Wave 0 docs-parity.test.ts RED scaffold — Plan 07-02 turns GREEN (D-11/D-13/D-14/D-09)
+- [Phase 07-distribution-docs]: Maintainer publish workflow in CONTRIBUTING.md — no .planning links, no .mcpb (D-01/D-18)
 
 ### Pending Todos
 
@@ -160,6 +163,6 @@ Progress: [████████████████████] 30/30 p
 
 ## Session Continuity
 
-Last session: 2026-07-16T12:42:00.000Z
-Stopped at: Session resumed — UAT pending (0/3), proceeding to verify-work
-Resume file: .planning/phases/06-bulk-emergency-safety/.continue-here.md
+Last session: 2026-07-16T16:05:00.000Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: .planning/phases/07-distribution-docs/07-02-PLAN.md

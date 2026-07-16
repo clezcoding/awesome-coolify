@@ -240,7 +240,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 07-01-PLAN.md — npm publish-ready packaging (name=awesome-coolify-mcp, bin, prepublishOnly, files+LICENSE, engines, repository/bugs/homepage, keywords) + Wave 0 docs-parity test scaffold + CONTRIBUTING.md maintainer publish workflow (DIST-01, DIST-02)
+- [x] 07-01-PLAN.md — npm publish-ready packaging (name=awesome-coolify-mcp, bin, prepublishOnly, files+LICENSE, engines, repository/bugs/homepage, keywords) + Wave 0 docs-parity test scaffold + CONTRIBUTING.md maintainer publish workflow (DIST-01, DIST-02)
 
 **Wave 2** *(blocked on Wave 1 / 07-01 completion)*
 
@@ -263,7 +263,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
 | 5. Logs & Service/DB Ops | 5/5 | Complete    | 2026-07-16 |
 | 6. Bulk, Emergency & Safety | 3/3 | Complete    | 2026-07-16 |
-| 7. Distribution & Docs | 0/3 | Not started | - |
+| 7. Distribution & Docs | 1/3 | In Progress | - |
 
 ---
 

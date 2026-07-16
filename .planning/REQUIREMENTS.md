@@ -83,7 +83,7 @@
 
 ### Distribution (DIST)
 
-- [ ] **DIST-01**: npm-Paket veröffentlicht (`npx coolify-mcp` oder äquivalent)
+- [x] **DIST-01**: npm-Paket veröffentlicht (`npx coolify-mcp` oder äquivalent)
 - [ ] **DIST-02**: GitHub-Repo mit vollständiger README (Setup, Multi-Instance, Tool-Referenz, Beispiele)
 - [x] **DIST-03**: MCP stdio-Transport funktioniert in Cursor und Claude Desktop
 
@@ -332,7 +332,7 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | EMG-03 | 6 — Bulk, Emergency & Safety | Complete |
 | OUT-02 | 6 — Bulk, Emergency & Safety | Complete |
 | OUT-07 | 6 — Bulk, Emergency & Safety | Complete |
-| DIST-01 | 7 — Distribution & Docs | Pending |
+| DIST-01 | 7 — Distribution & Docs | Complete |
 | DIST-02 | 7 — Distribution & Docs | Pending |
 
 **Coverage:**
