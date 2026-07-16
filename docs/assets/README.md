@@ -2,34 +2,45 @@
 
 Official branding for **awesome-coolify-mcp**. Mascot **Hex Robot Helper** (winner).
 
-## Primary assets
+## Primary assets (README)
 
 | File | Use |
 |------|-----|
-| `logo.png` | Main logo — README header, npm, GitHub avatar |
+| `logo.png` | npm, GitHub avatar, favicon source |
 | `logo-transparent.png` | Cutout mascot (transparent background) |
 | `favicon-512.png` | High-res icon source |
 | `favicon-192.png` | PWA / apple-touch size |
 | `favicon-32.png` | Small favicon |
 | `social-preview.png` | GitHub Settings → Social preview (16:9) |
-| `hero-banner.png` | README header banner — mascot + fleet/terminal/deploy/safety dashboard scene, no baked-in text |
-| `architecture.png` | README architecture diagram (MCP clients → tools → Coolify API) |
-| `features.png` | README feature showcase (action tools, safety, diagnose, deploy/logs) |
-| `coming-soon.png` | README "Coming soon" roadmap banner — mascot sketching upcoming features |
+| `hero-banner.png` | README header banner — mascot + fleet/terminal/deploy/safety dashboard |
+| `architecture.png` | README architecture diagram |
+| `features.png` | README feature showcase |
+| `coming-soon.png` | README roadmap banner |
 
-## Generation notes (2026-07-16)
+## GitHub Pages install assets
 
-Hero banner / architecture / features / coming-soon generated with **Higgsfield Nano Banana Pro** (`nano_banana_pro`, 2K, 16:9), using `logo.png` as an `image`-role reference so the mascot stays visually consistent across assets. Legacy assets kept as `*.legacy.png`.
+| File | Use |
+|------|-----|
+| `install-hero.png` | `docs/index.html` landing hero (21:9, mascot + install paths) |
+| `install-configurator-hero.png` | `docs/install.html` configurator hero (21:9) |
+| `install-deeplink-card.png` | Landing bento card art for one-click deeplinks |
+
+Generated 2026-07-16 with **Higgsfield Nano Banana Pro**, using `logo.png` + `hero-banner.png` as references for mascot/style consistency.
 
 ### CDN (jsDelivr)
 
-README images load from the public repo via [jsDelivr GitHub CDN](https://www.jsdelivr.com/?docs=gh):
+README images:
 
 ```
 https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/<file>
 ```
 
-Both `awesome-coolify-mcp-dev` (private) and `awesome-coolify-mcp` (public) READMEs use this base — assets must be synced to the public repo (`scripts/sync-public-repo.sh`) before CDN URLs resolve. Pin `@main` for rolling updates or a commit SHA / release tag for immutable cache keys.
+GitHub Pages serves install assets from `docs/assets/` on the same origin.
+
+### GitHub Pages
+
+- Landing: `https://clezcoding.github.io/awesome-coolify-mcp/`
+- Configurator: `https://clezcoding.github.io/awesome-coolify-mcp/install.html`
 
 ## Mascot variants (Round 2)
 
@@ -39,10 +50,6 @@ Both `awesome-coolify-mcp-dev` (private) and `awesome-coolify-mcp` (public) READ
 | `mascot-d1-cloud-plug.png` | Alternate |
 | `mascot-d3-droplet-box.png` | Alternate |
 
-## Legacy (Round 1 — abstract icons)
-
-`logo-variant-a-nodes.png`, `logo-variant-b-plug.png`, `logo-variant-c-c-sparkle.png` — superseded.
-
 ## Brand tokens
 
 | Token | Hex |
@@ -51,5 +58,3 @@ Both `awesome-coolify-mcp-dev` (private) and `awesome-coolify-mcp` (public) READ
 | Canvas | `#101010` |
 | Surface | `#181818` |
 | Accent | `#fcd34d` |
-
-Compare early logo variants: `.planning/sketches/001-logo-mark/index.html`

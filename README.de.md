@@ -2,10 +2,6 @@
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/hero-banner.png" alt="awesome-coolify-mcp — ein freundliches Maskottchen neben einem leuchtenden Dashboard mit Server-Fleet, Terminal, Deploy-Pfeil und Safety-Shield" width="100%" />
 </p>
 
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/logo.png" alt="awesome-coolify-mcp Maskottchen" width="150" />
-</p>
-
 <h1 align="center">awesome-coolify-mcp</h1>
 
 <p align="center">
@@ -21,7 +17,7 @@
   ·
   <a href="https://modelcontextprotocol.io">Model Context Protocol</a>
   ·
-  <a href="docs/install.html">Install-Konfigurator ↗</a>
+  <a href="https://clezcoding.github.io/awesome-coolify-mcp/install.html">Install-Konfigurator ↗</a>
 </p>
 
 <p align="center">
@@ -61,7 +57,7 @@
   </a>
 </p>
 
-<p align="center"><sub>One-Click-Installs mit Platzhalter-Credentials — Details unter <a href="#-installation">Installation</a>, oder den <a href="docs/install.html">Browser-Konfigurator</a> nutzen, um echte Werte sicher einzutragen.</sub></p>
+<p align="center"><sub>One-Click-Installs mit Platzhalter-Credentials — Details unter <a href="#-installation">Installation</a>, oder den <a href="https://clezcoding.github.io/awesome-coolify-mcp/install.html">Browser-Konfigurator</a> nutzen, um echte Werte sicher einzutragen.</sub></p>
 
 ---
 
@@ -134,7 +130,7 @@ Der Fokus liegt heute klar auf **Day-2-Operations**: Connectivity prüfen, herau
 - **Service- & Database-Lifecycle** — Start/Stop/Restart/Get, plus Service-Redeploy mit optionalem frischem Image-Pull.
 - **Safety by default, nicht per Konvention** — Emergency-Mutationen brauchen explizit `confirm: true`; sensible Keys (`password`, `token`, `secret`, `private`, `env`) erscheinen als `***`, außer du aktivierst `reveal: true`.
 - **Agent-freundliche Fehlerfälle** — jeder Fehler ist ein parsebares Envelope mit `code`, menschenlesbarer `message` und `recoveryHints`; transiente Netzwerk-/429-/5xx-Fehler werden automatisch mit exponentiellem Backoff wiederholt.
-- **Breite Client-Abdeckung von Anfang an** — Cursor, VS Code / GitHub Copilot, Claude Desktop, Claude Code, Windsurf und 15+ weitere über den [Install-Konfigurator](docs/install.html).
+- **Breite Client-Abdeckung von Anfang an** — Cursor, VS Code / GitHub Copilot, Claude Desktop, Claude Code, Windsurf und 15+ weitere über den [Install-Konfigurator](https://clezcoding.github.io/awesome-coolify-mcp/install.html).
 
 ---
 
@@ -223,7 +219,7 @@ Ein Klick auf den Button öffnet deinen Editor, zeigt den Server, der hinzugefü
 
 ### 2. Install-Konfigurator (GitHub Pages)
 
-Mit dem **[Browser-Konfigurator](docs/install.html)** deine echte `COOLIFY_URL` / `COOLIFY_TOKEN` eintragen und ein fertiges Snippet für deinen exakten Client erzeugen — JSON, TOML oder YAML, je nachdem, was der Client erwartet.
+Mit dem **[Browser-Konfigurator](https://clezcoding.github.io/awesome-coolify-mcp/install.html)** deine echte `COOLIFY_URL` / `COOLIFY_TOKEN` eintragen und ein fertiges Snippet für deinen exakten Client erzeugen — JSON, TOML oder YAML, je nachdem, was der Client erwartet.
 
 Alles läuft **client-seitig im Browser**. Dein Token wird nie an ein Backend gesendet, geloggt oder irgendwo gespeichert außer in der Config-Datei, in die du es einfügst.
 
@@ -262,7 +258,7 @@ Eine fertige Copy-Paste-Vorlage liegt außerdem unter [`docs/mcp.example.json`](
 | **Claude Code** | `~/.claude.json` oder `.mcp.json` | stdio via `npx -y awesome-coolify-mcp` |
 | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | Gleiches `npx` + `env`-Pattern wie Cursor |
 
-Der **[Install-Konfigurator](docs/install.html)** deckt eine deutlich breitere Matrix ab — OpenCode, Codex CLI, Gemini CLI, Cline, Kilo Code, Goose, LM Studio, Hermes Agent, Kimi Code, Google Antigravity, OpenClaw und mehr — jeweils mit der passenden Config-Form.
+Der **[Install-Konfigurator](https://clezcoding.github.io/awesome-coolify-mcp/install.html)** deckt eine deutlich breitere Matrix ab — OpenCode, Codex CLI, Gemini CLI, Cline, Kilo Code, Goose, LM Studio, Hermes Agent, Kimi Code, Google Antigravity, OpenClaw und mehr — jeweils mit der passenden Config-Form.
 
 > [!NOTE]
 > Claude Desktop läuft derzeit nur über manuelles JSON / Konfigurator-Output — ein dediziertes `.mcpb`-Bundle steht auf der Roadmap (siehe [Demnächst](#-demnächst)).
@@ -521,7 +517,8 @@ Der Maintainer-Publish-Flow (`build` → `pack --dry-run` → `publish`) ist in 
 
 | Ressource | URL |
 |-----------|-----|
-| Install-Konfigurator | [docs/install.html](docs/install.html) |
+| Install-Konfigurator | [clezcoding.github.io/awesome-coolify-mcp/install.html](https://clezcoding.github.io/awesome-coolify-mcp/install.html) |
+| Install-Landingpage | [clezcoding.github.io/awesome-coolify-mcp/](https://clezcoding.github.io/awesome-coolify-mcp/) |
 | Beispiel-MCP-JSON | [docs/mcp.example.json](docs/mcp.example.json) |
 | Brand Assets | [docs/assets/](docs/assets/) |
 | Coolify | [coolify.io](https://coolify.io) |
