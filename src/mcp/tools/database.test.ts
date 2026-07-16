@@ -42,6 +42,8 @@ const mockDatabase = {
   server: { name: 'srv-2', uuid: 'srv-uuid-2' },
   updated_at: '2026-07-01T00:00:00Z',
   password: 'db-secret-password',
+  internal_db_url: 'postgres://user:db-secret@internal:5432/db',
+  external_db_url: 'postgres://user:db-secret@external:5432/db',
 };
 
 describe('databaseActionSchema', () => {
@@ -121,6 +123,8 @@ describe('handleDatabaseAction get', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.password).toBe('***');
+    expect(data.internal_db_url).toBe('***');
+    expect(data.external_db_url).toBe('***');
   });
 
   it('rejects format table on full projection per D-11', async () => {
@@ -259,6 +263,12 @@ describe('handleDatabaseAction get reveal (OUT-02)', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.password).toBe('pg-pw');
+    expect(data.internal_db_url).toBe(
+      'postgres://user:db-secret@internal:5432/db',
+    );
+    expect(data.external_db_url).toBe(
+      'postgres://user:db-secret@external:5432/db',
+    );
   });
 });
 
