@@ -1,6 +1,14 @@
 import * as z from 'zod/v4';
 import type { EnvConfig } from '../config/env.js';
-import { fetchProjects } from '../../api/client.js';
+import {
+  fetchResources,
+  fetchProjects,
+  triggerAppStop,
+  triggerDeploy,
+  triggerAppRestart,
+  fetchDeployment,
+} from '../../api/client.js';
+import { extractDeploymentUuid } from './application.js';
 import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
 import {
   CoolifyApiError,
@@ -8,10 +16,45 @@ import {
   wrapMcpError,
   type McpErrorResult,
 } from '../../utils/errors.js';
+import { logsAvailableHint } from '../../utils/diagnose-hints.js';
+import { pollDeploymentUntilTerminal } from '../../utils/deploy-poll.js';
+import { projectDeploymentSummary } from '../../utils/projections.js';
 import type { FollowUpHint } from '../../utils/diagnose-hints.js';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+type EmergencyApp = { uuid: string; name: string };
+
+function mapRunningApps(raw: unknown[]): EmergencyApp[] {
+  return raw
+    .filter(isRecord)
+    .filter(
+      (record) =>
+        record.type === 'application' &&
+        typeof record.status === 'string' &&
+        record.status.startsWith('running'),
+    )
+    .map((record) => ({
+      uuid: String(record.uuid ?? record.id ?? ''),
+      name: String(record.name ?? ''),
+    }));
+}
+
+function mapProjectApps(raw: unknown[], projectUuid: string): EmergencyApp[] {
+  return raw
+    .filter(isRecord)
+    .filter(
+      (record) =>
+        record.type === 'application' &&
+        isRecord(record.project) &&
+        String(record.project.uuid) === projectUuid,
+    )
+    .map((record) => ({
+      uuid: String(record.uuid ?? record.id ?? ''),
+      name: String(record.name ?? ''),
+    }));
 }
 
 export const stopAllSchema = z
@@ -198,8 +241,224 @@ export function isEmergencyErrorResult(
 }
 
 export async function handleEmergencyAction(
-  _args: EmergencyAction,
-  _env: EnvConfig,
+  args: EmergencyAction,
+  env: EnvConfig,
 ): Promise<EmergencyActionResult> {
-  return wrapMcpError(new Error('handleEmergencyAction not implemented'));
+  try {
+    const parsed = emergencyToolSchema.parse(args);
+
+    switch (parsed.action) {
+      case 'stop_all': {
+        const raw = await fetchResources(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          env.COOLIFY_VERIFY_SSL,
+        );
+        const runningApps = mapRunningApps(raw);
+        await validateConfirmGate('stop_all', parsed.confirm, runningApps);
+
+        const results: Array<{
+          uuid: string;
+          name?: string;
+          status: string;
+          error?: string;
+        }> = [];
+
+        for (const app of runningApps) {
+          try {
+            await triggerAppStop(
+              env.COOLIFY_URL,
+              env.COOLIFY_TOKEN,
+              app.uuid,
+              env.COOLIFY_VERIFY_SSL,
+            );
+            results.push({
+              uuid: app.uuid,
+              name: app.name,
+              status: 'stopped',
+            });
+          } catch (error) {
+            results.push({
+              uuid: app.uuid,
+              name: app.name,
+              status: 'failed',
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+
+        return buildReadResponse(
+          { results },
+          {
+            format: parsed.format,
+            max_chars: parsed.max_chars,
+          },
+        );
+      }
+
+      case 'redeploy_project': {
+        const projectUuid = await resolveProjectUuid(
+          parsed.project_uuid,
+          parsed.project_name,
+          env,
+        );
+        const raw = await fetchResources(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          env.COOLIFY_VERIFY_SSL,
+        );
+        const projectApps = mapProjectApps(raw, projectUuid);
+        await validateConfirmGate(
+          'redeploy_project',
+          parsed.confirm,
+          projectApps,
+        );
+
+        const results: Array<{
+          uuid: string;
+          name?: string;
+          status: string;
+          deployment_uuid?: string;
+          error?: string;
+          logs_available?: FollowUpHint;
+          hint?: string;
+          commit?: string;
+          created_at?: string;
+          finished_at?: string;
+          force?: boolean;
+        }> = [];
+
+        for (const app of projectApps) {
+          try {
+            const deployRaw = await triggerDeploy(
+              env.COOLIFY_URL,
+              env.COOLIFY_TOKEN,
+              app.uuid,
+              parsed.force,
+              env.COOLIFY_VERIFY_SSL,
+            );
+            const deploymentUuid = extractDeploymentUuid(deployRaw);
+
+            let entry: (typeof results)[number] = {
+              uuid: app.uuid,
+              name: app.name,
+              deployment_uuid: deploymentUuid,
+              status: 'queued',
+              force: parsed.force,
+              logs_available: logsAvailableHint(deploymentUuid),
+            };
+
+            if (parsed.wait && deploymentUuid) {
+              const fetcher = async () => {
+                const dep = await fetchDeployment(
+                  env.COOLIFY_URL,
+                  env.COOLIFY_TOKEN,
+                  deploymentUuid,
+                  env.COOLIFY_VERIFY_SSL,
+                );
+                return (isRecord(dep) ? dep : {}) as Record<string, unknown>;
+              };
+              const terminal = await pollDeploymentUntilTerminal(
+                fetcher,
+                parsed.timeout * 1000,
+              );
+              const summary = projectDeploymentSummary(terminal);
+              entry = {
+                uuid: app.uuid,
+                name: app.name,
+                ...summary,
+                logs_available: logsAvailableHint(deploymentUuid),
+                ...(summary.status === 'timeout'
+                  ? {
+                      hint: `Re-call deployment.get with deployment_uuid=${deploymentUuid} to continue polling`,
+                    }
+                  : {}),
+              };
+            }
+
+            results.push(entry);
+          } catch (error) {
+            results.push({
+              uuid: app.uuid,
+              name: app.name,
+              status: 'failed',
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+
+        return buildReadResponse(
+          { results },
+          {
+            format: parsed.format,
+            max_chars: parsed.max_chars,
+          },
+        );
+      }
+
+      case 'restart_project': {
+        const projectUuid = await resolveProjectUuid(
+          parsed.project_uuid,
+          parsed.project_name,
+          env,
+        );
+        const raw = await fetchResources(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          env.COOLIFY_VERIFY_SSL,
+        );
+        const projectApps = mapProjectApps(raw, projectUuid);
+        await validateConfirmGate(
+          'restart_project',
+          parsed.confirm,
+          projectApps,
+        );
+
+        const results: Array<{
+          uuid: string;
+          name?: string;
+          status: string;
+          error?: string;
+        }> = [];
+
+        for (const app of projectApps) {
+          try {
+            await triggerAppRestart(
+              env.COOLIFY_URL,
+              env.COOLIFY_TOKEN,
+              app.uuid,
+              env.COOLIFY_VERIFY_SSL,
+            );
+            results.push({
+              uuid: app.uuid,
+              name: app.name,
+              status: 'requested',
+            });
+          } catch (error) {
+            results.push({
+              uuid: app.uuid,
+              name: app.name,
+              status: 'failed',
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+
+        return buildReadResponse(
+          { results },
+          {
+            format: parsed.format,
+            max_chars: parsed.max_chars,
+          },
+        );
+      }
+
+      default: {
+        const _exhaustive: never = parsed;
+        throw new Error(`Unknown emergency action: ${String(_exhaustive)}`);
+      }
+    }
+  } catch (error) {
+    return wrapMcpError(error);
+  }
 }

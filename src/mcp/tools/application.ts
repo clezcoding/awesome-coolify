@@ -429,7 +429,7 @@ async function handleApplicationMutation(
   );
 }
 
-function extractDeploymentUuid(raw: unknown): string {
+export function extractDeploymentUuid(raw: unknown): string {
   const deployResp = isRecord(raw) ? raw : {};
   const deployments = Array.isArray(deployResp.deployments)
     ? deployResp.deployments

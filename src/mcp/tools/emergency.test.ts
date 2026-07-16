@@ -61,13 +61,13 @@ const mixedResourcesFixture = [
     uuid: 'app-stopped',
     name: 'Stopped App',
     status: 'stopped',
-    project: { uuid: 'p1', name: 'Project One' },
+    project: { uuid: 'p2', name: 'Project Two' },
   },
   {
     type: 'application',
     uuid: 'app-other-project',
     name: 'Other Project App',
-    status: 'running:healthy',
+    status: 'exited',
     project: { uuid: 'p2', name: 'Project Two' },
   },
   {
@@ -385,8 +385,8 @@ describe('handleEmergencyAction redeploy_project', () => {
       deployment_uuid: 'd1',
       status: 'queued',
       logs_available: expect.objectContaining({
-        tool: 'deployment',
-        action: 'get',
+        tool: 'application',
+        action: 'logs',
       }),
     });
   });

@@ -54,12 +54,13 @@ describe('MCP server tool registration', () => {
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(9);
+    expect(matches.length).toBe(10);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
     expect(source).toContain("registerTool(\n    'diagnose'");
     expect(source).toContain("registerTool(\n    'application'");
+    expect(source).toContain("registerTool(\n    'emergency'");
     expect(source).toContain("registerTool(\n    'deployment'");
     expect(source).toContain("registerTool(\n    'service'");
     expect(source).toContain("registerTool(\n    'database'");

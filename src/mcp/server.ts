@@ -48,6 +48,11 @@ import {
   isDeploymentErrorResult,
   deploymentToolSchema,
 } from './tools/deployment.js';
+import {
+  handleEmergencyAction,
+  isEmergencyErrorResult,
+  emergencyToolSchema,
+} from './tools/emergency.js';
 
 function isInfrastructureOverviewResult(
   result: unknown,
@@ -219,6 +224,37 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleApplicationAction(args, env);
       if (isApplicationErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'emergency',
+    {
+      description:
+        'Emergency and bulk operations (stop_all, redeploy_project, restart_project). High-impact destructive actions — require explicit confirm: true to execute. Call without confirm first to preview would_affect and sample_uuids; ask the human before retrying with confirm: true. Always ask the human before setting wait: true on redeploy_project.',
+      inputSchema: emergencyToolSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true, destructiveHint: true },
+    },
+    async (args) => {
+      const result = await handleEmergencyAction(args, env);
+      if (isEmergencyErrorResult(result)) {
         return {
           ...result,
           structuredContent: {
