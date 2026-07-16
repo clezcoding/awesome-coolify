@@ -1,6 +1,7 @@
 /**
- * Wave 0 docs-parity scaffold — RED against stale READMEs until Plan 07-02 rewrites them.
+ * docs-parity — README.md / README.de.md structural + content invariants.
  * Decisions: D-11 (structural parity), D-13 (no .planning links), D-14 (fix stale claims), D-09 (full action inventory).
+ * Updated for the redesigned README (icons/badges/hero banner, status-not-versioned framing, "Coming soon" roadmap section).
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -11,17 +12,23 @@ const README_EN = resolve(ROOT, 'README.md');
 const README_DE = resolve(ROOT, 'README.de.md');
 
 const CANONICAL_SECTIONS = [
-  { en: 'Why awesome-coolify-mcp?', de: 'Warum awesome-coolify-mcp?' },
-  { en: 'Quick start', de: 'Schnellstart' },
-  { en: 'Install', de: 'Installation' },
-  { en: 'Clients', de: 'Clients' },
-  { en: 'Environment variables', de: 'Umgebungsvariablen' },
-  { en: 'Tools (action-based)', de: 'Tools (aktionsbasiert)' },
-  { en: 'Safety', de: 'Sicherheit' },
-  { en: 'Structured errors', de: 'Strukturierte Fehler' },
-  { en: 'Not in v1', de: 'Nicht in v1' },
-  { en: 'Development', de: 'Entwicklung' },
-  { en: 'License', de: 'Lizenz' },
+  { en: '📋 Table of contents', de: '📋 Inhaltsverzeichnis' },
+  { en: '🔭 Overview', de: '🔭 Überblick' },
+  { en: '🆚 Why awesome-coolify-mcp', de: '🆚 Warum awesome-coolify-mcp' },
+  { en: '✨ Features', de: '✨ Features' },
+  { en: '🏗️ How it works', de: '🏗️ Architektur' },
+  { en: '🚀 Quick start', de: '🚀 Schnellstart' },
+  { en: '📦 Install', de: '📦 Installation' },
+  { en: '🖥️ Supported clients', de: '🖥️ Unterstützte Clients' },
+  { en: '🔐 Environment variables', de: '🔐 Umgebungsvariablen' },
+  { en: '🧰 Tools reference', de: '🧰 Tools-Referenz' },
+  { en: '🛡️ Safety model', de: '🛡️ Sicherheitsmodell' },
+  { en: '⚠️ Structured errors & retries', de: '⚠️ Strukturierte Fehler & Retries' },
+  { en: '💬 Example agent workflows', de: '💬 Beispiel-Agent-Workflows' },
+  { en: '✅ Status today', de: '✅ Status heute' },
+  { en: '🔮 Coming soon', de: '🔮 Demnächst' },
+  { en: '🛠️ Local development', de: '🛠️ Lokale Entwicklung' },
+  { en: '🔗 Links', de: '🔗 Links' },
 ] as const;
 
 const TOOL_ACTIONS: Record<string, readonly string[]> = {
@@ -51,7 +58,7 @@ function extractH2(content: string): string[] {
 }
 
 function extractSafetySection(content: string, locale: 'en' | 'de'): string {
-  const heading = locale === 'en' ? '## Safety' : '## Sicherheit';
+  const heading = locale === 'en' ? '## 🛡️ Safety model' : '## 🛡️ Sicherheitsmodell';
   const lines = content.split('\n');
   const start = lines.findIndex((line) => line === heading);
   expect(start, `${heading} section must exist`).toBeGreaterThanOrEqual(0);

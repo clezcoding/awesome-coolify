@@ -11,13 +11,15 @@ Official branding for **awesome-coolify-mcp**. Mascot **Hex Robot Helper** (winn
 | `favicon-512.png` | High-res icon source |
 | `favicon-192.png` | PWA / apple-touch size |
 | `favicon-32.png` | Small favicon |
-| `social-preview.png` | GitHub / README hero banner (16:9) — also Settings → Social preview |
+| `social-preview.png` | GitHub Settings → Social preview (16:9) |
+| `hero-banner.png` | README header banner — mascot + fleet/terminal/deploy/safety dashboard scene, no baked-in text |
 | `architecture.png` | README architecture diagram (MCP clients → tools → Coolify API) |
 | `features.png` | README feature showcase (action tools, safety, diagnose, deploy/logs) |
+| `coming-soon.png` | README "Coming soon" roadmap banner — mascot sketching upcoming features |
 
 ## Generation notes (2026-07-16)
 
-Hero / architecture / features regenerated with **Higgsfield Nano Banana Pro** (`nano_banana_pro`, 2K, 16:9), using `logo.png` as style reference. Legacy banner kept as `social-preview.legacy.png`.
+Hero banner / architecture / features / coming-soon generated with **Higgsfield Nano Banana Pro** (`nano_banana_pro`, 1K/2K, 16:9), using `logo.png` as an `image`-role reference so the mascot stays visually consistent across assets. Legacy banner kept as `social-preview.legacy.png`.
 
 ## Mascot variants (Round 2)
 
