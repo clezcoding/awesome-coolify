@@ -54,6 +54,23 @@ describe('databaseActionSchema', () => {
     ).toBe(true);
   });
 
+  it('accepts get action with name only', () => {
+    expect(
+      databaseActionSchema.safeParse({
+        action: 'get',
+        name: 'mcp-uat-test-db',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects get action with neither uuid nor name', () => {
+    expect(
+      databaseActionSchema.safeParse({
+        action: 'get',
+      }).success,
+    ).toBe(false);
+  });
+
   it('rejects list action', () => {
     expect(
       databaseActionSchema.safeParse({ action: 'list' }).success,
@@ -162,6 +179,44 @@ describe('handleDatabaseAction get', () => {
     const data = result.data as Record<string, unknown>;
     expect(data.hints).toEqual([]);
   });
+
+  it('get by name single-hit resolves uuid and returns summary', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceDatabase1]);
+
+    const result = await handleDatabaseAction(
+      { action: 'get', name: 'postgres' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(fetchDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    expect(result.data).toMatchObject({
+      uuid: 'db-uuid-1',
+      name: 'postgres',
+    });
+  });
+
+  it('get by name zero-match returns COOLIFY_404', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceDatabase1]);
+
+    const result = await handleDatabaseAction(
+      { action: 'get', name: 'nope' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_404');
+    expect(fetchDatabase).not.toHaveBeenCalled();
+  });
 });
 
 describe('handleDatabaseAction get reveal (OUT-02)', () => {
@@ -209,7 +264,7 @@ describe('handleDatabaseAction get reveal (OUT-02)', () => {
 
 const mockResourceDatabase1 = {
   uuid: 'db-uuid-1',
-  type: 'database',
+  type: 'standalone-postgresql',
   name: 'postgres',
   status: 'running:healthy',
   project: { name: 'proj-a', uuid: 'proj-uuid-1' },
@@ -219,7 +274,7 @@ const mockResourceDatabase1 = {
 
 const mockResourceDatabase2 = {
   uuid: 'db-uuid-2',
-  type: 'database',
+  type: 'standalone-redis',
   name: 'postgres-staging',
   status: 'running:healthy',
   project: { name: 'proj-b', uuid: 'proj-uuid-2' },

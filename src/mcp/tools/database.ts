@@ -9,6 +9,7 @@ import {
 } from '../../api/client.js';
 import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
 import {
+  isDatabaseRawType,
   projectDatabaseSummary,
   projectResourceSummary,
   resolveProjection,
@@ -62,7 +63,7 @@ function hasAtLeastOneIdentifier(
   });
 }
 
-function requireDatabaseMutationIdentifier<T extends z.ZodObject<z.ZodRawShape>>(
+function requireDatabaseIdentifier<T extends z.ZodObject<z.ZodRawShape>>(
   schema: T,
   actionName: string,
 ) {
@@ -77,7 +78,7 @@ function requireDatabaseMutationIdentifier<T extends z.ZodObject<z.ZodRawShape>>
   });
 }
 
-const startActionSchema = requireDatabaseMutationIdentifier(
+const startActionSchema = requireDatabaseIdentifier(
   z
     .object({
       action: z.literal('start'),
@@ -89,7 +90,7 @@ const startActionSchema = requireDatabaseMutationIdentifier(
   'start',
 );
 
-const stopActionSchema = requireDatabaseMutationIdentifier(
+const stopActionSchema = requireDatabaseIdentifier(
   z
     .object({
       action: z.literal('stop'),
@@ -101,7 +102,7 @@ const stopActionSchema = requireDatabaseMutationIdentifier(
   'stop',
 );
 
-const restartActionSchema = requireDatabaseMutationIdentifier(
+const restartActionSchema = requireDatabaseIdentifier(
   z
     .object({
       action: z.literal('restart'),
@@ -113,12 +114,20 @@ const restartActionSchema = requireDatabaseMutationIdentifier(
   'restart',
 );
 
+const getActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('get'),
+      uuid: z.string().optional().describe('Database UUID'),
+      name: z.string().optional().describe('Database name substring'),
+      ...sharedReadParamsSchema,
+    })
+    .strict(),
+  'get',
+);
+
 export const databaseActionSchema = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('get'),
-    uuid: z.string().describe('Database UUID'),
-    ...sharedReadParamsSchema,
-  }),
+  getActionSchema,
   startActionSchema,
   stopActionSchema,
   restartActionSchema,
@@ -163,7 +172,7 @@ function projectDatabaseMatchable(raw: Record<string, unknown>): DatabaseMatchab
   };
 }
 
-async function resolveDatabaseMutationUuid(
+async function resolveDatabaseUuid(
   parsed: DatabaseIdentifierInput,
   env: EnvConfig,
 ): Promise<string> {
@@ -179,7 +188,7 @@ async function resolveDatabaseMutationUuid(
 
   const databases = rawResources
     .filter(isRecord)
-    .filter((raw) => raw.type === 'database')
+    .filter((raw) => isDatabaseRawType(String(raw.type ?? '')))
     .map(projectDatabaseMatchable);
 
   const searchTerms = {
@@ -226,7 +235,7 @@ async function handleDatabaseMutation(
   parsed: MutationAction,
   env: EnvConfig,
 ): Promise<DatabaseMutationResult> {
-  const uuid = await resolveDatabaseMutationUuid(parsed, env);
+  const uuid = await resolveDatabaseUuid(parsed, env);
 
   switch (parsed.action) {
     case 'start':
@@ -284,17 +293,19 @@ export async function handleDatabaseAction(
 
         rejectTableFormatOnFullProjection(parsed.format, projection);
 
+        const resolvedUuid = await resolveDatabaseUuid(parsed, env);
+
         const raw = await fetchDatabase(
           env.COOLIFY_URL,
           env.COOLIFY_TOKEN,
-          parsed.uuid,
+          resolvedUuid,
           env.COOLIFY_VERIFY_SSL,
         );
 
         const rawRecord = isRecord(raw) ? raw : {};
         const hints = generateHints(
           'database',
-          parsed.uuid,
+          resolvedUuid,
           String(rawRecord.status ?? 'unknown'),
           rawRecord.health_check_status !== undefined
             ? String(rawRecord.health_check_status)

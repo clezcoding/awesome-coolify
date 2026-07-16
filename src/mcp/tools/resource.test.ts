@@ -45,7 +45,7 @@ const mockResources = [
   {
     uuid: 'db-1',
     name: 'postgres',
-    type: 'database',
+    type: 'standalone-postgresql',
     status: 'exited:unhealthy',
     project: { name: 'proj-b' },
     server: { name: 'srv-2' },
