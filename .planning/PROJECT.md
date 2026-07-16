@@ -18,11 +18,11 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - [x] Diagnose (App/Server) + Global Issue-Scan + Follow-Up Hints — Validated in Phase 3: Diagnose & Issue Scan (SYS-03, SYS-04, SYS-05, OUT-06)
 - [x] Ops-Tools v1: Infrastructure-Overview, Diagnose (App/Server), Deploy (inkl. wait-poll), Logs (limitiert), Service/DB Lifecycle, Global Issue-Scan — Infrastructure-Overview + Discovery/Read validated in Phase 2; Diagnose + Issue-Scan + Hints validated in Phase 3 (SYS-03/04/05, OUT-06); App Deploy Lifecycle validated in Phase 4 (APP-03–09, DEP-01–03); App Logs (APP-10/11) + Service/DB Ops (SVC-03/05) validated in Phase 5; SVC-04 (service/DB logs) deferred to v1.1
 - [x] Structured Error Codes mit Recovery-Hints (401/404/422/500 etc.) — Validated in Phase 1
+- [x] Sensitive-Werte default maskiert, reveal opt-in — Validated in Phase 6: Bulk, Emergency & Safety (OUT-02)
+- [x] Destructive-Ops Confirmation Gate (`confirm: true`) — Validated in Phase 6 (EMG-01–03, OUT-07); Gate nur auf Emergency-Aktionen
 
 ### Active
 
-- [ ] Sensitive-Werte default maskiert, reveal opt-in
-- [ ] Destructive-Ops Confirmation Gate (`confirm: true`)
 - [ ] npm-Paket + GitHub-Repo mit vollständiger README
 - [ ] v2-Scope detailliert in REQUIREMENTS.md und ROADMAP.md dokumentiert
 
@@ -61,6 +61,9 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 | Structured errors in v1 | Bessere Agent-Recovery ohne volle Parität | — Pending |
 | TypeScript + MCP SDK | Standard-Stack für MCP-Server, Community-freundlich | — Pending |
 | v2 in REQUIREMENTS + ROADMAP dokumentieren | User-Anforderung: spätere Features nicht vergessen | — Pending |
+| Dediziertes `emergency`-Tool (nicht system/application) | High-impact Ops klar getrennt; `destructiveHint: true` | Phase 6 — shipped |
+| Confirm-Gate nur auf EMG-Aktionen | P4/P5-Mutationen bleiben ohne Gate; Preview bei `confirm:false` | Phase 6 — shipped |
+| `reveal` MCP-seitig only, default mask | Secrets nie versehentlich in Full-Projections; Logs unmaskiert (v1 deferred) | Phase 6 — shipped |
 
 ## Evolution
 
@@ -80,4 +83,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-16 after Phase 5 completion (Logs & Service/DB Ops — APP-10/11, SVC-03/05 signed off; SVC-04 deferred v1.1)*
+*Last updated: 2026-07-16 after Phase 6 completion (Bulk, Emergency & Safety — EMG-01–03, OUT-02, OUT-07 UAT passed)*
