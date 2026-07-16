@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 07
 current_phase_name: distribution-docs
 status: executing
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-07-16T16:55:23.937Z"
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-07-16T19:05:00.000Z"
 last_activity: 2026-07-16
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 35
-  completed_plans: 33
-  percent: 86
+  completed_plans: 35
+  percent: 100
 ---
 
 # Project State
@@ -29,8 +29,8 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Phase: 07 (distribution-docs) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 07
+Plan: 5 of 5
+Status: Phase 07 plans complete
 Last activity: 2026-07-16 — Phase 07 execution started
 
 Progress: [██████████] 33/33 plans (100%)
@@ -154,7 +154,9 @@ Progress: [██████████] 33/33 plans (100%)
 - [Phase 07-distribution-docs]: README EN/DE full parity — 11 H2 sections, 32 action literals, 3 install paths, Safety section (D-09/D-11/D-15/D-17)
 - [Phase 07-distribution-docs]: docs-parity.test.ts GREEN — Wave 0 scaffold satisfied by README rewrite (DIST-02)
 - [Phase 07-distribution-docs]: GitHub Pages install configurator client-side only — docs/install.html + docs/index.html, 16 clients, D-22 adapters (DIST-02)
-- [Phase 07-distribution-docs]: install-configurator.test.ts 11/11 GREEN — D-22 adapter markers, T-07-09 no script src, D-19 no backend
+- [Phase 07-distribution-docs]: Service stop defaults docker_cleanup=false — Coolify 4.1.x compose one-click no-op stop fix; optional schema param for destructive cleanup (07-05)
+- [Phase 07-distribution-docs]: mapApiError/toStructuredError extract ofetch response._data.message — COOLIFY_422 shows Coolify human text not generic HTTP string (07-05)
+- [Phase 07-distribution-docs]: UAT gap 29 closed — uat-uptime-a stop→exited @25s, start→running:healthy @45s; 29/32 passed 0 issues (07-05)
 
 ### Pending Todos
 
@@ -168,6 +170,6 @@ Progress: [██████████] 33/33 plans (100%)
 
 ## Session Continuity
 
-Last session: 2026-07-16T16:55:23.931Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-07-16T19:05:00.000Z
+Stopped at: Completed 07-05-PLAN.md
 Resume file: None
