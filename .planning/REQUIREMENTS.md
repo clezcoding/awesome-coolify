@@ -62,7 +62,7 @@
 ### Output & Ergonomics (OUT)
 
 - [x] **OUT-01**: Agent kann Response-Formate wählen (table, JSON, pretty)
-- [ ] **OUT-02**: Sensitive-Werte sind default maskiert (`***`), reveal opt-in
+- [x] **OUT-02**: Sensitive-Werte sind default maskiert (`***`), reveal opt-in
 - [x] **OUT-03**: Pagination unterstützt (page, per_page)
 - [x] **OUT-04**: Summary vs. Full-Detail Projektionen verfügbar
 - [x] **OUT-05**: `max_chars` Cap verhindert Context-Bloat bei großen Payloads
@@ -330,7 +330,7 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | EMG-01 | 6 — Bulk, Emergency & Safety | Complete |
 | EMG-02 | 6 — Bulk, Emergency & Safety | Complete |
 | EMG-03 | 6 — Bulk, Emergency & Safety | Complete |
-| OUT-02 | 6 — Bulk, Emergency & Safety | Pending |
+| OUT-02 | 6 — Bulk, Emergency & Safety | Complete |
 | OUT-07 | 6 — Bulk, Emergency & Safety | Complete |
 | DIST-01 | 7 — Distribution & Docs | Pending |
 | DIST-02 | 7 — Distribution & Docs | Pending |

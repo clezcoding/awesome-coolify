@@ -216,7 +216,7 @@ Plans:
 **Wave 1**
 
 - [x] 06-01-PLAN.md — Emergency tool: stop_all / redeploy_project / restart_project with confirm gate (EMG-01, EMG-02, EMG-03, OUT-07)
-- [ ] 06-02-PLAN.md — Reveal opt-in masking on full projections (OUT-02)
+- [x] 06-02-PLAN.md — Reveal opt-in masking on full projections (OUT-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
