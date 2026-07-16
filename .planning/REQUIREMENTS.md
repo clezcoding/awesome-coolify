@@ -43,9 +43,9 @@
 
 - [x] **SVC-01**: Agent kann Services und Databases listen (summary projection)
 - [x] **SVC-02**: Agent kann Service/Database Details abrufen
-- [ ] **SVC-03**: Agent kann Service/Database starten, stoppen, restarten
+- [x] **SVC-03**: Agent kann Service/Database starten, stoppen, restarten
 - [ ] **SVC-04**: Agent kann Service/Database Logs lesen (limitiert)
-- [ ] **SVC-05**: Agent kann Service deployen/restarten mit Pull Latest Images
+- [x] **SVC-05**: Agent kann Service deployen/restarten mit Pull Latest Images
 
 ### Deployments (DEP)
 
@@ -324,9 +324,9 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | DEP-03 | 4 — App Deploy Lifecycle | Complete |
 | APP-10 | 5 — Logs & Service/DB Ops | Complete |
 | APP-11 | 5 — Logs & Service/DB Ops | Complete |
-| SVC-03 | 5 — Logs & Service/DB Ops | Pending |
+| SVC-03 | 5 — Logs & Service/DB Ops | Complete |
 | SVC-04 | 5 — Logs & Service/DB Ops | Pending |
-| SVC-05 | 5 — Logs & Service/DB Ops | Pending |
+| SVC-05 | 5 — Logs & Service/DB Ops | Complete |
 | EMG-01 | 6 — Bulk, Emergency & Safety | Pending |
 | EMG-02 | 6 — Bulk, Emergency & Safety | Pending |
 | EMG-03 | 6 — Bulk, Emergency & Safety | Pending |

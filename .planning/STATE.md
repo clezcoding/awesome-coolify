@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 05
 current_phase_name: logs-service-db-ops
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-07-16T00:53:45.164Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-07-16T00:59:37.547Z"
 last_activity: 2026-07-16
-last_activity_desc: Completed 05-01 plan (application.logs)
+last_activity_desc: Completed 05-02 plan (service lifecycle + deploy)
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 27
-  completed_plans: 23
-  percent: 85
+  completed_plans: 24
+  percent: 89
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 ## Current Position
 
 Phase: 05 (logs-service-db-ops) — EXECUTING
-Plan: 2 of 5
-Status: Ready to execute 05-02
-Last activity: 2026-07-16 — Completed 05-01 plan (application.logs)
+Plan: 3 of 5
+Status: Ready to execute 05-03
+Last activity: 2026-07-16 — Completed 05-02 plan (service lifecycle + deploy)
 
-Progress: [█████████████████████████] 23/27 plans
+Progress: [█████████████████████████] 24/27 plans
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [███████████████████████
 | Phase 03 P07 | 8min | 3 tasks | 5 files |
 | 03 | 7 | - | - |
 | Phase 05 P01 | 5 | 2 tasks | 10 files |
+| Phase 05-logs-service-db-ops P02 | 4 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,9 @@ Progress: [███████████████████████
 - [Phase 05-logs-service-db-ops]: application.logs shipped — runtime (uuid) + build (deployment_uuid) dispatcher with JSON-array pipeline (05-01)
 - [Phase 05-logs-service-db-ops]: name/fqdn on logs schema for resolveAppMutationUuid reuse — runtime XOR build via superRefine (05-01)
 - [Phase 05-logs-service-db-ops]: Log line content unmasked in P5 — tool description warns agents; OUT-02 deferred P6 (05-01)
+- [Phase 05-logs-service-db-ops]: Service lifecycle shipped — start/stop/restart/deploy by uuid|name, fire-and-forget response (05-02)
+- [Phase 05-logs-service-db-ops]: resolveServiceMutationUuid derives environment_name from raw.environment.name — project+env in COOLIFY_AMBIGUOUS_MATCH (05-02)
+- [Phase 05-logs-service-db-ops]: service tool drops readOnlyHint — openWorldHint only for mutating lifecycle (05-02)
 
 ### Pending Todos
 
@@ -145,6 +149,6 @@ Progress: [███████████████████████
 
 ## Session Continuity
 
-Last session: 2026-07-16T00:53:45.159Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-07-16T00:59:37.541Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
