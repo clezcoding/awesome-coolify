@@ -8,9 +8,19 @@ import type { EnvConfig } from '../../config/env.js';
 
 vi.mock('../../api/client.js', () => ({
   fetchService: vi.fn(),
+  fetchResources: vi.fn(),
+  triggerServiceStart: vi.fn(),
+  triggerServiceStop: vi.fn(),
+  triggerServiceRestart: vi.fn(),
 }));
 
-import { fetchService } from '../../api/client.js';
+import {
+  fetchService,
+  fetchResources,
+  triggerServiceRestart,
+  triggerServiceStart,
+  triggerServiceStop,
+} from '../../api/client.js';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -146,5 +156,210 @@ describe('handleServiceAction get', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.hints).toEqual([]);
+  });
+});
+
+const mockResourceService1 = {
+  uuid: 'svc-uuid-1',
+  type: 'service',
+  name: 'redis',
+  status: 'running:healthy',
+  project: { name: 'proj-a', uuid: 'proj-uuid-1' },
+  environment: { name: 'production', uuid: 'env-uuid-1' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+const mockResourceService2 = {
+  uuid: 'svc-uuid-2',
+  type: 'service',
+  name: 'redis-staging',
+  status: 'running:healthy',
+  project: { name: 'proj-b', uuid: 'proj-uuid-2' },
+  environment: { name: 'staging', uuid: 'env-uuid-2' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+describe('handleServiceAction lifecycle mutations (SVC-03/SVC-05)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(triggerServiceStart).mockReset();
+    vi.mocked(triggerServiceStop).mockReset();
+    vi.mocked(triggerServiceRestart).mockReset();
+    vi.mocked(triggerServiceStart).mockResolvedValue({
+      message: 'Service starting request queued.',
+    });
+    vi.mocked(triggerServiceStop).mockResolvedValue({
+      message: 'Service stopping request queued.',
+    });
+    vi.mocked(triggerServiceRestart).mockResolvedValue({
+      message: 'Service restarting request queued.',
+    });
+  });
+
+  it('start by uuid calls triggerServiceStart with correct uuid', async () => {
+    const result = await handleServiceAction(
+      { action: 'start', uuid: 'svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(triggerServiceStart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('start by name single-hit resolves and calls triggerServiceStart', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceService1]);
+
+    const result = await handleServiceAction(
+      { action: 'start', name: 'redis' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(triggerServiceStart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('stop by name single-hit calls triggerServiceStop', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceService1]);
+
+    const result = await handleServiceAction(
+      { action: 'stop', name: 'redis' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(triggerServiceStop).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('restart by name single-hit calls triggerServiceRestart with latest=false', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceService1]);
+
+    const result = await handleServiceAction(
+      { action: 'restart', name: 'redis' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(triggerServiceRestart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('deploy by uuid with pull_latest=false calls triggerServiceRestart with latest=false', async () => {
+    const result = await handleServiceAction(
+      { action: 'deploy', uuid: 'svc-uuid-1', pull_latest: false },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(triggerServiceRestart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('deploy by uuid with pull_latest=true calls triggerServiceRestart with latest=true', async () => {
+    const result = await handleServiceAction(
+      { action: 'deploy', uuid: 'svc-uuid-1', pull_latest: true },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(triggerServiceRestart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      true,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('deploy by name single-hit resolves and calls triggerServiceRestart with pull_latest default', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceService1]);
+
+    const result = await handleServiceAction(
+      { action: 'deploy', name: 'redis' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(triggerServiceRestart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('start by name multi-hit returns COOLIFY_AMBIGUOUS_MATCH with project+env context', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceService1,
+      mockResourceService2,
+    ]);
+
+    const result = await handleServiceAction(
+      { action: 'start', name: 'redis' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    const hints = result.structuredContent.error.recoveryHints.join(' ');
+    expect(hints).toContain('redis');
+    expect(hints).toContain('svc-uuid-1');
+    expect(hints).toContain('project=proj-a');
+    expect(hints).toContain('environment=production');
+    expect(hints).toContain('project=proj-b');
+    expect(hints).toContain('environment=staging');
+    expect(triggerServiceStart).not.toHaveBeenCalled();
+  });
+
+  it('zero-match returns COOLIFY_404', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceService1]);
+
+    const result = await handleServiceAction(
+      { action: 'start', name: 'nope' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_404');
+    expect(triggerServiceStart).not.toHaveBeenCalled();
+  });
+
+  it('restart rejects pull_latest param per D-16', () => {
+    expect(
+      serviceActionSchema.safeParse({
+        action: 'restart',
+        uuid: 'svc-uuid-1',
+        pull_latest: true,
+      }).success,
+    ).toBe(false);
   });
 });

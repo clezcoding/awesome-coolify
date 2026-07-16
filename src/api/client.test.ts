@@ -13,6 +13,9 @@ import {
   triggerAppRestart,
   triggerAppStart,
   triggerAppStop,
+  triggerServiceRestart,
+  triggerServiceStart,
+  triggerServiceStop,
   triggerDeploy,
 } from './client.js';
 import { CoolifyApiError } from '../utils/errors.js';
@@ -287,6 +290,99 @@ describe('triggerAppStart triggerAppStop triggerAppRestart', () => {
 
     await expect(
       triggerAppStart('https://coolify.example.com', 'test-token', 'missing'),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('triggerServiceStart triggerServiceStop triggerServiceRestart', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('triggerServiceStart POST /services/{uuid}/start', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Service starting request queued.' }, { status: 200 }),
+    );
+
+    await triggerServiceStart(
+      'https://coolify.example.com',
+      'test-token',
+      'svc-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/services/svc-uuid-1/start',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerServiceStop POST /services/{uuid}/stop', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Service stopping request queued.' }, { status: 200 }),
+    );
+
+    await triggerServiceStop(
+      'https://coolify.example.com',
+      'test-token',
+      'svc-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/services/svc-uuid-1/stop',
+    );
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerServiceRestart with latest=false POST /services/{uuid}/restart without query', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Service restarting request queued.' }, { status: 200 }),
+    );
+
+    await triggerServiceRestart(
+      'https://coolify.example.com',
+      'test-token',
+      'svc-uuid-1',
+      false,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/services/svc-uuid-1/restart');
+    expect(url).not.toContain('latest=');
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('triggerServiceRestart with latest=true POST /services/{uuid}/restart?latest=true', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Service restarting request queued.' }, { status: 200 }),
+    );
+
+    await triggerServiceRestart(
+      'https://coolify.example.com',
+      'test-token',
+      'svc-uuid-1',
+      true,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/services/svc-uuid-1/restart');
+    expect(url).toContain('latest=true');
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
+  });
+
+  it('each helper throws CoolifyApiError on HTTP error via withMappedErrors', async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Not Found', { status: 404 })),
+    );
+
+    await expect(
+      triggerServiceStart('https://coolify.example.com', 'test-token', 'missing'),
     ).rejects.toBeInstanceOf(CoolifyApiError);
   });
 });

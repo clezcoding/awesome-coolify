@@ -281,6 +281,40 @@ export async function triggerAppRestart(
   return client(`/applications/${uuid}/restart`, { method: 'POST' });
 }
 
+export async function triggerServiceStart(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/services/${uuid}/start`, { method: 'POST' });
+}
+
+export async function triggerServiceStop(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/services/${uuid}/stop`, { method: 'POST' });
+}
+
+export async function triggerServiceRestart(
+  url: string,
+  token: string,
+  uuid: string,
+  latest = false,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/services/${uuid}/restart`, {
+    method: 'POST',
+    query: latest ? { latest: true } : undefined,
+  });
+}
+
 export async function triggerDeploy(
   url: string,
   token: string,
