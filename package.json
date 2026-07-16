@@ -1,25 +1,56 @@
 {
-  "name": "coolify-mcp",
+  "name": "awesome-coolify-mcp",
   "version": "0.1.0",
   "description": "MCP server for Coolify — deploy, logs, diagnose via action-based tools",
   "type": "module",
   "bin": {
-    "coolify-mcp": "./dist/index.js"
+    "awesome-coolify-mcp": "./dist/index.js"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "start": "node scripts/run-mcp.mjs",
+    "mcp": "node scripts/run-mcp.mjs",
     "test": "vitest run",
-    "prepare": "npm run build",
-    "higgsfield:fix": "bash scripts/fix-higgsfield.sh"
+    "prepublishOnly": "npm run build",
+    "higgsfield:fix": "bash scripts/fix-higgsfield.sh",
+    "gsd:fix-verification": "node scripts/gsd-ensure-verification-fresh.mjs"
   },
   "files": [
-    "dist"
+    "dist",
+    ".env.example",
+    "LICENSE"
   ],
+  "keywords": [
+    "coolify",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "self-hosted",
+    "devops",
+    "deploy",
+    "cursor",
+    "claude"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clezcoding/awesome-coolify-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/clezcoding/awesome-coolify-mcp/issues"
+  },
+  "homepage": "https://github.com/clezcoding/awesome-coolify-mcp#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0-beta.3",
     "ofetch": "^1.4.0",
-    "zod": "^3.24.2"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
