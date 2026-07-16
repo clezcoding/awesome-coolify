@@ -273,10 +273,10 @@ export function registerCoolifyTools(
     'service',
     {
       description:
-        'Get service details by UUID — list via resource tool (get-only)',
+        'Service lifecycle and deploy actions (get, start, stop, restart, deploy) — list via resource tool',
       inputSchema: serviceActionSchema,
       outputSchema: toolOutputSchema,
-      annotations: { openWorldHint: true, readOnlyHint: true },
+      annotations: { openWorldHint: true },
     },
     async (args) => {
       const result = await handleServiceAction(args, env);

@@ -196,6 +196,47 @@ describe('handleServiceAction lifecycle mutations (SVC-03/SVC-05)', () => {
     });
   });
 
+  it('start by uuid returns fire-and-forget response without deployment_uuid', async () => {
+    const result = await handleServiceAction(
+      { action: 'start', uuid: 'svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toEqual({
+      uuid: 'svc-uuid-1',
+      action: 'start',
+      status: 'requested',
+    });
+    expect(result.data).not.toHaveProperty('deployment_uuid');
+    expect(result.data).not.toHaveProperty('wait');
+  });
+
+  it('deploy by uuid returns pull_latest in response without deployment_uuid', async () => {
+    const result = await handleServiceAction(
+      { action: 'deploy', uuid: 'svc-uuid-1', pull_latest: true },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toEqual({
+      uuid: 'svc-uuid-1',
+      action: 'deploy',
+      status: 'requested',
+      pull_latest: true,
+    });
+    expect(result.data).not.toHaveProperty('deployment_uuid');
+    expect(result.data).not.toHaveProperty('wait');
+  });
+
+  it('start without identifier fails schema validation', () => {
+    expect(serviceActionSchema.safeParse({ action: 'start' }).success).toBe(false);
+  });
+
   it('start by uuid calls triggerServiceStart with correct uuid', async () => {
     const result = await handleServiceAction(
       { action: 'start', uuid: 'svc-uuid-1' },
