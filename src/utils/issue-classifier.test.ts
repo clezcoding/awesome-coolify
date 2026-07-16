@@ -52,6 +52,20 @@ describe('classifyIssues', () => {
     expect(result.info[0].resource_type).toBe('database');
   });
 
+  it('classifies standalone-postgresql as database resource type', () => {
+    const resources = [
+      {
+        uuid: 'd',
+        name: 'n',
+        type: 'standalone-postgresql',
+        status: 'exited:0',
+      },
+    ];
+    const result = classifyIssues([], resources);
+    expect(result.info.length).toBe(1);
+    expect(result.info[0].resource_type).toBe('database');
+  });
+
   it('attaches structured hint objects to each issue', () => {
     const resources = [
       { uuid: 'a', name: 'n', type: 'application', status: 'unhealthy' },

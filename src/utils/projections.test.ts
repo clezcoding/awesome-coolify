@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { ProjectEnvironmentLookup } from './project-lookup.js';
 import {
+  isDatabaseRawType,
+  normalizeResourceSummaryType,
   projectResourceSummary,
   projectApplicationSummary,
   projectServiceSummary,
@@ -102,6 +104,40 @@ describe('projectResourceSummary', () => {
       domain: 'app.example.com',
     });
     expect(summary.fqdn).toBe('app.example.com');
+  });
+});
+
+describe('database raw type normalization', () => {
+  it('isDatabaseRawType accepts database and standalone-* prefixes', () => {
+    expect(isDatabaseRawType('database')).toBe(true);
+    expect(isDatabaseRawType('standalone-postgresql')).toBe(true);
+    expect(isDatabaseRawType('standalone-redis')).toBe(true);
+    expect(isDatabaseRawType('standalone-mysql')).toBe(true);
+    expect(isDatabaseRawType('application')).toBe(false);
+    expect(normalizeResourceSummaryType('standalone-postgresql')).toBe('database');
+    expect(normalizeResourceSummaryType('application')).toBe('application');
+  });
+
+  it('projectResourceSummary canonicalizes standalone-postgresql to database type', () => {
+    const summary = projectResourceSummary({
+      uuid: 'db-1',
+      name: 'mcp-uat-test-db',
+      type: 'standalone-postgresql',
+      status: 'running:healthy',
+      updated_at: '2026-07-01T00:00:00Z',
+    });
+    expect(summary.type).toBe('database');
+  });
+
+  it('projectResourceSummary canonicalizes standalone-redis to database type', () => {
+    const summary = projectResourceSummary({
+      uuid: 'db-2',
+      name: 'mcp-uat-test-redis',
+      type: 'standalone-redis',
+      status: 'running:healthy',
+      updated_at: '2026-07-01T00:00:00Z',
+    });
+    expect(summary.type).toBe('database');
   });
 });
 

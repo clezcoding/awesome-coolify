@@ -10,6 +10,7 @@ import {
 import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
 import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
 import { createLogger } from '../../utils/logger.js';
+import { isDatabaseRawType } from '../../utils/projections.js';
 import { sharedReadParamsSchema } from './shared-read-params.js';
 
 export const systemActionSchema = z.discriminatedUnion('action', [
@@ -187,7 +188,9 @@ export async function handleSystemAction(
         const resources = rawResources.filter(isRecord);
         const servers = rawServers.filter(isRecord);
         const apps = resources.filter((resource) => resource.type === 'application');
-        const dbs = resources.filter((resource) => resource.type === 'database');
+        const dbs = resources.filter((resource) =>
+          isDatabaseRawType(String(resource.type ?? '')),
+        );
         const services = resources.filter((resource) => resource.type === 'service');
 
         const appCounts = countByStatus(apps);

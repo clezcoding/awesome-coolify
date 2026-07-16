@@ -3,6 +3,7 @@ import {
   type FollowUpHint,
   type HintResourceType,
 } from './diagnose-hints.js';
+import { isDatabaseRawType } from './projections.js';
 
 export interface ScanIssue {
   resource_type: 'application' | 'database' | 'service' | 'server';
@@ -34,8 +35,11 @@ function statusIncludes(value: unknown, substring: string): boolean {
 function toResourceType(
   type: unknown,
 ): 'application' | 'database' | 'service' | null {
-  if (type === 'application' || type === 'database' || type === 'service') {
+  if (type === 'application' || type === 'service') {
     return type;
+  }
+  if (typeof type === 'string' && isDatabaseRawType(type)) {
+    return 'database';
   }
   return null;
 }

@@ -1,3 +1,15 @@
+export function isDatabaseRawType(rawType: string): boolean {
+  return rawType === 'database' || rawType.startsWith('standalone-');
+}
+
+export function normalizeResourceSummaryType(
+  rawType: string,
+): ResourceSummary['type'] {
+  if (isDatabaseRawType(rawType)) return 'database';
+  if (rawType === 'service') return 'service';
+  return 'application';
+}
+
 export interface ResourceSummary {
   uuid: string;
   name: string;
@@ -155,7 +167,7 @@ export function projectResourceSummary(
   return {
     uuid: String(raw.uuid ?? raw.id ?? ''),
     name: String(raw.name ?? ''),
-    type: (raw.type as ResourceSummary['type']) || 'application',
+    type: normalizeResourceSummaryType(String(raw.type ?? 'application')),
     status,
     health: String(raw.health ?? raw.status_detail ?? status),
     fqdn: (raw.fqdn as string | null) ?? (raw.domain as string | null) ?? null,
@@ -398,7 +410,9 @@ export function projectServerDiagnose(
 
   const typedResources = resources.filter(isRecord);
   const applications = typedResources.filter((r) => r.type === 'application');
-  const databases = typedResources.filter((r) => r.type === 'database');
+  const databases = typedResources.filter((r) =>
+    isDatabaseRawType(String(r.type ?? '')),
+  );
   const services = typedResources.filter((r) => r.type === 'service');
 
   const mappedDomains = domains.filter(isRecord).map((d) => ({
