@@ -97,7 +97,7 @@ function main() {
 
   // stderr only — stdout is MCP JSON-RPC
   console.error(
-    `[run-mcp] Starting coolify-mcp (env from ${resolved.path} → ${resolved.name})`,
+    `[run-mcp] Starting awesome-coolify-mcp (env from ${resolved.path} → ${resolved.name})`,
   );
 
   const child = spawn(process.execPath, [distEntry], {

@@ -79,7 +79,7 @@ describe('parseDotEnv', () => {
 
 describe('mergeDotEnv', () => {
   it('fills missing keys from .env and does not override existing', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'coolify-mcp-env-'));
+    const dir = mkdtempSync(join(tmpdir(), 'awesome-coolify-mcp-env-'));
     const path = join(dir, '.env');
     writeFileSync(
       path,

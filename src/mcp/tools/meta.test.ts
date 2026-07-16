@@ -16,7 +16,7 @@ describe('handleMetaAction', () => {
   it('returns mcpVersion matching package version', async () => {
     const result = await handleMetaAction({ action: 'version' });
     expect(result.mcpVersion).toBe(MCP_VERSION);
-    expect(result.serverName).toBe('coolify-mcp');
+    expect(result.serverName).toBe('awesome-coolify-mcp');
   });
 
   it('response contains no env or token fields', async () => {

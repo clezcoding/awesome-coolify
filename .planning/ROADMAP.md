@@ -235,9 +235,12 @@ Plans:
   3. README documents action-based tool patterns and links to v2 roadmap for deferred CRUD features
   4. Package metadata (name, version, bin) matches PROJECT.md distribution constraints
 
-**Plans:** 5/5 plans complete
+**Plans:** 7/7 plans complete
 
 Plans:
+
+- [x] 07-06-PLAN.md
+- [x] 07-07-PLAN.md
 
 - [x] 07-04-PLAN.md
 - [x] 07-05-PLAN.md
@@ -267,7 +270,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
 | 5. Logs & Service/DB Ops | 5/5 | Complete    | 2026-07-16 |
 | 6. Bulk, Emergency & Safety | 3/3 | Complete    | 2026-07-16 |
-| 7. Distribution & Docs | 5/5 | Complete    | 2026-07-16 |
+| 7. Distribution & Docs | 7/7 | Complete   | 2026-07-16 |
 
 ---
 

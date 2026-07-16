@@ -1,6 +1,6 @@
 import * as z from 'zod/v4';
 
-export const MCP_SERVER_NAME = 'coolify-mcp';
+export const MCP_SERVER_NAME = 'awesome-coolify-mcp';
 export const MCP_VERSION = '0.1.0';
 
 export const metaActionSchema = z.discriminatedUnion('action', [
