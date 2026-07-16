@@ -125,7 +125,7 @@ Plans:
 
 ### Phase 4: App Deploy Lifecycle
 
-**Goal:** As an AI agent, I want full app lifecycle and deploy control with wait-mode, so that I can ship and monitor releases without manual Coolify UI.
+**Goal:** As a Coolify operator, I want to start, stop, restart, deploy, and cancel application deployments with wait-mode across my fleet, so that I can ship and monitor releases without the Coolify UI.
 **Mode:** mvp
 **Depends on:** Phase 3
 **Requirements:** APP-03–09, DEP-01–03
@@ -173,12 +173,12 @@ Plans:
   4. Agent reads service/DB logs with bounded tail
   5. Agent deploys/restarts service with pull-latest-images option
 
-**Plans:** 5/5 plans complete
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — App logs (runtime + build JSON-array pipeline) + sharedLogParamsSchema + COOLIFY_403_SENSITIVE_REQUIRED (APP-10, APP-11)
+- [x] 05-01-PLAN.md — App logs (runtime + build JSON-array pipeline) + sharedLogParamsSchema + COOLIFY_403_SENSITIVE_REQUIRED (APP-10, APP-11)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -245,7 +245,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
-| 5. Logs & Service/DB Ops | 5/5 | Planned | - |
+| 5. Logs & Service/DB Ops | 1/5 | In Progress|  |
 | 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |
 | 7. Distribution & Docs | 0/TBD | Not started | - |
 

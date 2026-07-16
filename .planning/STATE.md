@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-current_phase_name: planned
-status: Phase 05 planned — 5 plans in 4 waves, ready to execute
-stopped_at: Phase 5 planned
-last_updated: "2026-07-13T04:11:00.000Z"
-last_activity: 2026-07-13
-last_activity_desc: Phase 05 plan-phase complete — 5 plans across 4 waves; plan-checker passed iteration 2; SVC-04 (service/DB logs) deferred to v1.1 per RESEARCH §2 / spike 004 (no endpoint in Coolify 4.1.x)
+current_phase: 05
+current_phase_name: logs-service-db-ops
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-07-16T00:53:45.164Z"
+last_activity: 2026-07-16
+last_activity_desc: Completed 05-01 plan (application.logs)
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 27
-  completed_plans: 22
-  percent: 57
+  completed_plans: 23
+  percent: 85
 ---
 
 # Project State
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** AI agent manages multiple self-hosted Coolify instances — deploy, logs, diagnose — via one MCP server.
-**Current focus:** Phase 05 — Logs & Service/DB Ops (planned, ready to execute)
+**Current focus:** Phase 05 — logs-service-db-ops
 
 ## Current Position
 
-Phase: 5 — Logs & Service/DB Ops (planned)
-Plan: 05-01..05-05 PLAN.md written — ready for /gsd-execute-phase 5
-Status: Phase 05 planned — 5 plans in 4 waves, ready to execute
-Last activity: 2026-07-13 — Phase 05 plan-phase complete — 5 plans across 4 waves; plan-checker passed iteration 2; SVC-04 (service/DB logs) deferred to v1.1 per RESEARCH §2 / spike 004 (no endpoint in Coolify 4.1.x)
+Phase: 05 (logs-service-db-ops) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute 05-02
+Last activity: 2026-07-16 — Completed 05-01 plan (application.logs)
 
-Progress: [████████████████████████] 22/27 plans
+Progress: [█████████████████████████] 23/27 plans
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [███████████████████████
 | Phase 03 P06 | 5min | 2 tasks | 5 files |
 | Phase 03 P07 | 8min | 3 tasks | 5 files |
 | 03 | 7 | - | - |
+| Phase 05 P01 | 5 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -128,7 +129,9 @@ Progress: [███████████████████████
 - [Phase 05-logs-service-db-ops]: service.deploy maps to POST /services/{uuid}/restart?latest=true — no dedicated /services/{uuid}/deploy endpoint (RESEARCH finding 3, D-17); restart stays pure — no pull_latest flag on restart (D-16, mirrors P4 D-22 force-only-on-deploy)
 - [Phase 05-logs-service-db-ops]: Database has NO deploy action — D-18 (DB image updates are Coolify-managed); database ships start/stop/restart only
 - [Phase 05-logs-service-db-ops]: Service/Database mutation ambiguity error includes project+environment context — services/DBs NOT globally unique (RESEARCH finding 7)
-- [Phase 05-logs-service-db-ops]: Build-logs response carries filter metadata entries_total/entries_hidden/entries_shown so agent knows what was redacted (W4 fix)
+- [Phase 05-logs-service-db-ops]: application.logs shipped — runtime (uuid) + build (deployment_uuid) dispatcher with JSON-array pipeline (05-01)
+- [Phase 05-logs-service-db-ops]: name/fqdn on logs schema for resolveAppMutationUuid reuse — runtime XOR build via superRefine (05-01)
+- [Phase 05-logs-service-db-ops]: Log line content unmasked in P5 — tool description warns agents; OUT-02 deferred P6 (05-01)
 
 ### Pending Todos
 
@@ -142,6 +145,6 @@ Progress: [███████████████████████
 
 ## Session Continuity
 
-Last session: 2026-07-13T04:11:00.000Z
-Stopped at: Phase 5 planned
-Resume file: .planning/phases/05-logs-service-db-ops/05-01-PLAN.md
+Last session: 2026-07-16T00:53:45.159Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

@@ -36,8 +36,8 @@
 - [x] **APP-07**: Agent kann App-Deployments listen (per App)
 - [x] **APP-08**: Agent kann Deployment-Details abrufen (Status, Commit, Timestamps)
 - [x] **APP-09**: Agent kann Deployment canceln
-- [ ] **APP-10**: Agent kann App Runtime-Logs lesen (limitiert, optional follow)
-- [ ] **APP-11**: Agent kann Deployment Build-Logs separat abrufen (paginiert, on-demand)
+- [x] **APP-10**: Agent kann App Runtime-Logs lesen (limitiert, optional follow)
+- [x] **APP-11**: Agent kann Deployment Build-Logs separat abrufen (paginiert, on-demand)
 
 ### Service & Database Operations (SVC)
 
@@ -322,8 +322,8 @@ Vollständige Feature-Parität mit Coolify CLI, user-coolify MCP und coolify-bac
 | DEP-01 | 4 — App Deploy Lifecycle | Complete |
 | DEP-02 | 4 — App Deploy Lifecycle | Complete |
 | DEP-03 | 4 — App Deploy Lifecycle | Complete |
-| APP-10 | 5 — Logs & Service/DB Ops | Pending |
-| APP-11 | 5 — Logs & Service/DB Ops | Pending |
+| APP-10 | 5 — Logs & Service/DB Ops | Complete |
+| APP-11 | 5 — Logs & Service/DB Ops | Complete |
 | SVC-03 | 5 — Logs & Service/DB Ops | Pending |
 | SVC-04 | 5 — Logs & Service/DB Ops | Pending |
 | SVC-05 | 5 — Logs & Service/DB Ops | Pending |
