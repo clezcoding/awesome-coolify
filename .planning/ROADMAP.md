@@ -173,7 +173,7 @@ Plans:
   4. ~~Agent reads service/DB logs with bounded tail~~ **DEFERRED to v1.1** — Coolify 4.1.x REST API does not expose /services/{uuid}/logs or /databases/{uuid}/logs (404 confirmed live spike 004; PR #6293 merged 2026-07-06 to `next` branch, NOT backported to v4.1.2). Re-add when instance upgrades to v4.1.3+. Tracked in 05-CONTEXT.md <deferred>. v1 ships NO service.logs / database.logs actions (no stub, no COOLIFY_501).
   5. Agent deploys/restarts service with pull-latest-images option
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 **Wave 1**
@@ -187,7 +187,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-04-PLAN.md — SVC-04/SC4 deferral doc — amend ROADMAP, no code, no stubs (requirements: [])
+- [x] 05-04-PLAN.md — SVC-04/SC4 deferral doc — amend ROADMAP, no code, no stubs (requirements: [])
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -245,7 +245,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Discovery & Read Projections | 5/5 | Complete    | 2026-07-12 |
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
-| 5. Logs & Service/DB Ops | 1/5 | In Progress|  |
+| 5. Logs & Service/DB Ops | 4/5 | In Progress|  |
 | 6. Bulk, Emergency & Safety | 0/TBD | Not started | - |
 | 7. Distribution & Docs | 0/TBD | Not started | - |
 
