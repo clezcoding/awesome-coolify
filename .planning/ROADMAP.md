@@ -16,7 +16,7 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
 - [x] **Phase 3: Diagnose & Issue Scan** — App/server diagnose, global unhealthy scan, follow-up hints (completed 2026-07-12)
 - [x] **Phase 4: App Deploy Lifecycle** — Start/stop/restart, deploy, wait-mode, deployments, batch deploy (completed 2026-07-13)
 - [x] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy (completed 2026-07-16; SVC-04 service/DB logs deferred to v1.1 — no endpoint in Coolify 4.1.x)
-- [ ] **Phase 6: Bulk, Emergency & Safety** — Project redeploy/restart, stop-all, masking, confirm gate
+- [x] **Phase 6: Bulk, Emergency & Safety** — Project redeploy/restart, stop-all, masking, confirm gate (completed 2026-07-16)
 - [ ] **Phase 7: Distribution & Docs** — npm publish, GitHub README, Cursor/Claude Desktop setup
 
 ## Phase Details
@@ -209,7 +209,7 @@ Plans:
   4. Sensitive values (tokens, passwords, webhooks) masked as `***` by default; reveal only on explicit opt-in
   5. All destructive ops reject without `confirm: true` and return clear recovery hint
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 
@@ -220,7 +220,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-03-PLAN.md — Integration sign-off: emergency + reveal handler-level suite + VALIDATION (EMG-01, EMG-02, EMG-03, OUT-02, OUT-07)
+- [x] 06-03-PLAN.md — Integration sign-off: emergency + reveal handler-level suite + VALIDATION (EMG-01, EMG-02, EMG-03, OUT-02, OUT-07)
 
 ### Phase 7: Distribution & Docs
 
@@ -253,7 +253,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Diagnose & Issue Scan | 7/7 | Complete    | 2026-07-12 |
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
 | 5. Logs & Service/DB Ops | 5/5 | Complete    | 2026-07-16 |
-| 6. Bulk, Emergency & Safety | 0/3 | Not started | - |
+| 6. Bulk, Emergency & Safety | 3/3 | Complete    | 2026-07-16 |
 | 7. Distribution & Docs | 0/TBD | Not started | - |
 
 ---
