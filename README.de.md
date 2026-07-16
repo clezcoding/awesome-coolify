@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="coolify-mcp Logo" width="120" />
+  <img src="docs/assets/logo.png" alt="awesome-coolify-mcp logo" width="120" />
 </p>
 
-<h1 align="center">coolify-mcp</h1>
+<h1 align="center">awesome-coolify-mcp</h1>
 
 <p align="center">
   <strong>Der Open-Source MCP-Server für self-hosted Coolify.</strong><br/>
@@ -21,20 +21,19 @@
   <img src="https://img.shields.io/badge/Lizenz-MIT-fcd34d?style=flat-square" alt="MIT Lizenz" />
 </p>
 
-![coolify-mcp Social Preview](docs/assets/social-preview.png)
+![awesome-coolify-mcp Social Preview](docs/assets/social-preview.png)
 
 ---
 
-## Warum coolify-mcp?
+## Warum awesome-coolify-mcp?
 
 Heute existieren drei überlappende MCP-Implementierungen (Coolify CLI MCP, `user-coolify`, `coolify-backup-mcp`) — inkonsistente Schemas, 60+ granulare Tools, doppelte Logik.
 
-**coolify-mcp** ersetzt sie durch einen community-fokussierten Server:
+**awesome-coolify-mcp** ersetzt sie durch einen community-fokussierten Server:
 
-- **Action-basierte Tools** — z.B. `application({ action: 'deploy' })` statt Dutzender Einzeltools
+- **Action-basierte Tools in 10 Domänen** — z.B. `application({ action: 'deploy' })` statt Dutzender Einzeltools
 - **Strukturierte Fehler** — `COOLIFY_401`, Recovery-Hints, Retry bei transienten Fehlern
-- **Ops-first v1** — Deploy, Logs, Diagnose, Infrastructure-Overview
-- **Multi-Instance (v2)** — mehrere Coolify-Installationen aus einer Config
+- **Ops-first v1** — Deploy, Logs, Diagnose, Infrastructure-Overview, Emergency-Controls mit Safety-Gates
 
 Gebaut für self-hosted [Coolify](https://coolify.io) **4.1.x**. Nicht offiziell mit Coolify Labs verbunden.
 
@@ -42,39 +41,52 @@ Gebaut für self-hosted [Coolify](https://coolify.io) **4.1.x**. Nicht offiziell
 
 ## Schnellstart
 
-### Voraussetzungen
-
-- Node.js 20+
-- Self-hosted Coolify-Instanz mit API-Token ([Keys & Tokens](https://coolify.io/docs/api-reference/authorization))
-
-### Installation (nach npm-Release)
+**Voraussetzungen:** Node.js 20+, self-hosted Coolify-Instanz, API-Token ([Keys & Tokens](https://coolify.io/docs/api-reference/authorization)).
 
 ```bash
-npx coolify-mcp
+npx -y awesome-coolify-mcp
 ```
 
-### Lokale Entwicklung
+Der Host-Client injiziert `COOLIFY_URL` und `COOLIFY_TOKEN` über die MCP-Config — siehe [Installation](#installation).
 
-```bash
-git clone https://github.com/YOUR_ORG/awesome-coolify.git
-cd awesome-coolify
-npm install
-npm run build
-```
+> **Sicherheit:** Emergency-Actions (`stop_all`, `redeploy_project`, `restart_project`) erfordern `confirm: true`. Sensible Keys sind standardmäßig maskiert — `reveal: true` nur bei Bedarf für Klartext.
 
-### Cursor / Claude Desktop
+---
 
-In `~/.cursor/mcp.json` oder Claude Desktop MCP-Config eintragen:
+## Installation
+
+Drei gleichwertige Wege — Deeplink, Konfigurator oder manuelles Einfügen.
+
+### One-Click (Deeplink)
+
+Für Experten mit fertigen Credentials (Platzhalter-Env OK; bevorzugt den [Konfigurator](#konfigurator-github-pages) für Secrets):
+
+- **Cursor:** [awesome-coolify-mcp zu Cursor hinzufügen](cursor://anysphere.cursor-deeplink/mcp/install?name=awesome-coolify-mcp&config=eyJhd2Vzb21lLWNvb2xpZnktbWNwIjp7ImNvbW1hbmQiOiJucHgiLCJhcmdzIjpbIi15IiwiYXdlc29tZS1jb29saWZ5LW1jcCJdLCJlbnYiOnsiQ09PTElGWV9VUkwiOiJodHRwczovL2Nvb2xpZnkuZXhhbXBsZS5jb20iLCJDT09MSUZZX1RPS0VOIjoiWU9VUl9DT09MSUZZX0FQSV9UT0tFTiJ9fX0=)
+- **VS Code / GitHub Copilot:** [Install via vscode:mcp/install](vscode:mcp/install?name=awesome-coolify-mcp&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22awesome-coolify-mcp%22%5D%2C%22env%22%3A%7B%22COOLIFY_URL%22%3A%22https%3A%2F%2Fcoolify.example.com%22%2C%22COOLIFY_TOKEN%22%3A%22YOUR_COOLIFY_API_TOKEN%22%7D%7D)
+
+### Konfigurator (GitHub Pages)
+
+Nutze den **[GitHub-Pages-Install-Konfigurator](docs/install.html)**, um Credentials einzugeben und client-spezifische Config-Snippets zu erzeugen. Alles läuft **client-seitig im Browser** — Tokens werden nie an ein Backend gesendet.
+
+**Credentials beschaffen:**
+
+- **`COOLIFY_URL`** — deine Coolify-Basis-URL (z.B. `https://coolify.example.com`, ohne trailing slash)
+- **`COOLIFY_TOKEN`** — Coolify UI → **Keys & Tokens** → API-Token mit passenden Team-Rechten erstellen
+
+### Manuell
+
+JSON (oder TOML/YAML aus dem Konfigurator) in die MCP-Config deines Clients einfügen. Beispiel für Cursor (`~/.cursor/mcp.json` oder `.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
-    "coolify": {
-      "command": "node",
-      "args": ["/absoluter/pfad/zu/awesome-coolify/dist/index.js"],
+    "awesome-coolify-mcp": {
+      "command": "npx",
+      "args": ["-y", "awesome-coolify-mcp"],
       "env": {
         "COOLIFY_URL": "https://coolify.example.com",
-        "COOLIFY_TOKEN": "dein-api-token",
+        "COOLIFY_TOKEN": "YOUR_COOLIFY_API_TOKEN",
+        "COOLIFY_VERIFY_SSL": "true",
         "COOLIFY_MCP_LOG": "info"
       }
     }
@@ -82,51 +94,96 @@ In `~/.cursor/mcp.json` oder Claude Desktop MCP-Config eintragen:
 }
 ```
 
-> **Phase 1:** Eine Coolify-Instanz pro MCP-Server-Eintrag. Mehrere Instanzen = mehrere `mcpServers`-Einträge. Einheitliche `~/.coolify-mcp/instances.json` kommt in **v2**.
-
 Copy-Paste-Vorlage: [`docs/mcp.example.json`](docs/mcp.example.json)
+
+Der **Host** injiziert `env` in den Prozess — awesome-coolify-mcp liest die Client-Config selbst nie.
+
+---
+
+## Clients
+
+Wichtigste MCP-Hosts:
+
+| Client | Config-Pfad | Hinweis |
+|--------|-------------|---------|
+| **Cursor** | `~/.cursor/mcp.json` | One-Click-Deeplink oder manuelles JSON |
+| **VS Code / GitHub Copilot** | `.vscode/mcp.json` | Native `inputs` für URL/Token-Prompts |
+| **Claude Desktop** | `claude_desktop_config.json` | Manuelles JSON oder Konfigurator-Output — kein `.mcpb`-Packaging in Phase 7 |
+| **Claude Code** | `~/.claude.json` oder `.mcp.json` | stdio via `npx -y awesome-coolify-mcp` |
+| **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | Gleiches npx + env Pattern |
+
+**Vollständige 15+ Client-Matrix** (OpenCode, Codex CLI, Gemini CLI, Cline, Hermes, Kimi Code u.a.): siehe **[Install-Konfigurator](docs/install.html)**.
+
+> **D-18:** Kein Claude Desktop `.mcpb`-Packaging in Phase 7 — Claude Desktop = manuelles JSON oder Pages-Konfigurator-Output.
 
 ---
 
 ## Umgebungsvariablen
 
-| Variable | Pflicht | Beschreibung |
-|----------|---------|--------------|
-| `COOLIFY_URL` | ja | Basis-URL der Coolify-Instanz (ohne trailing slash) |
-| `COOLIFY_TOKEN` | ja | Bearer API-Token (team-scoped) |
-| `COOLIFY_MCP_LOG` | nein | `debug` · `info` · `error` (Standard: `info`) |
-| `COOLIFY_VERIFY_SSL` | nein | `true` · `false` (Standard: `true`) |
+| Variable | Pflicht | Standard | Beschreibung |
+|----------|---------|----------|--------------|
+| `COOLIFY_URL` | ja | — | Basis-URL der Coolify-Instanz (ohne trailing slash) |
+| `COOLIFY_TOKEN` | ja | — | Bearer API-Token (team-scoped) |
+| `COOLIFY_VERIFY_SSL` | nein | `true` | Nur in Dev auf `false` bei Self-Signed-Zerts |
+| `COOLIFY_MCP_LOG` | nein | `info` | `debug` · `info` · `error` |
 
-Tokens nur aus Env — nie in Tool-Responses oder Logs.
+Tokens aus Env / optionaler `.env` — nie in Tool-Responses.
 
 ---
 
-## Tools (action-basiert)
+## Tools (aktionsbasiert)
 
-Jede Domäne = ein Tool mit `action`-Discriminator:
+Jede Domäne = ein MCP-Tool mit `action`-Discriminator. Beispiel: `system({ action: 'health' })`.
 
-```typescript
-system({ action: 'health' | 'version' | 'verify' })
-meta({ action: 'version' })
-// v1+ Domänen (Roadmap):
-application({ action: 'list' | 'get' | 'deploy' | 'logs' | ... })
-server({ action: 'list' | 'diagnose' | ... })
-```
+| Tool | Action | Zweck |
+|------|--------|-------|
+| `system` | `health` | Coolify-API-Erreichbarkeit prüfen |
+| `system` | `version` | Coolify-Instanzversion abrufen |
+| `system` | `verify` | Authentifizierung + Connectivity + Instanzversion |
+| `system` | `infrastructure_overview` | Aggregierte Counts für Server, Projekte, Apps, Services, Datenbanken |
+| `meta` | `version` | awesome-coolify-mcp Serverversion und Name |
+| `resource` | `list` | Applications, Services und Datenbanken mit Summary-Projektionen |
+| `resource` | `find` | Fuzzy-Suche über Server und Ressourcen |
+| `diagnose` | `app` | App-Status, Health, Env und letzte Deployments diagnostizieren |
+| `diagnose` | `server` | Server-Ressourcen, Domains und Erreichbarkeit prüfen |
+| `diagnose` | `scan` | Fleet-weiter Issue-Scan nach Severity gruppiert |
+| `application` | `get` | Detaillierte Konfiguration einer Application |
+| `application` | `start` | Application-Container starten |
+| `application` | `stop` | Application-Container stoppen |
+| `application` | `restart` | Application-Container neu starten |
+| `application` | `deploy` | Deployment auslösen (optional wait/poll, force rebuild) |
+| `application` | `logs` | Paginierte Runtime- oder Build-Logs |
+| `deployment` | `list` | Deployments einer Application auflisten |
+| `deployment` | `get` | Deployment-Status, Commit und Details |
+| `deployment` | `cancel` | Laufendes Deployment abbrechen |
+| `service` | `start` | Alle Service-Container starten |
+| `service` | `stop` | Alle Service-Container stoppen |
+| `service` | `restart` | Alle Service-Container neu starten |
+| `service` | `deploy` | Service redeployen (optional Image-Pull) |
+| `service` | `get` | Detaillierte Konfiguration eines Services |
+| `database` | `start` | Datenbank-Container starten |
+| `database` | `stop` | Datenbank-Container stoppen |
+| `database` | `restart` | Datenbank-Container neu starten |
+| `database` | `get` | Detaillierte Konfiguration einer Datenbank |
+| `docs` | `search` | Bundled Coolify-Guides durchsuchen |
+| `emergency` | `stop_all` | Alle laufenden Applications fleet-weit stoppen — **requires confirm:true** |
+| `emergency` | `redeploy_project` | Alle Apps eines Projekts redeployen — **requires confirm:true** |
+| `emergency` | `restart_project` | Alle Apps eines Projekts neu starten — **requires confirm:true** |
 
-### Phase 1 (Foundation)
+---
 
-| Tool | Actions | Zweck |
-|------|---------|-------|
-| `system` | `health`, `version`, `verify` | Verbindung und Coolify-Version |
-| `meta` | `version` | MCP-Server-Version |
+## Sicherheit
 
-### v1 Roadmap (Ops)
+**Emergency-Tool**-Actions sind destruktiv und gated:
 
-Deploy, Restart, Logs, App/Server-Diagnose, Infrastructure-Overview, Global Issue-Scan — siehe [`.planning/ROADMAP.md`](.planning/ROADMAP.md).
+- `stop_all`, `redeploy_project` und `restart_project` erfordern explizit **`confirm: true`**
+- Aufruf **ohne** `confirm` zeigt zuerst die `would_affect`-Vorschau — keine Mutation
 
-### v2 (volle Parität)
+**Secret-Masking** (Standard an):
 
-Create/Delete, Multi-Instance-CRUD, Bulk-Ops, Doku-Suche — siehe [`.planning/REQUIREMENTS.md`](.planning/REQUIREMENTS.md#v2-requirements).
+- Keys mit `password`, `token`, `secret`, `private` oder `env` werden in Tool-Output als `***` maskiert
+- **`reveal: true`** für Klartext nur bei explizitem Bedarf
+- **Log-Zeileninhalt wird nicht maskiert** — rohe Logs nicht dauerhaft in Agent-Memory oder Tickets speichern
 
 ---
 
@@ -159,28 +216,18 @@ Transient (429, 5xx, Netzwerk): Retry bis 3×, exponentielles Backoff (1s → 2s
 
 ---
 
-## Architektur
+## Nicht in v1
 
-```
-MCP Client (Cursor / Claude)
-        │ stdio JSON-RPC
-        ▼
-   coolify-mcp (TypeScript)
-   ├── Action Routing (Zod-validiert)
-   ├── Coolify HTTP Client (ofetch + Bearer)
-   └── Error Envelope + Secret-Redaction
-        │ HTTPS
-        ▼
-   Coolify API /api/v1/*
-```
-
-Details: [`.planning/research/ARCHITECTURE.md`](.planning/research/ARCHITECTURE.md)
+Create/Delete-CRUD, Multi-Instance-Runtime, Env-Var-Sync und volle Parität mit Legacy-MCPs kommen in v2.
 
 ---
 
 ## Entwicklung
 
 ```bash
+git clone https://github.com/clezcoding/awesome-coolify-mcp.git
+cd awesome-coolify-mcp
+npm install
 npm run build    # tsup → dist/
 npm test         # vitest
 npm run dev      # Watch-Modus
@@ -188,25 +235,10 @@ npm run dev      # Watch-Modus
 
 Logs nur auf **stderr** (stdout = MCP-Protokoll).
 
----
-
-## Mitmachen
-
-Issues und PRs willkommen. Community-Projekt — kein offizielles Coolify-Produkt.
-
-1. [`.planning/PROJECT.md`](.planning/PROJECT.md) — Scope und Entscheidungen
-2. Spike-Findings: [`.cursor/skills/spike-findings-awesome-coolify/`](.cursor/skills/spike-findings-awesome-coolify/)
-3. Feature-Katalog: [`mcp_features.md`](mcp_features.md)
+Für den Maintainer-npm-Publish-Workflow (`npm run build` → `npm pack --dry-run` → `npm publish --access public`) siehe **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
 ---
 
 ## Lizenz
 
-MIT — siehe [LICENSE](LICENSE) (folgt).
-
----
-
-## Verwandte Projekte
-
-- [Coolify](https://github.com/coollabsio/coolify) — self-hosted PaaS
-- [Model Context Protocol](https://modelcontextprotocol.io) — Standard für AI-Tool-Integration
+MIT — siehe [LICENSE](LICENSE)
