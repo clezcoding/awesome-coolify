@@ -172,7 +172,7 @@ Progress: [██████████] 33/33 plans (100%)
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 260716-a1 | Split into private dev repo + public repo, npm + GitHub Pages setup | 2026-07-16 | (pending local commit) | [260716-a1-split-public-repo](./quick/260716-a1-split-public-repo/) |
+| 260716-a1 | Split into private dev repo + public repo, npm + GitHub Pages setup | 2026-07-16 | 7cbcb8f | [260716-a1-split-public-repo](./quick/260716-a1-split-public-repo/) |
 
 ## Session Continuity
 
