@@ -17,7 +17,7 @@ Coolify MCP Server v1 ships as seven vertical MVP slices: foundation and multi-i
 - [x] **Phase 4: App Deploy Lifecycle** — Start/stop/restart, deploy, wait-mode, deployments, batch deploy (completed 2026-07-13)
 - [x] **Phase 5: Logs & Service/DB Ops** — App runtime/build logs, service/DB lifecycle, pull-latest deploy (completed 2026-07-16; SVC-04 service/DB logs deferred to v1.1 — no endpoint in Coolify 4.1.x)
 - [x] **Phase 6: Bulk, Emergency & Safety** — Project redeploy/restart, stop-all, masking, confirm gate (completed 2026-07-16)
-- [ ] **Phase 7: Distribution & Docs** — npm publish, GitHub README, Cursor/Claude Desktop setup
+- [x] **Phase 7: Distribution & Docs** — npm publish, GitHub README, Cursor/Claude Desktop setup (completed 2026-07-16)
 
 ## Phase Details
 
@@ -248,7 +248,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 / 07-02 completion)*
 
-- [ ] 07-03-PLAN.md — GitHub Pages configurator (docs/install.html + docs/index.html) with 15+ per-client format adapters + Cursor/VS Code deeplink generators + install-configurator.test.ts incl. `<script src=` negative grep (DIST-02)
+- [x] 07-03-PLAN.md — GitHub Pages configurator (docs/install.html + docs/index.html) with 15+ per-client format adapters + Cursor/VS Code deeplink generators + install-configurator.test.ts incl. `<script src=` negative grep (DIST-02)
 
 ## Progress
 
@@ -263,7 +263,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
 | 5. Logs & Service/DB Ops | 5/5 | Complete    | 2026-07-16 |
 | 6. Bulk, Emergency & Safety | 3/3 | Complete    | 2026-07-16 |
-| 7. Distribution & Docs | 1/3 | In Progress | - |
+| 7. Distribution & Docs | 3/3 | Complete    | 2026-07-16 |
 
 ---
 
