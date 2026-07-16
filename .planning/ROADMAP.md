@@ -235,9 +235,13 @@ Plans:
   3. README documents action-based tool patterns and links to v2 roadmap for deferred CRUD features
   4. Package metadata (name, version, bin) matches PROJECT.md distribution constraints
 
-**Plans:** 3/3 plans complete
+**Plans:** 4/5 plans executed
 
 Plans:
+
+- [x] 07-04-PLAN.md
+- [ ] 07-05-PLAN.md
+
 **Wave 1**
 
 - [x] 07-01-PLAN.md — npm publish-ready packaging (name=awesome-coolify-mcp, bin, prepublishOnly, files+LICENSE, engines, repository/bugs/homepage, keywords) + Wave 0 docs-parity test scaffold + CONTRIBUTING.md maintainer publish workflow (DIST-01, DIST-02)
@@ -263,7 +267,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. App Deploy Lifecycle | 5/5 | Complete    | 2026-07-13 |
 | 5. Logs & Service/DB Ops | 5/5 | Complete    | 2026-07-16 |
 | 6. Bulk, Emergency & Safety | 3/3 | Complete    | 2026-07-16 |
-| 7. Distribution & Docs | 3/3 | Complete    | 2026-07-16 |
+| 7. Distribution & Docs | 4/5 | In Progress|  |
 
 ---
 
