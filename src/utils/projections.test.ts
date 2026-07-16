@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { ProjectEnvironmentLookup } from './project-lookup.js';
 import {
   projectResourceSummary,
   projectApplicationSummary,
@@ -104,6 +105,25 @@ describe('projectResourceSummary', () => {
   });
 });
 
+const rawApplication41x = {
+  uuid: 'app-41x',
+  name: 'mcp-uat-nginx',
+  type: 'application',
+  status: 'running:healthy',
+  environment_id: 22,
+  updated_at: '2026-07-01T10:00:00Z',
+};
+
+const lookup41x: ProjectEnvironmentLookup = new Map([
+  [
+    22,
+    {
+      project_uuid: 'h785essygwr360newm83inz6',
+      project_name: 'MCP UAT Test',
+    },
+  ],
+]);
+
 describe('projectApplicationSummary', () => {
   it('returns application-specific summary shape per D-06', () => {
     const summary = projectApplicationSummary(rawApplication);
@@ -119,6 +139,23 @@ describe('projectApplicationSummary', () => {
       destination_uuid: 'dest-1',
       updated_at: '2026-07-01T10:00:00Z',
     });
+  });
+
+  it('resolves project from environment_id lookup for Coolify 4.1.x payloads', () => {
+    const summary = projectApplicationSummary(rawApplication41x, lookup41x);
+    expect(summary.project_name).toBe('MCP UAT Test');
+    expect(summary.project_uuid).toBe('h785essygwr360newm83inz6');
+    expect(summary.project_name).not.toBe('default');
+  });
+
+  it('returns N/A when environment_id cannot be resolved', () => {
+    const summary = projectApplicationSummary({
+      uuid: 'app-missing',
+      name: 'orphan',
+      status: 'running',
+    });
+    expect(summary.project_name).toBe('N/A');
+    expect(summary.project_uuid).toBe('');
   });
 });
 

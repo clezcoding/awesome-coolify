@@ -116,10 +116,42 @@ export interface ServerDiagnoseView {
   hints: FollowUpHint[];
 }
 
+import type { ProjectEnvironmentLookup } from './project-lookup.js';
+
 const SECRET_KEY_PATTERN = /password|token|secret|private|env/i;
 
-export function projectResourceSummary(raw: Record<string, unknown>): ResourceSummary {
+function resolveProjectFields(
+  raw: Record<string, unknown>,
+  lookup?: ProjectEnvironmentLookup,
+): { project_name: string; project_uuid: string } {
+  const nestedProject = raw.project as
+    | { name?: string; uuid?: string }
+    | undefined;
+  if (nestedProject?.name) {
+    return {
+      project_name: nestedProject.name,
+      project_uuid: nestedProject.uuid ?? '',
+    };
+  }
+  if (
+    typeof raw.environment_id === 'number' &&
+    lookup?.has(raw.environment_id)
+  ) {
+    const entry = lookup.get(raw.environment_id)!;
+    return {
+      project_name: entry.project_name,
+      project_uuid: entry.project_uuid,
+    };
+  }
+  return { project_name: 'N/A', project_uuid: '' };
+}
+
+export function projectResourceSummary(
+  raw: Record<string, unknown>,
+  lookup?: ProjectEnvironmentLookup,
+): ResourceSummary {
   const status = String(raw.status ?? 'unknown');
+  const { project_name } = resolveProjectFields(raw, lookup);
   return {
     uuid: String(raw.uuid ?? raw.id ?? ''),
     name: String(raw.name ?? ''),
@@ -127,50 +159,62 @@ export function projectResourceSummary(raw: Record<string, unknown>): ResourceSu
     status,
     health: String(raw.health ?? raw.status_detail ?? status),
     fqdn: (raw.fqdn as string | null) ?? (raw.domain as string | null) ?? null,
-    project_name: (raw.project as { name?: string } | undefined)?.name ?? 'default',
+    project_name,
     server_name: (raw.server as { name?: string } | undefined)?.name ?? 'localhost',
     updated_at: String(raw.updated_at ?? new Date().toISOString()),
   };
 }
 
-export function projectApplicationSummary(raw: Record<string, unknown>): ApplicationSummary {
+export function projectApplicationSummary(
+  raw: Record<string, unknown>,
+  lookup?: ProjectEnvironmentLookup,
+): ApplicationSummary {
+  const { project_name, project_uuid } = resolveProjectFields(raw, lookup);
   return {
     uuid: String(raw.uuid ?? raw.id ?? ''),
     name: String(raw.name ?? ''),
     status: String(raw.status ?? 'unknown'),
     fqdn: (raw.fqdn as string | null) ?? null,
-    project_name: (raw.project as { name?: string } | undefined)?.name ?? 'default',
+    project_name,
     server_name: (raw.server as { name?: string } | undefined)?.name ?? 'localhost',
-    project_uuid: (raw.project as { uuid?: string } | undefined)?.uuid ?? '',
+    project_uuid,
     server_uuid: (raw.server as { uuid?: string } | undefined)?.uuid ?? '',
     destination_uuid: (raw.destination as { uuid?: string } | undefined)?.uuid ?? '',
     updated_at: String(raw.updated_at ?? new Date().toISOString()),
   };
 }
 
-export function projectServiceSummary(raw: Record<string, unknown>): ServiceSummary {
+export function projectServiceSummary(
+  raw: Record<string, unknown>,
+  lookup?: ProjectEnvironmentLookup,
+): ServiceSummary {
+  const { project_name, project_uuid } = resolveProjectFields(raw, lookup);
   return {
     uuid: String(raw.uuid ?? raw.id ?? ''),
     name: String(raw.name ?? ''),
     status: String(raw.status ?? 'unknown'),
     fqdn: (raw.fqdn as string | null) ?? null,
-    project_name: (raw.project as { name?: string } | undefined)?.name ?? 'default',
+    project_name,
     server_name: (raw.server as { name?: string } | undefined)?.name ?? 'localhost',
-    project_uuid: (raw.project as { uuid?: string } | undefined)?.uuid ?? '',
+    project_uuid,
     server_uuid: (raw.server as { uuid?: string } | undefined)?.uuid ?? '',
     updated_at: String(raw.updated_at ?? new Date().toISOString()),
   };
 }
 
-export function projectDatabaseSummary(raw: Record<string, unknown>): DatabaseSummary {
+export function projectDatabaseSummary(
+  raw: Record<string, unknown>,
+  lookup?: ProjectEnvironmentLookup,
+): DatabaseSummary {
+  const { project_name, project_uuid } = resolveProjectFields(raw, lookup);
   return {
     uuid: String(raw.uuid ?? raw.id ?? ''),
     name: String(raw.name ?? ''),
     status: String(raw.status ?? 'unknown'),
     type: String(raw.type ?? 'database'),
-    project_name: (raw.project as { name?: string } | undefined)?.name ?? 'default',
+    project_name,
     server_name: (raw.server as { name?: string } | undefined)?.name ?? 'localhost',
-    project_uuid: (raw.project as { uuid?: string } | undefined)?.uuid ?? '',
+    project_uuid,
     server_uuid: (raw.server as { uuid?: string } | undefined)?.uuid ?? '',
     updated_at: String(raw.updated_at ?? new Date().toISOString()),
   };
