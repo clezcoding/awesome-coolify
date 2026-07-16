@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>awesome-coolify-mcp</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3348;
+      --text: #e8eaef;
+      --muted: #9aa3b5;
+      --accent: #6b16ed;
+      --accent-hover: #7c3aed;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .hero {
+      text-align: center;
+      padding: 3rem 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .hero p { color: var(--muted); max-width: 540px; margin: 0 auto 1.25rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    h2 { font-size: 1.35rem; margin-bottom: 1.25rem; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1rem;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      margin-top: 0.5rem;
+    }
+    .btn-outline:hover { border-color: var(--accent); }
+    pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+    }
+    .client-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+    .client-grid a {
+      display: block;
+      padding: 0.65rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .client-grid a:hover { border-color: var(--accent); }
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <h1>awesome-coolify-mcp</h1>
+    <p>The open-source MCP server for self-hosted Coolify — deploy, read logs, diagnose from any MCP client.</p>
+    <div class="badges">
+      <span class="badge">Coolify API 4.1.x</span>
+      <span class="badge">MCP action-based</span>
+      <span class="badge">MIT</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2>Install</h2>
+      <p style="color:var(--muted);margin-bottom:1.25rem;">Pick one of three equal paths — deeplink, configurator, or manual paste.</p>
+      <div class="cards">
+        <article class="card">
+          <h3>One-click (deeplink)</h3>
+          <p>For experts with credentials ready. Placeholder env is fine — prefer the configurator to fill secrets first.</p>
+          <a class="btn" id="cursor-deeplink" href="#">Add to Cursor</a>
+          <a class="btn btn-outline" id="vscode-deeplink" href="#">Install in VS Code</a>
+        </article>
+        <article class="card">
+          <h3>Configurator (GitHub Pages)</h3>
+          <p>Enter credentials and generate per-client config snippets. Everything runs <strong>client-side in your browser</strong> — tokens are never posted to a backend.</p>
+          <p style="font-size:0.8rem;margin-top:0.5rem;"><strong>COOLIFY_URL</strong> — your Coolify base URL. <strong>COOLIFY_TOKEN</strong> — Coolify UI → Keys &amp; Tokens.</p>
+          <a class="btn" href="install.html">Open install configurator</a>
+        </article>
+        <article class="card">
+          <h3>Manual</h3>
+          <p>Paste JSON into your client MCP config. Example for Cursor:</p>
+          <pre><code>{
+  "mcpServers": {
+    "awesome-coolify-mcp": {
+      "command": "npx",
+      "args": ["-y", "awesome-coolify-mcp"],
+      "env": {
+        "COOLIFY_URL": "https://coolify.example.com",
+        "COOLIFY_TOKEN": "YOUR_COOLIFY_API_TOKEN"
+      }
+    }
+  }
+}</code></pre>
+          <a class="btn btn-outline" href="mcp.example.json">mcp.example.json</a>
+          <a class="btn btn-outline" href="install.html">Other clients</a>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Clients</h2>
+      <p style="color:var(--muted);margin-bottom:1rem;">Full 15+ client matrix — click to preselect in the configurator.</p>
+      <div class="client-grid">
+        <a href="install.html#client=cursor">Cursor</a>
+        <a href="install.html#client=vscode">VS Code</a>
+        <a href="install.html#client=claude-desktop">Claude Desktop</a>
+        <a href="install.html#client=claude-code">Claude Code</a>
+        <a href="install.html#client=windsurf">Windsurf</a>
+        <a href="install.html#client=opencode">OpenCode</a>
+        <a href="install.html#client=codex">Codex CLI</a>
+        <a href="install.html#client=gemini">Gemini CLI</a>
+        <a href="install.html#client=antigravity">Antigravity</a>
+        <a href="install.html#client=openclaw">OpenClaw</a>
+        <a href="install.html#client=hermes">Hermes</a>
+        <a href="install.html#client=kimi">Kimi Code</a>
+        <a href="install.html#client=kilo">Kilo Code</a>
+        <a href="install.html#client=cline">Cline</a>
+        <a href="install.html#client=goose">Goose</a>
+        <a href="install.html#client=lmstudio">LM Studio</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      <a href="../README.md">README</a> ·
+      <a href="https://github.com/clezcoding/awesome-coolify-mcp/blob/main/LICENSE">LICENSE</a> ·
+      <a href="https://github.com/clezcoding/awesome-coolify-mcp">GitHub</a>
+    </p>
+  </footer>
+
+  <script>
+    const SERVER_NAME = 'awesome-coolify-mcp';
+    const PLACEHOLDER_ENV = {
+      COOLIFY_URL: 'https://coolify.example.com',
+      COOLIFY_TOKEN: 'YOUR_COOLIFY_API_TOKEN',
+      COOLIFY_VERIFY_SSL: 'true',
+      COOLIFY_MCP_LOG: 'info',
+    };
+
+    function generateCursorDeeplink(env) {
+      const config = {
+        [SERVER_NAME]: {
+          command: 'npx',
+          args: ['-y', 'awesome-coolify-mcp'],
+          env: env,
+        },
+      };
+      const b64 = btoa(JSON.stringify(config));
+      return 'cursor://anysphere.cursor-deeplink/mcp/install?name=' +
+        encodeURIComponent(SERVER_NAME) + '&config=' + b64;
+    }
+
+    function generateVsCodeDeeplink(env) {
+      const payload = {
+        command: 'npx',
+        args: ['-y', 'awesome-coolify-mcp'],
+        env: env,
+      };
+      return 'vscode:mcp/install?name=' + encodeURIComponent(SERVER_NAME) +
+        '&config=' + encodeURIComponent(JSON.stringify(payload));
+    }
+
+    document.getElementById('cursor-deeplink').href = generateCursorDeeplink(PLACEHOLDER_ENV);
+    document.getElementById('vscode-deeplink').href = generateVsCodeDeeplink(PLACEHOLDER_ENV);
+  </script>
+</body>
+</html>
