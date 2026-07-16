@@ -193,7 +193,7 @@
     const PLACEHOLDER_TOKEN = 'YOUR_COOLIFY_API_TOKEN';
 
     const CLIENT_NOTES = {
-      'claude-desktop': 'D-18: No Claude Desktop .mcpb packaging in Phase 7 — Claude Desktop = manual JSON paste or Pages configurator output only.',
+      'claude-desktop': 'D-18: No Claude Desktop mcpb packaging in Phase 7 — Claude Desktop = manual JSON paste or Pages configurator output only.',
     };
 
     function getEnvVars(useForm) {
@@ -273,6 +273,7 @@
       return JSON.stringify(cfg, null, 2);
     }
 
+    // D-22 OpenCode/Kilo adapter: "type": "local" with command array
     function generateOpenCodeSnippet(env) {
       const cfg = {
         mcp: {
