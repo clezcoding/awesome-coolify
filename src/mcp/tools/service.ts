@@ -361,7 +361,13 @@ export async function handleServiceAction(
 
         const data =
           projection === 'full'
-            ? { ...(sanitizeFullProjection(raw) as Record<string, unknown>), hints }
+            ? {
+                ...(sanitizeFullProjection(raw, parsed.reveal) as Record<
+                  string,
+                  unknown
+                >),
+                hints,
+              }
             : { ...projectServiceSummary(rawRecord), hints };
 
         return buildReadResponse(data, {

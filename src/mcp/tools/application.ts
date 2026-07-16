@@ -839,7 +839,13 @@ export async function handleApplicationAction(
 
         const data =
           projection === 'full'
-            ? { ...(sanitizeFullProjection(raw) as Record<string, unknown>), hints }
+            ? {
+                ...(sanitizeFullProjection(raw, parsed.reveal) as Record<
+                  string,
+                  unknown
+                >),
+                hints,
+              }
             : { ...projectApplicationSummary(rawRecord), hints };
 
         return buildReadResponse(data, {

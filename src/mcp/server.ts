@@ -185,7 +185,7 @@ export function registerCoolifyTools(
     'diagnose',
     {
       description:
-        'Synthesizes diagnose views for applications and servers, or runs a global fleet scan. Server action triggers validate with a non-blocking side-effect (D-10).',
+        'Synthesizes diagnose views for applications and servers, or runs a global fleet scan. Full-projection app diagnose masks sensitive keys in raw_application as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets. Server action triggers validate with a non-blocking side-effect (D-10).',
       inputSchema: diagnoseToolSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
@@ -216,7 +216,7 @@ export function registerCoolifyTools(
     'application',
     {
       description:
-        'Application lifecycle, deploy, and log actions (get, start, stop, restart, deploy, logs) — list via resource tool. Log line content is not masked and may contain secrets printed by the application; do not persist logs to long-term storage.',
+        'Application lifecycle, deploy, and log actions (get, start, stop, restart, deploy, logs) — list via resource tool. Full-projection reads mask sensitive keys (password/token/secret/private/env) as *** by default; pass reveal: true to retrieve plaintext only when needed — do not persist revealed secrets. Log line content is not masked and may contain secrets printed by the application; do not persist logs to long-term storage.',
       inputSchema: applicationActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
@@ -278,7 +278,7 @@ export function registerCoolifyTools(
     'deployment',
     {
       description:
-        'List per-app deployments, get deployment details (status, commit, timestamps, optional capped inline logs), or cancel an in-flight deployment. Cancel on an already-terminal deployment returns { cancelled: false, already_finished: true, status } — no error thrown (D-21).',
+        'List per-app deployments, get deployment details (status, commit, timestamps, optional capped inline logs), or cancel an in-flight deployment. Full-projection get masks sensitive keys as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets. Cancel on an already-terminal deployment returns { cancelled: false, already_finished: true, status } — no error thrown (D-21).',
       inputSchema: deploymentToolSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
@@ -309,7 +309,7 @@ export function registerCoolifyTools(
     'service',
     {
       description:
-        'Service lifecycle and deploy actions (get, start, stop, restart, deploy) — list via resource tool',
+        'Service lifecycle and deploy actions (get, start, stop, restart, deploy) — list via resource tool. Full-projection get masks sensitive keys as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets.',
       inputSchema: serviceActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
@@ -340,7 +340,7 @@ export function registerCoolifyTools(
     'database',
     {
       description:
-        'Database lifecycle actions (get, start, stop, restart) — list via resource tool',
+        'Database lifecycle actions (get, start, stop, restart) — list via resource tool. Full-projection get masks sensitive keys as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets.',
       inputSchema: databaseActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },

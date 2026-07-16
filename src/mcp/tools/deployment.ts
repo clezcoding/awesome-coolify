@@ -141,7 +141,7 @@ async function handleDeploymentGet(
   const rawRecord = isRecord(raw) ? raw : {};
   const data =
     projection === 'full'
-      ? projectDeploymentFull(rawRecord, parsed.max_chars)
+      ? projectDeploymentFull(rawRecord, parsed.max_chars, parsed.reveal)
       : projectDeploymentSummary(rawRecord);
 
   return buildReadResponse(data, {

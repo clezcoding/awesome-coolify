@@ -334,6 +334,7 @@ async function handleDiagnoseApp(
     deployments,
     projection,
     parsed.max_chars,
+    parsed.reveal,
   );
 
   data.hints = generateHints(
