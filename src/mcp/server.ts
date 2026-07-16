@@ -211,7 +211,7 @@ export function registerCoolifyTools(
     'application',
     {
       description:
-        'Application lifecycle and deploy actions (get, start, stop, restart, deploy) — list via resource tool',
+        'Application lifecycle, deploy, and log actions (get, start, stop, restart, deploy, logs) — list via resource tool. Log line content is not masked and may contain secrets printed by the application; do not persist logs to long-term storage.',
       inputSchema: applicationActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },

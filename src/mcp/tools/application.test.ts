@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
   applicationActionSchema,
+  applicationLogsSchema,
   handleApplicationAction,
   isApplicationErrorResult,
 } from './application.js';
@@ -840,7 +841,7 @@ describe('handleApplicationAction batch deploy (DEP-02/03)', () => {
   });
 });
 
-describe('handleApplicationAction logs (RED)', () => {
+describe('handleApplicationAction logs', () => {
   const buildLogsFixture = JSON.stringify([
     { output: 'a', type: 'stdout', hidden: false },
     { output: 'b', type: 'stderr', hidden: true },
@@ -851,6 +852,136 @@ describe('handleApplicationAction logs (RED)', () => {
     vi.mocked(fetchApplicationLogs).mockReset();
     vi.mocked(fetchDeployment).mockReset();
     vi.mocked(fetchResources).mockReset();
+  });
+
+  it('runtime logs default lines=100 when omitted', async () => {
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'a\nb' });
+
+    await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(fetchApplicationLogs).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      100,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('build logs default include_hidden:false filters hidden entries', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: buildLogsFixture,
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'logs', deployment_uuid: 'dep-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.logs_lines).toEqual(['a', 'c']);
+    expect(data.entries_total).toBe(3);
+    expect(data.entries_hidden).toBe(1);
+    expect(data.entries_shown).toBe(2);
+  });
+
+  it('applicationLogsSchema rejects follow param with unrecognized_keys', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'x',
+      follow: true,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues[0]?.code).toBe('unrecognized_keys');
+  });
+
+  it('build logs plain string fallback slices without throw', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: 'plain line one\nplain line two',
+    });
+
+    const result = await handleApplicationAction(
+      { action: 'logs', deployment_uuid: 'dep-plain' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.logs_lines).toEqual(['plain line one', 'plain line two']);
+  });
+
+  it('build logs applies offset after flatten', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: JSON.stringify(
+        Array.from({ length: 10 }, (_, i) => ({
+          output: `line-${i}`,
+          type: 'stdout',
+          hidden: false,
+        })),
+      ),
+    });
+
+    const result = await handleApplicationAction(
+      {
+        action: 'logs',
+        deployment_uuid: 'dep-offset',
+        offset: 5,
+        lines: 20,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.logs_lines).toEqual([
+      'line-5',
+      'line-6',
+      'line-7',
+      'line-8',
+      'line-9',
+    ]);
+  });
+
+  it('does not write log line content to stderr or console', async () => {
+    const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    const consoleSpies = ['error', 'log', 'info', 'debug'].map((method) =>
+      vi.spyOn(console, method as 'error').mockImplementation(() => undefined),
+    );
+
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({
+      logs: 'SECRET-LOG-LINE\nmore',
+    });
+
+    await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    const allCalls = [
+      ...stderrSpy.mock.calls,
+      ...consoleSpies.flatMap((spy) => spy.mock.calls),
+    ];
+    for (const call of allCalls) {
+      const text = call.map((arg) => String(arg)).join(' ');
+      expect(text).not.toContain('SECRET-LOG-LINE');
+    }
+
+    stderrSpy.mockRestore();
+    consoleSpies.forEach((spy) => spy.mockRestore());
   });
 
   it('runtime logs with uuid calls fetchApplicationLogs and returns logs_lines', async () => {

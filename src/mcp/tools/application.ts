@@ -2,6 +2,7 @@ import * as z from 'zod/v4';
 import type { EnvConfig } from '../config/env.js';
 import {
   fetchApplication,
+  fetchApplicationLogs,
   fetchDeployment,
   fetchResources,
   triggerAppRestart,
@@ -20,11 +21,18 @@ import {
 import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
 import {
   CoolifyApiError,
+  RECOVERY_HINTS,
   wrapMcpError,
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  capLogOutput,
+  parseBuildLogEntries,
+  sliceLogBlob,
+} from '../../utils/log-helpers.js';
+import {
   rejectTableFormatOnFullProjection,
+  sharedLogParamsSchema,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import { generateHints, logsAvailableHint } from '../../utils/diagnose-hints.js';
@@ -172,6 +180,60 @@ const deployActionSchema = z
     }
   });
 
+export const applicationLogsSchema = z
+  .object({
+    action: z.literal('logs'),
+    uuid: z
+      .string()
+      .optional()
+      .describe(
+        'Application UUID — routes to runtime logs via GET /applications/{uuid}/logs',
+      ),
+    name: z
+      .string()
+      .optional()
+      .describe('Application name substring for runtime log resolution'),
+    fqdn: z
+      .string()
+      .optional()
+      .describe('Application FQDN substring for runtime log resolution'),
+    deployment_uuid: z
+      .string()
+      .optional()
+      .describe(
+        'Deployment UUID — routes to build logs via GET /deployments/{uuid} inline `logs` JSON-encoded array',
+      ),
+    offset: z
+      .number()
+      .int()
+      .min(0)
+      .default(0)
+      .describe(
+        'Skip first K lines of the FLATTENED log blob before applying lines (build-logs pagination applied AFTER parse+filter+flatten)',
+      ),
+    ...sharedLogParamsSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    const hasRuntimeId = !!(data.uuid || data.name || data.fqdn);
+    if (!hasRuntimeId && !data.deployment_uuid) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Either uuid (runtime logs) or deployment_uuid (build logs) must be provided',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (hasRuntimeId && data.deployment_uuid) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Cannot provide both uuid and deployment_uuid — choose runtime OR build logs',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+  });
+
 export const applicationActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('get'),
@@ -182,6 +244,7 @@ export const applicationActionSchema = z.discriminatedUnion('action', [
   stopActionSchema,
   restartActionSchema,
   deployActionSchema,
+  applicationLogsSchema,
 ]);
 
 export type ApplicationAction = z.infer<typeof applicationActionSchema>;
@@ -231,10 +294,23 @@ export type ApplicationDeployResult = ReadResponse<
     }
 >;
 
+export type ApplicationLogsResult = ReadResponse<{
+  uuid?: string;
+  deployment_uuid?: string;
+  status?: string;
+  logs_lines: string[];
+  logs_truncated: boolean;
+  total_lines: number;
+  entries_total?: number;
+  entries_hidden?: number;
+  entries_shown?: number;
+}>;
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
   | ApplicationDeployResult
+  | ApplicationLogsResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -243,9 +319,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 type MutationAction = z.infer<typeof startActionSchema>;
 type DeployAction = z.infer<typeof deployActionSchema>;
+type LogsAction = z.infer<typeof applicationLogsSchema>;
+
+type AppIdentifierInput = {
+  uuid?: string;
+  name?: string;
+  fqdn?: string;
+};
 
 async function resolveAppMutationUuid(
-  parsed: MutationAction,
+  parsed: AppIdentifierInput,
   env: EnvConfig,
 ): Promise<string> {
   if (parsed.uuid) {
@@ -608,6 +691,111 @@ async function handleApplicationDeploy(
   );
 }
 
+async function handleApplicationLogs(
+  parsed: LogsAction,
+  env: EnvConfig,
+): Promise<ApplicationLogsResult> {
+  if (parsed.deployment_uuid) {
+    const raw = await fetchDeployment(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      parsed.deployment_uuid,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const rec = isRecord(raw) ? raw : {};
+
+    if (typeof rec.logs !== 'string') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_403_SENSITIVE_REQUIRED',
+        message:
+          'Deployment build logs are not available — the API token lacks the api.sensitive ability required to read deployment logs.',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_403_SENSITIVE_REQUIRED,
+      });
+    }
+
+    const { parsed: parsedOk, entries } = parseBuildLogEntries(rec.logs);
+
+    if (!parsedOk) {
+      const allLines = sliceLogBlob(rec.logs, parsed.lines, parsed.offset);
+      const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
+      const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+
+      return buildReadResponse(
+        {
+          deployment_uuid: parsed.deployment_uuid,
+          status: String(rec.status ?? 'unknown'),
+          logs_lines: cappedLines,
+          logs_truncated: capped.truncated,
+          total_lines: allLines.length,
+          entries_total: allLines.length,
+          entries_hidden: 0,
+          entries_shown: allLines.length,
+        },
+        {
+          format: parsed.format,
+          max_chars: parsed.max_chars,
+        },
+      );
+    }
+
+    const visibleEntries = entries.filter(
+      (e) =>
+        (parsed.include_hidden ? true : !e.hidden) &&
+        (parsed.type === 'all' ? true : e.type === parsed.type),
+    );
+    const entriesHidden = entries.filter((e) => e.hidden).length;
+    const entriesShown = visibleEntries.length;
+    const flattened = visibleEntries.map((e) => e.output).join('\n');
+    const allLines = sliceLogBlob(flattened, parsed.lines, parsed.offset);
+    const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
+    const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+
+    return buildReadResponse(
+      {
+        deployment_uuid: parsed.deployment_uuid,
+        status: String(rec.status ?? 'unknown'),
+        logs_lines: cappedLines,
+        logs_truncated: capped.truncated,
+        total_lines: allLines.length,
+        entries_total: entries.length,
+        entries_hidden: entriesHidden,
+        entries_shown: entriesShown,
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
+
+  const uuid = await resolveAppMutationUuid(parsed, env);
+  const raw = await fetchApplicationLogs(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    parsed.lines,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const logsStr =
+    isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
+  const allLines = sliceLogBlob(logsStr, parsed.lines, 0);
+  const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
+  const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+
+  return buildReadResponse(
+    {
+      uuid,
+      logs_lines: cappedLines,
+      logs_truncated: capped.truncated,
+      total_lines: allLines.length,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
 export async function handleApplicationAction(
   args: ApplicationAction,
   env: EnvConfig,
@@ -622,6 +810,8 @@ export async function handleApplicationAction(
         return await handleApplicationMutation(parsed, env);
       case 'deploy':
         return await handleApplicationDeploy(parsed, env);
+      case 'logs':
+        return await handleApplicationLogs(parsed, env);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
