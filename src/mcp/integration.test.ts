@@ -142,25 +142,28 @@ describe('P2 read slice integration', () => {
     expect(list._formattedText).toContain('web-app');
   });
 
-  it('registerCoolifyTools registers P2 read tools with readOnlyHint true per D-22', () => {
+  it('registerCoolifyTools registers read-only P2 tools with readOnlyHint per D-22/D-14', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
     const readOnlyCount = (source.match(/readOnlyHint:\s*true/g) ?? []).length;
-    expect(readOnlyCount).toBeGreaterThanOrEqual(5);
+    expect(readOnlyCount).toBe(4);
 
-    for (const tool of [
-      'resource',
-      'application',
-      'service',
-      'database',
-      'docs',
-    ]) {
+    for (const tool of ['resource', 'docs']) {
       expect(source).toContain(`registerTool(\n    '${tool}'`);
       expect(source).toMatch(
         new RegExp(`'${tool}'[\\s\\S]*readOnlyHint:\\s*true`),
       );
+    }
+
+    for (const tool of ['application', 'service', 'database']) {
+      expect(source).toContain(`registerTool(\n    '${tool}'`);
+      const toolBlock = source.match(
+        new RegExp(`registerTool\\(\\s*'${tool}'[\\s\\S]*?\\n  \\);`),
+      )?.[0];
+      expect(toolBlock).toBeTruthy();
+      expect(toolBlock).not.toMatch(/readOnlyHint:\s*true/);
     }
   });
 });

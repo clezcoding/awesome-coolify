@@ -304,10 +304,10 @@ export function registerCoolifyTools(
     'database',
     {
       description:
-        'Get database details by UUID — list via resource tool (get-only)',
+        'Database lifecycle actions (get, start, stop, restart) — list via resource tool',
       inputSchema: databaseActionSchema,
       outputSchema: toolOutputSchema,
-      annotations: { openWorldHint: true, readOnlyHint: true },
+      annotations: { openWorldHint: true },
     },
     async (args) => {
       const result = await handleDatabaseAction(args, env);
