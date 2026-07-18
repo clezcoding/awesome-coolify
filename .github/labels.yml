@@ -1,104 +1,295 @@
-# Label definitions, synced via .github/workflows/labels.yml (EndBug/label-sync)
+# GitHub label definitions for awesome-coolify-mcp
+# Synced via .github/workflows/labels.yml (EndBug/label-sync)
 # Format: https://github.com/EndBug/label-sync
+#
+# Do NOT create labels manually in the GitHub UI — edit this file and push to main.
+# See CONTRIBUTING.md § Labels.
 
-# --- Type ---
+# =============================================================================
+# Type — what kind of change or issue is this?
+# Maps to Conventional Commits types used in this repo (commitlint).
+# =============================================================================
 - name: "type: bug"
   color: "d73a4a"
-  description: "Something isn't working as expected"
+  description: "Incorrect behavior, regression, or MCP tool returning wrong/unexpected results"
+
 - name: "type: feature"
   color: "a2eeef"
-  description: "New functionality"
+  description: "New MCP tool action, Coolify API coverage, or user-facing capability"
+
 - name: "type: docs"
   color: "0075ca"
-  description: "Documentation"
+  description: "README, install configurator, GitHub Pages, inline docs tool, or API reference"
+
 - name: "type: chore"
   color: "fef2c0"
-  description: "Maintenance, tooling, dependencies"
+  description: "Maintenance, tooling, CI, repo hygiene, or dependency updates (also used by Dependabot)"
+
 - name: "type: refactor"
   color: "c5def5"
-  description: "Code restructuring without behavior change"
+  description: "Internal restructuring — projections, client layer, tool handlers — without behavior change"
+
 - name: "type: test"
   color: "bfd4f2"
-  description: "Adding or fixing tests"
+  description: "Vitest unit/integration tests, fixtures, or test infrastructure"
+
 - name: "type: perf"
   color: "f9d0c4"
-  description: "Performance improvement"
+  description: "Performance — faster deploy polling, reduced API calls, slimmer MCP payloads"
 
-# --- Priority ---
+- name: "type: security"
+  color: "e11d21"
+  description: "Security vulnerability, token handling, redaction, or emergency-gate bypass risk"
+
+# =============================================================================
+# Priority — how urgently should this be addressed?
+# Feature-request template offers these as dropdown options.
+# =============================================================================
 - name: "priority: critical"
   color: "b60205"
-  description: "Must be fixed immediately"
+  description: "Production outage, data loss risk, or emergency ops gate failure — fix immediately"
+
 - name: "priority: high"
   color: "d93f0b"
-  description: "Important soon"
+  description: "Blocks deploy/diagnose workflows or affects most users — address this sprint"
+
 - name: "priority: medium"
   color: "fbca04"
-  description: "Normal priority"
+  description: "Normal priority — meaningful improvement or bug with a reasonable workaround"
+
 - name: "priority: low"
   color: "0e8a16"
-  description: "Can wait"
+  description: "Nice-to-have, edge case, or polish — can wait for a quiet cycle"
 
-# --- Status ---
+# =============================================================================
+# Status — where is this issue/PR in the workflow?
+# Issue templates auto-apply status: needs-triage on creation.
+# =============================================================================
 - name: "status: needs-triage"
   color: "ededed"
-  description: "Not yet triaged"
+  description: "New issue — not yet reviewed, prioritized, or assigned"
+
+- name: "status: needs-info"
+  color: "d4c5f9"
+  description: "Waiting on reporter — Coolify version, MCP client, repro steps, or logs"
+
+- name: "status: confirmed"
+  color: "1d76db"
+  description: "Reproduced or validated — ready to plan or implement"
+
+- name: "status: in-progress"
+  color: "0052cc"
+  description: "Actively being worked on (branch open or assignee engaged)"
+
 - name: "status: blocked"
   color: "e11d21"
-  description: "Waiting on an external dependency/decision"
-- name: "status: in-progress"
-  color: "1d76db"
-  description: "Currently being worked on"
+  description: "Waiting on upstream — Coolify API change, MCP SDK, or external decision"
+
 - name: "status: needs-review"
   color: "5319e7"
-  description: "Waiting for review"
+  description: "Implementation complete — awaiting code review before merge"
 
-# --- GSD phase (Discuss → Plan → Execute → Verify → Ship) ---
+- name: "status: ready-to-merge"
+  color: "0e8a16"
+  description: "Approved and CI green — merge when convenient"
+
+# =============================================================================
+# GSD phase — project planning lifecycle (Discuss → Plan → Execute → Verify → Ship)
+# Used when work is tracked via GSD; planning artifacts stay local-only.
+# =============================================================================
 - name: "gsd: discuss"
   color: "cfe2f3"
-  description: "Discuss phase"
+  description: "GSD Discuss — clarifying scope, assumptions, and gray areas"
+
 - name: "gsd: plan"
   color: "9fc5e8"
-  description: "Plan phase"
+  description: "GSD Plan — writing PLAN.md, task breakdown, must-haves"
+
 - name: "gsd: execute"
   color: "6fa8dc"
-  description: "Execute phase"
+  description: "GSD Execute — implementation in progress"
+
 - name: "gsd: verify"
   color: "3d85c6"
-  description: "Verify phase"
+  description: "GSD Verify — goal-backward verification, integration checks"
+
 - name: "gsd: ship"
   color: "0b5394"
-  description: "Ship phase"
+  description: "GSD Ship — release, changelog, npm publish, docs update"
 
-# --- Size (for PRs) ---
+# =============================================================================
+# Scope — which part of awesome-coolify-mcp does this touch?
+# Aligns with MCP tool domains (10 tools, 32 actions) and repo areas.
+# =============================================================================
+- name: "scope: mcp-core"
+  color: "6b16ed"
+  description: "MCP server bootstrap, tool registration, action routing, shared schemas"
+
+- name: "scope: coolify-api"
+  color: "8250df"
+  description: "Coolify REST client (ofetch), auth, pagination, error mapping, OpenAPI alignment"
+
+- name: "scope: system"
+  color: "b392f0"
+  description: "system tool — connectivity check, version, health ping"
+
+- name: "scope: meta"
+  color: "a371f7"
+  description: "meta tool — fleet overview, instance metadata, capability discovery"
+
+- name: "scope: resource"
+  color: "8957e5"
+  description: "resource tool — list/get Coolify resources across projects"
+
+- name: "scope: diagnose"
+  color: "6639ba"
+  description: "diagnose tool — log tailing, issue classification, remediation hints"
+
+- name: "scope: application"
+  color: "512a97"
+  description: "application tool — app CRUD, env vars, deploy triggers, lifecycle"
+
+- name: "scope: deployment"
+  color: "3c1e70"
+  description: "deployment tool — deploy status, rollback, build logs"
+
+- name: "scope: service"
+  color: "6b16ed"
+  description: "service tool — service CRUD, start/stop/restart"
+
+- name: "scope: database"
+  color: "8250df"
+  description: "database tool — database service management via Coolify API"
+
+- name: "scope: server"
+  color: "a371f7"
+  description: "server tool — Coolify server/node management"
+
+- name: "scope: project"
+  color: "8957e5"
+  description: "project tool — project CRUD and team scoping"
+
+- name: "scope: environment"
+  color: "6639ba"
+  description: "environment tool — environment variables and secrets (redacted)"
+
+- name: "scope: private-key"
+  color: "512a97"
+  description: "private_key tool — SSH key management (high sensitivity)"
+
+- name: "scope: emergency"
+  color: "b60205"
+  description: "emergency tool — gated destructive ops (restart, force deploy, delete)"
+
+- name: "scope: docs"
+  color: "0075ca"
+  description: "docs tool — embedded Coolify/MCP documentation for agents"
+
+- name: "scope: docs-site"
+  color: "0366d6"
+  description: "GitHub Pages install configurator, hero assets, clezcoding.github.io"
+
+- name: "scope: npm"
+  color: "cb3837"
+  description: "npm package publishing, bin entry, prepublishOnly, package.json"
+
+- name: "scope: ci"
+  color: "2088ff"
+  description: "GitHub Actions — CI, release, publish, label-sync workflows"
+
+- name: "scope: release"
+  color: "f9826c"
+  description: "Changesets, semver bumps, CHANGELOG, GitHub Releases"
+
+# =============================================================================
+# Size — approximate PR diff size (for review planning)
+# =============================================================================
 - name: "size: XS"
   color: "c2e0c6"
-  description: "< 10 lines"
+  description: "< 10 lines changed — trivial fix, typo, single-line config"
+
 - name: "size: S"
   color: "bfe5bf"
-  description: "< 50 lines"
+  description: "< 50 lines — small bugfix or focused tool tweak"
+
 - name: "size: M"
   color: "fef2c0"
-  description: "< 200 lines"
+  description: "< 200 lines — typical feature or test addition"
+
 - name: "size: L"
   color: "f9d0c4"
-  description: "< 500 lines"
+  description: "< 500 lines — multi-file change, new tool domain, or large refactor"
+
 - name: "size: XL"
   color: "f4a6a6"
-  description: ">= 500 lines, consider splitting"
+  description: ">= 500 lines — consider splitting into stacked PRs"
 
-# --- Other ---
-- name: "good first issue"
-  color: "7057ff"
-  description: "Good entry point for new contributors"
-- name: "help wanted"
-  color: "008672"
-  description: "External help welcome"
-- name: "wontfix"
-  color: "ffffff"
-  description: "Will not be worked on"
-- name: "duplicate"
-  color: "cfd3d7"
-  description: "Already reported elsewhere"
+# =============================================================================
+# Dependabot & dependency management
+# Required by .github/dependabot.yml (npm + github-actions both use these).
+# SemVer labels (major/minor/patch) are auto-applied by Dependabot when present.
+# Ecosystem labels (npm, github-actions) are defaults when no custom labels set;
+# kept here for manual triage and future dependabot.yml flexibility.
+# Ref: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/customizing-dependency-updates
+# =============================================================================
 - name: "dependencies"
   color: "0366d6"
-  description: "Dependency updates (used by Dependabot)"
+  description: "Dependency version or security update (Dependabot PR — required label in dependabot.yml)"
+
+- name: "npm"
+  color: "cb3837"
+  description: "npm/JavaScript package update — @modelcontextprotocol/server, zod, vitest, tsup, etc."
+
+- name: "github-actions"
+  color: "2088ff"
+  description: "GitHub Actions workflow action version update — checkout, label-sync, changesets"
+
+- name: "major"
+  color: "b60205"
+  description: "SemVer major version bump — breaking API change in a dependency (Dependabot auto-label)"
+
+- name: "minor"
+  color: "fbca04"
+  description: "SemVer minor version bump — new features, backward compatible (Dependabot auto-label)"
+
+- name: "patch"
+  color: "0e8a16"
+  description: "SemVer patch version bump — bugfixes only (Dependabot auto-label)"
+
+# =============================================================================
+# Release & breaking changes
+# =============================================================================
+- name: "breaking-change"
+  color: "d93f0b"
+  description: "Breaking change to MCP tool schema, env vars, or Coolify API contract — needs major bump"
+
+- name: "needs-changeset"
+  color: "f9d0c4"
+  description: "PR is release-relevant but missing a Changeset file — run npx changeset before merge"
+
+# =============================================================================
+# Community & triage
+# =============================================================================
+- name: "good first issue"
+  color: "7057ff"
+  description: "Small, well-scoped task — ideal for first-time contributors (docs, tests, simple fixes)"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Maintainer bandwidth limited — community contribution welcome"
+
+- name: "question"
+  color: "d876e3"
+  description: "Question or support request — prefer GitHub Discussions; may convert to issue"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "Duplicate of an existing issue or discussion — link the original"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "Valid report but out of scope, by design, or not planned for this MCP server"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "Not reproducible, spam, or missing required information after follow-up"
