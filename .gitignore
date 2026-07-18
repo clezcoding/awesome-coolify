@@ -11,10 +11,12 @@ dist/
 # Environment & secrets
 .env
 .env.*
+!.env.example
 .coolify-mcp/
 
 # Local IDE / MCP / agents / rules (tokens, personal settings, symlinks)
 .cursor/
+.claude/
 
 # Local agent tooling (installed skills cache)
 .agents/
