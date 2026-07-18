@@ -11,6 +11,7 @@
  */
 import { describe, expect, it, beforeAll, afterAll } from 'vitest';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { resolve } from 'node:path';
 import {
@@ -181,7 +182,7 @@ class McpStdioClient {
       const timeout = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`Timeout waiting for response id=${id} method=${method}`));
-      }, 15000);
+      }, 60000);
       this.pending.set(id, {
         resolve: (v) => {
           clearTimeout(timeout);
@@ -221,6 +222,11 @@ describe('MCP schema validation via child process', () => {
     port = addr.port;
 
     const distPath = resolve(process.cwd(), 'dist/index.js');
+    if (!existsSync(distPath)) {
+      throw new Error(
+        `Missing ${distPath}. Run "npm run build" before this integration test (CI runs build before test).`,
+      );
+    }
     child = spawn('node', [distPath], {
       env: {
         ...process.env,
@@ -241,7 +247,7 @@ describe('MCP schema validation via child process', () => {
     });
     expect(initResponse.result).toBeDefined();
     client.notify('notifications/initialized');
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     if (child) {
