@@ -10,9 +10,9 @@ updates:
       - "dependencies"
       - "type: chore"
     ignore:
-      # Hold TS 7 until explicit migration (skipped TS 6 entirely)
+      # Hold TS 6/7 until explicit migration — stay on TS 5.x
       - dependency-name: "typescript"
-        versions: ["7.x"]
+        versions: ["6.x", "7.x"]
       # @types/node major must match engines.node (>=22.14) — not future Node majors
       - dependency-name: "@types/node"
         versions: [">=23"]
