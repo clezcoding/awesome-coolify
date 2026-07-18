@@ -7,7 +7,7 @@ name: Publish to npm
 #
 # One-time setup on npmjs.com before this works:
 #   Package settings -> Trusted Publisher -> GitHub Actions
-#   Repo: clezcoding/awesome-coolify-mcp, Workflow: publish.yml
+#   Repo: clezcoding/awesome-coolify, Workflow: publish.yml
 on:
   release:
     types: [published]

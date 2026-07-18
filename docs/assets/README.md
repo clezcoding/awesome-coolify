@@ -32,15 +32,15 @@ Generated 2026-07-16 with **Higgsfield Nano Banana Pro**, using `logo.png` + `he
 README images:
 
 ```
-https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/<file>
+https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/<file>
 ```
 
 GitHub Pages serves install assets from `docs/assets/` on the same origin.
 
 ### GitHub Pages
 
-- Landing: `https://clezcoding.github.io/awesome-coolify-mcp/`
-- Configurator: `https://clezcoding.github.io/awesome-coolify-mcp/install.html`
+- Landing: `https://clezcoding.github.io/awesome-coolify/`
+- Configurator: `https://clezcoding.github.io/awesome-coolify/install.html`
 
 ## Mascot variants (Round 2)
 

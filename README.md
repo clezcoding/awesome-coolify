@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/hero-banner.png" alt="awesome-coolify-mcp — a friendly mascot next to a glowing dashboard showing a server fleet, a terminal, a deploy arrow, and a safety shield" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/hero-banner.png" alt="awesome-coolify-mcp — a friendly mascot next to a glowing dashboard showing a server fleet, a terminal, a deploy arrow, and a safety shield" width="100%" />
 </p>
 
 <h1 align="center">awesome-coolify-mcp</h1>
@@ -17,7 +17,7 @@
   ·
   <a href="https://modelcontextprotocol.io">Model Context Protocol</a>
   ·
-  <a href="https://clezcoding.github.io/awesome-coolify-mcp/install.html">Install configurator ↗</a>
+  <a href="https://clezcoding.github.io/awesome-coolify/install.html">Install configurator ↗</a>
 </p>
 
 <p align="center">
@@ -57,7 +57,7 @@
   </a>
 </p>
 
-<p align="center"><sub>One click installs with placeholder credentials — see <a href="#-install">Install</a> for the full walkthrough, or use the <a href="https://clezcoding.github.io/awesome-coolify-mcp/install.html">browser configurator</a> to fill in real values safely.</sub></p>
+<p align="center"><sub>One click installs with placeholder credentials — see <a href="#-install">Install</a> for the full walkthrough, or use the <a href="https://clezcoding.github.io/awesome-coolify/install.html">browser configurator</a> to fill in real values safely.</sub></p>
 
 ---
 
@@ -121,7 +121,7 @@ Today, the focus is squarely on **day-2 operations**: verifying connectivity, di
 ## ✨ Features
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/features.png" alt="Feature highlights: action-based tools, safety gates, diagnose, deploy and logs" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/features.png" alt="Feature highlights: action-based tools, safety gates, diagnose, deploy and logs" width="100%" />
 </p>
 
 - **Action-based tools across 10 domains** — call `application({ action: "deploy", uuid })` instead of hunting through dozens of tool names. Every domain (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`, `docs`, `meta`) follows the same shape.
@@ -130,14 +130,14 @@ Today, the focus is squarely on **day-2 operations**: verifying connectivity, di
 - **Service & database lifecycle** — start/stop/restart/get, plus service redeploy with an optional fresh image pull.
 - **Safety by default, not by convention** — emergency mutations require an explicit `confirm: true`; sensitive keys (`password`, `token`, `secret`, `private`, `env`) render as `***` unless you opt in with `reveal: true`.
 - **Agent-friendly failure modes** — every error is a parseable envelope with a `code`, a human `message`, and `recoveryHints`; transient network/429/5xx failures retry automatically with exponential backoff.
-- **Broad client coverage out of the box** — Cursor, VS Code / GitHub Copilot, Claude Desktop, Claude Code, Windsurf, and 15+ more via the [install configurator](https://clezcoding.github.io/awesome-coolify-mcp/install.html).
+- **Broad client coverage out of the box** — Cursor, VS Code / GitHub Copilot, Claude Desktop, Claude Code, Windsurf, and 15+ more via the [install configurator](https://clezcoding.github.io/awesome-coolify/install.html).
 
 ---
 
 ## 🏗️ How it works
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/architecture.png" alt="Architecture: MCP clients talk to awesome-coolify-mcp's domain tools, which talk to the Coolify REST API 4.1.x" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/architecture.png" alt="Architecture: MCP clients talk to awesome-coolify-mcp's domain tools, which talk to the Coolify REST API 4.1.x" width="100%" />
 </p>
 
 ```text
@@ -219,7 +219,7 @@ Clicking the button opens your editor, shows the server it's about to add, and l
 
 ### 2. Install configurator (GitHub Pages)
 
-Use the **[browser configurator](https://clezcoding.github.io/awesome-coolify-mcp/install.html)** to type in your real `COOLIFY_URL` / `COOLIFY_TOKEN` and generate a ready-to-paste snippet for your exact client — JSON, TOML, or YAML depending on what that client expects.
+Use the **[browser configurator](https://clezcoding.github.io/awesome-coolify/install.html)** to type in your real `COOLIFY_URL` / `COOLIFY_TOKEN` and generate a ready-to-paste snippet for your exact client — JSON, TOML, or YAML depending on what that client expects.
 
 Everything runs **client-side in your browser**. Your token is never sent to a backend, logged, or stored anywhere but the config file you paste it into.
 
@@ -258,7 +258,7 @@ A ready-made copy-paste template also lives at [`docs/mcp.example.json`](docs/mc
 | **Claude Code** | `~/.claude.json` or `.mcp.json` | stdio via `npx -y awesome-coolify-mcp` |
 | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | Same `npx` + `env` pattern as Cursor |
 
-The **[install configurator](https://clezcoding.github.io/awesome-coolify-mcp/install.html)** covers a much wider matrix — OpenCode, Codex CLI, Gemini CLI, Cline, Kilo Code, Goose, LM Studio, Hermes Agent, Kimi Code, Google Antigravity, OpenClaw, and more — with the correct config shape for each.
+The **[install configurator](https://clezcoding.github.io/awesome-coolify/install.html)** covers a much wider matrix — OpenCode, Codex CLI, Gemini CLI, Cline, Kilo Code, Goose, LM Studio, Hermes Agent, Kimi Code, Google Antigravity, OpenClaw, and more — with the correct config shape for each.
 
 > [!NOTE]
 > Claude Desktop currently ships as manual JSON / configurator output only — a dedicated `.mcpb` bundle is on the roadmap (see [Coming soon](#-coming-soon)).
@@ -476,7 +476,7 @@ Service/database log tailing is temporarily on hold — Coolify 4.1.x's REST API
 ## 🔮 Coming soon
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify-mcp@main/docs/assets/coming-soon.png" alt="The mascot sketching a roadmap of upcoming features: databases, scheduled tasks, private keys, teams, and cloud provisioning" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/coming-soon.png" alt="The mascot sketching a roadmap of upcoming features: databases, scheduled tasks, private keys, teams, and cloud provisioning" width="100%" />
 </p>
 
 The next milestone focuses on **creation**, not just operation — turning awesome-coolify-mcp into a tool that can stand up new infrastructure from scratch, not only manage what already exists. Planned areas, roughly in order of priority:
@@ -499,8 +499,8 @@ Have a use case that isn't listed? Open an issue — the roadmap is shaped by wh
 ## 🛠️ Local development
 
 ```bash
-git clone https://github.com/clezcoding/awesome-coolify-mcp.git
-cd awesome-coolify-mcp
+git clone https://github.com/clezcoding/awesome-coolify.git
+cd awesome-coolify
 npm install
 npm run build    # tsup → dist/
 npm test         # vitest
@@ -517,12 +517,12 @@ The maintainer publish flow (`build` → `pack --dry-run` → `publish`) is docu
 
 | Resource | URL |
 |----------|-----|
-| Install configurator | [clezcoding.github.io/awesome-coolify-mcp/install.html](https://clezcoding.github.io/awesome-coolify-mcp/install.html) |
-| Install landing page | [clezcoding.github.io/awesome-coolify-mcp/](https://clezcoding.github.io/awesome-coolify-mcp/) |
+| Install configurator | [clezcoding.github.io/awesome-coolify/install.html](https://clezcoding.github.io/awesome-coolify/install.html) |
+| Install landing page | [clezcoding.github.io/awesome-coolify/](https://clezcoding.github.io/awesome-coolify/) |
 | Example MCP JSON | [docs/mcp.example.json](docs/mcp.example.json) |
 | Brand assets | [docs/assets/](docs/assets/) |
 | Coolify | [coolify.io](https://coolify.io) |
 | MCP specification | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
-| Issues & feature requests | [GitHub Issues](https://github.com/clezcoding/awesome-coolify-mcp/issues) |
+| Issues & feature requests | [GitHub Issues](https://github.com/clezcoding/awesome-coolify/issues) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | License | [MIT](LICENSE) |
