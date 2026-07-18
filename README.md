@@ -23,7 +23,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/awesome-coolify-mcp"><img src="https://img.shields.io/npm/v/awesome-coolify-mcp.svg?style=flat-square&color=6b16ed" alt="npm version" /></a>
   <a href="https://www.npmjs.com/package/awesome-coolify-mcp"><img src="https://img.shields.io/npm/dm/awesome-coolify-mcp.svg?style=flat-square&color=6b16ed" alt="npm downloads" /></a>
-  <img src="https://img.shields.io/badge/Node.js-%3E%3D20-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 20" />
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D22.14-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 22.14" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
   <img src="https://img.shields.io/badge/MCP-10%20tools%20·%2032%20actions-181818?style=flat-square" alt="10 domain tools, 32 actions" />
@@ -158,7 +158,7 @@ The server itself is intentionally boring: it holds no long-lived state and neve
 
 **Prerequisites**
 
-- Node.js **20+**
+- Node.js **22.14+** (CI runs on Node 24)
 - A self-hosted Coolify instance on **4.1.x**
 - An API token from Coolify → **Keys & Tokens** ([authorization docs](https://coolify.io/docs/api-reference/authorization))
 
