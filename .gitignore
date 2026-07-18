@@ -1,5 +1,5 @@
 # OS
-.DS_Store
+**/.DS_Store
 
 # Dependencies
 node_modules/
@@ -7,16 +7,32 @@ docs/readme/node_modules/
 
 # Build
 dist/
+*.tsbuildinfo
+.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# npm artifacts
+.npm/
+*.tgz
 
 # Environment & secrets
 .env
 .env.*
 !.env.example
+.env.local
+.env.*.local
 .coolify-mcp/
 
 # Local IDE / MCP / agents / rules (tokens, personal settings, symlinks)
 .cursor/
 .claude/
+.idea/
+.vscode/
 
 # Local agent tooling (installed skills cache)
 .agents/
