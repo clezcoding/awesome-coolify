@@ -261,6 +261,143 @@ export async function triggerServerValidate(
   await client(`/servers/${uuid}/validate`, { method: 'GET' });
 }
 
+export async function fetchPrivateKeys(
+  url: string,
+  token: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client('/security/keys', { method: 'GET' });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchPrivateKey(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/security/keys/${uuid}`, { method: 'GET' });
+}
+
+export async function createPrivateKey(
+  url: string,
+  token: string,
+  payload: { name: string; private_key: string; description?: string },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/security/keys', { method: 'POST', body: payload });
+}
+
+export async function updatePrivateKey(
+  url: string,
+  token: string,
+  uuid: string,
+  payload: { name?: string; description?: string; private_key?: string },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/security/keys/${uuid}`, { method: 'PATCH', body: payload });
+}
+
+export async function deletePrivateKey(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/security/keys/${uuid}`, { method: 'DELETE' });
+}
+
+export interface CreateServerPayload {
+  name: string;
+  ip: string;
+  port: number;
+  user: string;
+  private_key_uuid: string;
+  is_build_server?: boolean;
+  instant_validate?: boolean;
+  proxy_type?: string;
+  description?: string;
+  concurrent_builds?: number;
+  dynamic_timeout?: number;
+}
+
+export async function createServer(
+  url: string,
+  token: string,
+  payload: CreateServerPayload,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/servers', { method: 'POST', body: payload });
+}
+
+export async function updateServer(
+  url: string,
+  token: string,
+  uuid: string,
+  payload: Partial<CreateServerPayload>,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/servers/${uuid}`, { method: 'PATCH', body: payload });
+}
+
+export async function deleteServer(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+  delete_volumes = false,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/servers/${uuid}`, {
+    method: 'DELETE',
+    query: { delete_volumes },
+  });
+}
+
+export async function validateServer(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/servers/${uuid}/validate`, { method: 'GET' });
+}
+
+/**
+ * Polls a server fetcher until settings.is_reachable is true or timeout elapses.
+ * Default timeout is 30s per Phase 8 research (Open Question 1).
+ * Returns the last-seen server on timeout — caller decides soft-success vs pending.
+ */
+export async function pollServerUntilReachable(
+  fetcher: () => Promise<Record<string, unknown>>,
+  timeoutMs = 30000,
+  intervalMs = 2000,
+): Promise<Record<string, unknown>> {
+  const start = Date.now();
+  let lastServer: Record<string, unknown> = {};
+
+  while (Date.now() - start < timeoutMs) {
+    lastServer = await fetcher();
+    const reachable = (
+      lastServer.settings as { is_reachable?: boolean } | undefined
+    )?.is_reachable;
+    if (reachable === true) {
+      return lastServer;
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+
+  return lastServer;
+}
+
 export async function triggerAppStart(
   url: string,
   token: string,

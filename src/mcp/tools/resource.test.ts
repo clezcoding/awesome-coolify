@@ -104,6 +104,12 @@ describe('resourceActionSchema', () => {
         type: 'application',
       }).success,
     ).toBe(true);
+    expect(
+      resourceActionSchema.safeParse({
+        action: 'list',
+        type: 'server',
+      }).success,
+    ).toBe(true);
   });
 
   it('accepts find action with query and explicit fields per D-17', () => {
@@ -216,6 +222,67 @@ describe('handleResourceAction list', () => {
 
     expect(result.data[0].project_name).toBe('MCP UAT Test');
     expect(result.data[0].project_name).not.toBe('default');
+  });
+});
+
+describe('resource list type=server', () => {
+  beforeEach(() => {
+    vi.mocked(fetchResources).mockReset().mockResolvedValue([]);
+    vi.mocked(fetchServers).mockReset().mockResolvedValue(mockServers);
+    vi.mocked(fetchProjects).mockReset().mockResolvedValue([]);
+    vi.mocked(fetchProject).mockReset().mockResolvedValue({});
+  });
+
+  it('returns server summaries from fetchServers per D-10', async () => {
+    const result = await handleResourceAction(
+      { action: 'list', type: 'server' },
+      testEnv,
+    );
+
+    expect(isResourceErrorResult(result)).toBe(false);
+    if (isResourceErrorResult(result)) return;
+
+    expect(fetchServers).toHaveBeenCalled();
+    expect(fetchResources).not.toHaveBeenCalled();
+    expect(result.data).toHaveLength(2);
+    expect(result.data.every((r) => r.type === 'server')).toBe(true);
+    expect(result.data[0]).toMatchObject({
+      uuid: 'srv-uuid-1',
+      name: 'production-server',
+      type: 'server',
+      status: 'running',
+    });
+    expect(result.data[1]).toMatchObject({
+      uuid: 'srv-uuid-2',
+      name: 'staging-server',
+      type: 'server',
+      status: 'unreachable',
+    });
+    expect(result._meta.total).toBe(2);
+  });
+
+  it('paginates server list with per_page and page', async () => {
+    const manyServers = Array.from({ length: 25 }, (_, i) => ({
+      uuid: `srv-${i}`,
+      name: `server-${i}`,
+      ip: `10.0.0.${i}`,
+      settings: { is_reachable: i % 2 === 0 },
+      updated_at: '2026-07-01T00:00:00Z',
+    }));
+    vi.mocked(fetchServers).mockResolvedValue(manyServers);
+
+    const result = await handleResourceAction(
+      { action: 'list', type: 'server', per_page: 10, page: 1 },
+      testEnv,
+    );
+
+    expect(isResourceErrorResult(result)).toBe(false);
+    if (isResourceErrorResult(result)) return;
+
+    expect(result.data).toHaveLength(10);
+    expect(result._meta.total).toBe(25);
+    expect(result._meta.per_page).toBe(10);
+    expect(result._meta.page).toBe(1);
   });
 });
 

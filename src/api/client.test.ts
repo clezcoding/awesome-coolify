@@ -21,6 +21,7 @@ import {
   triggerDatabaseStart,
   triggerDatabaseStop,
   triggerDeploy,
+  pollServerUntilReachable,
 } from './client.js';
 import { CoolifyApiError } from '../utils/errors.js';
 
@@ -627,6 +628,58 @@ describe('cancelDeployment', () => {
         httpStatus: 400,
       },
     });
+  });
+});
+
+describe('pollServerUntilReachable', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('resolves immediately when first fetcher returns is_reachable true', async () => {
+    const server = { settings: { is_reachable: true }, uuid: 'srv-1' };
+    const fetcher = vi.fn().mockResolvedValue(server);
+
+    const promise = pollServerUntilReachable(fetcher);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(server);
+  });
+
+  it('returns last-seen server with is_reachable false after exhausting timeout', async () => {
+    const server = { settings: { is_reachable: false }, uuid: 'srv-pending' };
+    const fetcher = vi.fn().mockResolvedValue(server);
+
+    const promise = pollServerUntilReachable(fetcher, 30000, 2000);
+    await vi.advanceTimersByTimeAsync(30000);
+    const result = await promise;
+
+    expect(fetcher).toHaveBeenCalledTimes(15);
+    expect(result).toEqual(server);
+    expect(
+      (result.settings as { is_reachable: boolean }).is_reachable,
+    ).toBe(false);
+  });
+
+  it('returns last-seen server with is_reachable undefined when fetcher never sets the flag', async () => {
+    const server = { settings: {}, uuid: 'srv-unknown' };
+    const fetcher = vi.fn().mockResolvedValue(server);
+
+    const promise = pollServerUntilReachable(fetcher, 30000, 2000);
+    await vi.advanceTimersByTimeAsync(30000);
+    const result = await promise;
+
+    expect(fetcher).toHaveBeenCalledTimes(15);
+    expect(result).toEqual(server);
+    expect(
+      (result.settings as { is_reachable?: boolean }).is_reachable,
+    ).toBeUndefined();
   });
 });
 

@@ -131,6 +131,7 @@ export interface ServerDiagnoseView {
 import type { ProjectEnvironmentLookup } from './project-lookup.js';
 
 const SECRET_KEY_PATTERN = /password|token|secret|private|env/i;
+const PEM_FIELD_PATTERN = /private_key|pem/i;
 const SENSITIVE_URL_KEY_PATTERN = /(?:^|_)(?:db_url|connection_string|dsn)$/i;
 const CREDENTIAL_URI_PATTERN =
   /^(?:postgres(?:ql)?|mysql|mariadb|redis|mongodb):\/\/[^:\s/]+:[^@\s/]+@/i;
@@ -245,7 +246,23 @@ export function projectDatabaseSummary(
 export function sanitizeFullProjection(raw: unknown, reveal = false): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const clone = JSON.parse(JSON.stringify(raw)) as Record<string, unknown>;
-  if (reveal) return clone;
+
+  const maskPemFields = (obj: Record<string, unknown>): void => {
+    for (const key of Object.keys(obj)) {
+      const value = obj[key];
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        maskPemFields(value as Record<string, unknown>);
+      } else if (typeof value === 'string' && PEM_FIELD_PATTERN.test(key)) {
+        obj[key] = '***';
+      }
+    }
+  };
+
+  if (reveal) {
+    // D-02: PEM/private_key fields never reveal — stricter than other secrets.
+    maskPemFields(clone);
+    return clone;
+  }
 
   const maskSecrets = (obj: Record<string, unknown>): void => {
     for (const key of Object.keys(obj)) {

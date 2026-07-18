@@ -21,6 +21,12 @@ describe('mapApiError', () => {
     expect(mapApiError(null, 404).code).toBe('COOLIFY_404');
   });
 
+  it('maps HTTP 409 to COOLIFY_409', () => {
+    const envelope = mapApiError(null, 409);
+    expect(envelope.code).toBe('COOLIFY_409');
+    expect(envelope.recoveryHints).toEqual(RECOVERY_HINTS.COOLIFY_409);
+  });
+
   it('maps HTTP 422 to COOLIFY_422', () => {
     expect(mapApiError(null, 422).code).toBe('COOLIFY_422');
   });
@@ -94,6 +100,21 @@ describe('COOLIFY_403_SENSITIVE_REQUIRED', () => {
     expect(result.structuredContent.error.recoveryHints[0]).toContain(
       'api.sensitive',
     );
+  });
+});
+
+describe('COOLIFY_SSH_UNREACHABLE', () => {
+  it('is a valid CoolifyErrorCode literal', () => {
+    const code: CoolifyErrorCode = 'COOLIFY_SSH_UNREACHABLE';
+    expect(code).toBe('COOLIFY_SSH_UNREACHABLE');
+  });
+
+  it('RECOVERY_HINTS lists SSH validation troubleshooting steps', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_SSH_UNREACHABLE;
+    expect(hints).toHaveLength(3);
+    expect(hints[0]).toMatch(/IP, port/i);
+    expect(hints[1]).toMatch(/private key UUID/i);
+    expect(hints[2]).toMatch(/firewall/i);
   });
 });
 

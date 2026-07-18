@@ -10,7 +10,7 @@ import { sharedReadParamsSchema } from './shared-read-params.js';
 export const resourceActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('list'),
-    type: z.enum(['application', 'service', 'database']).optional(),
+    type: z.enum(['application', 'service', 'database', 'server']).optional(),
     ...sharedReadParamsSchema,
   }),
   z.object({
@@ -180,6 +180,31 @@ export async function handleResourceAction(
   try {
     switch (parsed.action) {
       case 'list': {
+        if (parsed.type === 'server') {
+          const rawServers = await fetchServers(
+            env.COOLIFY_URL,
+            env.COOLIFY_TOKEN,
+            env.COOLIFY_VERIFY_SSL,
+          );
+          const projected = rawServers
+            .filter(isRecord)
+            .map(projectServerSummary);
+
+          const paginated = paginateArray(
+            projected,
+            parsed.page,
+            parsed.per_page,
+          );
+
+          return buildReadResponse(paginated, {
+            format: parsed.format,
+            max_chars: parsed.max_chars,
+            page: parsed.page,
+            per_page: parsed.per_page,
+            total: projected.length,
+          });
+        }
+
         const rawResources = await fetchResources(
           env.COOLIFY_URL,
           env.COOLIFY_TOKEN,

@@ -35,6 +35,16 @@ import {
   databaseActionSchema,
 } from './tools/database.js';
 import {
+  handlePrivateKeyAction,
+  isPrivateKeyErrorResult,
+  privateKeyActionSchema,
+} from './tools/private_key.js';
+import {
+  handleServerAction,
+  isServerErrorResult,
+  serverActionSchema,
+} from './tools/server.js';
+import {
   handleDocsAction,
   docsActionSchema,
 } from './tools/docs.js';
@@ -356,6 +366,68 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleDatabaseAction(args, env);
       if (isDatabaseErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'private_key',
+    {
+      description:
+        'Private key CRUD (list, get, create, update, delete, delete_preview) for SSH keys registered in Coolify. PEM material is never returned by any action — full projection masks the private_key field even with reveal:true (D-02). list accepts reveal on the schema but rejects reveal:true at the handler with COOLIFY_422 (D-11) — PEM material is never returned. delete requires confirm:true (D-14); deleting a key still referenced by servers returns COOLIFY_409 with dependent_server_uuids (D-15). delete_preview lists dependents without deleting.',
+      inputSchema: privateKeyActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handlePrivateKeyAction(args, env);
+      if (isPrivateKeyErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'server',
+    {
+      description:
+        'Server CRUD + validate (get, create, update, delete, delete_preview, validate). Servers are listed via resource tool with type=server (D-10). create auto-validates SSH reachability with a 30s poll unless validate:false (D-05/D-06); unreachable hosts return ok:true with validation.reachable:false and a COOLIFY_SSH_UNREACHABLE recovery hint — no auto-rollback (D-07). validate uses the same wait/timeout model (D-08). delete requires confirm:true (D-14) and defaults delete_volumes:false (D-16). delete_preview lists child resources as a warning, not a block (D-16).',
+      inputSchema: serverActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleServerAction(args, env);
+      if (isServerErrorResult(result)) {
         return {
           ...result,
           structuredContent: {

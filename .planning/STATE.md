@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-current_phase: 0
-status: Awaiting next milestone
-last_updated: "2026-07-16T19:39:15.550Z"
-last_activity: 2026-07-16
-last_activity_desc: Milestone v1.0 completed and archived
+milestone: v2.0
+milestone_name: Creation & CRUD
+current_phase: 08
+current_phase_name: keys-server-crud
+status: executing
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-07-17T00:00:23.068Z"
+last_activity: 2026-07-17
+last_activity_desc: Phase 08 execution started
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 37
-  completed_plans: 37
-  percent: 100
-stopped_at: Phase 07 UAT + verification passed
-current_phase_name: distribution-docs
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 6
+  completed_plans: 5
+  percent: 0
 ---
 
 # Project State
@@ -24,20 +24,20 @@ current_phase_name: distribution-docs
 See: .planning/PROJECT.md (updated 2026-07-16)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose — via one MCP server.
-**Current focus:** Planning next milestone (`/gsd-new-milestone`)
+**Current focus:** Phase 08 — keys-server-crud
 
 ## Current Position
 
-Phase: Milestone v1.0 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-16 — Milestone v1.0 completed and archived
+Phase: 08 (keys-server-crud) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 08
+Last activity: 2026-07-17 — Phase 08 execution started
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 58
+- Total plans completed: 86
 - Average duration: —
 - Total execution time: —
 
@@ -70,6 +70,11 @@ Last activity: 2026-07-16 — Milestone v1.0 completed and archived
 | Phase 06-bulk-emergency-safety P03 | 8min | 2 tasks | 3 files |
 | 06 | 3 | - | - |
 | 07 | 3 | - | - |
+| Phase 08 P01 | 8 | 3 tasks | 8 files |
+| Phase 08 P02 | 6 | 2 tasks | 2 files |
+| Phase 08 P03 | 5 | 2 tasks | 2 files |
+| Phase 08 P04 | 4 | 1 tasks | 2 files |
+| 08 | 5 | - | - |
 
 ## Accumulated Context
 
@@ -155,6 +160,11 @@ Last activity: 2026-07-16 — Milestone v1.0 completed and archived
 - [Phase 07-distribution-docs]: Service stop defaults docker_cleanup=false — Coolify 4.1.x compose one-click no-op stop fix; optional schema param for destructive cleanup (07-05)
 - [Phase 07-distribution-docs]: mapApiError/toStructuredError extract ofetch response._data.message — COOLIFY_422 shows Coolify human text not generic HTTP string (07-05)
 - [Phase 07-distribution-docs]: UAT gap 29 closed — uat-uptime-a stop→exited @25s, start→running:healthy @45s; 29/32 passed 0 issues (07-05)
+- [Phase 08-keys-server-crud]: Wave 0 RED scaffolds — private_key.test.ts (14 it) + server.test.ts (16 it) fail at handler import; 08-02/08-03 flip GREEN without test rewrites (08-00)
+- [Phase 08-keys-server-crud]: Phase 8 shared infrastructure in 08-01 — client CRUD, COOLIFY_409/SSH_UNREACHABLE, PEM hard-mask, resource.list server branch; 08-02/08-03 import without file conflicts (08-01)
+- [Phase 08-keys-server-crud]: private_key handler shipped in 08-02 — PEM stripped all paths, reveal on list COOLIFY_422, delete_preview would_delete=false when dependents exist; ready for 08-04 registration (08-02)
+- [Phase 08-keys-server-crud]: server handler shipped in 08-03 — auto-validate poll, soft-unreachable no rollback, private_key_uuid lookup on get, delete_volumes default false; Wave 2 complete, ready for 08-04 registration (08-03)
+- [Phase 08-keys-server-crud]: private_key + server registered in 08-04 — 12 MCP tools total, openWorldHint only, toolOutputSchema envelope; Phase 8 ready for verify-work (08-04)
 
 ### Pending Todos
 
@@ -183,6 +193,10 @@ Items acknowledged and deferred at milestone close on 2026-07-16:
 | debug | service-stop-start-422 | resolved (07-05) |
 
 ## Session Continuity
+
+**Last session:** 2026-07-17T22:10:00.000Z
+**Stopped at:** Completed 08-04-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-16 - Milestone v1.0 audit initiated; debug artifacts acknowledged
 

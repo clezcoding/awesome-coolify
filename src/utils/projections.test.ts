@@ -324,6 +324,27 @@ describe('sanitizeFullProjection', () => {
     ) as Record<string, string>;
     expect(revealed.internal_db_url).toBe(url);
   });
+
+  it('still masks private_key and pem fields when reveal is true per D-02', () => {
+    const revealed = sanitizeFullProjection(
+      {
+        private_key: '-----BEGIN RSA PRIVATE KEY-----',
+        pem: 'pem-content',
+        password: 'visible-secret',
+        nested: { pem_data: 'nested-pem' },
+      },
+      true,
+    ) as {
+      private_key: string;
+      pem: string;
+      password: string;
+      nested: { pem_data: string };
+    };
+    expect(revealed.private_key).toBe('***');
+    expect(revealed.pem).toBe('***');
+    expect(revealed.password).toBe('visible-secret');
+    expect(revealed.nested.pem_data).toBe('***');
+  });
 });
 
 describe('resolveProjection', () => {

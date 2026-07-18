@@ -3,13 +3,15 @@ import { redactSecrets } from './redact.js';
 export type CoolifyErrorCode =
   | 'COOLIFY_401'
   | 'COOLIFY_404'
+  | 'COOLIFY_409'
   | 'COOLIFY_422'
   | 'COOLIFY_500'
   | 'COOLIFY_NETWORK'
   | 'COOLIFY_TIMEOUT'
   | 'COOLIFY_AMBIGUOUS_MATCH'
   | 'COOLIFY_403_SENSITIVE_REQUIRED'
-  | 'COOLIFY_CONFIRM_REQUIRED';
+  | 'COOLIFY_CONFIRM_REQUIRED'
+  | 'COOLIFY_SSH_UNREACHABLE';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -37,6 +39,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_404: [
     'Check that the resource UUID or path exists on this Coolify instance.',
     'Confirm COOLIFY_URL points to the correct instance.',
+  ],
+  COOLIFY_409: [
+    'The resource is referenced by other resources — remove the dependents first.',
+    'Dependent resource UUIDs are listed in the error data.dependent_uuids field.',
   ],
   COOLIFY_422: [
     'Review the request payload for missing or invalid fields.',
@@ -66,6 +72,11 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
     'Retry with confirm: true',
     'This is a high-impact bulk operation — verify the preview block (would_affect, sample_uuids) before retrying.',
   ],
+  COOLIFY_SSH_UNREACHABLE: [
+    'Verify the server IP, port, and SSH user are correct.',
+    'Confirm the private key UUID is the one authorized on the target host.',
+    'Check firewall rules and that the SSH service is running on the target.',
+  ],
 };
 
 function sanitizeMessage(message: string): string {
@@ -78,6 +89,8 @@ function statusToCode(status: number): CoolifyErrorCode {
       return 'COOLIFY_401';
     case 404:
       return 'COOLIFY_404';
+    case 409:
+      return 'COOLIFY_409';
     case 400:
     case 422:
       return 'COOLIFY_422';
