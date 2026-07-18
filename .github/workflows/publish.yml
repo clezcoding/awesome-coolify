@@ -1,0 +1,43 @@
+name: Publish to npm
+
+# Fires when release.yml's Changesets PR gets merged and creates a GitHub
+# Release. Uses npm Trusted Publishing (OIDC) — no NPM_TOKEN secret and no
+# 2FA/OTP prompt required. Needs npm >= 11.5.1 and Node >= 22.14 (Node 24
+# below already satisfies this).
+#
+# One-time setup on npmjs.com before this works:
+#   Package settings -> Trusted Publisher -> GitHub Actions
+#   Repo: clezcoding/awesome-coolify-mcp, Workflow: publish.yml
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # required for OIDC trusted publishing
+
+jobs:
+  publish:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      # npm auto-detects the GitHub Actions OIDC token when npm >= 11.5.1
+      # and no NODE_AUTH_TOKEN/NPM_TOKEN is set — nothing else to configure.
+      - name: Publish
+        run: npm publish

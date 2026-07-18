@@ -1,64 +1,56 @@
-# Contributing to awesome-coolify-mcp
+# Contributing
 
-Thank you for helping improve the community MCP server for self-hosted Coolify. Clone the repo, run `npm install`, `npm test`, and `npm run build` before opening a pull request.
+Thanks for your interest in this project! This repo follows the [GSD](https://github.com/open-gsd/gsd-core) workflow (Discuss → Plan → Execute → Verify → Ship). Development itself follows the rules below.
 
-## Repo layout
-
-This project is developed across two repos:
-
-- **`clezcoding/awesome-coolify-mcp`** (this repo, public) — source of truth for the npm package and the GitHub Pages install site (`docs/`). PRs and issues happen here.
-- **`clezcoding/awesome-coolify-mcp-dev`** (private) — the maintainer's working repo: full planning history, spikes, research notes, and dev-only tooling. Nothing from it enters this repo's git history; a maintainer periodically syncs a clean snapshot over via `scripts/sync-public-repo.sh` (run from the dev repo).
-
-External contributors only ever need this repo.
-
-## Development
+## Local Setup
 
 ```bash
-npm run dev      # watch build
-npm test         # vitest
+npm install
+npm run lint
+npm test
 ```
 
-Logs go to **stderr** only (stdout is reserved for the MCP protocol).
+Git hooks (commitlint) are activated automatically via `husky` on `npm install`.
 
-## Publishing a release
+## Commit Convention
 
-Maintainer-only steps. Do not publish from a fork without npm publish rights on `awesome-coolify-mcp`.
+All commits follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-### Prerequisites
+```
+<type>(<optional scope>): <short description>
 
-- npm account with 2FA enabled and publish rights to `awesome-coolify-mcp` (member of the `clezcoding` org or equivalent)
-- `npm login` completed on the machine used to publish
-- Node.js **>= 20**
-- `git remote -v` shows `https://github.com/clezcoding/awesome-coolify-mcp.git` as `origin`
+feat: a new feature
+fix: a bug fix
+docs: documentation only
+chore: maintenance, tooling, dependencies
+refactor: code restructuring without behavior change
+test: tests
+perf: performance
+```
 
-### Release steps
+Checked locally via a git hook (`commitlint`) before the commit is even created.
 
-1. **`npm run build`** — produces `dist/index.js` via tsup
-2. **`npm pack --dry-run`** — confirm the tarball contains only:
-   - `package.json`
-   - `README.md`, `README.de.md`
-   - `LICENSE`
-   - `.env.example`
-   - `dist/` (compiled output)
-   
-   It must **not** include source trees, dev scripts, tests, internal planning docs, editor config, or the docs site folder.
-3. **`npm publish --access public`** — `prepublishOnly` runs `npm run build` automatically; `--access public` matches `publishConfig.access`. CI can also do this automatically: pushing a GitHub Release triggers `.github/workflows/publish.yml` (needs an `NPM_TOKEN` repo secret).
-4. **Post-publish** — tag the release (`git tag v0.1.0 && git push --tags`), open a GitHub Release, and link the npm package URL
+## Branches
 
-### GitHub Pages
+- `main` is protected (see `scripts/setup-branch-protection.sh`) — only mergeable via pull request once CI is green.
+- Branch names: `feat/<short-description>`, `fix/<short-description>`, `chore/<short-description>`.
 
-`docs/` is deployed automatically to `https://clezcoding.github.io/awesome-coolify-mcp/` by `.github/workflows/pages.yml` on every push to `main` that touches `docs/`.
+## Pull Requests
 
-## Version bump policy
+- Use the PR template (auto-filled).
+- If the change is release-relevant (feature, fix, breaking change): run `npx changeset` and commit the generated file. This drives the version bump and changelog automatically.
+- CI (lint, test, build) must be green before merging.
 
-Follow semver in `package.json`:
+## Issues
 
-- **Patch** — bug fixes, doc-only fixes that do not change tool contracts
-- **Minor** — new tools or actions, backward-compatible schema additions
-- **Major** — breaking changes to tool schemas, env contract, or response shapes
+- Bug: use the bug report template.
+- Feature idea: use the feature request template.
+- Open questions/discussions: please use GitHub Discussions instead of an issue.
 
-Bump `version` before publishing.
+## Labels
 
-## Code of conduct
+Labels are managed centrally in `.github/labels.yml` and synced automatically — please don't create labels manually in the UI, edit the file and push instead.
 
-Be excellent to each other. Disagreement is fine; harassment is not.
+## Project Planning (GSD)
+
+This project uses [GSD](https://github.com/open-gsd/gsd-core) for planning, and keeps planning artifacts (`.planning/`) local-only — they are gitignored and never committed to this repo. If you're contributing via GSD's phase workflow, that's expected: only the shipped code and docs end up in git history, not the planning process behind them.

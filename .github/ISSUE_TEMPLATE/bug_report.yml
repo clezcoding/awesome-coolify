@@ -1,0 +1,68 @@
+name: "🐛 Bug Report"
+description: Report a bug or unexpected behavior.
+title: "[Bug]: "
+labels: ["type: bug", "status: needs-triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect instead?
+      placeholder: A short, clear description of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      description: How can this be reproduced?
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior (include error message / stack trace if available)
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / Commit
+      placeholder: e.g. v0.3.1 or commit hash
+    validations:
+      required: false
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - CI
+        - Other
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues before opening this one.
+          required: true

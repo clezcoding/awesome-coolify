@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "type: chore"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+
+  # Keep GitHub Actions versions themselves up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "type: chore"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
