@@ -11,6 +11,7 @@
     "dev": "tsup --watch",
     "start": "node scripts/run-mcp.mjs",
     "mcp": "node scripts/run-mcp.mjs",
+    "kill-mcp": "node scripts/kill-mcp.mjs",
     "test": "vitest run",
     "prepublishOnly": "npm run build",
     "higgsfield:fix": "bash scripts/fix-higgsfield.sh",

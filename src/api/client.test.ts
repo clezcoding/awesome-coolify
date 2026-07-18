@@ -5,6 +5,13 @@ import {
   createRetryOptions,
   fetchProjects,
   fetchProject,
+  createProject,
+  updateProject,
+  deleteProject,
+  fetchEnvironments,
+  fetchEnvironment,
+  createEnvironment,
+  deleteEnvironment,
   fetchResources,
   fetchServers,
   fetchAppDeployments,
@@ -680,6 +687,181 @@ describe('pollServerUntilReachable', () => {
     expect(
       (result.settings as { is_reachable?: boolean }).is_reachable,
     ).toBeUndefined();
+  });
+});
+
+describe('project and environment CRUD', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('createProject POST /projects with name only', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'proj-new' }, { status: 201 }),
+    );
+
+    const result = await createProject(
+      'https://coolify.example.com',
+      'test-token',
+      { name: 'My Project' },
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/projects');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual({ name: 'My Project' });
+    expect(result).toEqual({ uuid: 'proj-new' });
+  });
+
+  it('createProject includes description when provided', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'proj-new' }, { status: 201 }),
+    );
+
+    await createProject('https://coolify.example.com', 'test-token', {
+      name: 'My Project',
+      description: 'A test project',
+    });
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(JSON.parse(init.body as string)).toEqual({
+      name: 'My Project',
+      description: 'A test project',
+    });
+  });
+
+  it('updateProject PATCH /projects/{uuid} with defined fields only', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        { uuid: 'proj-1', name: 'Renamed', description: 'Updated' },
+        { status: 200 },
+      ),
+    );
+
+    const result = await updateProject(
+      'https://coolify.example.com',
+      'test-token',
+      'proj-1',
+      { name: 'Renamed' },
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/projects/proj-1');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({ name: 'Renamed' });
+    expect(result).toMatchObject({ uuid: 'proj-1', name: 'Renamed' });
+  });
+
+  it('deleteProject DELETE /projects/{uuid}', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Project deleted.' }, { status: 200 }),
+    );
+
+    const result = await deleteProject(
+      'https://coolify.example.com',
+      'test-token',
+      'proj-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/projects/proj-1');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('DELETE');
+    expect(result).toEqual({ message: 'Project deleted.' });
+  });
+
+  it('fetchEnvironments GET /projects/{uuid}/environments returns array', async () => {
+    const envs = [{ uuid: 'env-1', name: 'production' }];
+    fetchMock.mockResolvedValueOnce(Response.json(envs, { status: 200 }));
+
+    const result = await fetchEnvironments(
+      'https://coolify.example.com',
+      'test-token',
+      'proj-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/projects/proj-1/environments',
+    );
+    expect(result).toEqual(envs);
+  });
+
+  it('fetchEnvironments returns empty array when response is not an array', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ data: [] }, { status: 200 }),
+    );
+
+    const result = await fetchEnvironments(
+      'https://coolify.example.com',
+      'test-token',
+      'proj-1',
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it('fetchEnvironment GET /projects/{uuid}/{name_or_uuid}', async () => {
+    const env = { uuid: 'env-1', name: 'production' };
+    fetchMock.mockResolvedValueOnce(Response.json(env, { status: 200 }));
+
+    const result = await fetchEnvironment(
+      'https://coolify.example.com',
+      'test-token',
+      'proj-1',
+      'production',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/projects/proj-1/production',
+    );
+    expect(result).toEqual(env);
+  });
+
+  it('createEnvironment POST /projects/{uuid}/environments { name }', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'env-new' }, { status: 201 }),
+    );
+
+    const result = await createEnvironment(
+      'https://coolify.example.com',
+      'test-token',
+      'proj-1',
+      { name: 'staging' },
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/projects/proj-1/environments',
+    );
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual({ name: 'staging' });
+    expect(result).toEqual({ uuid: 'env-new' });
+  });
+
+  it('deleteEnvironment DELETE /projects/{uuid}/environments/{name_or_uuid}', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Environment deleted.' }, { status: 200 }),
+    );
+
+    const result = await deleteEnvironment(
+      'https://coolify.example.com',
+      'test-token',
+      'proj-1',
+      'staging',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/projects/proj-1/environments/staging',
+    );
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('DELETE');
+    expect(result).toEqual({ message: 'Environment deleted.' });
   });
 });
 

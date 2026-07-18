@@ -45,6 +45,16 @@ import {
   serverActionSchema,
 } from './tools/server.js';
 import {
+  handleProjectAction,
+  isProjectErrorResult,
+  projectActionSchema,
+} from './tools/project.js';
+import {
+  handleEnvironmentAction,
+  isEnvironmentErrorResult,
+  environmentActionSchema,
+} from './tools/environment.js';
+import {
   handleDocsAction,
   docsActionSchema,
 } from './tools/docs.js';
@@ -428,6 +438,68 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleServerAction(args, env);
       if (isServerErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'project',
+    {
+      description:
+        'Project CRUD (list, get, create, update, delete, delete_preview) for Coolify organizational containers. create requires initial_environment (required — no default; agent must ask user for production vs custom name per D-09/D-10) — missing/empty → COOLIFY_422 with recovery hint; response returns { project, environment, environments? } (D-11); the auto-spawned production env is never auto-deleted. get/update/delete/delete_preview accept uuid XOR name; name multi-match → COOLIFY_AMBIGUOUS_MATCH (D-14). delete requires confirm:true (D-05); deleting a project with remaining environments returns COOLIFY_409 with environment_uuids — no force/cascade (D-07). delete_preview lists blockers without deleting (D-08).',
+      inputSchema: projectActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleProjectAction(args, env);
+      if (isProjectErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'environment',
+    {
+      description:
+        'Environment CRUD (list, get, create, delete, delete_preview) scoped to a parent project — no update action (Coolify API has no PATCH). list accepts project_uuid XOR project_name; name multi-match → COOLIFY_AMBIGUOUS_MATCH (D-12). get/delete accept uuid XOR name within the parent project scope (D-13). create with a duplicate name returns COOLIFY_409 with a recovery hint (D-15). delete requires confirm:true (D-05); deleting a non-empty environment (has apps/services/databases) returns COOLIFY_409 with child_resource_uuids — no force/cascade (D-06). delete_preview lists child resources without deleting (D-08).',
+      inputSchema: environmentActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleEnvironmentAction(args, env);
+      if (isEnvironmentErrorResult(result)) {
         return {
           ...result,
           structuredContent: {

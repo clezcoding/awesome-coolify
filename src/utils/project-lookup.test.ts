@@ -1,13 +1,18 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { EnvConfig } from '../config/env.js';
-import { buildProjectEnvironmentIndex } from './project-lookup.js';
+import {
+  buildProjectEnvironmentIndex,
+  resolveProjectUuid,
+  resolveEnvironmentUuid,
+} from './project-lookup.js';
 
 vi.mock('../api/client.js', () => ({
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
+  fetchEnvironments: vi.fn(),
 }));
 
-import { fetchProjects, fetchProject } from '../api/client.js';
+import { fetchProjects, fetchProject, fetchEnvironments } from '../api/client.js';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -71,5 +76,101 @@ describe('buildProjectEnvironmentIndex', () => {
 
     expect(index.size).toBe(0);
     expect(fetchProject).not.toHaveBeenCalled();
+  });
+});
+
+describe('resolveProjectUuid', () => {
+  beforeEach(() => {
+    vi.mocked(fetchProjects).mockReset();
+  });
+
+  it('returns project_uuid directly when provided', async () => {
+    const uuid = await resolveProjectUuid('proj-direct', undefined, testEnv);
+    expect(uuid).toBe('proj-direct');
+    expect(fetchProjects).not.toHaveBeenCalled();
+  });
+
+  it('throws COOLIFY_404 when no project matches name', async () => {
+    vi.mocked(fetchProjects).mockResolvedValue([
+      { uuid: 'proj-1', name: 'Alpha' },
+    ]);
+
+    await expect(
+      resolveProjectUuid(undefined, 'nonexistent', testEnv),
+    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_404' } });
+  });
+
+  it('throws COOLIFY_AMBIGUOUS_MATCH when multiple projects match', async () => {
+    vi.mocked(fetchProjects).mockResolvedValue([
+      { uuid: 'proj-1', name: 'My Project Alpha' },
+      { uuid: 'proj-2', name: 'My Project Beta' },
+    ]);
+
+    await expect(
+      resolveProjectUuid(undefined, 'project', testEnv),
+    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_AMBIGUOUS_MATCH' } });
+  });
+
+  it('returns uuid on exactly one case-insensitive name match', async () => {
+    vi.mocked(fetchProjects).mockResolvedValue([
+      { uuid: 'proj-1', name: 'MCP UAT Test' },
+      { uuid: 'proj-2', name: 'Other' },
+    ]);
+
+    const uuid = await resolveProjectUuid(undefined, 'uat', testEnv);
+    expect(uuid).toBe('proj-1');
+  });
+});
+
+describe('resolveEnvironmentUuid', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvironments).mockReset();
+  });
+
+  it('returns env_uuid directly when provided', async () => {
+    const uuid = await resolveEnvironmentUuid(
+      'env-direct',
+      undefined,
+      'proj-1',
+      testEnv,
+    );
+    expect(uuid).toBe('env-direct');
+    expect(fetchEnvironments).not.toHaveBeenCalled();
+  });
+
+  it('throws COOLIFY_404 when no environment matches name', async () => {
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { uuid: 'env-1', name: 'production' },
+    ]);
+
+    await expect(
+      resolveEnvironmentUuid(undefined, 'staging', 'proj-1', testEnv),
+    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_404' } });
+  });
+
+  it('throws COOLIFY_AMBIGUOUS_MATCH when multiple environments match', async () => {
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { uuid: 'env-1', name: 'prod-alpha' },
+      { uuid: 'env-2', name: 'prod-beta' },
+    ]);
+
+    await expect(
+      resolveEnvironmentUuid(undefined, 'prod', 'proj-1', testEnv),
+    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_AMBIGUOUS_MATCH' } });
+  });
+
+  it('returns environment uuid on exactly one name match', async () => {
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { uuid: 'env-1', name: 'production' },
+      { uuid: 'env-2', name: 'staging' },
+    ]);
+
+    const uuid = await resolveEnvironmentUuid(
+      undefined,
+      'staging',
+      'proj-1',
+      testEnv,
+    );
+    expect(uuid).toBe('env-2');
   });
 });

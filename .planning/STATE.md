@@ -4,17 +4,17 @@ milestone: v2.0
 milestone_name: Creation & CRUD
 current_phase: 08
 current_phase_name: keys-server-crud
-status: executing
+status: "Phase 08+09 shipped — PR #5 + PR #6"
 stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-07-17T00:00:23.068Z"
-last_activity: 2026-07-17
-last_activity_desc: Phase 08 execution started
+last_updated: "2026-07-18T03:30:28.811Z"
+last_activity: 2026-07-18
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 6
   completed_plans: 5
   percent: 0
+last_activity_desc: Phase 08 execution started
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 
 Phase: 08 (keys-server-crud) — EXECUTING
 Plan: 1 of 6
-Status: Executing Phase 08
-Last activity: 2026-07-17 — Phase 08 execution started
+Status: Phase 08+09 shipped — PR #5 + PR #6
+Last activity: 2026-07-18
 
 ## Performance Metrics
 

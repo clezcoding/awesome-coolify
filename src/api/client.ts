@@ -141,6 +141,95 @@ export async function fetchProject(
   return client(`/projects/${uuid}`, { method: 'GET' });
 }
 
+export async function createProject(
+  url: string,
+  token: string,
+  payload: { name: string; description?: string },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const body = {
+    name: payload.name,
+    ...(payload.description ? { description: payload.description } : {}),
+  };
+  return client('/projects', { method: 'POST', body });
+}
+
+export async function updateProject(
+  url: string,
+  token: string,
+  uuid: string,
+  payload: { name?: string; description?: string },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const body: Record<string, string> = {};
+  if (payload.name !== undefined) body.name = payload.name;
+  if (payload.description !== undefined) body.description = payload.description;
+  return client(`/projects/${uuid}`, { method: 'PATCH', body });
+}
+
+export async function deleteProject(
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/projects/${uuid}`, { method: 'DELETE' });
+}
+
+export async function fetchEnvironments(
+  url: string,
+  token: string,
+  projectUuid: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(`/projects/${projectUuid}/environments`, {
+    method: 'GET',
+  });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchEnvironment(
+  url: string,
+  token: string,
+  projectUuid: string,
+  nameOrUuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/projects/${projectUuid}/${nameOrUuid}`, { method: 'GET' });
+}
+
+export async function createEnvironment(
+  url: string,
+  token: string,
+  projectUuid: string,
+  payload: { name: string },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/projects/${projectUuid}/environments`, {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+export async function deleteEnvironment(
+  url: string,
+  token: string,
+  projectUuid: string,
+  nameOrUuid: string,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/projects/${projectUuid}/environments/${nameOrUuid}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function fetchApplication(
   url: string,
   token: string,

@@ -25,7 +25,7 @@ Full phase details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 ### v2.0 Creation & CRUD (Phases 8–13)
 
 - [x] Phase 8: Keys & Server CRUD (completed 2026-07-16)
-- [ ] Phase 9: Project & Environment CRUD
+- [x] Phase 9: Project & Environment CRUD (completed 2026-07-17)
 - [ ] Phase 10: Application CRUD & Safety
 - [ ] Phase 11: Service & Database CRUD
 - [ ] Phase 12: Environment Variables & Smart Sync
@@ -43,7 +43,7 @@ Full phase details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 6. Bulk, Emergency & Safety | v1.0 | — | Complete | 2026-07-16 |
 | 7. Distribution & Docs | v1.0 | — | Complete | 2026-07-16 |
 | 8. Keys & Server CRUD | v2.0 | 5/5 | Complete    | 2026-07-16 |
-| 9. Project & Environment CRUD | v2.0 | 5 | Planned | — |
+| 9. Project & Environment CRUD | v2.0 | 5 | Complete    | 2026-07-18 |
 | 10. Application CRUD & Safety | v2.0 | 14 | Planned | — |
 | 11. Service & Database CRUD | v2.0 | 9 | Planned | — |
 | 12. Environment Variables & Smart Sync | v2.0 | 6 | Planned | — |
@@ -101,6 +101,28 @@ Plans:
 3. Agent calls `project({ action: 'delete' })` without `confirm: true` and gets `COOLIFY_CONFIRM_REQUIRED`; with `confirm: true` on an empty project, deletion succeeds.
 4. Agent calls `environment({ action: 'create' })` scoped to a project UUID/name and receives the environment UUID; `resource.list` afterwards shows the new environment.
 5. Agent attempts `environment({ action: 'delete' })` on a non-empty environment and receives a structured `COOLIFY_409` hint listing child resource UUIDs; deletion of an empty environment with `confirm: true` succeeds.
+
+**Plans:** 6/6 plans executed
+
+Plans:
+
+- [x] 09-05-PLAN.md
+
+**Wave 1**
+
+- [x] 09-00-PLAN.md — Wave 0 RED test scaffolds for project + environment (PROJ-01..05)
+- [x] 09-01-PLAN.md — API client CRUD + resource.list type=project|environment + project/env name resolvers
+
+**Wave 2** *(ready — Wave 1 complete)*
+
+- [x] 09-02-PLAN.md — project tool handler (list/get/create/update/delete/delete_preview)
+- [x] 09-03-PLAN.md — environment tool handler (list/get/create/delete/delete_preview; no update — API gap)
+
+**Wave 3** *(ready — Wave 2 complete)*
+
+- [x] 09-04-PLAN.md — Register project + environment tools in MCP server
+
+**API coverage:** `COVERAGE.md` — projects/environments endpoint matrix (9 INTEGRATE, 6 OPT-OUT)
 
 ### Phase 10: Application CRUD & Safety
 

@@ -110,6 +110,18 @@ describe('resourceActionSchema', () => {
         type: 'server',
       }).success,
     ).toBe(true);
+    expect(
+      resourceActionSchema.safeParse({
+        action: 'list',
+        type: 'project',
+      }).success,
+    ).toBe(true);
+    expect(
+      resourceActionSchema.safeParse({
+        action: 'list',
+        type: 'environment',
+      }).success,
+    ).toBe(true);
   });
 
   it('accepts find action with query and explicit fields per D-17', () => {
@@ -222,6 +234,107 @@ describe('handleResourceAction list', () => {
 
     expect(result.data[0].project_name).toBe('MCP UAT Test');
     expect(result.data[0].project_name).not.toBe('default');
+  });
+});
+
+describe('resource list type=project', () => {
+  beforeEach(() => {
+    vi.mocked(fetchResources).mockReset().mockResolvedValue([]);
+    vi.mocked(fetchServers).mockReset().mockResolvedValue([]);
+    vi.mocked(fetchProjects).mockReset().mockResolvedValue([
+      {
+        uuid: 'proj-1',
+        name: 'MCP UAT Test',
+        description: 'Test project',
+        environments: [
+          { uuid: 'env-1', name: 'production' },
+          { uuid: 'env-2', name: 'staging' },
+        ],
+      },
+      {
+        uuid: 'proj-2',
+        name: 'Empty Project',
+        description: null,
+      },
+    ]);
+    vi.mocked(fetchProject).mockReset().mockResolvedValue({});
+  });
+
+  it('returns project summaries with environment_count per D-04', async () => {
+    const result = await handleResourceAction(
+      { action: 'list', type: 'project' },
+      testEnv,
+    );
+
+    expect(isResourceErrorResult(result)).toBe(false);
+    if (isResourceErrorResult(result)) return;
+
+    expect(fetchProjects).toHaveBeenCalled();
+    expect(fetchResources).not.toHaveBeenCalled();
+    expect(result.data).toHaveLength(2);
+    expect(result.data[0]).toEqual({
+      uuid: 'proj-1',
+      name: 'MCP UAT Test',
+      description: 'Test project',
+      environment_count: 2,
+    });
+    expect(result.data[1]).toEqual({
+      uuid: 'proj-2',
+      name: 'Empty Project',
+      description: null,
+      environment_count: 0,
+    });
+    expect(result._meta.total).toBe(2);
+  });
+});
+
+describe('resource list type=environment', () => {
+  beforeEach(() => {
+    vi.mocked(fetchResources).mockReset().mockResolvedValue([]);
+    vi.mocked(fetchServers).mockReset().mockResolvedValue([]);
+    vi.mocked(fetchProjects).mockReset().mockResolvedValue([
+      {
+        uuid: 'proj-1',
+        name: 'MCP UAT Test',
+        environments: [
+          { uuid: 'env-1', name: 'production' },
+          { uuid: 'env-2', name: 'staging' },
+        ],
+      },
+      {
+        uuid: 'proj-2',
+        name: 'Other Project',
+        environments: [{ uuid: 'env-3', name: 'dev' }],
+      },
+    ]);
+    vi.mocked(fetchProject).mockReset().mockResolvedValue({});
+  });
+
+  it('returns flattened environment summaries with project context per D-04', async () => {
+    const result = await handleResourceAction(
+      { action: 'list', type: 'environment' },
+      testEnv,
+    );
+
+    expect(isResourceErrorResult(result)).toBe(false);
+    if (isResourceErrorResult(result)) return;
+
+    expect(fetchProjects).toHaveBeenCalled();
+    expect(fetchResources).not.toHaveBeenCalled();
+    expect(result.data).toHaveLength(3);
+    expect(result.data).toContainEqual({
+      uuid: 'env-1',
+      name: 'production',
+      project_uuid: 'proj-1',
+      project_name: 'MCP UAT Test',
+    });
+    expect(result.data).toContainEqual({
+      uuid: 'env-3',
+      name: 'dev',
+      project_uuid: 'proj-2',
+      project_name: 'Other Project',
+    });
+    expect(result._meta.total).toBe(3);
   });
 });
 
