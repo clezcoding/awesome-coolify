@@ -41,12 +41,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/clezcoding/awesome-coolify-mcp.git"
+    "url": "git+https://github.com/clezcoding/awesome-coolify.git"
   },
   "bugs": {
-    "url": "https://github.com/clezcoding/awesome-coolify-mcp/issues"
+    "url": "https://github.com/clezcoding/awesome-coolify/issues"
   },
-  "homepage": "https://github.com/clezcoding/awesome-coolify-mcp#readme",
+  "homepage": "https://github.com/clezcoding/awesome-coolify#readme",
   "publishConfig": {
     "access": "public"
   },
