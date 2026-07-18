@@ -26,7 +26,7 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.14-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 22.14" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
-  <img src="https://img.shields.io/badge/MCP-10%20Tools%20·%2032%20Actions-181818?style=flat-square" alt="10 Domänen-Tools, 32 Actions" />
+  <img src="https://img.shields.io/badge/MCP-14%20Tools%20·%2055%20Actions-181818?style=flat-square" alt="14 Domänen-Tools, 55 Actions" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/Lizenz-MIT-fcd34d?style=flat-square" alt="MIT Lizenz" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-6b16ed?style=flat-square" alt="PRs willkommen" /></a>
 </p>
@@ -89,7 +89,7 @@
 
 Self-hosted [Coolify](https://coolify.io) ist eine der besten Open-Source-Alternativen zu Heroku- oder Vercel-artigen PaaS-Plattformen — aber die Anbindung an einen AI-Coding-Agenten bedeutete bisher oft, mehrere kleine, überlappende Community-MCP-Integrationen zusammenzustecken, jede mit eigenem Schema, eigenem Fehlerformat und eigener Vorstellung davon, was „sicher" bedeutet.
 
-**awesome-coolify-mcp** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eine Handvoll Domänen-Tools mit einem `action`-Feld auf:
+**awesome-coolify-mcp** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent Domänen-Tools mit einem `action`-Feld auf:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: true })
@@ -109,12 +109,12 @@ Unter der Haube läuft jeder Call durch dieselbe Pipeline: Zod-validierte Eingab
 | Typisches Setup ohne awesome-coolify-mcp | Mit awesome-coolify-mcp |
 |--------------------------------------------|--------------------------|
 | Mehrere überlappende Community-MCP-Tools, jedes mit eigenem Schema | **Ein Server, ein konsistentes Schema** |
-| Dutzende granulare Einzeltools pro Ressource | **10 Domänen-Tools** × `action`-Discriminator (32 Actions insgesamt) |
+| Dutzende granulare Einzeltools pro Ressource | **14 Domänen-Tools** × `action`-Discriminator (55 Actions insgesamt) |
 | Ad-hoc Fehlermeldungen, die der Agent selbst deuten muss | Strukturierte Codes (`COOLIFY_401`, `COOLIFY_404`, …) + maschinenlesbare Recovery-Hints |
 | Secrets können direkt im Agent-Kontext landen | Default-Maskierung + Confirm-Gates auf destruktiven Actions |
 | Rohes JSON durchwühlen, um zu sehen, was sich geändert hat | Begrenzte, paginierte Projektionen, abgestimmt auf LLM-Context-Fenster |
 
-Der Fokus liegt heute klar auf **Day-2-Operations**: Connectivity prüfen, herausfinden, was man hat, deployen und beobachten, Logs ziehen, kranke Apps und Server diagnostizieren, die ganze Fleet nach Problemen scannen und im Ernstfall gated Emergency-Actions ausführen. Komplett neue Applications, Services und Datenbanken von Grund auf anzulegen ist in Arbeit — siehe [Demnächst](#-demnächst).
+Der Fokus umfasst **Day-2-Operations** plus wachsendes **Infrastruktur-CRUD**: Connectivity prüfen, Fleet entdecken, deployen, Logs ziehen, diagnostizieren, Emergency-Ops — und SSH Keys, Server, Projekte sowie Environments anlegen und verwalten. Volles CRUD für Applications, Services und Datenbanken ist als Nächstes dran — siehe [Demnächst](#-demnächst).
 
 ---
 
@@ -124,7 +124,7 @@ Der Fokus liegt heute klar auf **Day-2-Operations**: Connectivity prüfen, herau
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/features.png" alt="Feature-Highlights: aktionsbasierte Tools, Safety Gates, Diagnose, Deploy und Logs" width="100%" />
 </p>
 
-- **Aktionsbasierte Tools in 10 Domänen** — z. B. `application({ action: "deploy", uuid })` statt Dutzende Tool-Namen zu durchsuchen. Jede Domäne (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`, `docs`, `meta`) folgt derselben Form.
+- **Aktionsbasierte Tools in 14 Domänen** — z. B. `application({ action: "deploy", uuid })` statt Dutzende Tool-Namen zu durchsuchen. Domänen decken Ops (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`), Infrastruktur-CRUD (`private_key`, `server`, `project`, `environment`) sowie `docs` und `meta` ab.
 - **Ops-Workflows, die echte Incidents abbilden** — ein `system.infrastructure_overview`-Call für den Gesamtüberblick, Fuzzy-`resource.find`, wenn du nur noch einen Namen oder eine Domain im Kopf hast, `diagnose.app` / `diagnose.server` für einen konkreten Verdächtigen und `diagnose.scan`, wenn du nur weißt, dass irgendetwas fleet-weit nicht stimmt.
 - **Deploy-Lifecycle, den Agenten wirklich steuern können** — Start/Stop/Restart, Deploy mit optionalem Wait-and-Poll oder Force-Rebuild, Deployment list/get/cancel und begrenzte Runtime- oder Build-Logs, die dein Context-Fenster nicht sprengen.
 - **Service- & Database-Lifecycle** — Start/Stop/Restart/Get, plus Service-Redeploy mit optionalem frischem Image-Pull.
@@ -144,7 +144,7 @@ Der Fokus liegt heute klar auf **Day-2-Operations**: Connectivity prüfen, herau
 MCP-Client (Cursor / Claude / VS Code / …)
         │  stdio MCP
         ▼
-awesome-coolify-mcp  (10 Domänen-Tools + action-Discriminator)
+awesome-coolify-mcp  (14 Domänen-Tools + action-Discriminator)
         │  HTTPS + Bearer-Token
         ▼
 Coolify REST API 4.1.x  (Server · Projekte · Applications · Services · Datenbanken)
@@ -348,6 +348,41 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `service` | `get`, `start`, `stop`, `restart`, `deploy` (mit optionalem frischem Image-Pull) |
 | `database` | `get`, `start`, `stop`, `restart` |
 
+### 🔑 `private_key` — SSH-Key-CRUD
+
+Coolify Private Keys verwalten — PEM-Inhalt standardmäßig maskiert.
+
+| Action | Zweck |
+|--------|-------|
+| `list` / `get` | Keys auflisten oder abrufen (PEM maskiert, außer mit `reveal: true`) |
+| `create` / `update` | SSH-Keys anlegen oder rotieren |
+| `delete` / `delete_preview` | Key löschen oder Abhängigkeiten vorher anzeigen |
+
+### 🖧 `server` — Server-CRUD & Validierung
+
+| Action | Zweck |
+|--------|-------|
+| `get` | Server-Details, Domains und Erreichbarkeit |
+| `create` / `update` | Server registrieren oder rekonfigurieren |
+| `validate` | Coolifys Server-Validierung auslösen |
+| `delete` / `delete_preview` | Server löschen oder Abhängigkeiten vorher anzeigen |
+
+### 📁 `project` — Projekt-CRUD
+
+| Action | Zweck |
+|--------|-------|
+| `list` / `get` | Projekte entdecken oder inspizieren |
+| `create` / `update` | Projekte anlegen oder umbenennen |
+| `delete` / `delete_preview` | Projekt löschen oder Blast Radius vorher anzeigen |
+
+### 🌍 `environment` — Environment-CRUD
+
+| Action | Zweck |
+|--------|-------|
+| `list` / `get` | Environments in einem Projekt auflisten oder inspizieren |
+| `create` | Neues Environment in einem Projekt anlegen |
+| `delete` / `delete_preview` | Environment löschen oder Abhängigkeiten vorher anzeigen |
+
 ### 📚 `docs` — Offline-Guides
 
 | Action | Zweck |
@@ -465,6 +500,9 @@ Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4
 | App-Logs: Runtime + Build, begrenzt und paginiert | ✅ Shipped |
 | Service- & Database-Lifecycle | ✅ Shipped |
 | Emergency-Ops: Stop-All, Projekt-Redeploy/Restart, hinter Confirm-Gate | ✅ Shipped |
+| SSH-Key-CRUD (`private_key`) mit PEM-Maskierung | ✅ Shipped |
+| Server-CRUD + Validierung (`server`) | ✅ Shipped |
+| Projekt- & Environment-CRUD (`project`, `environment`) | ✅ Shipped |
 | Secret-Maskierung mit explizitem `reveal`-Opt-In | ✅ Shipped |
 | Strukturierte Fehler, Recovery-Hints, automatische Retries | ✅ Shipped |
 | npm-Distribution + Install-Konfigurator für 15+ Clients | ✅ Shipped |
@@ -479,15 +517,15 @@ Service-/Database-Log-Tailing pausiert aktuell — Coolifys 4.1.x-REST-API biete
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/coming-soon.png" alt="Das Maskottchen skizziert eine Roadmap kommender Features: Datenbanken, Scheduled Tasks, Private Keys, Teams und Cloud-Provisioning" width="100%" />
 </p>
 
-Der nächste Meilenstein dreht sich um **Erschaffen, nicht nur Betreiben** — awesome-coolify-mcp soll neue Infrastruktur von Grund auf aufbauen können, nicht nur Bestehendes verwalten. Geplante Bereiche, grob nach Priorität:
+Der nächste Meilenstein dreht sich um **Erschaffen für Workloads**, nicht nur Infrastruktur-Scaffolding — awesome-coolify-mcp soll neue Applications, Services und Datenbanken von Grund auf aufbauen können, nicht nur Bestehendes verwalten. Geplante Bereiche, grob nach Priorität:
 
-- **Vollständiges CRUD** für Applications, Services, Datenbanken und Server — anlegen, ändern und löschen, nicht nur Start/Stop/Deploy
+- **Vollständiges CRUD** für Applications, Services und Datenbanken — anlegen, ändern und löschen, nicht nur Start/Stop/Deploy
 - **Environment-Variable-Management** — lesen, schreiben, Bulk-Sync aus einer lokalen `.env`
 - **One-Click-Services** — vollständiger Service-Katalog mit Compose-YAML, Storage- und Env-Konfiguration
 - **Datenbank-Backups** — Schedules, Executions und On-Demand-Trigger
 - **Scheduled Tasks** — Cron-Job-CRUD, Execution-History, Run-Once-Trigger
 - **Teams & Multi-Tenancy** — Teams und Mitglieder listen/abrufen, projekt-scoped Tokens
-- **Private Keys & Cloud-Provider** — SSH-Key-Management, Hetzner-/DigitalOcean-Provisioning-Tokens
+- **Cloud-Provider-Tokens** — Hetzner-/DigitalOcean-Provisioning-Credentials (SSH Keys bereits shipped)
 - **GitHub-App-Integration** — Repo-/Branch-Discovery, Enterprise-URLs
 - **Claude Desktop `.mcpb`-Packaging** — echtes One-Click-Install, kein manuelles JSON
 - **Tiefere Observability** — Container-Level-Metriken, Traefik-Insight, Live-Event-Streams, Log-Suche

@@ -40,6 +40,10 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   deployment: ['list', 'get', 'cancel'],
   service: ['start', 'stop', 'restart', 'deploy', 'get'],
   database: ['start', 'stop', 'restart', 'get'],
+  private_key: ['list', 'get', 'create', 'update', 'delete', 'delete_preview'],
+  server: ['get', 'create', 'update', 'delete', 'delete_preview', 'validate'],
+  project: ['list', 'get', 'create', 'update', 'delete', 'delete_preview'],
+  environment: ['list', 'get', 'create', 'delete', 'delete_preview'],
   docs: ['search'],
   emergency: ['stop_all', 'redeploy_project', 'restart_project'],
 };
@@ -92,7 +96,7 @@ describe('docs parity (Wave 0)', () => {
     }
   });
 
-  it('D-09: full action inventory — all 10 tools and 32 action literals in both READMEs', () => {
+  it('D-09: full action inventory — all 14 tools and 55 action literals in both READMEs', () => {
     let enActionCount = 0;
     let deActionCount = 0;
 
@@ -107,8 +111,8 @@ describe('docs parity (Wave 0)', () => {
       }
     }
 
-    expect(enActionCount).toBeGreaterThanOrEqual(32);
-    expect(deActionCount).toBeGreaterThanOrEqual(32);
+    expect(enActionCount).toBeGreaterThanOrEqual(55);
+    expect(deActionCount).toBeGreaterThanOrEqual(55);
   });
 
   it('D-11: Safety/Sicherheit section contains confirm and reveal in both locales', () => {

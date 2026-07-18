@@ -26,7 +26,7 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.14-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 22.14" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
-  <img src="https://img.shields.io/badge/MCP-10%20tools%20·%2032%20actions-181818?style=flat-square" alt="10 domain tools, 32 actions" />
+  <img src="https://img.shields.io/badge/MCP-14%20tools%20·%2055%20actions-181818?style=flat-square" alt="14 domain tools, 55 actions" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-fcd34d?style=flat-square" alt="MIT License" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-6b16ed?style=flat-square" alt="PRs welcome" /></a>
 </p>
@@ -89,7 +89,7 @@
 
 Self-hosted [Coolify](https://coolify.io) is one of the best open-source alternatives to Heroku/Vercel-style PaaS platforms — but wiring it up to an AI coding agent has historically meant piecing together several small, overlapping community MCP integrations, each with its own schema, its own error format, and its own idea of what "safe" looks like.
 
-**awesome-coolify-mcp** replaces that patchwork with a single, community-maintained MCP server that speaks Coolify's REST API **4.1.x** through a clean, **action-based** tool surface. Instead of memorizing dozens of near-identical tool names, your agent calls a handful of domain tools with an `action` field:
+**awesome-coolify-mcp** replaces that patchwork with a single, community-maintained MCP server that speaks Coolify's REST API **4.1.x** through a clean, **action-based** tool surface. Source, docs, and npm distribution live in one public repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — while the installable package stays **`awesome-coolify-mcp`**. Instead of memorizing dozens of near-identical tool names, your agent calls domain tools with an `action` field:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: true })
@@ -109,12 +109,12 @@ Under the hood, every call goes through the same request pipeline: Zod-validated
 | Typical setup without it | With awesome-coolify-mcp |
 |---------------------------|--------------------------|
 | Several overlapping community MCP tools, each with its own schema | **One server, one consistent schema** |
-| Dozens of granular, single-purpose tools per resource | **10 domain tools** × `action` discriminators (32 actions total) |
+| Dozens of granular, single-purpose tools per resource | **14 domain tools** × `action` discriminators (55 actions total) |
 | Ad-hoc error strings that agents have to guess at | Structured codes (`COOLIFY_401`, `COOLIFY_404`, …) + machine-readable recovery hints |
 | Secrets can leak straight into agent context | Default secret masking + confirmation gates on destructive actions |
 | Read a wall of raw JSON to find what changed | Bounded, paginated projections tuned for LLM context windows |
 
-Today, the focus is squarely on **day-2 operations**: verifying connectivity, discovering what you have, deploying and watching it roll out, pulling logs, diagnosing unhealthy apps and servers, scanning the whole fleet for issues, and running gated emergency actions when something is on fire. Creating brand-new applications, services, and databases from a blank slate is on the way — see [Coming soon](#-coming-soon).
+Today, the focus covers **day-2 operations** plus growing **infrastructure CRUD**: verify connectivity, discover your fleet, deploy, pull logs, diagnose incidents, run gated emergency ops — and manage SSH keys, servers, projects, and environments. Full CRUD for applications, services, and databases is next — see [Coming soon](#-coming-soon).
 
 ---
 
@@ -124,7 +124,7 @@ Today, the focus is squarely on **day-2 operations**: verifying connectivity, di
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/features.png" alt="Feature highlights: action-based tools, safety gates, diagnose, deploy and logs" width="100%" />
 </p>
 
-- **Action-based tools across 10 domains** — call `application({ action: "deploy", uuid })` instead of hunting through dozens of tool names. Every domain (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`, `docs`, `meta`) follows the same shape.
+- **Action-based tools across 14 domains** — call `application({ action: "deploy", uuid })` instead of hunting through dozens of tool names. Domains span ops (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`), infrastructure CRUD (`private_key`, `server`, `project`, `environment`), plus `docs` and `meta`.
 - **Ops workflows that mirror real incidents** — a single `system.infrastructure_overview` call for the big picture, fuzzy `resource.find` when you only remember a name or domain, `diagnose.app` / `diagnose.server` for a specific suspect, and `diagnose.scan` when you just know *something* is wrong fleet-wide.
 - **Deploy lifecycle that agents can actually drive** — start/stop/restart, deploy with optional wait-and-poll or force rebuild, list/get/cancel deployments, and bounded runtime or build logs that won't blow your context window.
 - **Service & database lifecycle** — start/stop/restart/get, plus service redeploy with an optional fresh image pull.
@@ -144,7 +144,7 @@ Today, the focus is squarely on **day-2 operations**: verifying connectivity, di
 MCP client (Cursor / Claude / VS Code / …)
         │  stdio MCP
         ▼
-awesome-coolify-mcp  (10 domain tools + action discriminator)
+awesome-coolify-mcp  (14 domain tools + action discriminator)
         │  HTTPS + Bearer token
         ▼
 Coolify REST API 4.1.x  (servers · projects · applications · services · databases)
@@ -348,6 +348,41 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 | `service` | `get`, `start`, `stop`, `restart`, `deploy` (with optional fresh image pull) |
 | `database` | `get`, `start`, `stop`, `restart` |
 
+### 🔑 `private_key` — SSH key CRUD
+
+Manage Coolify private keys with PEM content masked by default.
+
+| Action | Purpose |
+|--------|---------|
+| `list` / `get` | List or fetch a key (PEM masked unless `reveal: true`) |
+| `create` / `update` | Add or rotate SSH keys |
+| `delete` / `delete_preview` | Remove a key, or preview dependents before delete |
+
+### 🖧 `server` — server CRUD & validation
+
+| Action | Purpose |
+|--------|---------|
+| `get` | Server details, domains, and reachability |
+| `create` / `update` | Register or reconfigure a server |
+| `validate` | Trigger Coolify's server validation check |
+| `delete` / `delete_preview` | Remove a server, or preview dependents first |
+
+### 📁 `project` — project CRUD
+
+| Action | Purpose |
+|--------|---------|
+| `list` / `get` | Discover or inspect projects |
+| `create` / `update` | Stand up or rename projects |
+| `delete` / `delete_preview` | Delete a project, or preview blast radius first |
+
+### 🌍 `environment` — environment CRUD
+
+| Action | Purpose |
+|--------|---------|
+| `list` / `get` | List or inspect environments inside a project |
+| `create` | Add a new environment to a project |
+| `delete` / `delete_preview` | Remove an environment, or preview dependents first |
+
 ### 📚 `docs` — offline guides
 
 | Action | Purpose |
@@ -465,6 +500,9 @@ The server is stable and actively used for day-2 operations against real Coolify
 | App logs: runtime + build, bounded and paginated | ✅ Shipped |
 | Service & database lifecycle | ✅ Shipped |
 | Emergency ops: stop-all, project redeploy/restart, behind confirm gate | ✅ Shipped |
+| SSH key CRUD (`private_key`) with PEM masking | ✅ Shipped |
+| Server CRUD + validation (`server`) | ✅ Shipped |
+| Project & environment CRUD (`project`, `environment`) | ✅ Shipped |
 | Secret masking with explicit `reveal` opt-in | ✅ Shipped |
 | Structured errors, recovery hints, automatic retries | ✅ Shipped |
 | npm distribution + install configurator for 15+ clients | ✅ Shipped |
@@ -479,15 +517,15 @@ Service/database log tailing is temporarily on hold — Coolify 4.1.x's REST API
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/coming-soon.png" alt="The mascot sketching a roadmap of upcoming features: databases, scheduled tasks, private keys, teams, and cloud provisioning" width="100%" />
 </p>
 
-The next milestone focuses on **creation**, not just operation — turning awesome-coolify-mcp into a tool that can stand up new infrastructure from scratch, not only manage what already exists. Planned areas, roughly in order of priority:
+The next milestone focuses on **creation for workloads**, not just infrastructure scaffolding — turning awesome-coolify-mcp into a tool that can stand up new applications, services, and databases from scratch, not only manage what already exists. Planned areas, roughly in order of priority:
 
-- **Full CRUD** for applications, services, databases, and servers — create, update, and delete, not just start/stop/deploy
+- **Full CRUD** for applications, services, and databases — create, update, and delete, not just start/stop/deploy
 - **Environment variable management** — read, write, bulk-sync from a local `.env`
 - **One-click services** — full service catalog with compose YAML, storage, and env configuration
 - **Database backups** — schedules, executions, and on-demand triggers
 - **Scheduled tasks** — cron job CRUD, execution history, run-once triggers
 - **Teams & multi-tenancy** — list/get teams and members, per-project scoped tokens
-- **Private keys & cloud providers** — SSH key management, Hetzner/DigitalOcean provisioning tokens
+- **Cloud provider tokens** — Hetzner/DigitalOcean provisioning credentials (SSH keys already shipped)
 - **GitHub App integration** — repo/branch discovery, enterprise URLs
 - **Claude Desktop `.mcpb` packaging** — true one-click install, no manual JSON
 - **Deeper observability** — container-level metrics, Traefik insight, live event streams, log search
