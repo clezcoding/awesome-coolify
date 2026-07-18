@@ -39,6 +39,8 @@ jobs:
         uses: changesets/action@v1.9.0
         with:
           version: npm run version # runs "changeset version" (add this script to package.json)
+          commit: "chore: version packages"
+          title: "chore: version packages"
           create-github-releases: true
           push-git-tags: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
