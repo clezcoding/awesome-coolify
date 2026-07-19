@@ -807,29 +807,13 @@ async function handleServiceCreate(
     body.docker_compose_raw = encodeCompose(composeYaml);
   }
 
-  let raw: unknown;
-  try {
-    raw = await createService(
-      env.COOLIFY_URL,
-      env.COOLIFY_TOKEN,
-      omitUndefined(body),
-      env.COOLIFY_VERIFY_SSL,
-    );
-  } catch (error) {
-    if (error instanceof CoolifyApiError) {
-      const conflicts = error.envelope.data?.conflicts;
-      if (conflicts !== undefined) {
-        throw new CoolifyApiError({
-          ...error.envelope,
-          recoveryHints: [
-            ...error.envelope.recoveryHints,
-            'Retry with force_domain_override: true on the same create call to override the domain conflict.',
-          ],
-        });
-      }
-    }
-    throw error;
-  }
+  // Domain-conflict create hint is already attached by toStructuredError.
+  const raw = await createService(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    omitUndefined(body),
+    env.COOLIFY_VERIFY_SSL,
+  );
 
   const created = isRecord(raw) ? raw : {};
   const projected = projectServiceCompose(created);
@@ -1010,10 +994,11 @@ async function handleServiceUpdate(
     if (error instanceof CoolifyApiError) {
       const conflicts = error.envelope.data?.conflicts;
       if (conflicts !== undefined) {
+        // Replace create-oriented conflict hints with update-specific guidance.
         throw new CoolifyApiError({
           ...error.envelope,
           recoveryHints: [
-            ...error.envelope.recoveryHints,
+            ...RECOVERY_HINTS.COOLIFY_409,
             'Retry with force_domain_override: true on the same update call to override the domain conflict.',
           ],
         });
