@@ -38,7 +38,7 @@ jobs:
         uses: OtherVibes/mcp-publish-action@v1
         with:
           name: io.github.clezcoding/awesome-coolify
-          description: "MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools"
+          description: "Coolify 4.1.x MCP server — deploy, diagnose, and manage apps, services, and databases"
           version: ${{ steps.ver.outputs.version }}
           registry_type: npm
           identifier: awesome-coolify-mcp
