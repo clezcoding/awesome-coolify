@@ -37,6 +37,7 @@ import {
   type CoolifyErrorCode,
   type McpErrorResult,
 } from '../../utils/errors.js';
+import { redactSecrets } from '../../utils/redact.js';
 import {
   rejectTableFormatOnFullProjection,
   sharedReadParamsSchema,
@@ -910,7 +911,7 @@ async function handleDatabaseCreate(
         uuid: dbUuid,
         deploy: {
           status: 'failed_to_queue' as const,
-          error: message,
+          error: redactSecrets(message),
         },
         recoveryHints: [
           'Database was created successfully — retry start with database.start.',

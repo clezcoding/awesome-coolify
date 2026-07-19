@@ -42,6 +42,7 @@ import {
   type CoolifyErrorCode,
   type McpErrorResult,
 } from '../../utils/errors.js';
+import { redactSecrets } from '../../utils/redact.js';
 import {
   rejectTableFormatOnFullProjection,
   sharedReadParamsSchema,
@@ -923,7 +924,7 @@ async function handleServiceCreate(
           : {}),
         deploy: {
           status: 'failed_to_queue' as const,
-          error: message,
+          error: redactSecrets(message),
         },
         recoveryHints: [
           'Service was created successfully — retry start with service.start or service.deploy.',
