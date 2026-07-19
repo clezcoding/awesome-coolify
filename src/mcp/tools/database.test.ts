@@ -701,14 +701,16 @@ describe('database create', () => {
 describe('database update', () => {
   beforeEach(() => {
     vi.mocked(updateDatabase).mockReset();
+    vi.mocked(fetchDatabase).mockReset();
     vi.mocked(fetchResources).mockReset();
     vi.mocked(updateDatabase).mockResolvedValue({
       ...mockDatabase,
       is_public: false,
     });
+    vi.mocked(fetchDatabase).mockResolvedValue(mockDatabase);
   });
 
-  it.fails('patches curated fields via updateDatabase per DB-02', async () => {
+  it('patches curated fields via updateDatabase per DB-02', async () => {
     await handleDatabaseAction(
       {
         action: 'update',
@@ -749,8 +751,8 @@ describe('database update', () => {
     expect(updateDatabase).not.toHaveBeenCalled();
   });
 
-  it.fails('masks postgres_password on update unless reveal:true per SAF-04', async () => {
-    vi.mocked(updateDatabase).mockResolvedValue({
+  it('masks postgres_password on update unless reveal:true per SAF-04', async () => {
+    vi.mocked(fetchDatabase).mockResolvedValue({
       ...mockDatabase,
       postgres_password: 'plain-secret',
     });
@@ -788,7 +790,7 @@ describe('database update', () => {
     expect(updateDatabase).not.toHaveBeenCalled();
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-18', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-18', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
@@ -818,7 +820,7 @@ describe('database delete', () => {
     vi.mocked(deleteDatabase).mockResolvedValue({ message: 'Database deleted.' });
   });
 
-  it.fails('deletes database when confirm:true with safe defaults per DB-03', async () => {
+  it('deletes database when confirm:true with safe defaults per DB-03', async () => {
     const result = await handleDatabaseAction(
       { action: 'delete', uuid: 'db-uuid-1', confirm: true },
       testEnv,
@@ -842,7 +844,7 @@ describe('database delete', () => {
     expect(result.data).toMatchObject({ ok: true, uuid: 'db-uuid-1' });
   });
 
-  it.fails('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per DB-03', async () => {
+  it('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per DB-03', async () => {
     const result = await handleDatabaseAction(
       { action: 'delete', uuid: 'db-uuid-1', confirm: false },
       testEnv,
@@ -855,7 +857,7 @@ describe('database delete', () => {
     expect(deleteDatabase).not.toHaveBeenCalled();
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-18', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-18', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
@@ -882,7 +884,7 @@ describe('database delete_preview', () => {
     vi.mocked(fetchDatabase).mockResolvedValue(mockDatabase);
   });
 
-  it.fails('returns would_delete preview without calling deleteDatabase', async () => {
+  it('returns would_delete preview without calling deleteDatabase', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       { uuid: 'child-1', name: 'linked-app', type: 'application' },
     ]);

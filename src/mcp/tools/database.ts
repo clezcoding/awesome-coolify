@@ -411,6 +411,38 @@ const deletePreviewActionSchema = requireDatabaseIdentifier(
   'delete_preview',
 );
 
+const DATABASE_UPDATE_CURATED_FIELD_KEYS = [
+  'name',
+  'description',
+  'image',
+  'is_public',
+  'public_port',
+  'public_port_timeout',
+  'limits_memory',
+  'limits_memory_swap',
+  'limits_memory_swappiness',
+  'limits_memory_reservation',
+  'limits_cpus',
+  'limits_cpuset',
+  'limits_cpu_shares',
+  'postgres_user',
+  'postgres_password',
+  'postgres_db',
+  'mysql_user',
+  'mysql_password',
+  'mysql_root_password',
+  'mysql_database',
+  'mariadb_user',
+  'mariadb_password',
+  'mariadb_root_password',
+  'mariadb_database',
+  'redis_password',
+  'clickhouse_admin_user',
+  'clickhouse_admin_password',
+  'dragonfly_password',
+  'keydb_password',
+] as const;
+
 export const databaseActionSchema = z.discriminatedUnion('action', [
   getActionSchema,
   startActionSchema,
@@ -453,10 +485,32 @@ export type DatabaseCreateResult = ReadResponse<
     })
 >;
 
+export type DatabaseUpdateResult = ReadResponse<
+  ReturnType<typeof sanitizeFullProjection>
+>;
+
+export type DatabaseDeleteResult = ReadResponse<{
+  ok: true;
+  uuid: string;
+  deleted: true;
+  delete_volumes: boolean;
+  delete_configurations: boolean;
+}>;
+
+export type DatabaseDeletePreviewResult = ReadResponse<{
+  uuid: string;
+  child_resources: Array<{ uuid: string; name?: string; type?: string }>;
+  would_delete: true;
+  warning?: string;
+}>;
+
 export type DatabaseActionResult =
   | DatabaseGetResult
   | DatabaseMutationResult
   | DatabaseCreateResult
+  | DatabaseUpdateResult
+  | DatabaseDeleteResult
+  | DatabaseDeletePreviewResult
   | McpErrorResult;
 
 type DatabaseMatchable = FindableResource & { environment_name: string };
@@ -468,6 +522,9 @@ type DatabaseIdentifierInput = {
 
 type MutationAction = z.infer<typeof startActionSchema>;
 type CreateAction = z.infer<typeof createDatabaseSchema>;
+type UpdateAction = z.infer<typeof updateDatabaseSchema>;
+type DeleteAction = z.infer<typeof deleteActionSchema>;
+type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -848,6 +905,160 @@ async function handleDatabaseCreate(
   }
 }
 
+function buildUpdatePayload(parsed: UpdateAction): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  for (const key of DATABASE_UPDATE_CURATED_FIELD_KEYS) {
+    if (key === 'name' && !parsed.uuid) {
+      continue;
+    }
+    const value = parsed[key];
+    if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
+
+  return omitUndefined(payload);
+}
+
+function validateDeleteConfirm(confirm: boolean, uuid: string): void {
+  if (confirm === true) {
+    return;
+  }
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_CONFIRM_REQUIRED',
+    message: `Action 'delete' on database '${uuid}' requires explicit confirmation.`,
+    recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+    data: {
+      action: 'delete',
+      uuid,
+    },
+  });
+}
+
+async function handleDatabaseUpdate(
+  parsed: UpdateAction,
+  env: EnvConfig,
+): Promise<DatabaseUpdateResult> {
+  const uuid = await resolveDatabaseUuid(
+    { uuid: parsed.uuid, name: parsed.name },
+    env,
+  );
+
+  const payload = buildUpdatePayload(parsed);
+
+  await updateDatabase(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    payload,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const raw = await fetchDatabase(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const data = sanitizeFullProjection(raw, parsed.reveal) as Record<
+    string,
+    unknown
+  >;
+
+  return buildReadResponse(data, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
+async function handleDatabaseDelete(
+  parsed: DeleteAction,
+  env: EnvConfig,
+): Promise<DatabaseDeleteResult> {
+  const uuid = await resolveDatabaseUuid(
+    { uuid: parsed.uuid, name: parsed.name },
+    env,
+  );
+
+  validateDeleteConfirm(parsed.confirm, uuid);
+
+  await deleteDatabase(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    {
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+      docker_cleanup: parsed.docker_cleanup,
+      delete_connected_networks: parsed.delete_connected_networks,
+    },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return buildReadResponse(
+    {
+      ok: true as const,
+      uuid,
+      deleted: true as const,
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+async function handleDatabaseDeletePreview(
+  parsed: DeletePreviewAction,
+  env: EnvConfig,
+): Promise<DatabaseDeletePreviewResult> {
+  const uuid = await resolveDatabaseUuid(
+    { uuid: parsed.uuid, name: parsed.name },
+    env,
+  );
+
+  const rawResources = await fetchResources(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const childResources = rawResources
+    .filter(isRecord)
+    .filter((resource) => String(resource.database_uuid ?? '') === uuid)
+    .map((resource) => ({
+      uuid: String(resource.uuid ?? ''),
+      name: resource.name != null ? String(resource.name) : undefined,
+      type: resource.type != null ? String(resource.type) : undefined,
+    }));
+
+  const response: {
+    uuid: string;
+    child_resources: typeof childResources;
+    would_delete: true;
+    warning?: string;
+  } = {
+    uuid,
+    child_resources: childResources,
+    would_delete: true,
+  };
+
+  if (childResources.length > 0) {
+    response.warning =
+      'Database has child resources that will also be removed or orphaned — review child_resources before confirming delete.';
+  }
+
+  return buildReadResponse(response, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 export async function handleDatabaseAction(
   args: unknown,
   env: EnvConfig,
@@ -858,6 +1069,12 @@ export async function handleDatabaseAction(
     switch (parsed.action) {
       case 'create':
         return await handleDatabaseCreate(parsed, env);
+      case 'update':
+        return await handleDatabaseUpdate(parsed, env);
+      case 'delete':
+        return await handleDatabaseDelete(parsed, env);
+      case 'delete_preview':
+        return await handleDatabaseDeletePreview(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':
