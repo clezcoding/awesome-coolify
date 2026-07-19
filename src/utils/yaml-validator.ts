@@ -4,17 +4,17 @@ export function encodeCompose(yaml: string): string {
   return Buffer.from(yaml, 'utf8').toString('base64');
 }
 
-export function decodeCompose(base64: string): string {
+export function decodeCompose(base64: string): string | null {
   if (base64 === '') {
     return '';
   }
   if (!/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) {
-    return '';
+    return null;
   }
   try {
     return Buffer.from(base64, 'base64').toString('utf8');
   } catch {
-    return '';
+    return null;
   }
 }
 
@@ -41,7 +41,17 @@ export function projectServiceCompose(
     return raw;
   }
 
-  const result = { ...raw, compose: decodeCompose(dockerComposeRaw) };
+  const decoded = decodeCompose(dockerComposeRaw);
+  if (decoded === null) {
+    const result = {
+      ...raw,
+      compose_decode_error: 'invalid base64 in docker_compose_raw',
+    };
+    delete result.docker_compose_raw;
+    return result;
+  }
+
+  const result = { ...raw, compose: decoded };
   delete result.docker_compose_raw;
   return result;
 }

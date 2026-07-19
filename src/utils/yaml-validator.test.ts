@@ -15,8 +15,8 @@ describe('encodeCompose / decodeCompose', () => {
     expect(decodeCompose(encodeCompose(''))).toBe('');
   });
 
-  it('returns empty string for invalid base64 without throwing', () => {
-    expect(decodeCompose('!!!not-valid-base64!!!')).toBe('');
+  it('returns null for invalid base64 without throwing', () => {
+    expect(decodeCompose('!!!not-valid-base64!!!')).toBeNull();
   });
 });
 
@@ -86,5 +86,17 @@ describe('projectServiceCompose', () => {
     projectServiceCompose(input);
 
     expect(input).toEqual(snapshot);
+  });
+
+  it('surfaces compose_decode_error for invalid base64', () => {
+    const input = { uuid: 'svc-1', docker_compose_raw: '!!!not-valid!!!' };
+    const result = projectServiceCompose(input);
+
+    expect(result.compose).toBeUndefined();
+    expect(result.compose_decode_error).toBe(
+      'invalid base64 in docker_compose_raw',
+    );
+    expect(result.docker_compose_raw).toBeUndefined();
+    expect(result.uuid).toBe('svc-1');
   });
 });
