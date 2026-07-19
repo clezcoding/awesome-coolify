@@ -455,10 +455,14 @@ describe('handleDatabaseAction lifecycle mutations (SVC-03)', () => {
   });
 });
 
-const baseDatabaseCreateFields = {
+const baseDatabaseCreateScope = {
   project_uuid: 'proj-uuid-1',
   environment_name: 'production',
   server_uuid: 'srv-uuid-1',
+};
+
+const baseDatabaseCreateFields = {
+  ...baseDatabaseCreateScope,
   postgres_user: 'postgres',
   postgres_password: 'plain-secret',
   postgres_db: 'appdb',
@@ -498,13 +502,17 @@ const engineClientMap = {
 describe('database create', () => {
   beforeEach(() => {
     Object.values(engineClientMap).forEach((fn) => fn.mockReset());
+    vi.mocked(triggerDatabaseStart).mockReset();
+    vi.mocked(triggerDatabaseStart).mockResolvedValue({
+      message: 'Database start queued',
+    });
     vi.mocked(createPostgresqlDatabase).mockResolvedValue({
       uuid: 'db-new-uuid',
       postgres_password: 'plain-secret',
     });
   });
 
-  it.fails('creates postgresql database and masks postgres_password unless reveal per DB-01', async () => {
+  it('creates postgresql database and masks postgres_password unless reveal per DB-01', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'create',
@@ -531,7 +539,7 @@ describe('database create', () => {
     expect(data.postgres_password).toBe('***');
   });
 
-  it.fails.each([
+  it.each([
     ['postgresql', createPostgresqlDatabase],
     ['mysql', createMysqlDatabase],
     ['mariadb', createMariadbDatabase],
@@ -549,7 +557,7 @@ describe('database create', () => {
         {
           action: 'create',
           engine,
-          ...baseDatabaseCreateFields,
+          ...baseDatabaseCreateScope,
         },
         testEnv,
       );
@@ -566,7 +574,7 @@ describe('database create', () => {
     },
   );
 
-  it.fails('defaults instant_deploy to true on create per D-11', async () => {
+  it('defaults instant_deploy to true on create per D-11', async () => {
     await handleDatabaseAction(
       {
         action: 'create',
@@ -584,7 +592,7 @@ describe('database create', () => {
     );
   });
 
-  it.fails('returns COOLIFY_CONFIRM_REQUIRED when is_public:true without confirm per DB-04', async () => {
+  it('returns COOLIFY_CONFIRM_REQUIRED when is_public:true without confirm per DB-04', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'create',
@@ -603,7 +611,7 @@ describe('database create', () => {
     expect(createPostgresqlDatabase).not.toHaveBeenCalled();
   });
 
-  it.fails('creates public database when is_public:true and confirm:true per DB-04', async () => {
+  it('creates public database when is_public:true and confirm:true per DB-04', async () => {
     await handleDatabaseAction(
       {
         action: 'create',
@@ -627,7 +635,7 @@ describe('database create', () => {
     );
   });
 
-  it.fails('returns plaintext postgres_password when reveal:true per SAF-04', async () => {
+  it('returns plaintext postgres_password when reveal:true per SAF-04', async () => {
     vi.mocked(createPostgresqlDatabase).mockResolvedValue({
       uuid: 'db-new-uuid',
       postgres_password: 'plain-secret',
@@ -650,7 +658,7 @@ describe('database create', () => {
     expect(data.postgres_password).toBe('plain-secret');
   });
 
-  it.fails('rejects create with unknown field before API call per SAF-03', async () => {
+  it('rejects create with unknown field before API call per SAF-03', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'create',
@@ -668,7 +676,7 @@ describe('database create', () => {
     expect(createPostgresqlDatabase).not.toHaveBeenCalled();
   });
 
-  it.fails('rejects create without project_uuid or project_name per D-02', async () => {
+  it('rejects create without project_uuid or project_name per D-02', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'create',
