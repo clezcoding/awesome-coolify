@@ -1494,6 +1494,45 @@ describe('application create', () => {
     expect(JSON.stringify(data)).toMatch(/deployment\.get|application\.deploy/);
   });
 
+  it('returns ok:true with failed_to_queue when triggerDeploy rejects on instant_deploy create (no auto-rollback)', async () => {
+    vi.mocked(createPublicApplication).mockResolvedValue({
+      uuid: 'app-instant-fail-uuid',
+    });
+    vi.mocked(triggerDeploy).mockReset();
+    vi.mocked(deleteApplication).mockReset();
+    vi.mocked(triggerDeploy).mockRejectedValue(new Error('Deploy queue unavailable'));
+
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        ...baseCreateFields,
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+        instant_deploy: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.uuid).toBe('app-instant-fail-uuid');
+    const deploy = data.deploy as Record<string, unknown>;
+    expect(deploy.status).toBe('failed_to_queue');
+    expect(triggerDeploy).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-instant-fail-uuid',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    expect(deleteApplication).not.toHaveBeenCalled();
+  });
+
   it('maps HTTP 409 domain conflicts to COOLIFY_409 with force_domain_override hint per APP-21', async () => {
     const conflicts = [
       { domain: 'app.example.com', message: 'Domain already in use' },
