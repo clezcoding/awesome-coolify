@@ -865,6 +865,227 @@ async function handleServiceCreate(
   }
 }
 
+function validateDeleteConfirm(confirm: boolean, uuid: string): void {
+  if (confirm === true) {
+    return;
+  }
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_CONFIRM_REQUIRED',
+    message: `Action 'delete' on service '${uuid}' requires explicit confirmation.`,
+    recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+    data: {
+      action: 'delete',
+      uuid,
+    },
+  });
+}
+
+function buildUpdatePayload(
+  parsed: UpdateAction,
+  docker_compose_raw?: string,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  for (const key of SERVICE_UPDATE_CURATED_FIELD_KEYS) {
+    if (key === 'force_domain_override') {
+      continue;
+    }
+    const value = parsed[key];
+    if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
+
+  if (parsed.force_domain_override === true) {
+    payload.force_domain_override = true;
+  }
+
+  if (docker_compose_raw !== undefined) {
+    payload.docker_compose_raw = docker_compose_raw;
+  }
+
+  return omitUndefined(payload);
+}
+
+async function handleServiceUpdate(
+  parsed: UpdateAction,
+  env: EnvConfig,
+): Promise<ServiceUpdateResult> {
+  const uuid = await resolveServiceMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name },
+    env,
+  );
+
+  let composeYaml: string | undefined;
+
+  if (parsed.compose_file) {
+    try {
+      composeYaml = readFileSync(parsed.compose_file, 'utf8');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: `Cannot read compose_file at ${parsed.compose_file}: ${message}`,
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
+
+    if (Buffer.byteLength(composeYaml, 'utf8') > COMPOSE_FILE_SIZE_LIMIT) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'compose_file exceeds 1 MiB limit',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
+  } else if (parsed.compose) {
+    composeYaml = parsed.compose;
+  }
+
+  let docker_compose_raw: string | undefined;
+  if (composeYaml !== undefined) {
+    const validation = validateCompose(composeYaml);
+    if (!validation.ok) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: `Invalid compose YAML: ${validation.error}`,
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
+    docker_compose_raw = encodeCompose(composeYaml);
+  }
+
+  const payload = buildUpdatePayload(parsed, docker_compose_raw);
+
+  try {
+    await updateService(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      uuid,
+      payload,
+      env.COOLIFY_VERIFY_SSL,
+    );
+  } catch (error) {
+    if (error instanceof CoolifyApiError) {
+      const conflicts = error.envelope.data?.conflicts;
+      if (conflicts !== undefined) {
+        throw new CoolifyApiError({
+          ...error.envelope,
+          recoveryHints: [
+            ...error.envelope.recoveryHints,
+            'Retry with force_domain_override: true on the same update call to override the domain conflict.',
+          ],
+        });
+      }
+    }
+    throw error;
+  }
+
+  const raw = await fetchService(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const rawRecord = isRecord(raw) ? raw : {};
+  const projected = projectServiceCompose(rawRecord);
+  const data = sanitizeFullProjection(projected, parsed.reveal) as Record<
+    string,
+    unknown
+  >;
+
+  return buildReadResponse(data, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
+async function handleServiceDelete(
+  parsed: DeleteAction,
+  env: EnvConfig,
+): Promise<ServiceDeleteResult> {
+  const uuid = await resolveServiceMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name },
+    env,
+  );
+
+  validateDeleteConfirm(parsed.confirm, uuid);
+
+  await deleteService(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    {
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+      docker_cleanup: parsed.docker_cleanup,
+      delete_connected_networks: parsed.delete_connected_networks,
+    },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return buildReadResponse(
+    {
+      ok: true as const,
+      uuid,
+      deleted: true as const,
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+async function handleServiceDeletePreview(
+  parsed: DeletePreviewAction,
+  env: EnvConfig,
+): Promise<ServiceDeletePreviewResult> {
+  const uuid = await resolveServiceMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name },
+    env,
+  );
+
+  const rawResources = await fetchResources(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const childResources = rawResources
+    .filter(isRecord)
+    .filter((resource) => String(resource.service_uuid ?? '') === uuid)
+    .map((resource) => ({
+      uuid: String(resource.uuid ?? ''),
+      name: resource.name != null ? String(resource.name) : undefined,
+      type: resource.type != null ? String(resource.type) : undefined,
+    }));
+
+  const response: {
+    uuid: string;
+    child_resources: typeof childResources;
+    would_delete: true;
+    warning?: string;
+  } = {
+    uuid,
+    child_resources: childResources,
+    would_delete: true,
+  };
+
+  if (childResources.length > 0) {
+    response.warning =
+      'Service has child resources that will also be removed or orphaned — review child_resources before confirming delete.';
+  }
+
+  return buildReadResponse(response, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 export async function handleServiceAction(
   args: unknown,
   env: EnvConfig,
@@ -876,23 +1097,11 @@ export async function handleServiceAction(
       case 'create':
         return await handleServiceCreate(parsed, env);
       case 'update':
-        throw new CoolifyApiError({
-          code: 'COOLIFY_422',
-          message: "Action 'update' handler not implemented",
-          recoveryHints: RECOVERY_HINTS.COOLIFY_422,
-        });
+        return await handleServiceUpdate(parsed, env);
       case 'delete':
-        throw new CoolifyApiError({
-          code: 'COOLIFY_422',
-          message: "Action 'delete' handler not implemented",
-          recoveryHints: RECOVERY_HINTS.COOLIFY_422,
-        });
+        return await handleServiceDelete(parsed, env);
       case 'delete_preview':
-        throw new CoolifyApiError({
-          code: 'COOLIFY_422',
-          message: "Action 'delete_preview' handler not implemented",
-          recoveryHints: RECOVERY_HINTS.COOLIFY_422,
-        });
+        return await handleServiceDeletePreview(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':

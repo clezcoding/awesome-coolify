@@ -792,13 +792,18 @@ describe('service update', () => {
   beforeEach(() => {
     vi.mocked(updateService).mockReset();
     vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchService).mockReset();
     vi.mocked(updateService).mockResolvedValue({
+      ...mockService,
+      docker_compose_raw: sampleComposeBase64,
+    });
+    vi.mocked(fetchService).mockResolvedValue({
       ...mockService,
       docker_compose_raw: sampleComposeBase64,
     });
   });
 
-  it.fails('patches compose via base64-encoded docker_compose_raw per SVC-08', async () => {
+  it('patches compose via base64-encoded docker_compose_raw per SVC-08', async () => {
     await handleServiceAction(
       {
         action: 'update',
@@ -819,7 +824,7 @@ describe('service update', () => {
     );
   });
 
-  it.fails('returns decoded compose on update success per D-06', async () => {
+  it('returns decoded compose on update success per D-06', async () => {
     const result = await handleServiceAction(
       {
         action: 'update',
@@ -837,7 +842,7 @@ describe('service update', () => {
     expect(data.docker_compose_raw).toBeUndefined();
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-18', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-18', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceServiceDup1,
       mockResourceServiceDup2,
@@ -884,7 +889,7 @@ describe('service delete', () => {
     vi.mocked(deleteService).mockResolvedValue({ message: 'Service deleted.' });
   });
 
-  it.fails('deletes service when confirm:true with safe defaults per SVC-09', async () => {
+  it('deletes service when confirm:true with safe defaults per SVC-09', async () => {
     const result = await handleServiceAction(
       { action: 'delete', uuid: 'svc-uuid-1', confirm: true },
       testEnv,
@@ -908,7 +913,7 @@ describe('service delete', () => {
     expect(result.data).toMatchObject({ ok: true, uuid: 'svc-uuid-1' });
   });
 
-  it.fails('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per SVC-09', async () => {
+  it('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per SVC-09', async () => {
     const result = await handleServiceAction(
       { action: 'delete', uuid: 'svc-uuid-1', confirm: false },
       testEnv,
@@ -921,7 +926,7 @@ describe('service delete', () => {
     expect(deleteService).not.toHaveBeenCalled();
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-18', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-18', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceServiceDup1,
       mockResourceServiceDup2,
@@ -948,7 +953,7 @@ describe('service delete_preview', () => {
     vi.mocked(fetchService).mockResolvedValue(mockService);
   });
 
-  it.fails('returns would_delete preview without calling deleteService', async () => {
+  it('returns would_delete preview without calling deleteService', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       { uuid: 'child-1', name: 'linked-resource', type: 'application' },
     ]);
