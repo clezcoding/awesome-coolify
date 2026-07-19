@@ -37,6 +37,7 @@ import {
   triggerDeploy,
   pollServerUntilReachable,
 } from './client.js';
+import * as clientCrud from './client.js';
 import { CoolifyApiError } from '../utils/errors.js';
 
 describe('createRetryOptions', () => {
@@ -1035,6 +1036,180 @@ describe('application CRUD', () => {
     await expect(
       createPublicApplication('https://coolify.example.com', 'test-token', {}),
     ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('service and database CRUD', () => {
+  const fetchMock = vi.fn();
+  const crud = clientCrud as Record<
+    string,
+    ((...args: unknown[]) => Promise<unknown>) | unknown
+  >;
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('createService POST /services with JSON body', async () => {
+    expect(crud.createService).toBeTypeOf('function');
+    const payload = {
+      type: 'actualbudget',
+      project_uuid: 'proj-1',
+      server_uuid: 'srv-1',
+      environment_name: 'production',
+    };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'svc-new' }, { status: 201 }),
+    );
+
+    const result = await (crud.createService as typeof createProject)(
+      'https://coolify.example.com',
+      'test-token',
+      payload,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/services');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+    expect(result).toEqual({ uuid: 'svc-new' });
+  });
+
+  it('updateService PATCH /services/{uuid} with JSON body', async () => {
+    expect(crud.updateService).toBeTypeOf('function');
+    const payload = { name: 'renamed-service' };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'svc-1', name: 'renamed-service' }, { status: 200 }),
+    );
+
+    const result = await (crud.updateService as typeof updateProject)(
+      'https://coolify.example.com',
+      'test-token',
+      'svc-1',
+      payload,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/services/svc-1');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+    expect(result).toMatchObject({ uuid: 'svc-1', name: 'renamed-service' });
+  });
+
+  it('deleteService DELETE /services/{uuid} with query params', async () => {
+    expect(crud.deleteService).toBeTypeOf('function');
+    const params = {
+      delete_configurations: false,
+      delete_volumes: false,
+      docker_cleanup: false,
+      delete_connected_networks: false,
+    };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Service deleted.' }, { status: 200 }),
+    );
+
+    const result = await (crud.deleteService as typeof deleteApplication)(
+      'https://coolify.example.com',
+      'test-token',
+      'svc-1',
+      params,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/services/svc-1');
+    expect(url).toContain('delete_configurations=false');
+    expect(url).toContain('delete_volumes=false');
+    expect(url).toContain('docker_cleanup=false');
+    expect(url).toContain('delete_connected_networks=false');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
+    expect(result).toEqual({ message: 'Service deleted.' });
+  });
+
+  it.each([
+    ['createPostgresqlDatabase', '/api/v1/databases/postgresql'],
+    ['createMysqlDatabase', '/api/v1/databases/mysql'],
+    ['createMariadbDatabase', '/api/v1/databases/mariadb'],
+    ['createMongodbDatabase', '/api/v1/databases/mongodb'],
+    ['createRedisDatabase', '/api/v1/databases/redis'],
+    ['createClickhouseDatabase', '/api/v1/databases/clickhouse'],
+    ['createDragonflyDatabase', '/api/v1/databases/dragonfly'],
+    ['createKeydbDatabase', '/api/v1/databases/keydb'],
+  ] as const)('%s POST %s', async (fnName, path) => {
+    expect(crud[fnName]).toBeTypeOf('function');
+    const payload = {
+      project_uuid: 'proj-1',
+      server_uuid: 'srv-1',
+      environment_name: 'production',
+    };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'db-new' }, { status: 201 }),
+    );
+
+    await (crud[fnName] as typeof createProject)(
+      'https://coolify.example.com',
+      'test-token',
+      payload,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(path);
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+  });
+
+  it('updateDatabase PATCH /databases/{uuid} with JSON body', async () => {
+    expect(crud.updateDatabase).toBeTypeOf('function');
+    const payload = { is_public: false, public_port: 5432 };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'db-1', is_public: false }, { status: 200 }),
+    );
+
+    const result = await (crud.updateDatabase as typeof updateProject)(
+      'https://coolify.example.com',
+      'test-token',
+      'db-1',
+      payload,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/databases/db-1');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+    expect(result).toMatchObject({ uuid: 'db-1', is_public: false });
+  });
+
+  it('deleteDatabase DELETE /databases/{uuid} with query params', async () => {
+    expect(crud.deleteDatabase).toBeTypeOf('function');
+    const params = {
+      delete_configurations: false,
+      delete_volumes: false,
+      docker_cleanup: false,
+      delete_connected_networks: false,
+    };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Database deleted.' }, { status: 200 }),
+    );
+
+    const result = await (crud.deleteDatabase as typeof deleteApplication)(
+      'https://coolify.example.com',
+      'test-token',
+      'db-1',
+      params,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/databases/db-1');
+    expect(url).toContain('delete_configurations=false');
+    expect(url).toContain('delete_volumes=false');
+    expect(url).toContain('docker_cleanup=false');
+    expect(url).toContain('delete_connected_networks=false');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
+    expect(result).toEqual({ message: 'Database deleted.' });
   });
 });
 

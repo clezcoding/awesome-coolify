@@ -345,8 +345,8 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 
 | Tool | Actions |
 |------|---------|
-| `service` | `get`, `start`, `stop`, `restart`, `deploy` (with optional fresh image pull) |
-| `database` | `get`, `start`, `stop`, `restart` |
+| `service` | `get`, `start`, `stop`, `restart`, `deploy`, `create` (one-click type XOR compose), `update`, `delete`, `delete_preview` |
+| `database` | `get`, `start`, `stop`, `restart`, `create` (8 engines), `update`, `delete`, `delete_preview` |
 
 ### 🔑 `private_key` — SSH key CRUD
 

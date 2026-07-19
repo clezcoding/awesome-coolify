@@ -55,6 +55,7 @@
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0-beta.4",
     "ofetch": "^1.5.1",
+    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

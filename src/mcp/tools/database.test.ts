@@ -14,6 +14,16 @@ vi.mock('../../api/client.js', () => ({
   triggerDatabaseStart: vi.fn(),
   triggerDatabaseStop: vi.fn(),
   triggerDatabaseRestart: vi.fn(),
+  createPostgresqlDatabase: vi.fn(),
+  createMysqlDatabase: vi.fn(),
+  createMariadbDatabase: vi.fn(),
+  createMongodbDatabase: vi.fn(),
+  createRedisDatabase: vi.fn(),
+  createClickhouseDatabase: vi.fn(),
+  createDragonflyDatabase: vi.fn(),
+  createKeydbDatabase: vi.fn(),
+  updateDatabase: vi.fn(),
+  deleteDatabase: vi.fn(),
 }));
 
 import {
@@ -24,6 +34,16 @@ import {
   triggerDatabaseRestart,
   triggerDatabaseStart,
   triggerDatabaseStop,
+  createPostgresqlDatabase,
+  createMysqlDatabase,
+  createMariadbDatabase,
+  createMongodbDatabase,
+  createRedisDatabase,
+  createClickhouseDatabase,
+  createDragonflyDatabase,
+  createKeydbDatabase,
+  updateDatabase,
+  deleteDatabase,
 } from '../../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -432,5 +452,505 @@ describe('handleDatabaseAction lifecycle mutations (SVC-03)', () => {
         uuid: 'db-uuid-1',
       }).success,
     ).toBe(false);
+  });
+});
+
+const baseDatabaseCreateScope = {
+  project_uuid: 'proj-uuid-1',
+  environment_name: 'production',
+  server_uuid: 'srv-uuid-1',
+};
+
+const baseDatabaseCreateFields = {
+  ...baseDatabaseCreateScope,
+  postgres_user: 'postgres',
+  postgres_password: 'plain-secret',
+  postgres_db: 'appdb',
+};
+
+const mockResourceDatabaseDup1 = {
+  uuid: 'db-uuid-1',
+  type: 'standalone-postgresql',
+  name: 'postgres',
+  status: 'running:healthy',
+  project: { name: 'proj-a', uuid: 'proj-uuid-1' },
+  environment: { name: 'production', uuid: 'env-uuid-1' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+const mockResourceDatabaseDup2 = {
+  uuid: 'db-uuid-2',
+  type: 'standalone-postgresql',
+  name: 'postgres',
+  status: 'running:healthy',
+  project: { name: 'proj-b', uuid: 'proj-uuid-2' },
+  environment: { name: 'staging', uuid: 'env-uuid-2' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+const engineClientMap = {
+  postgresql: createPostgresqlDatabase,
+  mysql: createMysqlDatabase,
+  mariadb: createMariadbDatabase,
+  mongodb: createMongodbDatabase,
+  redis: createRedisDatabase,
+  clickhouse: createClickhouseDatabase,
+  dragonfly: createDragonflyDatabase,
+  keydb: createKeydbDatabase,
+} as const;
+
+describe('database create', () => {
+  beforeEach(() => {
+    Object.values(engineClientMap).forEach((fn) => fn.mockReset());
+    vi.mocked(triggerDatabaseStart).mockReset();
+    vi.mocked(triggerDatabaseStart).mockResolvedValue({
+      message: 'Database start queued',
+    });
+    vi.mocked(createPostgresqlDatabase).mockResolvedValue({
+      uuid: 'db-new-uuid',
+      postgres_password: 'plain-secret',
+    });
+  });
+
+  it('creates postgresql database and masks postgres_password unless reveal per DB-01', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        ...baseDatabaseCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(createPostgresqlDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        postgres_user: 'postgres',
+        postgres_password: 'plain-secret',
+        postgres_db: 'appdb',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.postgres_password).toBe('***');
+  });
+
+  it.each([
+    ['postgresql', createPostgresqlDatabase],
+    ['mysql', createMysqlDatabase],
+    ['mariadb', createMariadbDatabase],
+    ['mongodb', createMongodbDatabase],
+    ['redis', createRedisDatabase],
+    ['clickhouse', createClickhouseDatabase],
+    ['dragonfly', createDragonflyDatabase],
+    ['keydb', createKeydbDatabase],
+  ] as const)(
+    'dispatches create to correct client for engine %s per DB-01',
+    async (engine, clientFn) => {
+      vi.mocked(clientFn).mockResolvedValue({ uuid: `db-${engine}-uuid` });
+
+      await handleDatabaseAction(
+        {
+          action: 'create',
+          engine,
+          ...baseDatabaseCreateScope,
+        },
+        testEnv,
+      );
+
+      expect(clientFn).toHaveBeenCalledWith(
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        expect.objectContaining({
+          server_uuid: 'srv-uuid-1',
+          project_uuid: 'proj-uuid-1',
+        }),
+        testEnv.COOLIFY_VERIFY_SSL,
+      );
+    },
+  );
+
+  it('defaults instant_deploy to true on create per D-11', async () => {
+    await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        ...baseDatabaseCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(createPostgresqlDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({ instant_deploy: true }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('returns COOLIFY_CONFIRM_REQUIRED when is_public:true without confirm per DB-04', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        ...baseDatabaseCreateFields,
+        is_public: true,
+        public_port: 5432,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(result.structuredContent.error.message).toMatch(/database create/);
+    expect(createPostgresqlDatabase).not.toHaveBeenCalled();
+  });
+
+  it('creates public database when is_public:true and confirm:true per DB-04', async () => {
+    await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        ...baseDatabaseCreateFields,
+        is_public: true,
+        public_port: 5432,
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(createPostgresqlDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        is_public: true,
+        public_port: 5432,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('returns plaintext postgres_password when reveal:true per SAF-04', async () => {
+    vi.mocked(createPostgresqlDatabase).mockResolvedValue({
+      uuid: 'db-new-uuid',
+      postgres_password: 'plain-secret',
+    });
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        ...baseDatabaseCreateFields,
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.postgres_password).toBe('plain-secret');
+  });
+
+  it('rejects create with unknown field before API call per SAF-03', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        ...baseDatabaseCreateFields,
+        unexpected_field: 'foo',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createPostgresqlDatabase).not.toHaveBeenCalled();
+  });
+
+  it('rejects create without project_uuid or project_name per D-02', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        environment_name: 'production',
+        server_uuid: 'srv-uuid-1',
+        postgres_user: 'postgres',
+        postgres_password: 'plain-secret',
+        postgres_db: 'appdb',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createPostgresqlDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe('database update', () => {
+  beforeEach(() => {
+    vi.mocked(updateDatabase).mockReset();
+    vi.mocked(fetchDatabase).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(updateDatabase).mockResolvedValue({
+      ...mockDatabase,
+      is_public: false,
+    });
+    vi.mocked(fetchDatabase).mockResolvedValue(mockDatabase);
+  });
+
+  it('patches curated fields via updateDatabase per DB-02', async () => {
+    await handleDatabaseAction(
+      {
+        action: 'update',
+        uuid: 'db-uuid-1',
+        is_public: false,
+        public_port: 5432,
+      },
+      testEnv,
+    );
+
+    expect(updateDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      expect.objectContaining({
+        is_public: false,
+        public_port: 5432,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('includes mongo_initdb_root_password in update PATCH body', async () => {
+    await handleDatabaseAction(
+      {
+        action: 'update',
+        uuid: 'db-uuid-1',
+        mongo_initdb_root_password: 'rotated-mongo-secret',
+      },
+      testEnv,
+    );
+
+    expect(updateDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      expect.objectContaining({
+        mongo_initdb_root_password: 'rotated-mongo-secret',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('returns COOLIFY_CONFIRM_REQUIRED when enabling is_public without confirm per DB-02', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'update',
+        uuid: 'db-uuid-1',
+        is_public: true,
+        public_port: 5432,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(updateDatabase).not.toHaveBeenCalled();
+  });
+
+  it('masks postgres_password on update unless reveal:true per SAF-04', async () => {
+    vi.mocked(fetchDatabase).mockResolvedValue({
+      ...mockDatabase,
+      postgres_password: 'plain-secret',
+    });
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'update',
+        uuid: 'db-uuid-1',
+        postgres_password: 'plain-secret',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.postgres_password).toBe('***');
+  });
+
+  it('rejects unknown update fields via strict schema per SAF-03', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'update',
+        uuid: 'db-uuid-1',
+        unexpected_field: 'foo',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(updateDatabase).not.toHaveBeenCalled();
+  });
+
+  it('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-18', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'update',
+        name: 'postgres',
+        is_public: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(updateDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe('database delete', () => {
+  beforeEach(() => {
+    vi.mocked(deleteDatabase).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(deleteDatabase).mockResolvedValue({ message: 'Database deleted.' });
+  });
+
+  it('deletes database when confirm:true with safe defaults per DB-03', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'delete', uuid: 'db-uuid-1', confirm: true },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(deleteDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      {
+        delete_volumes: false,
+        delete_configurations: false,
+        docker_cleanup: false,
+        delete_connected_networks: false,
+      },
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ ok: true, uuid: 'db-uuid-1' });
+  });
+
+  it('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per DB-03', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'delete', uuid: 'db-uuid-1', confirm: false },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
+
+  it('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-18', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      { action: 'delete', name: 'postgres', confirm: true },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe('database delete_preview', () => {
+  beforeEach(() => {
+    vi.mocked(deleteDatabase).mockReset();
+    vi.mocked(fetchDatabase).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchDatabase).mockResolvedValue(mockDatabase);
+  });
+
+  it('returns would_delete preview without calling deleteDatabase', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      { uuid: 'child-1', name: 'linked-app', type: 'application' },
+    ]);
+
+    const result = await handleDatabaseAction(
+      { action: 'delete_preview', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(deleteDatabase).not.toHaveBeenCalled();
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({
+      uuid: 'db-uuid-1',
+      would_delete: true,
+    });
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.child_resources)).toBe(true);
+  });
+
+  it('includes resources with database_uuid parent link and warning', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'child-1',
+        name: 'linked-app',
+        type: 'application',
+        database_uuid: 'db-uuid-1',
+      },
+      { uuid: 'other', name: 'unrelated', type: 'application' },
+    ]);
+
+    const result = await handleDatabaseAction(
+      { action: 'delete_preview', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.child_resources).toEqual([
+      { uuid: 'child-1', name: 'linked-app', type: 'application' },
+    ]);
+    expect(data.warning).toMatch(/child resources/i);
   });
 });
