@@ -195,6 +195,85 @@ describe('COOLIFY_CONFIRM_REQUIRED', () => {
   });
 });
 
+describe('COOLIFY_VALIDATION_ERROR', () => {
+  it('is a valid CoolifyErrorCode literal', () => {
+    const code: CoolifyErrorCode = 'COOLIFY_VALIDATION_ERROR';
+    expect(code).toBe('COOLIFY_VALIDATION_ERROR');
+  });
+
+  it('RECOVERY_HINTS mentions MCP Zod validation and service.create for dockercompose', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR;
+    expect(hints).toHaveLength(2);
+    expect(hints[0]).toMatch(/MCP Zod validation/i);
+    expect(hints[1]).toMatch(/dockercompose.*service\.create/i);
+  });
+
+  it('wrapMcpError preserves COOLIFY_VALIDATION_ERROR with recovery hints', () => {
+    const result = wrapMcpError(
+      new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'build_pack dockercompose not supported on application.create',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      }),
+    );
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.recoveryHints[1]).toContain(
+      'service.create',
+    );
+  });
+});
+
+describe('409 conflicts passthrough', () => {
+  it('toStructuredError attaches conflicts array from response._data on HTTP 409', () => {
+    const conflicts = [
+      {
+        domain: 'taken.example.com',
+        resource_name: 'other-app',
+        resource_uuid: 'app-other',
+        resource_type: 'application',
+        message: 'Domain already in use',
+      },
+    ];
+    const fetchError = {
+      response: {
+        status: 409,
+        _data: { message: 'Domain conflict', conflicts },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_409');
+    expect(envelope.httpStatus).toBe(409);
+    expect(envelope.message).toBe('Domain conflict');
+    expect(envelope.data?.conflicts).toEqual(conflicts);
+  });
+
+  it('toStructuredError omits data.conflicts when response has no conflicts array', () => {
+    const fetchError = {
+      response: {
+        status: 409,
+        _data: {
+          message: 'Resource has dependents',
+          dependent_uuids: ['dep-1'],
+        },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_409');
+    expect(envelope.data?.conflicts).toBeUndefined();
+  });
+
+  it('wrapMcpError passes conflicts through without redacting domain names', () => {
+    const conflicts = [{ domain: 'app.example.com', message: 'in use' }];
+    const result = wrapMcpError({
+      response: {
+        status: 409,
+        _data: { message: 'Conflict', conflicts },
+      },
+    });
+    expect(result.structuredContent.error.data?.conflicts).toEqual(conflicts);
+  });
+});
+
 describe('toStructuredError', () => {
   it('extracts Coolify message from ofetch FetchError response._data.message', () => {
     const fetchError = {

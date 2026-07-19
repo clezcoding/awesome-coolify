@@ -11,7 +11,8 @@ export type CoolifyErrorCode =
   | 'COOLIFY_AMBIGUOUS_MATCH'
   | 'COOLIFY_403_SENSITIVE_REQUIRED'
   | 'COOLIFY_CONFIRM_REQUIRED'
-  | 'COOLIFY_SSH_UNREACHABLE';
+  | 'COOLIFY_SSH_UNREACHABLE'
+  | 'COOLIFY_VALIDATION_ERROR';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -77,6 +78,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
     'Confirm the private key UUID is the one authorized on the target host.',
     'Check firewall rules and that the SSH service is running on the target.',
   ],
+  COOLIFY_VALIDATION_ERROR: [
+    'Payload rejected by MCP Zod validation before any Coolify API call — fix the offending field paths in the error message.',
+    "For build_pack='dockercompose' use service.create (Phase 11) — application dockercompose create is not supported.",
+  ],
 };
 
 function sanitizeMessage(message: string): string {
@@ -112,6 +117,14 @@ function extractCoolifyMessage(data: unknown): string | undefined {
     return message.trim();
   }
   return undefined;
+}
+
+function extractConflicts(data: unknown): unknown[] | undefined {
+  if (!isRecord(data)) {
+    return undefined;
+  }
+  const conflicts = data.conflicts;
+  return Array.isArray(conflicts) ? conflicts : undefined;
 }
 
 export function mapApiError(
@@ -194,7 +207,19 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
     extractCoolifyMessage(fetchError.data);
 
   if (typeof status === 'number') {
-    return mapApiError(error, status, coolifyMessage);
+    const envelope = mapApiError(error, status, coolifyMessage);
+    const responseData = fetchError.response?._data ?? fetchError.data;
+    const conflicts =
+      status === 409 ? extractConflicts(responseData) : undefined;
+
+    if (conflicts !== undefined) {
+      return {
+        ...envelope,
+        data: { ...envelope.data, conflicts },
+      };
+    }
+
+    return envelope;
   }
 
   return mapApiError(error);
