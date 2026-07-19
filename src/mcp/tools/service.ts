@@ -1066,6 +1066,18 @@ async function handleServiceDelete(
   );
 }
 
+function mapNestedChildResources(
+  resources: unknown[],
+  fallbackType: string,
+): Array<{ uuid: string; name?: string; type?: string }> {
+  return resources.filter(isRecord).map((resource) => ({
+    uuid: String(resource.uuid ?? ''),
+    name: resource.name != null ? String(resource.name) : undefined,
+    type:
+      resource.type != null ? String(resource.type) : fallbackType,
+  }));
+}
+
 async function handleServiceDeletePreview(
   parsed: DeletePreviewAction,
   env: EnvConfig,
@@ -1075,20 +1087,25 @@ async function handleServiceDeletePreview(
     env,
   );
 
-  const rawResources = await fetchResources(
+  // Coolify GET /services/{uuid} loads nested applications + databases
+  // (ServiceApplication / ServiceDatabase). Flat /resources has no service_uuid.
+  const raw = await fetchService(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
+    uuid,
     env.COOLIFY_VERIFY_SSL,
   );
-
-  const childResources = rawResources
-    .filter(isRecord)
-    .filter((resource) => String(resource.service_uuid ?? '') === uuid)
-    .map((resource) => ({
-      uuid: String(resource.uuid ?? ''),
-      name: resource.name != null ? String(resource.name) : undefined,
-      type: resource.type != null ? String(resource.type) : undefined,
-    }));
+  const record = isRecord(raw) ? raw : {};
+  const childResources = [
+    ...mapNestedChildResources(
+      Array.isArray(record.applications) ? record.applications : [],
+      'service-application',
+    ),
+    ...mapNestedChildResources(
+      Array.isArray(record.databases) ? record.databases : [],
+      'service-database',
+    ),
+  ];
 
   const response: {
     uuid: string;

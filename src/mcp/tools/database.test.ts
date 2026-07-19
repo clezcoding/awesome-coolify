@@ -926,4 +926,30 @@ describe('database delete_preview', () => {
     const data = result.data as Record<string, unknown>;
     expect(Array.isArray(data.child_resources)).toBe(true);
   });
+
+  it('includes resources with database_uuid parent link and warning', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'child-1',
+        name: 'linked-app',
+        type: 'application',
+        database_uuid: 'db-uuid-1',
+      },
+      { uuid: 'other', name: 'unrelated', type: 'application' },
+    ]);
+
+    const result = await handleDatabaseAction(
+      { action: 'delete_preview', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.child_resources).toEqual([
+      { uuid: 'child-1', name: 'linked-app', type: 'application' },
+    ]);
+    expect(data.warning).toMatch(/child resources/i);
+  });
 });

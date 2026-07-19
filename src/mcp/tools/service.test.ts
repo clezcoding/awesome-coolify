@@ -996,10 +996,6 @@ describe('service delete_preview', () => {
   });
 
   it('returns would_delete preview without calling deleteService', async () => {
-    vi.mocked(fetchResources).mockResolvedValue([
-      { uuid: 'child-1', name: 'linked-resource', type: 'application' },
-    ]);
-
     const result = await handleServiceAction(
       { action: 'delete_preview', uuid: 'svc-uuid-1' },
       testEnv,
@@ -1015,5 +1011,28 @@ describe('service delete_preview', () => {
     });
     const data = result.data as Record<string, unknown>;
     expect(Array.isArray(data.child_resources)).toBe(true);
+  });
+
+  it('lists nested service applications/databases as child_resources with warning', async () => {
+    vi.mocked(fetchService).mockResolvedValue({
+      ...mockService,
+      applications: [{ uuid: 'child-1', name: 'web', type: 'service-application' }],
+      databases: [{ uuid: 'child-db-1', name: 'pg', type: 'service-database' }],
+    });
+
+    const result = await handleServiceAction(
+      { action: 'delete_preview', uuid: 'svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.child_resources).toEqual([
+      { uuid: 'child-1', name: 'web', type: 'service-application' },
+      { uuid: 'child-db-1', name: 'pg', type: 'service-database' },
+    ]);
+    expect(data.warning).toMatch(/child resources/i);
   });
 });
