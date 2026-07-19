@@ -1,5 +1,11 @@
 import * as z from 'zod/v4';
-import { readFileSync, realpathSync } from 'node:fs';
+import {
+  closeSync,
+  fstatSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+} from 'node:fs';
 import path from 'node:path';
 import type { EnvConfig } from '../config/env.js';
 import {
@@ -760,7 +766,19 @@ function readBoundedComposeFile(composeFilePath: string): string {
     });
   }
 
-  return readFileSync(realPath, 'utf8');
+  const fd = openSync(realPath, 'r');
+  try {
+    if (fstatSync(fd).size > COMPOSE_FILE_SIZE_LIMIT) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'compose_file exceeds 1 MiB limit',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
+    return readFileSync(fd, 'utf8');
+  } finally {
+    closeSync(fd);
+  }
 }
 
 async function handleServiceCreate(

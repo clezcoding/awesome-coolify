@@ -22,6 +22,9 @@ vi.mock('../../api/client.js', () => ({
 vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
   realpathSync: vi.fn((p: string) => p),
+  openSync: vi.fn(() => 42),
+  fstatSync: vi.fn(() => ({ size: 64 })),
+  closeSync: vi.fn(),
 }));
 
 import {
@@ -36,7 +39,13 @@ import {
   updateService,
   deleteService,
 } from '../../api/client.js';
-import { readFileSync, realpathSync } from 'node:fs';
+import {
+  closeSync,
+  fstatSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+} from 'node:fs';
 import path from 'node:path';
 
 const testEnv: EnvConfig = {
@@ -547,7 +556,15 @@ describe('service create', () => {
     vi.mocked(createService).mockReset();
     vi.mocked(readFileSync).mockReset();
     vi.mocked(realpathSync).mockReset();
+    vi.mocked(openSync).mockReset();
+    vi.mocked(fstatSync).mockReset();
+    vi.mocked(closeSync).mockReset();
     vi.mocked(realpathSync).mockImplementation((p: string) => String(p));
+    vi.mocked(openSync).mockReturnValue(42);
+    vi.mocked(fstatSync).mockReturnValue({ size: 64 } as ReturnType<
+      typeof fstatSync
+    >);
+    vi.mocked(closeSync).mockReturnValue(undefined);
     vi.mocked(triggerServiceStart).mockReset();
     vi.mocked(createService).mockResolvedValue({
       uuid: 'svc-new-uuid',
@@ -619,7 +636,10 @@ describe('service create', () => {
       testEnv,
     );
 
-    expect(readFileSync).toHaveBeenCalledWith(composePath, 'utf8');
+    expect(openSync).toHaveBeenCalledWith(composePath, 'r');
+    expect(fstatSync).toHaveBeenCalledWith(42);
+    expect(readFileSync).toHaveBeenCalledWith(42, 'utf8');
+    expect(closeSync).toHaveBeenCalledWith(42);
     expect(createService).toHaveBeenCalledWith(
       testEnv.COOLIFY_URL,
       testEnv.COOLIFY_TOKEN,
@@ -646,6 +666,30 @@ describe('service create', () => {
     if (!isServiceErrorResult(result)) return;
     expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
     expect(result.structuredContent.error.message).toMatch(/escapes allowlisted root/i);
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it('rejects compose_file over 1 MiB before reading contents', async () => {
+    vi.mocked(fstatSync).mockReturnValue({
+      size: 1024 * 1024 + 1,
+    } as ReturnType<typeof fstatSync>);
+
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        compose_file: 'docker-compose.yml',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.message).toMatch(/1 MiB/);
+    expect(readFileSync).not.toHaveBeenCalled();
+    expect(closeSync).toHaveBeenCalledWith(42);
     expect(createService).not.toHaveBeenCalled();
   });
 
