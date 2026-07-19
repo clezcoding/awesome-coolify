@@ -18,7 +18,8 @@
     "higgsfield:fix": "bash scripts/fix-higgsfield.sh",
     "gsd:fix-verification": "node scripts/gsd-ensure-verification-fresh.mjs",
     "prepare": "husky",
-    "version": "changeset version"
+    "version": "changeset version",
+    "publint": "publint"
   },
   "files": [
     "dist",
@@ -63,6 +64,7 @@
     "@types/node": "^22.14.0",
     "@vitest/coverage-v8": "^4.1.10",
     "husky": "^9.1.7",
+    "publint": "^0.3.0",
     "tsup": "^8.5.1",
     "typescript": "^5.3.3",
     "vitest": "^4.1.10"
