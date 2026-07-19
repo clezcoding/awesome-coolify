@@ -859,7 +859,7 @@ describe('service update', () => {
     expect(updateService).not.toHaveBeenCalled();
   });
 
-  it.fails('rejects unknown update fields via strict schema per SAF-03', async () => {
+  it('rejects unknown update fields via strict schema per SAF-03', async () => {
     const result = await handleServiceAction(
       {
         action: 'update',

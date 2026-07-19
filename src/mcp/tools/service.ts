@@ -3,11 +3,13 @@ import { readFileSync } from 'node:fs';
 import type { EnvConfig } from '../config/env.js';
 import {
   createService,
+  deleteService,
   fetchResources,
   fetchService,
   triggerServiceRestart,
   triggerServiceStart,
   triggerServiceStop,
+  updateService,
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
@@ -209,6 +211,40 @@ function requireServiceCreateSource(
   }
 }
 
+function requireComposeXor(
+  data: { compose?: string; compose_file?: string },
+  ctx: z.RefinementCtx,
+): void {
+  const hasCompose =
+    typeof data.compose === 'string' && data.compose.length > 0;
+  const hasComposeFile =
+    typeof data.compose_file === 'string' && data.compose_file.length > 0;
+
+  if (hasCompose && hasComposeFile) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'Exactly one of compose (inline YAML) or compose_file (local path) is allowed on update',
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+const SERVICE_UPDATE_CURATED_FIELD_KEYS = [
+  'name',
+  'description',
+  'project_uuid',
+  'environment_name',
+  'environment_uuid',
+  'server_uuid',
+  'destination_uuid',
+  'instant_deploy',
+  'connect_to_docker_network',
+  'urls',
+  'force_domain_override',
+  'is_container_label_escape_enabled',
+] as const;
+
 const createActionSchema = z
   .object({
     action: z.literal('create'),
@@ -264,6 +300,110 @@ const createActionSchema = z
     requireProjectAndEnvironment(data, ctx);
   });
 
+const updateActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('update'),
+      uuid: z.string().optional().describe('Service UUID'),
+      name: z
+        .string()
+        .optional()
+        .describe('Service name substring or new name when uuid given'),
+      description: z.string().optional().describe('Service description'),
+      project_uuid: z.string().optional().describe('Project UUID'),
+      environment_name: z.string().optional().describe('Environment name'),
+      environment_uuid: z.string().optional().describe('Environment UUID'),
+      server_uuid: z.string().optional().describe('Server UUID'),
+      destination_uuid: z.string().optional().describe('Destination UUID'),
+      instant_deploy: z.boolean().optional().describe('Instant deploy flag'),
+      connect_to_docker_network: z
+        .boolean()
+        .optional()
+        .describe('Connect to Docker network'),
+      compose: z
+        .string()
+        .optional()
+        .describe(
+          'Inline Docker Compose YAML — MCP base64-encodes for the API',
+        ),
+      compose_file: z
+        .string()
+        .optional()
+        .describe('Local path to docker-compose.yml (max 1 MiB)'),
+      urls: z
+        .array(
+          z.object({
+            name: z.string(),
+            url: z.string(),
+          }),
+        )
+        .optional()
+        .describe('Domain URLs'),
+      force_domain_override: z
+        .boolean()
+        .default(false)
+        .describe('Override domain conflict on update'),
+      is_container_label_escape_enabled: z
+        .boolean()
+        .optional()
+        .describe('Container label escape enabled'),
+      reveal: z
+        .boolean()
+        .default(false)
+        .describe('Reveal masked secrets in full projection response'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireComposeXor(data, ctx);
+    }),
+  'update',
+);
+
+const deleteActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('delete'),
+      uuid: z.string().optional().describe('Service UUID'),
+      name: z.string().optional().describe('Service name substring'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for destructive delete'),
+      delete_volumes: z
+        .boolean()
+        .default(false)
+        .describe('Also delete attached volumes (default false)'),
+      delete_configurations: z
+        .boolean()
+        .default(false)
+        .describe('Also delete configurations (default false)'),
+      docker_cleanup: z
+        .boolean()
+        .default(false)
+        .describe('Run Docker cleanup (default false)'),
+      delete_connected_networks: z
+        .boolean()
+        .default(false)
+        .describe('Delete connected networks (default false)'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete',
+);
+
+const deletePreviewActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('delete_preview'),
+      uuid: z.string().optional().describe('Service UUID'),
+      name: z.string().optional().describe('Service name substring'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete_preview',
+);
+
 export const serviceActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('get'),
@@ -271,6 +411,9 @@ export const serviceActionSchema = z.discriminatedUnion('action', [
     ...sharedReadParamsSchema,
   }),
   createActionSchema,
+  updateActionSchema,
+  deleteActionSchema,
+  deletePreviewActionSchema,
   startActionSchema,
   stopActionSchema,
   restartActionSchema,
@@ -316,11 +459,35 @@ export type ServiceCreateResult = ReadResponse<
     }
 >;
 
+export type ServiceUpdateResult = ReadResponse<Record<string, unknown>>;
+
+export type ServiceDeleteResult = ReadResponse<{
+  ok: true;
+  uuid: string;
+  deleted: true;
+  delete_volumes: boolean;
+  delete_configurations: boolean;
+}>;
+
+export type ServiceDeletePreviewResult = ReadResponse<{
+  uuid: string;
+  child_resources: Array<{
+    uuid: string;
+    name?: string;
+    type?: string;
+  }>;
+  would_delete: true;
+  warning?: string;
+}>;
+
 export type ServiceActionResult =
   | ServiceGetResult
   | ServiceMutationResult
   | ServiceDeployResult
   | ServiceCreateResult
+  | ServiceUpdateResult
+  | ServiceDeleteResult
+  | ServiceDeletePreviewResult
   | McpErrorResult;
 
 type ServiceMatchable = FindableResource & { environment_name: string };
@@ -336,6 +503,9 @@ type MutationAction =
   | z.infer<typeof restartActionSchema>;
 type DeployAction = z.infer<typeof deployActionSchema>;
 type CreateAction = z.infer<typeof createActionSchema>;
+type UpdateAction = z.infer<typeof updateActionSchema>;
+type DeleteAction = z.infer<typeof deleteActionSchema>;
+type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -346,7 +516,11 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
     ((customIssue as { params?: { code?: CoolifyErrorCode } } | undefined)?.params
       ?.code as CoolifyErrorCode | undefined) ?? undefined;
 
-  if (!code && isRecord(args) && args.action === 'create') {
+  if (
+    !code &&
+    isRecord(args) &&
+    (args.action === 'create' || args.action === 'update')
+  ) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
 
@@ -701,6 +875,24 @@ export async function handleServiceAction(
     switch (parsed.action) {
       case 'create':
         return await handleServiceCreate(parsed, env);
+      case 'update':
+        throw new CoolifyApiError({
+          code: 'COOLIFY_422',
+          message: "Action 'update' handler not implemented",
+          recoveryHints: RECOVERY_HINTS.COOLIFY_422,
+        });
+      case 'delete':
+        throw new CoolifyApiError({
+          code: 'COOLIFY_422',
+          message: "Action 'delete' handler not implemented",
+          recoveryHints: RECOVERY_HINTS.COOLIFY_422,
+        });
+      case 'delete_preview':
+        throw new CoolifyApiError({
+          code: 'COOLIFY_422',
+          message: "Action 'delete_preview' handler not implemented",
+          recoveryHints: RECOVERY_HINTS.COOLIFY_422,
+        });
       case 'start':
       case 'stop':
       case 'restart':
