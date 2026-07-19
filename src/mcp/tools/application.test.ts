@@ -1624,3 +1624,359 @@ describe('application create', () => {
     expect(createPublicApplication).not.toHaveBeenCalled();
   });
 });
+
+describe('application update', () => {
+  beforeEach(() => {
+    vi.mocked(updateApplication).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      domains: 'https://new.example.com',
+      build_command: 'npm run build',
+      health_check_path: '/health',
+      custom_labels: 'key=value',
+    });
+  });
+
+  it.fails('patches curated fields via updateApplication per APP-17', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        domains: 'https://new.example.com',
+        build_command: 'npm run build',
+        health_check_path: '/health',
+        custom_labels: 'key=value',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(updateApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({
+        domains: 'https://new.example.com',
+        build_command: 'npm run build',
+        health_check_path: '/health',
+        custom_labels: 'key=value',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({
+      domains: 'https://new.example.com',
+      build_command: 'npm run build',
+    });
+  });
+
+  it.fails('passes HTTP basic auth fields to updateApplication per APP-19', async () => {
+    vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      is_http_basic_auth_enabled: true,
+      http_basic_auth_username: 'admin',
+      http_basic_auth_password: 'plain-secret',
+    });
+
+    await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        is_http_basic_auth_enabled: true,
+        http_basic_auth_username: 'admin',
+        http_basic_auth_password: 'plain-secret',
+      },
+      testEnv,
+    );
+
+    expect(updateApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({
+        is_http_basic_auth_enabled: true,
+        http_basic_auth_username: 'admin',
+        http_basic_auth_password: 'plain-secret',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('masks http_basic_auth_password unless reveal:true per SAF-04', async () => {
+    vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      http_basic_auth_username: 'admin',
+      http_basic_auth_password: 'plain-secret',
+    });
+
+    const result = await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        http_basic_auth_password: 'plain-secret',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.http_basic_auth_username).toBe('admin');
+    expect(data.http_basic_auth_password).toBe('***');
+  });
+
+  it.fails('returns plaintext http_basic_auth_password when reveal:true per SAF-04', async () => {
+    vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      http_basic_auth_username: 'admin',
+      http_basic_auth_password: 'plain-secret',
+    });
+
+    const result = await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        http_basic_auth_password: 'plain-secret',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.http_basic_auth_password).toBe('plain-secret');
+  });
+
+  it.fails('rejects unknown update fields via strict schema before API call per SAF-03', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        unexpected_field: 'foo',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(updateApplication).not.toHaveBeenCalled();
+  });
+
+  it.fails('maps update HTTP 409 to COOLIFY_409 with force_domain_override hint per APP-21', async () => {
+    const conflicts = [{ domain: 'taken.example.com', message: 'in use' }];
+    vi.mocked(updateApplication).mockRejectedValue(
+      Object.assign(new Error('Conflict'), {
+        response: {
+          status: 409,
+          _data: { conflicts },
+        },
+      }),
+    );
+
+    const result = await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        domains: 'https://taken.example.com',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_409');
+    expect(result.structuredContent.error.data?.conflicts).toEqual(conflicts);
+    expect(
+      result.structuredContent.error.recoveryHints.join(' '),
+    ).toMatch(/force_domain_override:\s*true/i);
+  });
+
+  it.fails('passes force_domain_override:true on update happy path per APP-21', async () => {
+    vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      domains: 'https://override.example.com',
+    });
+
+    const result = await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        domains: 'https://override.example.com',
+        force_domain_override: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(updateApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({ force_domain_override: true }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'app-uuid-1' });
+  });
+
+  it.fails('resolves update by name single-hit via fetchResources per D-21', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceApp1]);
+
+    await handleApplicationAction(
+      {
+        action: 'update',
+        name: 'myapp',
+        domains: 'https://by-name.example.com',
+      },
+      testEnv,
+    );
+
+    expect(updateApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({ domains: 'https://by-name.example.com' }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on update multi-match without mutation per D-21', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceApp1,
+      mockResourceApp2,
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'update', name: 'app', domains: 'https://x.example.com' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(updateApplication).not.toHaveBeenCalled();
+  });
+});
+
+describe('application delete', () => {
+  beforeEach(() => {
+    vi.mocked(deleteApplication).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(deleteApplication).mockResolvedValue({ message: 'Deleted.' });
+  });
+
+  it.fails('deletes application when confirm:true with safe defaults per APP-18', async () => {
+    const result = await handleApplicationAction(
+      { action: 'delete', uuid: 'app-uuid-1', confirm: true },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(deleteApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      {
+        delete_volumes: false,
+        delete_configurations: false,
+        docker_cleanup: false,
+        delete_connected_networks: false,
+      },
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ ok: true, uuid: 'app-uuid-1' });
+  });
+
+  it.fails('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per SAF-01', async () => {
+    const result = await handleApplicationAction(
+      { action: 'delete', uuid: 'app-uuid-1', confirm: false },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteApplication).not.toHaveBeenCalled();
+  });
+
+  it.fails('passes all four safe-delete flags false by default per SAF-02', async () => {
+    await handleApplicationAction(
+      { action: 'delete', uuid: 'app-uuid-1', confirm: true },
+      testEnv,
+    );
+
+    expect(deleteApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      {
+        delete_volumes: false,
+        delete_configurations: false,
+        docker_cleanup: false,
+        delete_connected_networks: false,
+      },
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('resolves delete by fqdn single-hit per D-21', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([mockResourceApp1]);
+
+    await handleApplicationAction(
+      { action: 'delete', fqdn: 'example.com', confirm: true },
+      testEnv,
+    );
+
+    expect(deleteApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({ delete_volumes: false }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+});
+
+describe('application delete_preview', () => {
+  beforeEach(() => {
+    vi.mocked(deleteApplication).mockReset();
+    vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchApplication).mockResolvedValue(mockApplication);
+  });
+
+  it.fails('returns would_delete preview without calling deleteApplication per Phase 8/9 parity', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      { uuid: 'dep-1', name: 'latest-deploy', type: 'deployment' },
+    ]);
+
+    const result = await handleApplicationAction(
+      { action: 'delete_preview', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(deleteApplication).not.toHaveBeenCalled();
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({
+      uuid: 'app-uuid-1',
+      would_delete: true,
+    });
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.child_resources)).toBe(true);
+  });
+});
