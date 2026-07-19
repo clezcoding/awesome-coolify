@@ -1,6 +1,11 @@
 import * as z from 'zod/v4';
 import type { EnvConfig } from '../config/env.js';
 import {
+  createDockerfileApplication,
+  createDockerimageApplication,
+  createPrivateDeployKeyApplication,
+  createPrivateGithubAppApplication,
+  createPublicApplication,
   fetchApplication,
   fetchApplicationLogs,
   fetchDeployment,
@@ -10,7 +15,10 @@ import {
   triggerAppStop,
   triggerDeploy,
 } from '../../api/client.js';
-import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
+import {
+  buildProjectEnvironmentIndex,
+  resolveProjectUuid,
+} from '../../utils/project-lookup.js';
 import {
   projectApplicationSummary,
   projectDeploymentSummary,
@@ -24,6 +32,7 @@ import {
   CoolifyApiError,
   RECOVERY_HINTS,
   wrapMcpError,
+  type CoolifyErrorCode,
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
@@ -235,7 +244,161 @@ export const applicationLogsSchema = z
     }
   });
 
-export const applicationActionSchema = z.discriminatedUnion('action', [
+const createSharedFields = {
+  action: z.literal('create'),
+  project_uuid: z.string().optional().describe('Project UUID'),
+  project_name: z.string().optional().describe('Project name for lookup'),
+  environment_name: z.string().optional().describe('Environment name'),
+  environment_uuid: z.string().optional().describe('Environment UUID'),
+  server_uuid: z.string().describe('Server UUID (required)'),
+  name: z.string().optional().describe('Application name'),
+  description: z.string().optional().describe('Application description'),
+  domains: z.string().optional().describe('Comma-separated domain list'),
+  ports_exposes: z.string().optional().describe('Ports to expose'),
+  ports_mappings: z.string().optional().describe('Port mappings'),
+  instant_deploy: z
+    .boolean()
+    .default(false)
+    .describe('Queue deploy immediately after create (fire-and-forget)'),
+  force_domain_override: z
+    .boolean()
+    .default(false)
+    .describe('Override domain conflict on create'),
+  ...mutationResponseParamsSchema,
+};
+
+const gitBuildPackSchema = z
+  .enum(['nixpacks', 'railpack', 'static', 'dockerfile', 'dockercompose'])
+  .superRefine((val, ctx) => {
+    if (val === 'dockercompose') {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          "build_pack='dockercompose' is not supported on application create — use service.create (Phase 11)",
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+  });
+
+function requireProjectAndEnvironment(
+  data: {
+    project_uuid?: string;
+    project_name?: string;
+    environment_name?: string;
+    environment_uuid?: string;
+  },
+  ctx: z.RefinementCtx,
+): void {
+  if (!data.project_uuid && !data.project_name) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'Either project_uuid or project_name is required for application create',
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+  if (!data.environment_name && !data.environment_uuid) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'Either environment_name or environment_uuid is required for application create',
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+function rejectDockercomposeBuildPack(
+  data: { build_pack?: string },
+  ctx: z.RefinementCtx,
+): void {
+  if (data.build_pack === 'dockercompose') {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        "build_pack='dockercompose' is not supported on application create — use service.create (Phase 11)",
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+const publicGitCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('public_git'),
+    git_repository: z.string().describe('Public git repository URL'),
+    git_branch: z.string().describe('Git branch to deploy'),
+    build_pack: gitBuildPackSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    requireProjectAndEnvironment(data, ctx);
+    rejectDockercomposeBuildPack(data, ctx);
+  });
+
+const privateDeployKeyCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('private_deploy_key'),
+    private_key_uuid: z.string().describe('Private deploy key UUID'),
+    git_repository: z.string().describe('Private git repository URL'),
+    git_branch: z.string().describe('Git branch to deploy'),
+    build_pack: gitBuildPackSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    requireProjectAndEnvironment(data, ctx);
+    rejectDockercomposeBuildPack(data, ctx);
+  });
+
+const privateGithubAppCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('private_github_app'),
+    github_app_uuid: z.string().describe('GitHub app UUID'),
+    git_repository: z.string().describe('Private git repository URL'),
+    git_branch: z.string().describe('Git branch to deploy'),
+    build_pack: gitBuildPackSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    requireProjectAndEnvironment(data, ctx);
+    rejectDockercomposeBuildPack(data, ctx);
+  });
+
+const dockerfileCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('dockerfile'),
+    dockerfile: z.string().describe('Dockerfile content'),
+    build_pack: z.literal('dockerfile').optional(),
+  })
+  .strict()
+  .superRefine(requireProjectAndEnvironment);
+
+const dockerimageCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('dockerimage'),
+    docker_registry_image_name: z
+      .string()
+      .describe('Docker registry image name'),
+    docker_registry_image_tag: z
+      .string()
+      .optional()
+      .describe('Docker registry image tag'),
+  })
+  .strict()
+  .superRefine(requireProjectAndEnvironment);
+
+const createActionSchema = z.discriminatedUnion('source_type', [
+  publicGitCreateSchema,
+  privateDeployKeyCreateSchema,
+  privateGithubAppCreateSchema,
+  dockerfileCreateSchema,
+  dockerimageCreateSchema,
+]);
+
+const lifecycleActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('get'),
     uuid: z.string().describe('Application UUID'),
@@ -246,6 +409,11 @@ export const applicationActionSchema = z.discriminatedUnion('action', [
   restartActionSchema,
   deployActionSchema,
   applicationLogsSchema,
+]);
+
+export const applicationActionSchema = z.union([
+  lifecycleActionSchema,
+  createActionSchema,
 ]);
 
 export type ApplicationAction = z.infer<typeof applicationActionSchema>;
@@ -307,11 +475,25 @@ export type ApplicationLogsResult = ReadResponse<{
   entries_shown?: number;
 }>;
 
+export type ApplicationCreateResult = ReadResponse<{
+  uuid: string;
+  ok?: boolean;
+  deploy?: {
+    status: 'queued' | 'not_triggered' | 'failed_to_queue';
+    deployment_uuid?: string;
+    error?: string;
+  };
+  logs_available?: ReturnType<typeof logsAvailableHint>;
+  hints?: string[];
+  recoveryHints?: string[];
+}>;
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
   | ApplicationDeployResult
   | ApplicationLogsResult
+  | ApplicationCreateResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -321,6 +503,50 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 type MutationAction = z.infer<typeof startActionSchema>;
 type DeployAction = z.infer<typeof deployActionSchema>;
 type LogsAction = z.infer<typeof applicationLogsSchema>;
+type CreateAction = z.infer<typeof createActionSchema>;
+
+function throwValidationError(error: z.ZodError, args: unknown): never {
+  const customIssue = error.issues.find(
+    (issue) =>
+      typeof (issue as { params?: { code?: string } }).params?.code === 'string',
+  );
+  let code =
+    ((customIssue as { params?: { code?: CoolifyErrorCode } } | undefined)?.params
+      ?.code as CoolifyErrorCode | undefined) ?? undefined;
+
+  if (!code && isRecord(args) && args.action === 'create') {
+    code = 'COOLIFY_VALIDATION_ERROR';
+  }
+
+  const resolvedCode = code ?? 'COOLIFY_422';
+
+  throw new CoolifyApiError({
+    code: resolvedCode,
+    message: error.issues.map((issue) => issue.message).join('; '),
+    recoveryHints:
+      RECOVERY_HINTS[resolvedCode] ?? RECOVERY_HINTS.COOLIFY_422,
+  });
+}
+
+function parseApplicationAction(args: unknown): ApplicationAction {
+  const parsed = applicationActionSchema.safeParse(args);
+  if (!parsed.success) {
+    throwValidationError(parsed.error, args);
+  }
+  return parsed.data;
+}
+
+function omitUndefined(
+  body: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
 
 type AppIdentifierInput = {
   uuid?: string;
@@ -797,14 +1023,191 @@ async function handleApplicationLogs(
   );
 }
 
-export async function handleApplicationAction(
-  args: ApplicationAction,
+async function buildCreateApiBody(
+  parsed: CreateAction,
   env: EnvConfig,
-): Promise<ApplicationActionResult> {
-  const parsed = applicationActionSchema.parse(args);
+): Promise<Record<string, unknown>> {
+  const project_uuid = parsed.project_uuid
+    ? parsed.project_uuid
+    : await resolveProjectUuid(undefined, parsed.project_name, env);
+
+  const body: Record<string, unknown> = {
+    project_uuid,
+    server_uuid: parsed.server_uuid,
+    instant_deploy: parsed.instant_deploy,
+    force_domain_override: parsed.force_domain_override,
+    name: parsed.name,
+    description: parsed.description,
+    domains: parsed.domains,
+    ports_exposes: parsed.ports_exposes,
+    ports_mappings: parsed.ports_mappings,
+  };
+
+  if (parsed.environment_name) {
+    body.environment_name = parsed.environment_name;
+  }
+  if (parsed.environment_uuid) {
+    body.environment_uuid = parsed.environment_uuid;
+  }
+
+  switch (parsed.source_type) {
+    case 'public_git':
+      body.git_repository = parsed.git_repository;
+      body.git_branch = parsed.git_branch;
+      body.build_pack = parsed.build_pack;
+      break;
+    case 'private_deploy_key':
+      body.private_key_uuid = parsed.private_key_uuid;
+      body.git_repository = parsed.git_repository;
+      body.git_branch = parsed.git_branch;
+      body.build_pack = parsed.build_pack;
+      break;
+    case 'private_github_app':
+      body.github_app_uuid = parsed.github_app_uuid;
+      body.git_repository = parsed.git_repository;
+      body.git_branch = parsed.git_branch;
+      body.build_pack = parsed.build_pack;
+      break;
+    case 'dockerfile':
+      body.dockerfile = parsed.dockerfile;
+      if (parsed.build_pack) {
+        body.build_pack = parsed.build_pack;
+      }
+      break;
+    case 'dockerimage':
+      body.docker_registry_image_name = parsed.docker_registry_image_name;
+      body.docker_registry_image_tag = parsed.docker_registry_image_tag;
+      break;
+  }
+
+  return omitUndefined(body);
+}
+
+async function handleApplicationCreate(
+  parsed: CreateAction,
+  env: EnvConfig,
+): Promise<ApplicationCreateResult> {
+  const body = await buildCreateApiBody(parsed, env);
+
+  const callCreate = async (): Promise<unknown> => {
+    switch (parsed.source_type) {
+      case 'public_git':
+        return createPublicApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'private_deploy_key':
+        return createPrivateDeployKeyApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'private_github_app':
+        return createPrivateGithubAppApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'dockerfile':
+        return createDockerfileApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'dockerimage':
+        return createDockerimageApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+    }
+  };
+
+  const raw = await callCreate();
+  const created = isRecord(raw) ? raw : {};
+  const appUuid = String(created.uuid ?? '');
+
+  if (!parsed.instant_deploy) {
+    return buildReadResponse(
+      {
+        uuid: appUuid,
+        deploy: { status: 'not_triggered' as const },
+        hints: ['Use application.deploy to trigger a deployment'],
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
 
   try {
+    const deployRaw = await triggerDeploy(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      appUuid,
+      false,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const deploymentUuid = extractDeploymentUuid(deployRaw);
+
+    return buildReadResponse(
+      {
+        uuid: appUuid,
+        deploy: {
+          status: 'queued' as const,
+          deployment_uuid: deploymentUuid,
+        },
+        logs_available: logsAvailableHint(deploymentUuid),
+        hints: [
+          'Use deployment.get with deployment_uuid to poll status',
+          'Use application.deploy with wait:true to block until terminal',
+        ],
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return buildReadResponse(
+      {
+        ok: true,
+        uuid: appUuid,
+        deploy: {
+          status: 'failed_to_queue' as const,
+          error: message,
+        },
+        recoveryHints: [
+          'Application was created successfully — retry deployment with application.deploy.',
+          'Check Coolify server logs if deploy queue failures persist.',
+        ],
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
+}
+
+export async function handleApplicationAction(
+  args: unknown,
+  env: EnvConfig,
+): Promise<ApplicationActionResult> {
+  try {
+    const parsed = parseApplicationAction(args);
+
     switch (parsed.action) {
+      case 'create':
+        return await handleApplicationCreate(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':
