@@ -45,7 +45,7 @@ Full phase details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 8. Keys & Server CRUD | v2.0 | 5/5 | Complete    | 2026-07-16 |
 | 9. Project & Environment CRUD | v2.0 | 5 | Complete    | 2026-07-18 |
 | 10. Application CRUD & Safety | v2.0 | 14 | Complete    | 2026-07-19 |
-| 11. Service & Database CRUD | v2.0 | 9 | In Progress|  |
+| 11. Service & Database CRUD | v2.0 | 9 | Complete    | 2026-07-19 |
 | 12. Environment Variables & Smart Sync | v2.0 | 6 | Planned | — |
 | 13. Database Backups | v2.0 | 6 | Planned | — |
 
