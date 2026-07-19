@@ -1,6 +1,5 @@
 {
   "name": "awesome-coolify-mcp",
-  "mcpName": "io.github.clezcoding/awesome-coolify",
   "version": "0.1.2",
   "description": "MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools",
   "type": "module",
