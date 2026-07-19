@@ -1,5 +1,6 @@
-# Publishes the MCP server to the MCP Registry on every v* tag.
-# The npm package itself is published separately by publish.yml via OIDC Trusted Publishing.
+# Publishes MCP server metadata to the MCP Registry when a release tag is pushed.
+# npm package is published separately by publish.yml (OIDC Trusted Publishing).
+# Requires npm package at the same version with matching mcpName in package.json.
 
 name: Publish MCP Server
 
@@ -10,13 +11,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Semver version to publish (e.g. 0.1.1) — manual backfill when tag predates workflow"
+        description: "Semver version to publish (e.g. 0.1.2) — run after npm publish succeeds"
         required: true
         type: string
 
 permissions:
   contents: read
   id-token: write
+
+env:
+  MCP_PUBLISHER_VERSION: v1.8.0
 
 jobs:
   publish-mcp:
@@ -34,13 +38,23 @@ jobs:
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish MCP Server
-        uses: OtherVibes/mcp-publish-action@v1
-        with:
-          name: io.github.clezcoding/awesome-coolify
-          description: "Coolify 4.1.x MCP server — deploy, diagnose, and manage apps, services, and databases"
-          version: ${{ steps.ver.outputs.version }}
-          registry_type: npm
-          identifier: awesome-coolify-mcp
-          transport_type: stdio
-          website_url: https://github.com/clezcoding/awesome-coolify
+      - name: Patch server.json version
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' mcp/server.json > mcp/server.json.tmp
+          mv mcp/server.json.tmp mcp/server.json
+          cat mcp/server.json
+
+      - name: Install MCP Publisher
+        run: |
+          curl -fsSL \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+          sudo install -m 755 mcp-publisher /usr/local/bin/mcp-publisher
+          mcp-publisher --version || true
+
+      - name: Login to MCP Registry (GitHub OIDC)
+        run: mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: mcp-publisher publish mcp/server.json
