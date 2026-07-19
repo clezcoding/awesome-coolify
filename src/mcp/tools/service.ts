@@ -1,5 +1,6 @@
 import * as z from 'zod/v4';
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
+import path from 'node:path';
 import type { EnvConfig } from '../config/env.js';
 import {
   createService,
@@ -700,6 +701,53 @@ async function handleServiceDeploy(
 
 const COMPOSE_FILE_SIZE_LIMIT = 1024 * 1024;
 
+function readBoundedComposeFile(composeFilePath: string): string {
+  const ext = path.extname(composeFilePath).toLowerCase();
+  if (ext !== '.yml' && ext !== '.yaml') {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'compose_file must use a .yml or .yaml extension',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  let root: string;
+  try {
+    root = realpathSync(process.cwd());
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Cannot resolve compose_file allowlist root: ${message}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const resolved = path.resolve(root, composeFilePath);
+  let realPath: string;
+  try {
+    realPath = realpathSync(resolved);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Cannot read compose_file at ${composeFilePath}: ${message}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const rootPrefix = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+  if (realPath !== root && !realPath.startsWith(rootPrefix)) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `compose_file path escapes allowlisted root (${root})`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  return readFileSync(realPath, 'utf8');
+}
+
 async function handleServiceCreate(
   parsed: CreateAction,
   env: EnvConfig,
@@ -713,16 +761,7 @@ async function handleServiceCreate(
   let composeYaml: string | undefined;
 
   if (parsed.compose_file) {
-    try {
-      composeYaml = readFileSync(parsed.compose_file, 'utf8');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new CoolifyApiError({
-        code: 'COOLIFY_VALIDATION_ERROR',
-        message: `Cannot read compose_file at ${parsed.compose_file}: ${message}`,
-        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
-      });
-    }
+    composeYaml = readBoundedComposeFile(parsed.compose_file);
 
     if (Buffer.byteLength(composeYaml, 'utf8') > COMPOSE_FILE_SIZE_LIMIT) {
       throw new CoolifyApiError({
@@ -924,16 +963,7 @@ async function handleServiceUpdate(
   let composeYaml: string | undefined;
 
   if (parsed.compose_file) {
-    try {
-      composeYaml = readFileSync(parsed.compose_file, 'utf8');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new CoolifyApiError({
-        code: 'COOLIFY_VALIDATION_ERROR',
-        message: `Cannot read compose_file at ${parsed.compose_file}: ${message}`,
-        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
-      });
-    }
+    composeYaml = readBoundedComposeFile(parsed.compose_file);
 
     if (Buffer.byteLength(composeYaml, 'utf8') > COMPOSE_FILE_SIZE_LIMIT) {
       throw new CoolifyApiError({

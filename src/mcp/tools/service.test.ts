@@ -21,6 +21,7 @@ vi.mock('../../api/client.js', () => ({
 
 vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
+  realpathSync: vi.fn((p: string) => p),
 }));
 
 import {
@@ -35,7 +36,8 @@ import {
   updateService,
   deleteService,
 } from '../../api/client.js';
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
+import path from 'node:path';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -525,6 +527,8 @@ describe('service create', () => {
   beforeEach(() => {
     vi.mocked(createService).mockReset();
     vi.mocked(readFileSync).mockReset();
+    vi.mocked(realpathSync).mockReset();
+    vi.mocked(realpathSync).mockImplementation((p: string) => String(p));
     vi.mocked(triggerServiceStart).mockReset();
     vi.mocked(createService).mockResolvedValue({
       uuid: 'svc-new-uuid',
@@ -584,17 +588,19 @@ describe('service create', () => {
 
   it('reads compose_file and encodes to base64 per SVC-07', async () => {
     vi.mocked(readFileSync).mockReturnValue(sampleComposeYaml);
+    const composePath = path.join(process.cwd(), 'docker-compose.yml');
+    vi.mocked(realpathSync).mockImplementation((p: string) => String(p));
 
     await handleServiceAction(
       {
         action: 'create',
-        compose_file: '/path/to/docker-compose.yml',
+        compose_file: 'docker-compose.yml',
         ...baseServiceCreateFields,
       },
       testEnv,
     );
 
-    expect(readFileSync).toHaveBeenCalledWith('/path/to/docker-compose.yml', 'utf8');
+    expect(readFileSync).toHaveBeenCalledWith(composePath, 'utf8');
     expect(createService).toHaveBeenCalledWith(
       testEnv.COOLIFY_URL,
       testEnv.COOLIFY_TOKEN,
@@ -603,6 +609,42 @@ describe('service create', () => {
       }),
       testEnv.COOLIFY_VERIFY_SSL,
     );
+  });
+
+  it('rejects compose_file outside allowlisted cwd root', async () => {
+    vi.mocked(realpathSync).mockImplementation((p: string) => String(p));
+
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        compose_file: '/etc/passwd.yml',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.message).toMatch(/escapes allowlisted root/i);
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it('rejects compose_file without yml/yaml extension', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        compose_file: 'secrets.env',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.message).toMatch(/\.yml or \.yaml/i);
+    expect(createService).not.toHaveBeenCalled();
   });
 
   it('rejects create with both type and compose per SVC-07 XOR', async () => {
