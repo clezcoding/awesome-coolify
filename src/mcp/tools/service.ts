@@ -891,6 +891,10 @@ function buildUpdatePayload(
     if (key === 'force_domain_override') {
       continue;
     }
+    // Name is identifier when uuid omitted — do not treat search term as rename.
+    if (key === 'name' && !parsed.uuid) {
+      continue;
+    }
     const value = parsed[key];
     if (value !== undefined) {
       payload[key] = value;
