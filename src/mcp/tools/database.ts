@@ -852,7 +852,14 @@ async function handleDatabaseCreate(
 
   const raw = await createDatabaseByEngine(parsed, body, env);
   const created = isRecord(raw) ? raw : {};
-  const dbUuid = String(created.uuid ?? '');
+  const dbUuid = typeof created.uuid === 'string' ? created.uuid : '';
+  if (!dbUuid) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: 'Database create succeeded but response lacked uuid',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
   const projected = sanitizeFullProjection(created, parsed.reveal) as Record<
     string,
     unknown

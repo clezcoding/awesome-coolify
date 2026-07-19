@@ -833,7 +833,14 @@ async function handleServiceCreate(
 
   const created = isRecord(raw) ? raw : {};
   const projected = projectServiceCompose(created);
-  const serviceUuid = String(projected.uuid ?? '');
+  const serviceUuid = typeof projected.uuid === 'string' ? projected.uuid : '';
+  if (!serviceUuid) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: 'Service create succeeded but response lacked uuid',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
 
   if (!parsed.instant_deploy) {
     return buildReadResponse(
