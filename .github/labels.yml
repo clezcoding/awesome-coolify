@@ -93,6 +93,10 @@
   color: "0e8a16"
   description: "Approved and CI green — merge when convenient"
 
+- name: "automerge"
+  color: "0E8A16"
+  description: "Kodiak: squash-merge when required checks pass (.kodiak.toml)"
+
 # =============================================================================
 # GSD phase — project planning lifecycle (Discuss → Plan → Execute → Verify → Ship)
 # Used when work is tracked via GSD; planning artifacts stay local-only.

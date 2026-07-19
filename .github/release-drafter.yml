@@ -1,3 +1,5 @@
+# Categories must each have labels — only ONE category may omit labels
+# (uncategorized catch-all). Keywords-only categories are invalid in v6.
 name-template: "$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
 change-template: "* $TITLE (#$NUMBER) @$AUTHOR"
@@ -7,41 +9,44 @@ template: |
 
   $CHANGES
 
-  ## 🚀 Features
+  ## Contributors
 
-  $CONTRIBUTOR
+  $CONTRIBUTORS
 categories:
   - title: "🚀 Features"
     labels:
+      - "type: feature"
       - feature
       - enhancement
-    keywords:
-      - feat
-      - feature
   - title: "🐛 Bug Fixes"
     labels:
-      - fix
-      - bugfix
+      - "type: bug"
       - bug
-    keywords:
-      - fix
       - bugfix
+      - fix
   - title: "⚡ Performance"
-    keywords:
-      - perf
+    labels:
+      - "type: perf"
   - title: "♻️ Refactoring"
-    keywords:
-      - refactor
+    labels:
+      - "type: refactor"
   - title: "📚 Documentation"
-    keywords:
-      - docs
+    labels:
+      - "type: docs"
+      - documentation
   - title: "🧪 Tests"
-    keywords:
-      - test
+    labels:
+      - "type: test"
   - title: "🔧 Chores"
-    keywords:
-      - chore
+    labels:
+      - "type: chore"
+      - dependencies
       - ci
+  - title: "🔒 Security"
+    labels:
+      - "type: security"
+  # Single catch-all without labels (required limit: one)
+  - title: "📦 Other"
 exclude-labels:
   - skip-changelog
 filter-by-commitish: true

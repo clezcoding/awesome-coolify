@@ -28,7 +28,7 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 - `.github/workflows/pages.yml` — deployt `docs/` nach GitHub Pages bei Push auf `main` (Pfad `docs/**`)
 - `.github/workflows/release.yml` — Changesets-Workflow, erzeugt automatisch einen "Version Packages"-PR + GitHub Release
 - `.github/workflows/publish.yml` — npm-Veröffentlichung per Trusted Publishing (OIDC), kein `NPM_TOKEN`/2FA-Blocker mehr
-- `.github/workflows/release-drafter.yml` — Release Drafter, pflegt einen Draft-Release bei jedem Push/PR auf `main` (parallel zu Changesets `release.yml`)
+- `.github/workflows/release-drafter.yml` — Release Drafter, pflegt einen Draft-Release bei jedem Push auf `main` (parallel zu Changesets `release.yml`)
 - `.github/workflows/publish-comfy.yml` — Comfy-Org/publish-node-action Stub; läuft nur, wenn Repo-Variable `COMFY_PUBLISH_ENABLED=true`; benötigt `REGISTRY_ACCESS_TOKEN` Secret + `pyproject.toml` (siehe Workflow-Kommentar)
 - `.github/workflows/publish-mcp.yml` — OtherVibes/mcp-publish-action@v1; veröffentlicht den MCP-Server bei `v*`-Tags ins MCP-Registry (npm-Typ, Identifier `awesome-coolify-mcp`); OIDC `id-token: write`
 - Publint + MegaLinter Schritte in `ci.yml` ergänzt (siehe `## Lint & Quality` unten)
