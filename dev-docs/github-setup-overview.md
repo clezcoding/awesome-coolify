@@ -62,3 +62,30 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 ## .gitignore (öffentliche Oberfläche)
 
 Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/`, `.coolify-mcp/`, Secrets, Build-Artefakte, IDE-Dateien.
+
+## Audit-Status (2026-07-19)
+
+| Baustein | Status | Evidenz / Aktion |
+|----------|--------|------------------|
+| CI (lint/test/publint/megalinter) | ✅ grün | `ci.yml` aktiv; letzte Runs erfolgreich |
+| Branch Protection | ✅ grün | `main` erfordert `Lint, Test & Build` |
+| Labels Sync | ✅ grün | `automerge` + GSD-Labels via `labels.yml` |
+| Release (Changesets) | ✅ grün | Version-Packages-PRs merged |
+| npm Publish (OIDC) | ✅ grün | `awesome-coolify-mcp@0.1.1` auf npm |
+| Release Drafter | ✅ grün | Draft v0.1.2 |
+| Pages | ✅ grün | https://clezcoding.github.io/awesome-coolify/ |
+| Dependabot | ✅ grün | wöchentlich npm + actions |
+| Comfy Publish | ⏸️ Stub | `COMFY_PUBLISH_ENABLED` nicht gesetzt (absichtlich) |
+| MCP Publish | ⚠️ manuell | Workflow neu; `mcpName` ergänzt; **Backfill nötig** — siehe unten |
+| Kodiak | ⚠️ manuell | `.kodiak.toml` OK; **App-Install prüfen** |
+| Bugbot | N/A | Cursor-Produkt, kein Repo-Bot |
+
+### Manuelle Follow-ups
+
+1. **Kodiak GitHub App** — einmalig installieren: [Marketplace](https://github.com/marketplace/kodiakhq) → Repo `clezcoding/awesome-coolify` auswählen. Verifizieren mit `./scripts/setup-kodiak.sh`.
+2. **MCP Registry Backfill (v0.1.1)** — Tag `v0.1.1` existierte vor `publish-mcp.yml`. Manuell auslösen:
+   ```bash
+   gh workflow run publish-mcp.yml -f version=0.1.1
+   ```
+   Oder in GitHub UI: Actions → „Publish MCP Server“ → Run workflow → Version `0.1.1`.
+3. **Wiederholbare Prüfung** — `./scripts/verify-github-setup.sh` (Exit 0 mit Warnungen für manuelle Items; Exit 1 nur bei kritischen Repo-Lücken).
