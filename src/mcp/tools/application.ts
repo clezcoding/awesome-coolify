@@ -398,6 +398,185 @@ const createActionSchema = z.discriminatedUnion('source_type', [
   dockerimageCreateSchema,
 ]);
 
+const updateBuildPackSchema = z
+  .enum(['nixpacks', 'railpack', 'static', 'dockerfile', 'dockercompose'])
+  .optional()
+  .superRefine((val, ctx) => {
+    if (val === 'dockercompose') {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          "build_pack='dockercompose' is not supported on application update — use service.update (Phase 11)",
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+  });
+
+const updateActionSchema = requireMutationIdentifier(
+  z
+    .object({
+      action: z.literal('update'),
+      uuid: z.string().optional().describe('Application UUID'),
+      name: z.string().optional().describe('Application name substring or new name'),
+      fqdn: z.string().optional().describe('Application FQDN substring'),
+      description: z.string().optional().describe('Application description'),
+      domains: z.string().optional().describe('Comma-separated domain list'),
+      git_repository: z.string().optional().describe('Git repository URL'),
+      git_branch: z.string().optional().describe('Git branch'),
+      git_commit_sha: z.string().optional().describe('Git commit SHA'),
+      build_pack: updateBuildPackSchema.describe('Build pack'),
+      docker_registry_image_name: z
+        .string()
+        .optional()
+        .describe('Docker registry image name'),
+      docker_registry_image_tag: z
+        .string()
+        .optional()
+        .describe('Docker registry image tag'),
+      is_static: z.boolean().optional().describe('Static site flag'),
+      is_spa: z.boolean().optional().describe('Single-page application flag'),
+      is_auto_deploy_enabled: z.boolean().optional().describe('Auto-deploy on push'),
+      is_force_https_enabled: z
+        .boolean()
+        .optional()
+        .describe('Force HTTPS redirect'),
+      install_command: z.string().optional().describe('Install command'),
+      build_command: z.string().optional().describe('Build command'),
+      start_command: z.string().optional().describe('Start command'),
+      ports_exposes: z.string().optional().describe('Ports to expose'),
+      ports_mappings: z.string().optional().describe('Port mappings'),
+      base_directory: z.string().optional().describe('Base directory'),
+      publish_directory: z.string().optional().describe('Publish directory'),
+      health_check_enabled: z.boolean().optional().describe('Health check enabled'),
+      health_check_path: z.string().optional().describe('Health check path'),
+      health_check_port: z.string().optional().describe('Health check port'),
+      health_check_host: z.string().optional().describe('Health check host'),
+      health_check_method: z.string().optional().describe('Health check HTTP method'),
+      health_check_return_code: z
+        .number()
+        .int()
+        .optional()
+        .describe('Expected health check status code'),
+      health_check_scheme: z.string().optional().describe('Health check scheme'),
+      health_check_response_text: z
+        .string()
+        .optional()
+        .describe('Expected health check response text'),
+      health_check_interval: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check interval seconds'),
+      health_check_timeout: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check timeout seconds'),
+      health_check_retries: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check retries'),
+      health_check_start_period: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check start period seconds'),
+      custom_labels: z.string().optional().describe('Custom Docker labels'),
+      custom_docker_run_options: z
+        .string()
+        .optional()
+        .describe('Custom docker run options'),
+      redirect: z
+        .enum(['www', 'non-www', 'both'])
+        .optional()
+        .describe('WWW redirect mode'),
+      watch_paths: z.string().optional().describe('Git watch paths'),
+      use_build_server: z.boolean().optional().describe('Use build server'),
+      is_preserve_repository_enabled: z
+        .boolean()
+        .optional()
+        .describe('Preserve repository on deploy'),
+      connect_to_docker_network: z
+        .boolean()
+        .optional()
+        .describe('Connect to Docker network'),
+      is_container_label_escape_enabled: z
+        .boolean()
+        .optional()
+        .describe('Container label escape enabled'),
+      is_http_basic_auth_enabled: z
+        .boolean()
+        .optional()
+        .describe('Enable HTTP basic authentication'),
+      http_basic_auth_username: z
+        .string()
+        .optional()
+        .describe('HTTP basic auth username'),
+      http_basic_auth_password: z
+        .string()
+        .optional()
+        .describe('HTTP basic auth password (caller-supplied only)'),
+      force_domain_override: z
+        .boolean()
+        .default(false)
+        .describe('Override domain conflict on update'),
+      reveal: z
+        .boolean()
+        .default(false)
+        .describe('Reveal masked secrets in full projection response'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'update',
+);
+
+const UPDATE_CURATED_FIELD_KEYS = [
+  'name',
+  'description',
+  'domains',
+  'git_repository',
+  'git_branch',
+  'git_commit_sha',
+  'build_pack',
+  'docker_registry_image_name',
+  'docker_registry_image_tag',
+  'is_static',
+  'is_spa',
+  'is_auto_deploy_enabled',
+  'is_force_https_enabled',
+  'install_command',
+  'build_command',
+  'start_command',
+  'ports_exposes',
+  'ports_mappings',
+  'base_directory',
+  'publish_directory',
+  'health_check_enabled',
+  'health_check_path',
+  'health_check_port',
+  'health_check_host',
+  'health_check_method',
+  'health_check_return_code',
+  'health_check_scheme',
+  'health_check_response_text',
+  'health_check_interval',
+  'health_check_timeout',
+  'health_check_retries',
+  'health_check_start_period',
+  'custom_labels',
+  'custom_docker_run_options',
+  'redirect',
+  'watch_paths',
+  'use_build_server',
+  'is_preserve_repository_enabled',
+  'connect_to_docker_network',
+  'is_container_label_escape_enabled',
+  'is_http_basic_auth_enabled',
+  'http_basic_auth_username',
+  'http_basic_auth_password',
+] as const;
+
 const lifecycleActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('get'),
@@ -409,6 +588,7 @@ const lifecycleActionSchema = z.discriminatedUnion('action', [
   restartActionSchema,
   deployActionSchema,
   applicationLogsSchema,
+  updateActionSchema,
 ]);
 
 export const applicationActionSchema = z.union([
