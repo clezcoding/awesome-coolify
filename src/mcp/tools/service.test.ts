@@ -710,6 +710,26 @@ describe('service create', () => {
     expect(createService).not.toHaveBeenCalled();
   });
 
+  it('rejects inline compose over 1 MiB', async () => {
+    const hugeCompose = `services:\n  app:\n    image: ${'x'.repeat(1024 * 1024)}\n`;
+
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        compose: hugeCompose,
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.message).toMatch(/compose exceeds 1 MiB/);
+    expect(createService).not.toHaveBeenCalled();
+  });
+
   it('rejects create with both type and compose per SVC-07 XOR', async () => {
     const result = await handleServiceAction(
       {

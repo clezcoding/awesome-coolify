@@ -829,6 +829,13 @@ async function handleServiceCreate(
   }
 
   if (composeYaml !== undefined) {
+    if (Buffer.byteLength(composeYaml, 'utf8') > COMPOSE_FILE_SIZE_LIMIT) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'compose exceeds 1 MiB limit',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
     const validation = validateCompose(composeYaml);
     if (!validation.ok) {
       throw new CoolifyApiError({
@@ -1005,6 +1012,13 @@ async function handleServiceUpdate(
 
   let docker_compose_raw: string | undefined;
   if (composeYaml !== undefined) {
+    if (Buffer.byteLength(composeYaml, 'utf8') > COMPOSE_FILE_SIZE_LIMIT) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'compose exceeds 1 MiB limit',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
     const validation = validateCompose(composeYaml);
     if (!validation.ok) {
       throw new CoolifyApiError({
