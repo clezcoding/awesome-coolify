@@ -7,6 +7,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver version to publish (e.g. 0.1.1) — manual backfill when tag predates workflow"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,9 +25,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Resolve semver from tag
+      - name: Resolve semver version
         id: ver
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Publish MCP Server
         uses: OtherVibes/mcp-publish-action@v1
