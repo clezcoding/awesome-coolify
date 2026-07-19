@@ -1039,7 +1039,7 @@ describe('application CRUD', () => {
   });
 });
 
-describe('service and database CRUD (Wave 0 RED)', () => {
+describe('service and database CRUD', () => {
   const fetchMock = vi.fn();
   const crud = clientCrud as Record<
     string,
@@ -1055,7 +1055,7 @@ describe('service and database CRUD (Wave 0 RED)', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('createService POST /services with JSON body', async () => {
+  it('createService POST /services with JSON body', async () => {
     expect(crud.createService).toBeTypeOf('function');
     const payload = {
       type: 'actualbudget',
@@ -1080,7 +1080,7 @@ describe('service and database CRUD (Wave 0 RED)', () => {
     expect(result).toEqual({ uuid: 'svc-new' });
   });
 
-  it.fails('updateService PATCH /services/{uuid} with JSON body', async () => {
+  it('updateService PATCH /services/{uuid} with JSON body', async () => {
     expect(crud.updateService).toBeTypeOf('function');
     const payload = { name: 'renamed-service' };
     fetchMock.mockResolvedValueOnce(
@@ -1101,7 +1101,7 @@ describe('service and database CRUD (Wave 0 RED)', () => {
     expect(result).toMatchObject({ uuid: 'svc-1', name: 'renamed-service' });
   });
 
-  it.fails('deleteService DELETE /services/{uuid} with query params', async () => {
+  it('deleteService DELETE /services/{uuid} with query params', async () => {
     expect(crud.deleteService).toBeTypeOf('function');
     const params = {
       delete_configurations: false,
@@ -1130,7 +1130,7 @@ describe('service and database CRUD (Wave 0 RED)', () => {
     expect(result).toEqual({ message: 'Service deleted.' });
   });
 
-  it.fails.each([
+  it.each([
     ['createPostgresqlDatabase', '/api/v1/databases/postgresql'],
     ['createMysqlDatabase', '/api/v1/databases/mysql'],
     ['createMariadbDatabase', '/api/v1/databases/mariadb'],
@@ -1162,7 +1162,7 @@ describe('service and database CRUD (Wave 0 RED)', () => {
     expect(JSON.parse(init.body as string)).toEqual(payload);
   });
 
-  it.fails('updateDatabase PATCH /databases/{uuid} with JSON body', async () => {
+  it('updateDatabase PATCH /databases/{uuid} with JSON body', async () => {
     expect(crud.updateDatabase).toBeTypeOf('function');
     const payload = { is_public: false, public_port: 5432 };
     fetchMock.mockResolvedValueOnce(
@@ -1183,7 +1183,7 @@ describe('service and database CRUD (Wave 0 RED)', () => {
     expect(result).toMatchObject({ uuid: 'db-1', is_public: false });
   });
 
-  it.fails('deleteDatabase DELETE /databases/{uuid} with query params', async () => {
+  it('deleteDatabase DELETE /databases/{uuid} with query params', async () => {
     expect(crud.deleteDatabase).toBeTypeOf('function');
     const params = {
       delete_configurations: false,

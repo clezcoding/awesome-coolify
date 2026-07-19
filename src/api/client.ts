@@ -360,6 +360,156 @@ export async function fetchDatabase(
   return client(`/databases/${uuid}`, { method: 'GET' });
 }
 
+export async function createService(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/services', { method: 'POST', body: payload });
+}
+
+export async function updateService(
+  url: string,
+  token: string,
+  uuid: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/services/${uuid}`, { method: 'PATCH', body: payload });
+}
+
+export async function deleteService(
+  url: string,
+  token: string,
+  uuid: string,
+  params: {
+    delete_configurations?: boolean;
+    delete_volumes?: boolean;
+    docker_cleanup?: boolean;
+    delete_connected_networks?: boolean;
+  },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/services/${uuid}`, {
+    method: 'DELETE',
+    query: params,
+  });
+}
+
+export async function createPostgresqlDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/postgresql', { method: 'POST', body: payload });
+}
+
+export async function createMysqlDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/mysql', { method: 'POST', body: payload });
+}
+
+export async function createMariadbDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/mariadb', { method: 'POST', body: payload });
+}
+
+export async function createMongodbDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/mongodb', { method: 'POST', body: payload });
+}
+
+export async function createRedisDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/redis', { method: 'POST', body: payload });
+}
+
+export async function createClickhouseDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/clickhouse', { method: 'POST', body: payload });
+}
+
+export async function createDragonflyDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/dragonfly', { method: 'POST', body: payload });
+}
+
+export async function createKeydbDatabase(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/databases/keydb', { method: 'POST', body: payload });
+}
+
+export async function updateDatabase(
+  url: string,
+  token: string,
+  uuid: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/databases/${uuid}`, { method: 'PATCH', body: payload });
+}
+
+export async function deleteDatabase(
+  url: string,
+  token: string,
+  uuid: string,
+  params: {
+    delete_configurations?: boolean;
+    delete_volumes?: boolean;
+    docker_cleanup?: boolean;
+    delete_connected_networks?: boolean;
+  },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/databases/${uuid}`, {
+    method: 'DELETE',
+    query: params,
+  });
+}
+
 export async function fetchApplicationEnvs(
   url: string,
   token: string,
