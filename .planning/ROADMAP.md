@@ -27,7 +27,7 @@ Full phase details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - [x] Phase 8: Keys & Server CRUD (completed 2026-07-16)
 - [x] Phase 9: Project & Environment CRUD (completed 2026-07-17)
 - [x] Phase 10: Application CRUD & Safety (completed 2026-07-19)
-- [ ] Phase 11: Service & Database CRUD
+- [x] Phase 11: Service & Database CRUD (completed 2026-07-19)
 - [ ] Phase 12: Environment Variables & Smart Sync
 - [ ] Phase 13: Database Backups
 
@@ -45,7 +45,7 @@ Full phase details: [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 | 8. Keys & Server CRUD | v2.0 | 5/5 | Complete    | 2026-07-16 |
 | 9. Project & Environment CRUD | v2.0 | 5 | Complete    | 2026-07-18 |
 | 10. Application CRUD & Safety | v2.0 | 14 | Complete    | 2026-07-19 |
-| 11. Service & Database CRUD | v2.0 | 9 | Planned | — |
+| 11. Service & Database CRUD | v2.0 | 9 | In Progress|  |
 | 12. Environment Variables & Smart Sync | v2.0 | 6 | Planned | — |
 | 13. Database Backups | v2.0 | 6 | Planned | — |
 
@@ -177,24 +177,28 @@ Plans:
 5. Agent calls `database({ action: 'update', public_access: true, public_port: 5432 })` and the database becomes externally reachable (DB-04); disabling public access reverses the state.
 6. Duplicate-FQDN create attempts on services return a structured 409 hint with `force_domain_override` option (SVC-10), mirroring the APP-21 pattern.
 
-**Plans:** 6/6 plans planned
+**Plans:** 7/7 plans executed
 
 Plans:
 
 **Wave 1** *(parallel — no file overlap)*
 
-- [ ] 11-00-PLAN.md — Wave 0 RED test scaffolds for service + database CRUD (SVC-06..SVC-10, DB-01..DB-04)
-- [ ] 11-01-PLAN.md — API client CRUD (3 service + 8 database posters + update/delete) + yaml-validator helper (encode/decode/validate)
+- [x] 11-00-PLAN.md — Wave 0 RED test scaffolds for service + database CRUD (SVC-06..SVC-10, DB-01..DB-04)
+- [x] 11-01-PLAN.md — API client CRUD (3 service + 8 database posters + update/delete) + yaml-validator helper (encode/decode/validate)
 
 **Wave 2** *(ready — Wave 1 complete; parallel — service.ts vs database.ts no overlap)*
 
-- [ ] 11-02-PLAN.md — service create handler (one-click type XOR compose, transparent base64, instant_deploy default true, 409 force_domain_override, soft success)
-- [ ] 11-03-PLAN.md — database create handler (8 engines, public access confirm gate D-12, instant_deploy default true, secret masking)
+- [x] 11-02-PLAN.md — service create handler (one-click type XOR compose, transparent base64, instant_deploy default true, 409 force_domain_override, soft success)
+- [x] 11-03-PLAN.md — database create handler (8 engines, public access confirm gate D-12, instant_deploy default true, secret masking)
 
 **Wave 3** *(ready — Wave 2 complete; parallel — service.ts vs database.ts no overlap)*
 
-- [ ] 11-04-PLAN.md — service update + delete + delete_preview handler (curated PATCH, compose I/O, confirm gate, safe defaults, two-stage preview)
-- [ ] 11-05-PLAN.md — database update + delete + delete_preview handler (curated PATCH, update-path public access confirm gate, safe defaults, two-stage preview)
+- [x] 11-04-PLAN.md — service update + delete + delete_preview handler (curated PATCH, compose I/O, confirm gate, safe defaults, two-stage preview)
+- [x] 11-05-PLAN.md — database update + delete + delete_preview handler (curated PATCH, update-path public access confirm gate, safe defaults, two-stage preview)
+
+**Gap Closure** *(G-11-3, G-11-4 — Coolify 4.1.2 plain-YAML compose projection)*
+
+- [x] 11-06-PLAN.md — projectServiceCompose plain-YAML fallback chain + live UAT re-test Tests 3+4
 
 **API coverage:** `COVERAGE.md` — services/databases endpoint matrix (23 INTEGRATE, 7 OPT-OUT)
 
