@@ -216,6 +216,10 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
       return {
         ...envelope,
         data: { ...envelope.data, conflicts },
+        recoveryHints: [
+          ...envelope.recoveryHints,
+          'Retry with force_domain_override: true on the same create call to override the domain conflict.',
+        ],
       };
     }
 

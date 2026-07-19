@@ -1176,18 +1176,16 @@ describe('handleApplicationAction logs', () => {
   });
 
   it('rejects logs with neither uuid nor deployment_uuid', async () => {
-    await expect(
-      handleApplicationAction({ action: 'logs' }, testEnv),
-    ).rejects.toThrow();
+    const result = await handleApplicationAction({ action: 'logs' }, testEnv);
+    expect(isApplicationErrorResult(result)).toBe(true);
   });
 
   it('rejects logs with both uuid and deployment_uuid', async () => {
-    await expect(
-      handleApplicationAction(
-        { action: 'logs', uuid: 'x', deployment_uuid: 'y' },
-        testEnv,
-      ),
-    ).rejects.toThrow();
+    const result = await handleApplicationAction(
+      { action: 'logs', uuid: 'x', deployment_uuid: 'y' },
+      testEnv,
+    );
+    expect(isApplicationErrorResult(result)).toBe(true);
   });
 
   it('multi-match uuid returns COOLIFY_AMBIGUOUS_MATCH without calling fetchApplicationLogs', async () => {
@@ -1325,7 +1323,7 @@ describe('application create', () => {
     });
   });
 
-  it.fails('creates public_git application and calls createPublicApplication per APP-12', async () => {
+  it('creates public_git application and calls createPublicApplication per APP-12', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
@@ -1357,7 +1355,7 @@ describe('application create', () => {
     expect(result.data).toMatchObject({ uuid: 'app-new-uuid' });
   });
 
-  it.fails('creates private_deploy_key application and calls createPrivateDeployKeyApplication per APP-13', async () => {
+  it('creates private_deploy_key application and calls createPrivateDeployKeyApplication per APP-13', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
@@ -1386,7 +1384,7 @@ describe('application create', () => {
     expect(result.data).toMatchObject({ uuid: 'app-deploy-key-uuid' });
   });
 
-  it.fails('creates private_github_app application and calls createPrivateGithubAppApplication per APP-14', async () => {
+  it('creates private_github_app application and calls createPrivateGithubAppApplication per APP-14', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
@@ -1415,15 +1413,13 @@ describe('application create', () => {
     expect(result.data).toMatchObject({ uuid: 'app-github-app-uuid' });
   });
 
-  it.fails('creates dockerfile application and calls createDockerfileApplication per APP-15', async () => {
+  it('creates dockerfile application and calls createDockerfileApplication per APP-15', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
         source_type: 'dockerfile',
         ...baseCreateFields,
         dockerfile: 'FROM nginx:alpine',
-        git_repository: 'https://github.com/example/repo',
-        git_branch: 'main',
       },
       testEnv,
     );
@@ -1443,7 +1439,7 @@ describe('application create', () => {
     expect(result.data).toMatchObject({ uuid: 'app-dockerfile-uuid' });
   });
 
-  it.fails('creates dockerimage application and calls createDockerimageApplication per APP-16', async () => {
+  it('creates dockerimage application and calls createDockerimageApplication per APP-16', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
@@ -1469,7 +1465,7 @@ describe('application create', () => {
     expect(result.data).toMatchObject({ uuid: 'app-dockerimage-uuid' });
   });
 
-  it.fails('returns deploy queued status and follow-up hints when instant_deploy:true per APP-20', async () => {
+  it('returns deploy queued status and follow-up hints when instant_deploy:true per APP-20', async () => {
     vi.mocked(createPublicApplication).mockResolvedValue({
       uuid: 'app-instant-uuid',
       deployment_uuid: 'dep-instant-1',
@@ -1498,7 +1494,7 @@ describe('application create', () => {
     expect(JSON.stringify(data)).toMatch(/deployment\.get|application\.deploy/);
   });
 
-  it.fails('maps HTTP 409 domain conflicts to COOLIFY_409 with force_domain_override hint per APP-21', async () => {
+  it('maps HTTP 409 domain conflicts to COOLIFY_409 with force_domain_override hint per APP-21', async () => {
     const conflicts = [
       { domain: 'app.example.com', message: 'Domain already in use' },
     ];
@@ -1533,7 +1529,7 @@ describe('application create', () => {
     ).toMatch(/force_domain_override:\s*true/i);
   });
 
-  it.fails('passes force_domain_override:true to createPublicApplication on happy path per APP-21', async () => {
+  it('passes force_domain_override:true to createPublicApplication on happy path per APP-21', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
@@ -1559,7 +1555,7 @@ describe('application create', () => {
     expect(result.data).toMatchObject({ uuid: 'app-new-uuid' });
   });
 
-  it.fails('rejects create with missing server_uuid before any API call per SAF-03', async () => {
+  it('rejects create with missing server_uuid before any API call per SAF-03', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
@@ -1580,7 +1576,7 @@ describe('application create', () => {
     expect(createPublicApplication).not.toHaveBeenCalled();
   });
 
-  it.fails('rejects build_pack dockercompose with COOLIFY_VALIDATION_ERROR per D-04', async () => {
+  it('rejects build_pack dockercompose with COOLIFY_VALIDATION_ERROR per D-04', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
@@ -1603,7 +1599,7 @@ describe('application create', () => {
     expect(createPublicApplication).not.toHaveBeenCalled();
   });
 
-  it.fails('rejects create without project_uuid or project_name per D-02', async () => {
+  it('rejects create without project_uuid or project_name per D-02', async () => {
     const result = await handleApplicationAction(
       {
         action: 'create',
