@@ -19,6 +19,13 @@ vi.mock('../../api/client.js', () => ({
   triggerAppRestart: vi.fn(),
   triggerDeploy: vi.fn(),
   fetchDeployment: vi.fn(),
+  createPublicApplication: vi.fn(),
+  createPrivateGithubAppApplication: vi.fn(),
+  createPrivateDeployKeyApplication: vi.fn(),
+  createDockerfileApplication: vi.fn(),
+  createDockerimageApplication: vi.fn(),
+  updateApplication: vi.fn(),
+  deleteApplication: vi.fn(),
 }));
 
 import {
@@ -32,6 +39,13 @@ import {
   triggerAppStop,
   triggerDeploy,
   fetchDeployment,
+  createPublicApplication,
+  createPrivateGithubAppApplication,
+  createPrivateDeployKeyApplication,
+  createDockerfileApplication,
+  createDockerimageApplication,
+  updateApplication,
+  deleteApplication,
 } from '../../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -1277,5 +1291,336 @@ describe('handleApplicationAction logs', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.logs_truncated).toBe(true);
+  });
+});
+
+const baseCreateFields = {
+  project_uuid: 'proj-uuid-1',
+  environment_name: 'production',
+  server_uuid: 'srv-uuid-1',
+};
+
+describe('application create', () => {
+  beforeEach(() => {
+    vi.mocked(createPublicApplication).mockReset();
+    vi.mocked(createPrivateGithubAppApplication).mockReset();
+    vi.mocked(createPrivateDeployKeyApplication).mockReset();
+    vi.mocked(createDockerfileApplication).mockReset();
+    vi.mocked(createDockerimageApplication).mockReset();
+    vi.mocked(createPublicApplication).mockResolvedValue({
+      uuid: 'app-new-uuid',
+      name: 'new-app',
+    });
+    vi.mocked(createPrivateDeployKeyApplication).mockResolvedValue({
+      uuid: 'app-deploy-key-uuid',
+    });
+    vi.mocked(createPrivateGithubAppApplication).mockResolvedValue({
+      uuid: 'app-github-app-uuid',
+    });
+    vi.mocked(createDockerfileApplication).mockResolvedValue({
+      uuid: 'app-dockerfile-uuid',
+    });
+    vi.mocked(createDockerimageApplication).mockResolvedValue({
+      uuid: 'app-dockerimage-uuid',
+    });
+  });
+
+  it.fails('creates public_git application and calls createPublicApplication per APP-12', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        ...baseCreateFields,
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(createPublicApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        project_uuid: 'proj-uuid-1',
+        environment_name: 'production',
+        server_uuid: 'srv-uuid-1',
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'app-new-uuid' });
+  });
+
+  it.fails('creates private_deploy_key application and calls createPrivateDeployKeyApplication per APP-13', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'private_deploy_key',
+        ...baseCreateFields,
+        private_key_uuid: 'key-uuid-7',
+        git_repository: 'git@github.com:example/private.git',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(createPrivateDeployKeyApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        private_key_uuid: 'key-uuid-7',
+        server_uuid: 'srv-uuid-1',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'app-deploy-key-uuid' });
+  });
+
+  it.fails('creates private_github_app application and calls createPrivateGithubAppApplication per APP-14', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'private_github_app',
+        ...baseCreateFields,
+        github_app_uuid: 'gh-app-uuid-1',
+        git_repository: 'https://github.com/example/private',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(createPrivateGithubAppApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        github_app_uuid: 'gh-app-uuid-1',
+        server_uuid: 'srv-uuid-1',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'app-github-app-uuid' });
+  });
+
+  it.fails('creates dockerfile application and calls createDockerfileApplication per APP-15', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'dockerfile',
+        ...baseCreateFields,
+        dockerfile: 'FROM nginx:alpine',
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(createDockerfileApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        dockerfile: 'FROM nginx:alpine',
+        server_uuid: 'srv-uuid-1',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'app-dockerfile-uuid' });
+  });
+
+  it.fails('creates dockerimage application and calls createDockerimageApplication per APP-16', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'dockerimage',
+        ...baseCreateFields,
+        docker_registry_image_name: 'nginx:alpine',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(createDockerimageApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        docker_registry_image_name: 'nginx:alpine',
+        server_uuid: 'srv-uuid-1',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'app-dockerimage-uuid' });
+  });
+
+  it.fails('returns deploy queued status and follow-up hints when instant_deploy:true per APP-20', async () => {
+    vi.mocked(createPublicApplication).mockResolvedValue({
+      uuid: 'app-instant-uuid',
+      deployment_uuid: 'dep-instant-1',
+    });
+
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        ...baseCreateFields,
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+        instant_deploy: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const deploy = data.deploy as Record<string, unknown>;
+    expect(['queued', 'failed_to_queue']).toContain(deploy.status);
+    expect(data.uuid).toBe('app-instant-uuid');
+    expect(JSON.stringify(data)).toMatch(/deployment\.get|application\.deploy/);
+  });
+
+  it.fails('maps HTTP 409 domain conflicts to COOLIFY_409 with force_domain_override hint per APP-21', async () => {
+    const conflicts = [
+      { domain: 'app.example.com', message: 'Domain already in use' },
+    ];
+    vi.mocked(createPublicApplication).mockRejectedValue(
+      Object.assign(new Error('Conflict'), {
+        response: {
+          status: 409,
+          _data: { conflicts },
+        },
+      }),
+    );
+
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        ...baseCreateFields,
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_409');
+    expect(result.structuredContent.error.data?.conflicts).toEqual(conflicts);
+    expect(
+      result.structuredContent.error.recoveryHints.join(' '),
+    ).toMatch(/force_domain_override:\s*true/i);
+  });
+
+  it.fails('passes force_domain_override:true to createPublicApplication on happy path per APP-21', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        ...baseCreateFields,
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+        force_domain_override: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(createPublicApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({ force_domain_override: true }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'app-new-uuid' });
+  });
+
+  it.fails('rejects create with missing server_uuid before any API call per SAF-03', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        project_uuid: 'proj-uuid-1',
+        environment_name: 'production',
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createPublicApplication).not.toHaveBeenCalled();
+  });
+
+  it.fails('rejects build_pack dockercompose with COOLIFY_VALIDATION_ERROR per D-04', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        ...baseCreateFields,
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'dockercompose',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.recoveryHints.join(' ')).toMatch(
+      /service\.create/i,
+    );
+    expect(createPublicApplication).not.toHaveBeenCalled();
+  });
+
+  it.fails('rejects create without project_uuid or project_name per D-02', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        environment_name: 'production',
+        server_uuid: 'srv-uuid-1',
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createPublicApplication).not.toHaveBeenCalled();
   });
 });
