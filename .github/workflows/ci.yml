@@ -34,3 +34,14 @@ jobs:
 
       - name: Tests
         run: npm test
+
+      - name: publint
+        run: npm run publint
+
+      - name: MegaLinter
+        uses: oxsecurity/megalinter@v8
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: --env-file .megalinter.yml

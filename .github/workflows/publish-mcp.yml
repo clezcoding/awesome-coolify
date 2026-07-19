@@ -1,0 +1,35 @@
+# Publishes the MCP server to the MCP Registry on every v* tag.
+# The npm package itself is published separately by publish.yml via OIDC Trusted Publishing.
+
+name: Publish MCP Server
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish-mcp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Resolve semver from tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish MCP Server
+        uses: OtherVibes/mcp-publish-action@v1
+        with:
+          name: io.github.clezcoding/awesome-coolify
+          description: "MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools"
+          version: ${{ steps.ver.outputs.version }}
+          registry_type: npm
+          identifier: awesome-coolify-mcp
+          transport_type: stdio
+          website_url: https://github.com/clezcoding/awesome-coolify

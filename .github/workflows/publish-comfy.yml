@@ -1,0 +1,28 @@
+# Prerequisites (manual setup required):
+# 1. Create pyproject.toml at repo root with [project] section matching Comfy
+#    custom-node metadata (name, version, description).
+# 2. Add REGISTRY_ACCESS_TOKEN secret in repo Settings -> Secrets and variables -> Actions.
+# 3. This workflow targets Comfy custom nodes; if repo is not a Comfy custom node,
+#    this workflow is a no-op stub kept for future use.
+
+name: Publish to Comfy Registry
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  comfy-publish:
+    if: ${{ vars.COMFY_PUBLISH_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Publish to Comfy Registry
+        uses: Comfy-Org/publish-node-action@v1
+        with:
+          personal_access_token: ${{ secrets.REGISTRY_ACCESS_TOKEN }}

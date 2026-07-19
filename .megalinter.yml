@@ -1,0 +1,6 @@
+APPLY_FIXES: none
+ENABLE: typescript,javascript,yaml,markdown,actionlint
+DISABLE_ERRORS: false
+SHOW_ELAPSED_TIME: true
+REPORT_STYLE: console
+GITHUB_STATUS_FILTER: true
