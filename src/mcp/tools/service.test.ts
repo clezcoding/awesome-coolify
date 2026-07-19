@@ -510,7 +510,12 @@ describe('service get compose decode (D-06)', () => {
 
   it('returns decoded compose YAML and strips docker_compose_raw per D-06', async () => {
     const result = await handleServiceAction(
-      { action: 'get', uuid: 'svc-uuid-1', projection: 'full' },
+      {
+        action: 'get',
+        uuid: 'svc-uuid-1',
+        projection: 'full',
+        reveal: true,
+      },
       testEnv,
     );
 
@@ -519,6 +524,20 @@ describe('service get compose decode (D-06)', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.docker_compose_raw).toBeUndefined();
+  });
+
+  it('masks compose YAML on full projection when reveal is false', async () => {
+    const result = await handleServiceAction(
+      { action: 'get', uuid: 'svc-uuid-1', projection: 'full' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.compose).toBe('***');
     expect(data.docker_compose_raw).toBeUndefined();
   });
 });
@@ -770,7 +789,31 @@ describe('service create', () => {
     expect(result.data).toMatchObject({ uuid: 'svc-new-uuid' });
   });
 
-  it('returns decoded compose on create success per D-06', async () => {
+  it('returns decoded compose on create success when reveal:true per D-06', async () => {
+    vi.mocked(createService).mockResolvedValue({
+      uuid: 'svc-compose-uuid',
+      docker_compose_raw: sampleComposeBase64,
+    });
+
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        compose: sampleComposeYaml,
+        reveal: true,
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.docker_compose_raw).toBeUndefined();
+  });
+
+  it('masks compose on create success when reveal is false', async () => {
     vi.mocked(createService).mockResolvedValue({
       uuid: 'svc-compose-uuid',
       docker_compose_raw: sampleComposeBase64,
@@ -789,7 +832,7 @@ describe('service create', () => {
     if (isServiceErrorResult(result)) return;
 
     const data = result.data as Record<string, unknown>;
-    expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.compose).toBe('***');
     expect(data.docker_compose_raw).toBeUndefined();
   });
 
@@ -866,7 +909,26 @@ describe('service update', () => {
     );
   });
 
-  it('returns decoded compose on update success per D-06', async () => {
+  it('returns decoded compose on update success when reveal:true per D-06', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'update',
+        uuid: 'svc-uuid-1',
+        compose: sampleComposeYaml,
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.docker_compose_raw).toBeUndefined();
+  });
+
+  it('masks compose on update success when reveal is false', async () => {
     const result = await handleServiceAction(
       {
         action: 'update',
@@ -880,7 +942,7 @@ describe('service update', () => {
     if (isServiceErrorResult(result)) return;
 
     const data = result.data as Record<string, unknown>;
-    expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.compose).toBe('***');
     expect(data.docker_compose_raw).toBeUndefined();
   });
 

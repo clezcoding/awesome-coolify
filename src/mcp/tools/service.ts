@@ -293,6 +293,10 @@ const createActionSchema = z
       .boolean()
       .default(false)
       .describe('Override domain conflict on create'),
+    reveal: z
+      .boolean()
+      .default(false)
+      .describe('Reveal masked secrets (including compose YAML) in response'),
     ...mutationResponseParamsSchema,
   })
   .strict()
@@ -701,6 +705,17 @@ async function handleServiceDeploy(
 
 const COMPOSE_FILE_SIZE_LIMIT = 1024 * 1024;
 
+/** Mask compose YAML unless reveal:true — secrets live in env blocks, not key names. */
+function maskComposeIfNeeded(
+  projected: Record<string, unknown>,
+  reveal: boolean,
+): Record<string, unknown> {
+  if (reveal || typeof projected.compose !== 'string') {
+    return projected;
+  }
+  return { ...projected, compose: '***' };
+}
+
 function readBoundedComposeFile(composeFilePath: string): string {
   const ext = path.extname(composeFilePath).toLowerCase();
   if (ext !== '.yml' && ext !== '.yaml') {
@@ -816,7 +831,10 @@ async function handleServiceCreate(
   );
 
   const created = isRecord(raw) ? raw : {};
-  const projected = projectServiceCompose(created);
+  const projected = maskComposeIfNeeded(
+    projectServiceCompose(created),
+    parsed.reveal,
+  );
   const serviceUuid = typeof projected.uuid === 'string' ? projected.uuid : '';
   if (!serviceUuid) {
     throw new CoolifyApiError({
@@ -1016,10 +1034,10 @@ async function handleServiceUpdate(
 
   const rawRecord = isRecord(raw) ? raw : {};
   const projected = projectServiceCompose(rawRecord);
-  const data = sanitizeFullProjection(projected, parsed.reveal) as Record<
-    string,
-    unknown
-  >;
+  const data = sanitizeFullProjection(
+    maskComposeIfNeeded(projected, parsed.reveal),
+    parsed.reveal,
+  ) as Record<string, unknown>;
 
   return buildReadResponse(data, {
     format: parsed.format,
@@ -1181,10 +1199,10 @@ export async function handleServiceAction(
         const data =
           projection === 'full'
             ? {
-                ...(sanitizeFullProjection(projected, parsed.reveal) as Record<
-                  string,
-                  unknown
-                >),
+                ...(sanitizeFullProjection(
+                  maskComposeIfNeeded(projected, parsed.reveal),
+                  parsed.reveal,
+                ) as Record<string, unknown>),
                 hints,
               }
             : { ...projectServiceSummary(projected, lookup), hints };
