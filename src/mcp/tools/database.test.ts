@@ -731,7 +731,7 @@ describe('database update', () => {
     );
   });
 
-  it.fails('returns COOLIFY_CONFIRM_REQUIRED when enabling is_public without confirm per DB-02', async () => {
+  it('returns COOLIFY_CONFIRM_REQUIRED when enabling is_public without confirm per DB-02', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'update',
@@ -771,7 +771,7 @@ describe('database update', () => {
     expect(data.postgres_password).toBe('***');
   });
 
-  it.fails('rejects unknown update fields via strict schema per SAF-03', async () => {
+  it('rejects unknown update fields via strict schema per SAF-03', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'update',

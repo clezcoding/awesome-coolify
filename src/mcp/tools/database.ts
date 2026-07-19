@@ -9,9 +9,11 @@ import {
   createMysqlDatabase,
   createPostgresqlDatabase,
   createRedisDatabase,
+  deleteDatabase,
   fetchDatabase,
   fetchResources,
   triggerDatabaseRestart,
+  updateDatabase,
   triggerDatabaseStart,
   triggerDatabaseStop,
 } from '../../api/client.js';
@@ -304,12 +306,120 @@ const createDatabaseSchema = z.discriminatedUnion('engine', [
   createKeydbSchema,
 ]);
 
+const updateDatabaseSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('update'),
+      uuid: z.string().optional().describe('Database UUID'),
+      name: z
+        .string()
+        .optional()
+        .describe('Database name substring or new name when uuid given'),
+      description: z.string().optional().describe('Database description'),
+      image: z.string().optional().describe('Custom database image'),
+      is_public: z
+        .boolean()
+        .optional()
+        .describe('Expose database port publicly'),
+      public_port: z.number().int().optional().describe('Public port when is_public'),
+      public_port_timeout: z
+        .number()
+        .int()
+        .optional()
+        .describe('Public port mapping timeout'),
+      limits_memory: z.string().optional(),
+      limits_memory_swap: z.string().optional(),
+      limits_memory_swappiness: z.number().int().optional(),
+      limits_memory_reservation: z.string().optional(),
+      limits_cpus: z.string().optional(),
+      limits_cpuset: z.string().optional(),
+      limits_cpu_shares: z.number().int().optional(),
+      postgres_user: z.string().optional(),
+      postgres_password: z.string().optional(),
+      postgres_db: z.string().optional(),
+      mysql_user: z.string().optional(),
+      mysql_password: z.string().optional(),
+      mysql_root_password: z.string().optional(),
+      mysql_database: z.string().optional(),
+      mariadb_user: z.string().optional(),
+      mariadb_password: z.string().optional(),
+      mariadb_root_password: z.string().optional(),
+      mariadb_database: z.string().optional(),
+      redis_password: z.string().optional(),
+      clickhouse_admin_user: z.string().optional(),
+      clickhouse_admin_password: z.string().optional(),
+      dragonfly_password: z.string().optional(),
+      keydb_password: z.string().optional(),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Confirm public database exposure on update'),
+      reveal: z
+        .boolean()
+        .default(false)
+        .describe('Reveal masked credentials in response'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireConfirmForPublicAccess(data, ctx);
+    }),
+  'update',
+);
+
+const deleteActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('delete'),
+      uuid: z.string().optional().describe('Database UUID'),
+      name: z.string().optional().describe('Database name substring'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for destructive delete'),
+      delete_volumes: z
+        .boolean()
+        .default(false)
+        .describe('Also delete attached volumes (default false)'),
+      delete_configurations: z
+        .boolean()
+        .default(false)
+        .describe('Also delete configurations (default false)'),
+      docker_cleanup: z
+        .boolean()
+        .default(false)
+        .describe('Run Docker cleanup (default false)'),
+      delete_connected_networks: z
+        .boolean()
+        .default(false)
+        .describe('Delete connected networks (default false)'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete',
+);
+
+const deletePreviewActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('delete_preview'),
+      uuid: z.string().optional().describe('Database UUID'),
+      name: z.string().optional().describe('Database name substring'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete_preview',
+);
+
 export const databaseActionSchema = z.discriminatedUnion('action', [
   getActionSchema,
   startActionSchema,
   stopActionSchema,
   restartActionSchema,
   createDatabaseSchema,
+  updateDatabaseSchema,
+  deleteActionSchema,
+  deletePreviewActionSchema,
 ]);
 
 export type DatabaseAction = z.infer<typeof databaseActionSchema>;
@@ -368,7 +478,7 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
     ((customIssue as { params?: { code?: CoolifyErrorCode } } | undefined)?.params
       ?.code as CoolifyErrorCode | undefined) ?? undefined;
 
-  if (!code && isRecord(args) && args.action === 'create') {
+  if (!code && isRecord(args) && (args.action === 'create' || args.action === 'update')) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
 
