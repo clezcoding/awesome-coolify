@@ -6,9 +6,9 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 
 - **Ein Repo:** `clezcoding/awesome-coolify` (public) — Dev + Distribution in einem Checkout
 - **npm-Paket:** `awesome-coolify-mcp` (Name bleibt unabhängig vom Repo-Namen)
-- **MCP-Registry-Identifier:** `awesome-coolify-mcp` — derselbe Name wie npm-Paket und `identifier` in `publish-mcp.yml`
 - **Legacy:** `clezcoding/awesome-coolify-mcp` archiviert (kein Dual-Repo-Sync mehr)
 - **Pages:** https://clezcoding.github.io/awesome-coolify/
+- **MCP Registry Publish:** bewusst zurückgestellt — später separat einrichten
 
 ## Issues & PRs
 
@@ -30,7 +30,6 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 - `.github/workflows/publish.yml` — npm-Veröffentlichung per Trusted Publishing (OIDC), kein `NPM_TOKEN`/2FA-Blocker mehr
 - `.github/workflows/release-drafter.yml` — Release Drafter, pflegt einen Draft-Release bei jedem Push auf `main` (parallel zu Changesets `release.yml`)
 - `.github/workflows/publish-comfy.yml` — Comfy-Org/publish-node-action Stub; läuft nur, wenn Repo-Variable `COMFY_PUBLISH_ENABLED=true`; benötigt `REGISTRY_ACCESS_TOKEN` Secret + `pyproject.toml` (siehe Workflow-Kommentar)
-- `.github/workflows/publish-mcp.yml` — OtherVibes/mcp-publish-action@v1; veröffentlicht den MCP-Server bei `v*`-Tags ins MCP-Registry (npm-Typ, Identifier `awesome-coolify-mcp`); OIDC `id-token: write`
 - Publint + MegaLinter Schritte in `ci.yml` ergänzt (siehe `## Lint & Quality` unten)
 
 ## Lint & Quality
@@ -71,21 +70,16 @@ Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/
 | Branch Protection | ✅ grün | `main` erfordert `Lint, Test & Build` |
 | Labels Sync | ✅ grün | `automerge` + GSD-Labels via `labels.yml` |
 | Release (Changesets) | ✅ grün | Version-Packages-PRs merged |
-| npm Publish (OIDC) | ✅ grün | `awesome-coolify-mcp@0.1.1` auf npm |
+| npm Publish (OIDC) | ✅ grün | `awesome-coolify-mcp@0.1.2` auf npm |
 | Release Drafter | ✅ grün | Draft v0.1.2 |
 | Pages | ✅ grün | https://clezcoding.github.io/awesome-coolify/ |
 | Dependabot | ✅ grün | wöchentlich npm + actions |
 | Comfy Publish | ⏸️ Stub | `COMFY_PUBLISH_ENABLED` nicht gesetzt (absichtlich) |
-| MCP Publish | ⚠️ manuell | Workflow neu; `mcpName` ergänzt; **Backfill nötig** — siehe unten |
+| MCP Registry Publish | ⏸️ zurückgestellt | Kein Workflow — später separat |
 | Kodiak | ⚠️ manuell | `.kodiak.toml` OK; **App-Install prüfen** |
 | Bugbot | N/A | Cursor-Produkt, kein Repo-Bot |
 
 ### Manuelle Follow-ups
 
 1. **Kodiak GitHub App** — einmalig installieren: [Marketplace](https://github.com/marketplace/kodiakhq) → Repo `clezcoding/awesome-coolify` auswählen. Verifizieren mit `./scripts/setup-kodiak.sh`.
-2. **MCP Registry Backfill (v0.1.1)** — Tag `v0.1.1` existierte vor `publish-mcp.yml`. Manuell auslösen:
-   ```bash
-   gh workflow run publish-mcp.yml -f version=0.1.1
-   ```
-   Oder in GitHub UI: Actions → „Publish MCP Server“ → Run workflow → Version `0.1.1`.
-3. **Wiederholbare Prüfung** — `./scripts/verify-github-setup.sh` (Exit 0 mit Warnungen für manuelle Items; Exit 1 nur bei kritischen Repo-Lücken).
+2. **Wiederholbare Prüfung** — `./scripts/verify-github-setup.sh` (Exit 0 mit Warnungen für manuelle Items; Exit 1 nur bei kritischen Repo-Lücken).

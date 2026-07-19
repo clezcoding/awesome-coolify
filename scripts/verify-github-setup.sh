@@ -16,7 +16,6 @@ cd "${ROOT}"
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 EXPECTED_PAGES="https://clezcoding.github.io/awesome-coolify/"
 EXPECTED_CI_CONTEXT="Lint, Test & Build"
-EXPECTED_MCP_NAME="io.github.clezcoding/awesome-coolify"
 
 fail=0
 warn=0
@@ -30,7 +29,7 @@ echo
 
 # --- Workflows active ---
 echo "-- Workflows"
-REQUIRED_WORKFLOWS=(ci.yml labels.yml pages.yml release.yml publish.yml publish-mcp.yml release-drafter.yml)
+REQUIRED_WORKFLOWS=(ci.yml labels.yml pages.yml release.yml publish.yml release-drafter.yml)
 for wf in "${REQUIRED_WORKFLOWS[@]}"; do
   state="$(gh workflow list --json name,state,path -q ".[] | select(.path==\".github/workflows/${wf}\") | .state" 2>/dev/null || true)"
   if [[ "${state}" == "active" ]]; then
@@ -89,13 +88,6 @@ elif [[ "${npm_version}" == "${pkg_version}" ]]; then
 else
   crit "npm version ${npm_version} != package.json ${pkg_version}"
 fi
-
-mcp_name="$(node -p "require('./package.json').mcpName // ''" 2>/dev/null || jq -r '.mcpName // empty' package.json)"
-if [[ "${mcp_name}" == "${EXPECTED_MCP_NAME}" ]]; then
-  pass "package.json mcpName matches publish-mcp.yml (${EXPECTED_MCP_NAME})"
-else
-  crit "package.json mcpName missing or wrong (got: ${mcp_name:-<empty>}, expected: ${EXPECTED_MCP_NAME})"
-fi
 echo
 
 # --- GitHub Pages ---
@@ -109,16 +101,6 @@ else
   else
     crit "Pages URL mismatch (got: ${pages_url}, expected: ${EXPECTED_PAGES})"
   fi
-fi
-echo
-
-# --- MCP publish history ---
-echo "-- MCP Registry publish"
-mcp_runs="$(gh run list --workflow=publish-mcp.yml --limit 20 --json databaseId -q 'length' 2>/dev/null || echo 0)"
-if [[ "${mcp_runs}" -gt 0 ]]; then
-  pass "publish-mcp.yml has ${mcp_runs} run(s)"
-else
-  warn_msg "publish-mcp.yml never ran — backfill needed: gh workflow run publish-mcp.yml -f version=${pkg_version}"
 fi
 echo
 
