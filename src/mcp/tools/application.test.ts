@@ -1894,7 +1894,7 @@ describe('application delete', () => {
     vi.mocked(deleteApplication).mockResolvedValue({ message: 'Deleted.' });
   });
 
-  it.fails('deletes application when confirm:true with safe defaults per APP-18', async () => {
+  it('deletes application when confirm:true with safe defaults per APP-18', async () => {
     const result = await handleApplicationAction(
       { action: 'delete', uuid: 'app-uuid-1', confirm: true },
       testEnv,
@@ -1918,7 +1918,7 @@ describe('application delete', () => {
     expect(result.data).toMatchObject({ ok: true, uuid: 'app-uuid-1' });
   });
 
-  it.fails('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per SAF-01', async () => {
+  it('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per SAF-01', async () => {
     const result = await handleApplicationAction(
       { action: 'delete', uuid: 'app-uuid-1', confirm: false },
       testEnv,
@@ -1931,7 +1931,7 @@ describe('application delete', () => {
     expect(deleteApplication).not.toHaveBeenCalled();
   });
 
-  it.fails('passes all four safe-delete flags false by default per SAF-02', async () => {
+  it('passes all four safe-delete flags false by default per SAF-02', async () => {
     await handleApplicationAction(
       { action: 'delete', uuid: 'app-uuid-1', confirm: true },
       testEnv,
@@ -1951,7 +1951,7 @@ describe('application delete', () => {
     );
   });
 
-  it.fails('resolves delete by fqdn single-hit per D-21', async () => {
+  it('resolves delete by fqdn single-hit per D-21', async () => {
     vi.mocked(fetchResources).mockResolvedValue([mockResourceApp1]);
 
     await handleApplicationAction(
@@ -1977,7 +1977,7 @@ describe('application delete_preview', () => {
     vi.mocked(fetchApplication).mockResolvedValue(mockApplication);
   });
 
-  it.fails('returns would_delete preview without calling deleteApplication per Phase 8/9 parity', async () => {
+  it('returns would_delete preview without calling deleteApplication per Phase 8/9 parity', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       { uuid: 'dep-1', name: 'latest-deploy', type: 'deployment' },
     ]);

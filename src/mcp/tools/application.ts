@@ -15,6 +15,7 @@ import {
   triggerAppStop,
   triggerDeploy,
   updateApplication,
+  deleteApplication,
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
@@ -721,6 +722,25 @@ export type ApplicationUpdateResult = ReadResponse<
   ReturnType<typeof sanitizeFullProjection>
 >;
 
+export type ApplicationDeleteResult = ReadResponse<{
+  ok: true;
+  uuid: string;
+  deleted: true;
+  delete_volumes: boolean;
+  delete_configurations: boolean;
+}>;
+
+export type ApplicationDeletePreviewResult = ReadResponse<{
+  uuid: string;
+  child_resources: Array<{
+    uuid: string;
+    name?: string;
+    type?: string;
+  }>;
+  would_delete: true;
+  warning?: string;
+}>;
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
@@ -728,6 +748,8 @@ export type ApplicationActionResult =
   | ApplicationLogsResult
   | ApplicationCreateResult
   | ApplicationUpdateResult
+  | ApplicationDeleteResult
+  | ApplicationDeletePreviewResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -739,6 +761,24 @@ type DeployAction = z.infer<typeof deployActionSchema>;
 type LogsAction = z.infer<typeof applicationLogsSchema>;
 type CreateAction = z.infer<typeof createActionSchema>;
 type UpdateAction = z.infer<typeof updateActionSchema>;
+type DeleteAction = z.infer<typeof deleteActionSchema>;
+type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
+
+function validateDeleteConfirm(confirm: boolean, uuid: string): void {
+  if (confirm === true) {
+    return;
+  }
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_CONFIRM_REQUIRED',
+    message: `Action 'delete' on application '${uuid}' requires explicit confirmation.`,
+    recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+    data: {
+      action: 'delete',
+      uuid,
+    },
+  });
+}
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -1373,6 +1413,91 @@ async function handleApplicationUpdate(
   });
 }
 
+async function handleApplicationDelete(
+  parsed: DeleteAction,
+  env: EnvConfig,
+): Promise<ApplicationDeleteResult> {
+  const uuid = await resolveAppMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name, fqdn: parsed.fqdn },
+    env,
+  );
+
+  validateDeleteConfirm(parsed.confirm, uuid);
+
+  await deleteApplication(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    {
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+      docker_cleanup: parsed.docker_cleanup,
+      delete_connected_networks: parsed.delete_connected_networks,
+    },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return buildReadResponse(
+    {
+      ok: true,
+      uuid,
+      deleted: true,
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+async function handleApplicationDeletePreview(
+  parsed: DeletePreviewAction,
+  env: EnvConfig,
+): Promise<ApplicationDeletePreviewResult> {
+  const uuid = await resolveAppMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name, fqdn: parsed.fqdn },
+    env,
+  );
+
+  const rawResources = await fetchResources(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const childResources = rawResources
+    .filter(isRecord)
+    .filter((resource) => String(resource.application_uuid ?? '') === uuid)
+    .map((resource) => ({
+      uuid: String(resource.uuid ?? ''),
+      name: resource.name != null ? String(resource.name) : undefined,
+      type: resource.type != null ? String(resource.type) : undefined,
+    }));
+
+  const response: {
+    uuid: string;
+    child_resources: typeof childResources;
+    would_delete: true;
+    warning?: string;
+  } = {
+    uuid,
+    child_resources: childResources,
+    would_delete: true,
+  };
+
+  if (childResources.length > 0) {
+    response.warning =
+      'Application has child resources that will also be removed or orphaned — review child_resources before confirming delete.';
+  }
+
+  return buildReadResponse(response, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 async function handleApplicationCreate(
   parsed: CreateAction,
   env: EnvConfig,
@@ -1500,6 +1625,10 @@ export async function handleApplicationAction(
         return await handleApplicationCreate(parsed, env);
       case 'update':
         return await handleApplicationUpdate(parsed, env);
+      case 'delete':
+        return await handleApplicationDelete(parsed, env);
+      case 'delete_preview':
+        return await handleApplicationDeletePreview(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':
