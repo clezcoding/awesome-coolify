@@ -733,6 +733,27 @@ describe('database update', () => {
     );
   });
 
+  it('includes mongo_initdb_root_password in update PATCH body', async () => {
+    await handleDatabaseAction(
+      {
+        action: 'update',
+        uuid: 'db-uuid-1',
+        mongo_initdb_root_password: 'rotated-mongo-secret',
+      },
+      testEnv,
+    );
+
+    expect(updateDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      expect.objectContaining({
+        mongo_initdb_root_password: 'rotated-mongo-secret',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
   it('returns COOLIFY_CONFIRM_REQUIRED when enabling is_public without confirm per DB-02', async () => {
     const result = await handleDatabaseAction(
       {
