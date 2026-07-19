@@ -171,18 +171,16 @@ describe('logs-service-db-flow integration', () => {
     });
 
     it('superRefine rejects neither uuid nor deployment_uuid', async () => {
-      await expect(
-        handleApplicationAction({ action: 'logs' }, testEnv),
-      ).rejects.toThrow();
+      const result = await handleApplicationAction({ action: 'logs' }, testEnv);
+      expect(isApplicationErrorResult(result)).toBe(true);
     });
 
     it('superRefine rejects both uuid and deployment_uuid', async () => {
-      await expect(
-        handleApplicationAction(
-          { action: 'logs', uuid: 'x', deployment_uuid: 'y' },
-          testEnv,
-        ),
-      ).rejects.toThrow();
+      const result = await handleApplicationAction(
+        { action: 'logs', uuid: 'x', deployment_uuid: 'y' },
+        testEnv,
+      );
+      expect(isApplicationErrorResult(result)).toBe(true);
     });
 
     it('rejects follow:true per D-05', () => {

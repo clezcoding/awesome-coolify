@@ -254,6 +254,92 @@ export async function fetchApplicationLogs(
   });
 }
 
+export async function createPublicApplication(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/applications/public', { method: 'POST', body: payload });
+}
+
+export async function createPrivateGithubAppApplication(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/applications/private-github-app', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+export async function createPrivateDeployKeyApplication(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/applications/private-deploy-key', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+export async function createDockerfileApplication(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/applications/dockerfile', { method: 'POST', body: payload });
+}
+
+export async function createDockerimageApplication(
+  url: string,
+  token: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client('/applications/dockerimage', { method: 'POST', body: payload });
+}
+
+export async function updateApplication(
+  url: string,
+  token: string,
+  uuid: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/applications/${uuid}`, { method: 'PATCH', body: payload });
+}
+
+export async function deleteApplication(
+  url: string,
+  token: string,
+  uuid: string,
+  params: {
+    delete_configurations?: boolean;
+    delete_volumes?: boolean;
+    docker_cleanup?: boolean;
+    delete_connected_networks?: boolean;
+  },
+  verifySsl = true,
+): Promise<unknown> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/applications/${uuid}`, {
+    method: 'DELETE',
+    query: params,
+  });
+}
+
 export async function fetchService(
   url: string,
   token: string,

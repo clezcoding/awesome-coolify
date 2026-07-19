@@ -1,16 +1,31 @@
-version = "1"
+# Kodiak — auto-update + squash-merge when CI passes.
+# Docs: https://kodiakhq.com/docs/config-reference
+# Install app (once): https://github.com/marketplace/kodiakhq
+
+version = 1
 
 [merge]
 method = "squash"
 automerge_label = "automerge"
 require_automerge_label = true
+delete_branch_on_merge = true
+notify_on_conflict = true
+blocking_labels = [
+  "status: blocked",
+  "status: needs-review",
+  "status: needs-triage",
+  "gsd: discuss",
+  "gsd: plan",
+  "gsd: execute",
+]
 
 [merge.message]
 title = "pull_request_title"
 body = "pull_request_body"
+include_pr_number = true
+body_type = "markdown"
+strip_html_comments = true
 
 [update]
 always = true
-
-[approve]
-auto_approve_usernames = []
+require_automerge_label = true

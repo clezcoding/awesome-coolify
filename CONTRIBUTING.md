@@ -41,6 +41,16 @@ Checked locally via a git hook (`commitlint`) before the commit is even created.
 - If the change is release-relevant (feature, fix, breaking change): run `npx changeset` and commit the generated file. This drives the version bump and changelog automatically.
 - CI (lint, test, build) must be green before merging.
 
+### Auto-merge (Kodiak)
+
+This repo uses [Kodiak](https://kodiakhq.com/) to update PR branches and squash-merge when CI passes.
+
+1. Open a PR against `main` and wait for **Lint, Test & Build** to pass (or fix failures first).
+2. Add the **`automerge`** label when the PR is ready to land.
+3. Kodiak keeps the branch up to date with `main` and merges automatically once checks pass.
+
+Config lives in `.kodiak.toml`. One-time app install + verification: `./scripts/setup-kodiak.sh`. Kodiak will **not** merge PRs with blocking labels such as `status: needs-review` or `gsd: plan`.
+
 ## Issues
 
 - Bug: use the bug report template.

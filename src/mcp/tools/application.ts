@@ -1,6 +1,11 @@
 import * as z from 'zod/v4';
 import type { EnvConfig } from '../config/env.js';
 import {
+  createDockerfileApplication,
+  createDockerimageApplication,
+  createPrivateDeployKeyApplication,
+  createPrivateGithubAppApplication,
+  createPublicApplication,
   fetchApplication,
   fetchApplicationLogs,
   fetchDeployment,
@@ -9,8 +14,13 @@ import {
   triggerAppStart,
   triggerAppStop,
   triggerDeploy,
+  updateApplication,
+  deleteApplication,
 } from '../../api/client.js';
-import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
+import {
+  buildProjectEnvironmentIndex,
+  resolveProjectUuid,
+} from '../../utils/project-lookup.js';
 import {
   projectApplicationSummary,
   projectDeploymentSummary,
@@ -24,6 +34,7 @@ import {
   CoolifyApiError,
   RECOVERY_HINTS,
   wrapMcpError,
+  type CoolifyErrorCode,
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
@@ -235,7 +246,386 @@ export const applicationLogsSchema = z
     }
   });
 
-export const applicationActionSchema = z.discriminatedUnion('action', [
+const createSharedFields = {
+  action: z.literal('create'),
+  project_uuid: z.string().optional().describe('Project UUID'),
+  project_name: z.string().optional().describe('Project name for lookup'),
+  environment_name: z.string().optional().describe('Environment name'),
+  environment_uuid: z.string().optional().describe('Environment UUID'),
+  server_uuid: z.string().describe('Server UUID (required)'),
+  name: z.string().optional().describe('Application name'),
+  description: z.string().optional().describe('Application description'),
+  domains: z.string().optional().describe('Comma-separated domain list'),
+  ports_exposes: z.string().optional().describe('Ports to expose'),
+  ports_mappings: z.string().optional().describe('Port mappings'),
+  instant_deploy: z
+    .boolean()
+    .default(false)
+    .describe('Queue deploy immediately after create (fire-and-forget)'),
+  force_domain_override: z
+    .boolean()
+    .default(false)
+    .describe('Override domain conflict on create'),
+  ...mutationResponseParamsSchema,
+};
+
+const gitBuildPackSchema = z
+  .enum(['nixpacks', 'railpack', 'static', 'dockerfile', 'dockercompose'])
+  .superRefine((val, ctx) => {
+    if (val === 'dockercompose') {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          "build_pack='dockercompose' is not supported on application create — use service.create (Phase 11)",
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+  });
+
+function requireProjectAndEnvironment(
+  data: {
+    project_uuid?: string;
+    project_name?: string;
+    environment_name?: string;
+    environment_uuid?: string;
+  },
+  ctx: z.RefinementCtx,
+): void {
+  if (!data.project_uuid && !data.project_name) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'Either project_uuid or project_name is required for application create',
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+  if (!data.environment_name && !data.environment_uuid) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'Either environment_name or environment_uuid is required for application create',
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+function rejectDockercomposeBuildPack(
+  data: { build_pack?: string },
+  ctx: z.RefinementCtx,
+): void {
+  if (data.build_pack === 'dockercompose') {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        "build_pack='dockercompose' is not supported on application create — use service.create (Phase 11)",
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+const publicGitCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('public_git'),
+    git_repository: z.string().describe('Public git repository URL'),
+    git_branch: z.string().describe('Git branch to deploy'),
+    build_pack: gitBuildPackSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    requireProjectAndEnvironment(data, ctx);
+    rejectDockercomposeBuildPack(data, ctx);
+  });
+
+const privateDeployKeyCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('private_deploy_key'),
+    private_key_uuid: z.string().describe('Private deploy key UUID'),
+    git_repository: z.string().describe('Private git repository URL'),
+    git_branch: z.string().describe('Git branch to deploy'),
+    build_pack: gitBuildPackSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    requireProjectAndEnvironment(data, ctx);
+    rejectDockercomposeBuildPack(data, ctx);
+  });
+
+const privateGithubAppCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('private_github_app'),
+    github_app_uuid: z.string().describe('GitHub app UUID'),
+    git_repository: z.string().describe('Private git repository URL'),
+    git_branch: z.string().describe('Git branch to deploy'),
+    build_pack: gitBuildPackSchema,
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    requireProjectAndEnvironment(data, ctx);
+    rejectDockercomposeBuildPack(data, ctx);
+  });
+
+const dockerfileCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('dockerfile'),
+    dockerfile: z.string().describe('Dockerfile content'),
+    build_pack: z.literal('dockerfile').optional(),
+  })
+  .strict()
+  .superRefine(requireProjectAndEnvironment);
+
+const dockerimageCreateSchema = z
+  .object({
+    ...createSharedFields,
+    source_type: z.literal('dockerimage'),
+    docker_registry_image_name: z
+      .string()
+      .describe('Docker registry image name'),
+    docker_registry_image_tag: z
+      .string()
+      .optional()
+      .describe('Docker registry image tag'),
+  })
+  .strict()
+  .superRefine(requireProjectAndEnvironment);
+
+const createActionSchema = z.discriminatedUnion('source_type', [
+  publicGitCreateSchema,
+  privateDeployKeyCreateSchema,
+  privateGithubAppCreateSchema,
+  dockerfileCreateSchema,
+  dockerimageCreateSchema,
+]);
+
+const updateBuildPackSchema = z
+  .enum(['nixpacks', 'railpack', 'static', 'dockerfile', 'dockercompose'])
+  .optional()
+  .superRefine((val, ctx) => {
+    if (val === 'dockercompose') {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          "build_pack='dockercompose' is not supported on application update — use service.update (Phase 11)",
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+  });
+
+const updateActionSchema = requireMutationIdentifier(
+  z
+    .object({
+      action: z.literal('update'),
+      uuid: z.string().optional().describe('Application UUID'),
+      name: z.string().optional().describe('Application name substring or new name'),
+      fqdn: z.string().optional().describe('Application FQDN substring'),
+      description: z.string().optional().describe('Application description'),
+      domains: z.string().optional().describe('Comma-separated domain list'),
+      git_repository: z.string().optional().describe('Git repository URL'),
+      git_branch: z.string().optional().describe('Git branch'),
+      git_commit_sha: z.string().optional().describe('Git commit SHA'),
+      build_pack: updateBuildPackSchema.describe('Build pack'),
+      docker_registry_image_name: z
+        .string()
+        .optional()
+        .describe('Docker registry image name'),
+      docker_registry_image_tag: z
+        .string()
+        .optional()
+        .describe('Docker registry image tag'),
+      is_static: z.boolean().optional().describe('Static site flag'),
+      is_spa: z.boolean().optional().describe('Single-page application flag'),
+      is_auto_deploy_enabled: z.boolean().optional().describe('Auto-deploy on push'),
+      is_force_https_enabled: z
+        .boolean()
+        .optional()
+        .describe('Force HTTPS redirect'),
+      install_command: z.string().optional().describe('Install command'),
+      build_command: z.string().optional().describe('Build command'),
+      start_command: z.string().optional().describe('Start command'),
+      ports_exposes: z.string().optional().describe('Ports to expose'),
+      ports_mappings: z.string().optional().describe('Port mappings'),
+      base_directory: z.string().optional().describe('Base directory'),
+      publish_directory: z.string().optional().describe('Publish directory'),
+      health_check_enabled: z.boolean().optional().describe('Health check enabled'),
+      health_check_path: z.string().optional().describe('Health check path'),
+      health_check_port: z.string().optional().describe('Health check port'),
+      health_check_host: z.string().optional().describe('Health check host'),
+      health_check_method: z.string().optional().describe('Health check HTTP method'),
+      health_check_return_code: z
+        .number()
+        .int()
+        .optional()
+        .describe('Expected health check status code'),
+      health_check_scheme: z.string().optional().describe('Health check scheme'),
+      health_check_response_text: z
+        .string()
+        .optional()
+        .describe('Expected health check response text'),
+      health_check_interval: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check interval seconds'),
+      health_check_timeout: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check timeout seconds'),
+      health_check_retries: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check retries'),
+      health_check_start_period: z
+        .number()
+        .int()
+        .optional()
+        .describe('Health check start period seconds'),
+      custom_labels: z.string().optional().describe('Custom Docker labels'),
+      custom_docker_run_options: z
+        .string()
+        .optional()
+        .describe('Custom docker run options'),
+      redirect: z
+        .enum(['www', 'non-www', 'both'])
+        .optional()
+        .describe('WWW redirect mode'),
+      watch_paths: z.string().optional().describe('Git watch paths'),
+      use_build_server: z.boolean().optional().describe('Use build server'),
+      is_preserve_repository_enabled: z
+        .boolean()
+        .optional()
+        .describe('Preserve repository on deploy'),
+      connect_to_docker_network: z
+        .boolean()
+        .optional()
+        .describe('Connect to Docker network'),
+      is_container_label_escape_enabled: z
+        .boolean()
+        .optional()
+        .describe('Container label escape enabled'),
+      is_http_basic_auth_enabled: z
+        .boolean()
+        .optional()
+        .describe('Enable HTTP basic authentication'),
+      http_basic_auth_username: z
+        .string()
+        .optional()
+        .describe('HTTP basic auth username'),
+      http_basic_auth_password: z
+        .string()
+        .optional()
+        .describe('HTTP basic auth password (caller-supplied only)'),
+      force_domain_override: z
+        .boolean()
+        .default(false)
+        .describe('Override domain conflict on update'),
+      reveal: z
+        .boolean()
+        .default(false)
+        .describe('Reveal masked secrets in full projection response'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'update',
+);
+
+const deleteActionSchema = requireMutationIdentifier(
+  z
+    .object({
+      action: z.literal('delete'),
+      uuid: z.string().optional().describe('Application UUID'),
+      name: z.string().optional().describe('Application name substring'),
+      fqdn: z.string().optional().describe('Application FQDN substring'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for destructive delete'),
+      delete_volumes: z
+        .boolean()
+        .default(false)
+        .describe('Also delete attached volumes (default false)'),
+      delete_configurations: z
+        .boolean()
+        .default(false)
+        .describe('Also delete configurations (default false)'),
+      docker_cleanup: z
+        .boolean()
+        .default(false)
+        .describe('Run docker cleanup after delete (default false)'),
+      delete_connected_networks: z
+        .boolean()
+        .default(false)
+        .describe('Delete connected networks (default false)'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete',
+);
+
+const deletePreviewActionSchema = requireMutationIdentifier(
+  z
+    .object({
+      action: z.literal('delete_preview'),
+      uuid: z.string().optional().describe('Application UUID'),
+      name: z.string().optional().describe('Application name substring'),
+      fqdn: z.string().optional().describe('Application FQDN substring'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete_preview',
+);
+
+const UPDATE_CURATED_FIELD_KEYS = [
+  'name',
+  'description',
+  'domains',
+  'git_repository',
+  'git_branch',
+  'git_commit_sha',
+  'build_pack',
+  'docker_registry_image_name',
+  'docker_registry_image_tag',
+  'is_static',
+  'is_spa',
+  'is_auto_deploy_enabled',
+  'is_force_https_enabled',
+  'install_command',
+  'build_command',
+  'start_command',
+  'ports_exposes',
+  'ports_mappings',
+  'base_directory',
+  'publish_directory',
+  'health_check_enabled',
+  'health_check_path',
+  'health_check_port',
+  'health_check_host',
+  'health_check_method',
+  'health_check_return_code',
+  'health_check_scheme',
+  'health_check_response_text',
+  'health_check_interval',
+  'health_check_timeout',
+  'health_check_retries',
+  'health_check_start_period',
+  'custom_labels',
+  'custom_docker_run_options',
+  'redirect',
+  'watch_paths',
+  'use_build_server',
+  'is_preserve_repository_enabled',
+  'connect_to_docker_network',
+  'is_container_label_escape_enabled',
+  'is_http_basic_auth_enabled',
+  'http_basic_auth_username',
+  'http_basic_auth_password',
+] as const;
+
+const lifecycleActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('get'),
     uuid: z.string().describe('Application UUID'),
@@ -246,6 +636,14 @@ export const applicationActionSchema = z.discriminatedUnion('action', [
   restartActionSchema,
   deployActionSchema,
   applicationLogsSchema,
+  updateActionSchema,
+  deleteActionSchema,
+  deletePreviewActionSchema,
+]);
+
+export const applicationActionSchema = z.union([
+  lifecycleActionSchema,
+  createActionSchema,
 ]);
 
 export type ApplicationAction = z.infer<typeof applicationActionSchema>;
@@ -307,11 +705,51 @@ export type ApplicationLogsResult = ReadResponse<{
   entries_shown?: number;
 }>;
 
+export type ApplicationCreateResult = ReadResponse<{
+  uuid: string;
+  ok?: boolean;
+  deploy?: {
+    status: 'queued' | 'not_triggered' | 'failed_to_queue';
+    deployment_uuid?: string;
+    error?: string;
+  };
+  logs_available?: ReturnType<typeof logsAvailableHint>;
+  hints?: string[];
+  recoveryHints?: string[];
+}>;
+
+export type ApplicationUpdateResult = ReadResponse<
+  ReturnType<typeof sanitizeFullProjection>
+>;
+
+export type ApplicationDeleteResult = ReadResponse<{
+  ok: true;
+  uuid: string;
+  deleted: true;
+  delete_volumes: boolean;
+  delete_configurations: boolean;
+}>;
+
+export type ApplicationDeletePreviewResult = ReadResponse<{
+  uuid: string;
+  child_resources: Array<{
+    uuid: string;
+    name?: string;
+    type?: string;
+  }>;
+  would_delete: true;
+  warning?: string;
+}>;
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
   | ApplicationDeployResult
   | ApplicationLogsResult
+  | ApplicationCreateResult
+  | ApplicationUpdateResult
+  | ApplicationDeleteResult
+  | ApplicationDeletePreviewResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -321,6 +759,73 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 type MutationAction = z.infer<typeof startActionSchema>;
 type DeployAction = z.infer<typeof deployActionSchema>;
 type LogsAction = z.infer<typeof applicationLogsSchema>;
+type CreateAction = z.infer<typeof createActionSchema>;
+type UpdateAction = z.infer<typeof updateActionSchema>;
+type DeleteAction = z.infer<typeof deleteActionSchema>;
+type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
+
+function validateDeleteConfirm(confirm: boolean, uuid: string): void {
+  if (confirm === true) {
+    return;
+  }
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_CONFIRM_REQUIRED',
+    message: `Action 'delete' on application '${uuid}' requires explicit confirmation.`,
+    recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+    data: {
+      action: 'delete',
+      uuid,
+    },
+  });
+}
+
+function throwValidationError(error: z.ZodError, args: unknown): never {
+  const customIssue = error.issues.find(
+    (issue) =>
+      typeof (issue as { params?: { code?: string } }).params?.code === 'string',
+  );
+  let code =
+    ((customIssue as { params?: { code?: CoolifyErrorCode } } | undefined)?.params
+      ?.code as CoolifyErrorCode | undefined) ?? undefined;
+
+  if (
+    !code &&
+    isRecord(args) &&
+    (args.action === 'create' || args.action === 'update')
+  ) {
+    code = 'COOLIFY_VALIDATION_ERROR';
+  }
+
+  const resolvedCode = code ?? 'COOLIFY_422';
+
+  throw new CoolifyApiError({
+    code: resolvedCode,
+    message: error.issues.map((issue) => issue.message).join('; '),
+    recoveryHints:
+      RECOVERY_HINTS[resolvedCode] ?? RECOVERY_HINTS.COOLIFY_422,
+  });
+}
+
+function parseApplicationAction(args: unknown): ApplicationAction {
+  const parsed = applicationActionSchema.safeParse(args);
+  if (!parsed.success) {
+    throwValidationError(parsed.error, args);
+  }
+  return parsed.data;
+}
+
+function omitUndefined(
+  body: Record<string, unknown>,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
 
 type AppIdentifierInput = {
   uuid?: string;
@@ -797,14 +1302,333 @@ async function handleApplicationLogs(
   );
 }
 
-export async function handleApplicationAction(
-  args: ApplicationAction,
+async function buildCreateApiBody(
+  parsed: CreateAction,
   env: EnvConfig,
-): Promise<ApplicationActionResult> {
-  const parsed = applicationActionSchema.parse(args);
+): Promise<Record<string, unknown>> {
+  const project_uuid = parsed.project_uuid
+    ? parsed.project_uuid
+    : await resolveProjectUuid(undefined, parsed.project_name, env);
+
+  const body: Record<string, unknown> = {
+    project_uuid,
+    server_uuid: parsed.server_uuid,
+    instant_deploy: parsed.instant_deploy,
+    force_domain_override: parsed.force_domain_override,
+    name: parsed.name,
+    description: parsed.description,
+    domains: parsed.domains,
+    ports_exposes: parsed.ports_exposes,
+    ports_mappings: parsed.ports_mappings,
+  };
+
+  if (parsed.environment_name) {
+    body.environment_name = parsed.environment_name;
+  }
+  if (parsed.environment_uuid) {
+    body.environment_uuid = parsed.environment_uuid;
+  }
+
+  switch (parsed.source_type) {
+    case 'public_git':
+      body.git_repository = parsed.git_repository;
+      body.git_branch = parsed.git_branch;
+      body.build_pack = parsed.build_pack;
+      break;
+    case 'private_deploy_key':
+      body.private_key_uuid = parsed.private_key_uuid;
+      body.git_repository = parsed.git_repository;
+      body.git_branch = parsed.git_branch;
+      body.build_pack = parsed.build_pack;
+      break;
+    case 'private_github_app':
+      body.github_app_uuid = parsed.github_app_uuid;
+      body.git_repository = parsed.git_repository;
+      body.git_branch = parsed.git_branch;
+      body.build_pack = parsed.build_pack;
+      break;
+    case 'dockerfile':
+      body.dockerfile = parsed.dockerfile;
+      if (parsed.build_pack) {
+        body.build_pack = parsed.build_pack;
+      }
+      break;
+    case 'dockerimage':
+      body.docker_registry_image_name = parsed.docker_registry_image_name;
+      body.docker_registry_image_tag = parsed.docker_registry_image_tag;
+      break;
+  }
+
+  return omitUndefined(body);
+}
+
+function buildUpdatePayload(parsed: UpdateAction): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  for (const key of UPDATE_CURATED_FIELD_KEYS) {
+    const value = parsed[key];
+    if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
+
+  if (parsed.force_domain_override === true) {
+    payload.force_domain_override = true;
+  }
+
+  return payload;
+}
+
+async function handleApplicationUpdate(
+  parsed: UpdateAction,
+  env: EnvConfig,
+): Promise<ApplicationUpdateResult> {
+  const uuid = await resolveAppMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name, fqdn: parsed.fqdn },
+    env,
+  );
+
+  const payload = buildUpdatePayload(parsed);
+
+  await updateApplication(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    payload,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const raw = await fetchApplication(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const data = sanitizeFullProjection(raw, parsed.reveal);
+
+  return buildReadResponse(data, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
+async function handleApplicationDelete(
+  parsed: DeleteAction,
+  env: EnvConfig,
+): Promise<ApplicationDeleteResult> {
+  const uuid = await resolveAppMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name, fqdn: parsed.fqdn },
+    env,
+  );
+
+  validateDeleteConfirm(parsed.confirm, uuid);
+
+  await deleteApplication(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    {
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+      docker_cleanup: parsed.docker_cleanup,
+      delete_connected_networks: parsed.delete_connected_networks,
+    },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return buildReadResponse(
+    {
+      ok: true,
+      uuid,
+      deleted: true,
+      delete_volumes: parsed.delete_volumes,
+      delete_configurations: parsed.delete_configurations,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+async function handleApplicationDeletePreview(
+  parsed: DeletePreviewAction,
+  env: EnvConfig,
+): Promise<ApplicationDeletePreviewResult> {
+  const uuid = await resolveAppMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name, fqdn: parsed.fqdn },
+    env,
+  );
+
+  const rawResources = await fetchResources(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const childResources = rawResources
+    .filter(isRecord)
+    .filter((resource) => String(resource.application_uuid ?? '') === uuid)
+    .map((resource) => ({
+      uuid: String(resource.uuid ?? ''),
+      name: resource.name != null ? String(resource.name) : undefined,
+      type: resource.type != null ? String(resource.type) : undefined,
+    }));
+
+  const response: {
+    uuid: string;
+    child_resources: typeof childResources;
+    would_delete: true;
+    warning?: string;
+  } = {
+    uuid,
+    child_resources: childResources,
+    would_delete: true,
+  };
+
+  if (childResources.length > 0) {
+    response.warning =
+      'Application has child resources that will also be removed or orphaned — review child_resources before confirming delete.';
+  }
+
+  return buildReadResponse(response, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
+async function handleApplicationCreate(
+  parsed: CreateAction,
+  env: EnvConfig,
+): Promise<ApplicationCreateResult> {
+  const body = await buildCreateApiBody(parsed, env);
+
+  const callCreate = async (): Promise<unknown> => {
+    switch (parsed.source_type) {
+      case 'public_git':
+        return createPublicApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'private_deploy_key':
+        return createPrivateDeployKeyApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'private_github_app':
+        return createPrivateGithubAppApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'dockerfile':
+        return createDockerfileApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      case 'dockerimage':
+        return createDockerimageApplication(
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          body,
+          env.COOLIFY_VERIFY_SSL,
+        );
+    }
+  };
+
+  const raw = await callCreate();
+  const created = isRecord(raw) ? raw : {};
+  const appUuid = String(created.uuid ?? '');
+
+  if (!parsed.instant_deploy) {
+    return buildReadResponse(
+      {
+        uuid: appUuid,
+        deploy: { status: 'not_triggered' as const },
+        hints: ['Use application.deploy to trigger a deployment'],
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
 
   try {
+    const deployRaw = await triggerDeploy(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      appUuid,
+      false,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const deploymentUuid = extractDeploymentUuid(deployRaw);
+
+    return buildReadResponse(
+      {
+        uuid: appUuid,
+        deploy: {
+          status: 'queued' as const,
+          deployment_uuid: deploymentUuid,
+        },
+        logs_available: logsAvailableHint(deploymentUuid),
+        hints: [
+          'Use deployment.get with deployment_uuid to poll status',
+          'Use application.deploy with wait:true to block until terminal',
+        ],
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return buildReadResponse(
+      {
+        ok: true,
+        uuid: appUuid,
+        deploy: {
+          status: 'failed_to_queue' as const,
+          error: message,
+        },
+        recoveryHints: [
+          'Application was created successfully — retry deployment with application.deploy.',
+          'Check Coolify server logs if deploy queue failures persist.',
+        ],
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
+}
+
+export async function handleApplicationAction(
+  args: unknown,
+  env: EnvConfig,
+): Promise<ApplicationActionResult> {
+  try {
+    const parsed = parseApplicationAction(args);
+
     switch (parsed.action) {
+      case 'create':
+        return await handleApplicationCreate(parsed, env);
+      case 'update':
+        return await handleApplicationUpdate(parsed, env);
+      case 'delete':
+        return await handleApplicationDelete(parsed, env);
+      case 'delete_preview':
+        return await handleApplicationDeletePreview(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':

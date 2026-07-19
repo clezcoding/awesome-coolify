@@ -53,7 +53,10 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 
 ## Merge-Automatisierung
 
-- `.kodiak.toml` — Kodiak-Config (Squash-Merge, `automerge`-Label); Kodiak ist eine GitHub-App, die der Repo-Owner manuell installiert (https://kodiakhq.com -> Add to GitHub -> Repo `clezcoding/awesome-coolify` auswählen). Diese Datei steuert nur das Verhalten nach der Installation.
+- `.kodiak.toml` — Kodiak-Config: Squash-Merge, Branch-Auto-Update, Branch-Löschung nach Merge, `automerge`-Label Pflicht, Blocking-Labels (`status: needs-review`, `gsd: plan`, …)
+- `scripts/setup-kodiak.sh` — prüft Config/Label/Branch-Protection; optional `--pr <nr>` setzt `automerge`
+- Kodiak GitHub App (einmalig): [Marketplace](https://github.com/marketplace/kodiakhq) → Repo `clezcoding/awesome-coolify` auswählen ([Docs](https://kodiakhq.com/))
+- `.github/labels.yml` — Label `automerge` (grün) für Kodiak-Trigger
 - `.github/release-drafter.yml` — Release-Drafter-Config (Templates, Conventional-Commit-Kategorien)
 
 ## .gitignore (öffentliche Oberfläche)
