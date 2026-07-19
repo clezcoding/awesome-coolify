@@ -37,21 +37,45 @@ export function projectServiceCompose(
   raw: Record<string, unknown>,
 ): Record<string, unknown> {
   const dockerComposeRaw = raw.docker_compose_raw;
-  if (typeof dockerComposeRaw !== 'string' || dockerComposeRaw === '') {
+  const dockerCompose = raw.docker_compose;
+
+  const hasRaw =
+    typeof dockerComposeRaw === 'string' && dockerComposeRaw !== '';
+  const hasCompose =
+    typeof dockerCompose === 'string' && dockerCompose !== '';
+
+  if (!hasRaw && !hasCompose) {
     return raw;
   }
 
-  const decoded = decodeCompose(dockerComposeRaw);
-  if (decoded === null) {
-    const result = {
-      ...raw,
-      compose_decode_error: 'invalid base64 in docker_compose_raw',
-    };
+  let compose: string | undefined;
+
+  if (hasRaw) {
+    const decoded = decodeCompose(dockerComposeRaw);
+    if (decoded !== null && validateCompose(decoded).ok) {
+      compose = decoded;
+    } else if (validateCompose(dockerComposeRaw).ok) {
+      compose = dockerComposeRaw;
+    }
+  }
+
+  if (compose === undefined && hasCompose && validateCompose(dockerCompose).ok) {
+    compose = dockerCompose;
+  }
+
+  if (compose !== undefined) {
+    const result = { ...raw, compose };
     delete result.docker_compose_raw;
+    delete result.docker_compose;
     return result;
   }
 
-  const result = { ...raw, compose: decoded };
+  const result = {
+    ...raw,
+    compose_decode_error:
+      'compose field not decodable from docker_compose_raw or docker_compose',
+  };
   delete result.docker_compose_raw;
+  delete result.docker_compose;
   return result;
 }

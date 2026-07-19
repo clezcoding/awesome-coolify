@@ -94,9 +94,79 @@ describe('projectServiceCompose', () => {
 
     expect(result.compose).toBeUndefined();
     expect(result.compose_decode_error).toBe(
-      'invalid base64 in docker_compose_raw',
+      'compose field not decodable from docker_compose_raw or docker_compose',
     );
     expect(result.docker_compose_raw).toBeUndefined();
     expect(result.uuid).toBe('svc-1');
+  });
+
+  it('decodes plain-YAML docker_compose_raw from Coolify 4.1.2 one-click services', () => {
+    const yaml = 'services:\n  web:\n    image: nginx:alpine';
+    const input = { uuid: 'svc-1', docker_compose_raw: yaml };
+
+    const result = projectServiceCompose(input);
+
+    expect(result.compose).toBe(yaml);
+    expect(result.docker_compose_raw).toBeUndefined();
+    expect(result.docker_compose).toBeUndefined();
+    expect(result.compose_decode_error).toBeUndefined();
+  });
+
+  it('falls back to docker_compose field when docker_compose_raw is absent', () => {
+    const yaml = 'services:\n  redis:\n    image: redis:7';
+    const input = { uuid: 'svc-1', docker_compose: yaml };
+
+    const result = projectServiceCompose(input);
+
+    expect(result.compose).toBe(yaml);
+    expect(result.docker_compose).toBeUndefined();
+    expect(result.docker_compose_raw).toBeUndefined();
+  });
+
+  it('prefers base64 docker_compose_raw over plain docker_compose field', () => {
+    const nginxYaml = 'services:\n  web:\n    image: nginx';
+    const input = {
+      uuid: 'svc-1',
+      docker_compose_raw: encodeCompose(nginxYaml),
+      docker_compose: 'services:\n  other: redis',
+    };
+
+    const result = projectServiceCompose(input);
+
+    expect(result.compose).toBe(nginxYaml);
+    expect(result.docker_compose_raw).toBeUndefined();
+    expect(result.docker_compose).toBeUndefined();
+  });
+
+  it('prefers plain-YAML docker_compose_raw over docker_compose when both plain', () => {
+    const nginxYaml = 'services:\n  web: nginx';
+    const input = {
+      uuid: 'svc-1',
+      docker_compose_raw: nginxYaml,
+      docker_compose: 'services:\n  web: redis',
+    };
+
+    const result = projectServiceCompose(input);
+
+    expect(result.compose).toBe(nginxYaml);
+    expect(result.docker_compose_raw).toBeUndefined();
+    expect(result.docker_compose).toBeUndefined();
+  });
+
+  it('emits compose_decode_error only when no compose source resolves', () => {
+    const input = {
+      uuid: 'svc-1',
+      docker_compose_raw: '!!!garbage!!!',
+      docker_compose: 'also : not : yaml : : :',
+    };
+
+    const result = projectServiceCompose(input);
+
+    expect(result.compose).toBeUndefined();
+    expect(result.compose_decode_error).toBe(
+      'compose field not decodable from docker_compose_raw or docker_compose',
+    );
+    expect(result.docker_compose_raw).toBeUndefined();
+    expect(result.docker_compose).toBeUndefined();
   });
 });
