@@ -506,7 +506,7 @@ describe('service get compose decode (D-06)', () => {
     vi.mocked(fetchProject).mockResolvedValue({});
   });
 
-  it.fails('returns decoded compose YAML and strips docker_compose_raw per D-06', async () => {
+  it('returns decoded compose YAML and strips docker_compose_raw per D-06', async () => {
     const result = await handleServiceAction(
       { action: 'get', uuid: 'svc-uuid-1', projection: 'full' },
       testEnv,
@@ -525,13 +525,17 @@ describe('service create', () => {
   beforeEach(() => {
     vi.mocked(createService).mockReset();
     vi.mocked(readFileSync).mockReset();
+    vi.mocked(triggerServiceStart).mockReset();
     vi.mocked(createService).mockResolvedValue({
       uuid: 'svc-new-uuid',
       name: 'actualbudget',
     });
+    vi.mocked(triggerServiceStart).mockResolvedValue({
+      message: 'Service starting request queued.',
+    });
   });
 
-  it.fails('creates one-click service with type actualbudget per SVC-06', async () => {
+  it('creates one-click service with type actualbudget per SVC-06', async () => {
     const result = await handleServiceAction(
       {
         action: 'create',
@@ -553,7 +557,7 @@ describe('service create', () => {
     expect(result.data).toMatchObject({ uuid: 'svc-new-uuid' });
   });
 
-  it.fails('creates compose service with base64-encoded docker_compose_raw per SVC-07', async () => {
+  it('creates compose service with base64-encoded docker_compose_raw per SVC-07', async () => {
     vi.mocked(createService).mockResolvedValue({
       uuid: 'svc-compose-uuid',
       docker_compose_raw: sampleComposeBase64,
@@ -578,7 +582,7 @@ describe('service create', () => {
     );
   });
 
-  it.fails('reads compose_file and encodes to base64 per SVC-07', async () => {
+  it('reads compose_file and encodes to base64 per SVC-07', async () => {
     vi.mocked(readFileSync).mockReturnValue(sampleComposeYaml);
 
     await handleServiceAction(
@@ -601,7 +605,7 @@ describe('service create', () => {
     );
   });
 
-  it.fails('rejects create with both type and compose per SVC-07 XOR', async () => {
+  it('rejects create with both type and compose per SVC-07 XOR', async () => {
     const result = await handleServiceAction(
       {
         action: 'create',
@@ -619,7 +623,7 @@ describe('service create', () => {
     expect(createService).not.toHaveBeenCalled();
   });
 
-  it.fails('rejects create with neither type nor compose per SVC-07 XOR', async () => {
+  it('rejects create with neither type nor compose per SVC-07 XOR', async () => {
     const result = await handleServiceAction(
       {
         action: 'create',
@@ -635,7 +639,7 @@ describe('service create', () => {
     expect(createService).not.toHaveBeenCalled();
   });
 
-  it.fails('defaults instant_deploy to true on one-click create per D-11', async () => {
+  it('defaults instant_deploy to true on one-click create per D-11', async () => {
     await handleServiceAction(
       {
         action: 'create',
@@ -653,7 +657,7 @@ describe('service create', () => {
     );
   });
 
-  it.fails('defaults instant_deploy to true on compose create per D-11', async () => {
+  it('defaults instant_deploy to true on compose create per D-11', async () => {
     await handleServiceAction(
       {
         action: 'create',
@@ -671,7 +675,7 @@ describe('service create', () => {
     );
   });
 
-  it.fails('maps HTTP 409 domain conflicts to COOLIFY_409 with force_domain_override hint per SVC-10', async () => {
+  it('maps HTTP 409 domain conflicts to COOLIFY_409 with force_domain_override hint per SVC-10', async () => {
     const conflicts = [{ domain: 'redis.example.com', message: 'Domain in use' }];
     vi.mocked(createService).mockRejectedValue(
       Object.assign(new Error('Conflict'), {
@@ -701,7 +705,7 @@ describe('service create', () => {
     ).toMatch(/force_domain_override:\s*true/i);
   });
 
-  it.fails('passes force_domain_override:true on create happy path per SVC-10', async () => {
+  it('passes force_domain_override:true on create happy path per SVC-10', async () => {
     const result = await handleServiceAction(
       {
         action: 'create',
@@ -724,7 +728,7 @@ describe('service create', () => {
     expect(result.data).toMatchObject({ uuid: 'svc-new-uuid' });
   });
 
-  it.fails('returns decoded compose on create success per D-06', async () => {
+  it('returns decoded compose on create success per D-06', async () => {
     vi.mocked(createService).mockResolvedValue({
       uuid: 'svc-compose-uuid',
       docker_compose_raw: sampleComposeBase64,
@@ -747,7 +751,7 @@ describe('service create', () => {
     expect(data.docker_compose_raw).toBeUndefined();
   });
 
-  it.fails('rejects create with unknown field before API call per SAF-03', async () => {
+  it('rejects create with unknown field before API call per SAF-03', async () => {
     const result = await handleServiceAction(
       {
         action: 'create',
@@ -765,7 +769,7 @@ describe('service create', () => {
     expect(createService).not.toHaveBeenCalled();
   });
 
-  it.fails('rejects create without project_uuid or project_name per D-02', async () => {
+  it('rejects create without project_uuid or project_name per D-02', async () => {
     const result = await handleServiceAction(
       {
         action: 'create',
