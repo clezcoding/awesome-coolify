@@ -1625,16 +1625,19 @@ describe('application update', () => {
   beforeEach(() => {
     vi.mocked(updateApplication).mockReset();
     vi.mocked(fetchResources).mockReset();
-    vi.mocked(updateApplication).mockResolvedValue({
+    vi.mocked(fetchApplication).mockReset();
+    const updatedApp = {
       ...mockApplication,
       domains: 'https://new.example.com',
       build_command: 'npm run build',
       health_check_path: '/health',
       custom_labels: 'key=value',
-    });
+    };
+    vi.mocked(updateApplication).mockResolvedValue(updatedApp);
+    vi.mocked(fetchApplication).mockResolvedValue(updatedApp);
   });
 
-  it.fails('patches curated fields via updateApplication per APP-17', async () => {
+  it('patches curated fields via updateApplication per APP-17', async () => {
     const result = await handleApplicationAction(
       {
         action: 'update',
@@ -1668,8 +1671,14 @@ describe('application update', () => {
     });
   });
 
-  it.fails('passes HTTP basic auth fields to updateApplication per APP-19', async () => {
+  it('passes HTTP basic auth fields to updateApplication per APP-19', async () => {
     vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      is_http_basic_auth_enabled: true,
+      http_basic_auth_username: 'admin',
+      http_basic_auth_password: 'plain-secret',
+    });
+    vi.mocked(fetchApplication).mockResolvedValue({
       ...mockApplication,
       is_http_basic_auth_enabled: true,
       http_basic_auth_username: 'admin',
@@ -1700,8 +1709,13 @@ describe('application update', () => {
     );
   });
 
-  it.fails('masks http_basic_auth_password unless reveal:true per SAF-04', async () => {
+  it('masks http_basic_auth_password unless reveal:true per SAF-04', async () => {
     vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      http_basic_auth_username: 'admin',
+      http_basic_auth_password: 'plain-secret',
+    });
+    vi.mocked(fetchApplication).mockResolvedValue({
       ...mockApplication,
       http_basic_auth_username: 'admin',
       http_basic_auth_password: 'plain-secret',
@@ -1724,8 +1738,13 @@ describe('application update', () => {
     expect(data.http_basic_auth_password).toBe('***');
   });
 
-  it.fails('returns plaintext http_basic_auth_password when reveal:true per SAF-04', async () => {
+  it('returns plaintext http_basic_auth_password when reveal:true per SAF-04', async () => {
     vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      http_basic_auth_username: 'admin',
+      http_basic_auth_password: 'plain-secret',
+    });
+    vi.mocked(fetchApplication).mockResolvedValue({
       ...mockApplication,
       http_basic_auth_username: 'admin',
       http_basic_auth_password: 'plain-secret',
@@ -1748,7 +1767,7 @@ describe('application update', () => {
     expect(data.http_basic_auth_password).toBe('plain-secret');
   });
 
-  it.fails('rejects unknown update fields via strict schema before API call per SAF-03', async () => {
+  it('rejects unknown update fields via strict schema before API call per SAF-03', async () => {
     const result = await handleApplicationAction(
       {
         action: 'update',
@@ -1765,7 +1784,7 @@ describe('application update', () => {
     expect(updateApplication).not.toHaveBeenCalled();
   });
 
-  it.fails('maps update HTTP 409 to COOLIFY_409 with force_domain_override hint per APP-21', async () => {
+  it('maps update HTTP 409 to COOLIFY_409 with force_domain_override hint per APP-21', async () => {
     const conflicts = [{ domain: 'taken.example.com', message: 'in use' }];
     vi.mocked(updateApplication).mockRejectedValue(
       Object.assign(new Error('Conflict'), {
@@ -1795,8 +1814,12 @@ describe('application update', () => {
     ).toMatch(/force_domain_override:\s*true/i);
   });
 
-  it.fails('passes force_domain_override:true on update happy path per APP-21', async () => {
+  it('passes force_domain_override:true on update happy path per APP-21', async () => {
     vi.mocked(updateApplication).mockResolvedValue({
+      ...mockApplication,
+      domains: 'https://override.example.com',
+    });
+    vi.mocked(fetchApplication).mockResolvedValue({
       ...mockApplication,
       domains: 'https://override.example.com',
     });
@@ -1824,7 +1847,7 @@ describe('application update', () => {
     expect(result.data).toMatchObject({ uuid: 'app-uuid-1' });
   });
 
-  it.fails('resolves update by name single-hit via fetchResources per D-21', async () => {
+  it('resolves update by name single-hit via fetchResources per D-21', async () => {
     vi.mocked(fetchResources).mockResolvedValue([mockResourceApp1]);
 
     await handleApplicationAction(
@@ -1845,7 +1868,7 @@ describe('application update', () => {
     );
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on update multi-match without mutation per D-21', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on update multi-match without mutation per D-21', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceApp1,
       mockResourceApp2,

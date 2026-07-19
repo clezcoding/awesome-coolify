@@ -14,6 +14,7 @@ import {
   triggerAppStart,
   triggerAppStop,
   triggerDeploy,
+  updateApplication,
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
@@ -668,12 +669,17 @@ export type ApplicationCreateResult = ReadResponse<{
   recoveryHints?: string[];
 }>;
 
+export type ApplicationUpdateResult = ReadResponse<
+  ReturnType<typeof sanitizeFullProjection>
+>;
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
   | ApplicationDeployResult
   | ApplicationLogsResult
   | ApplicationCreateResult
+  | ApplicationUpdateResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -684,6 +690,7 @@ type MutationAction = z.infer<typeof startActionSchema>;
 type DeployAction = z.infer<typeof deployActionSchema>;
 type LogsAction = z.infer<typeof applicationLogsSchema>;
 type CreateAction = z.infer<typeof createActionSchema>;
+type UpdateAction = z.infer<typeof updateActionSchema>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -694,7 +701,11 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
     ((customIssue as { params?: { code?: CoolifyErrorCode } } | undefined)?.params
       ?.code as CoolifyErrorCode | undefined) ?? undefined;
 
-  if (!code && isRecord(args) && args.action === 'create') {
+  if (
+    !code &&
+    isRecord(args) &&
+    (args.action === 'create' || args.action === 'update')
+  ) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
 
@@ -1263,6 +1274,57 @@ async function buildCreateApiBody(
   return omitUndefined(body);
 }
 
+function buildUpdatePayload(parsed: UpdateAction): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  for (const key of UPDATE_CURATED_FIELD_KEYS) {
+    const value = parsed[key];
+    if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
+
+  if (parsed.force_domain_override === true) {
+    payload.force_domain_override = true;
+  }
+
+  return payload;
+}
+
+async function handleApplicationUpdate(
+  parsed: UpdateAction,
+  env: EnvConfig,
+): Promise<ApplicationUpdateResult> {
+  const uuid = await resolveAppMutationUuid(
+    { uuid: parsed.uuid, name: parsed.name, fqdn: parsed.fqdn },
+    env,
+  );
+
+  const payload = buildUpdatePayload(parsed);
+
+  await updateApplication(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    payload,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const raw = await fetchApplication(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const data = sanitizeFullProjection(raw, parsed.reveal);
+
+  return buildReadResponse(data, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 async function handleApplicationCreate(
   parsed: CreateAction,
   env: EnvConfig,
@@ -1388,6 +1450,8 @@ export async function handleApplicationAction(
     switch (parsed.action) {
       case 'create':
         return await handleApplicationCreate(parsed, env);
+      case 'update':
+        return await handleApplicationUpdate(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':
