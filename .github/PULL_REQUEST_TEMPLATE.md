@@ -21,5 +21,6 @@ Closes #
 - [ ] Changeset added if release-relevant (`npx changeset`)
 - [ ] Docs/README updated if needed
 - [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/)
+- [ ] Add label **`automerge`** when ready — [Kodiak](https://kodiakhq.com/) squash-merges after CI passes
 
 ## Screenshots / Notes (optional)
