@@ -14,6 +14,13 @@ vi.mock('../../api/client.js', () => ({
   triggerServiceStart: vi.fn(),
   triggerServiceStop: vi.fn(),
   triggerServiceRestart: vi.fn(),
+  createService: vi.fn(),
+  updateService: vi.fn(),
+  deleteService: vi.fn(),
+}));
+
+vi.mock('node:fs', () => ({
+  readFileSync: vi.fn(),
 }));
 
 import {
@@ -24,7 +31,11 @@ import {
   triggerServiceRestart,
   triggerServiceStart,
   triggerServiceStop,
+  createService,
+  updateService,
+  deleteService,
 } from '../../api/client.js';
+import { readFileSync } from 'node:fs';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -452,5 +463,506 @@ describe('handleServiceAction lifecycle mutations (SVC-03/SVC-05)', () => {
         pull_latest: true,
       }).success,
     ).toBe(false);
+  });
+});
+
+const baseServiceCreateFields = {
+  project_uuid: 'proj-uuid-1',
+  environment_name: 'production',
+  server_uuid: 'srv-uuid-1',
+};
+
+const sampleComposeYaml = 'services:\n  redis:\n    image: redis:7';
+const sampleComposeBase64 = Buffer.from(sampleComposeYaml, 'utf8').toString('base64');
+
+const mockResourceServiceDup1 = {
+  uuid: 'svc-uuid-1',
+  type: 'service',
+  name: 'redis',
+  status: 'running:healthy',
+  project: { name: 'proj-a', uuid: 'proj-uuid-1' },
+  environment: { name: 'production', uuid: 'env-uuid-1' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+const mockResourceServiceDup2 = {
+  uuid: 'svc-uuid-2',
+  type: 'service',
+  name: 'redis',
+  status: 'running:healthy',
+  project: { name: 'proj-b', uuid: 'proj-uuid-2' },
+  environment: { name: 'staging', uuid: 'env-uuid-2' },
+  updated_at: '2026-07-01T00:00:00Z',
+};
+
+describe('service get compose decode (D-06)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchService).mockReset();
+    vi.mocked(fetchService).mockResolvedValue({
+      ...mockService,
+      docker_compose_raw: sampleComposeBase64,
+    });
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    vi.mocked(fetchProject).mockResolvedValue({});
+  });
+
+  it.fails('returns decoded compose YAML and strips docker_compose_raw per D-06', async () => {
+    const result = await handleServiceAction(
+      { action: 'get', uuid: 'svc-uuid-1', projection: 'full' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.docker_compose_raw).toBeUndefined();
+  });
+});
+
+describe('service create', () => {
+  beforeEach(() => {
+    vi.mocked(createService).mockReset();
+    vi.mocked(readFileSync).mockReset();
+    vi.mocked(createService).mockResolvedValue({
+      uuid: 'svc-new-uuid',
+      name: 'actualbudget',
+    });
+  });
+
+  it.fails('creates one-click service with type actualbudget per SVC-06', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(createService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({ type: 'actualbudget' }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'svc-new-uuid' });
+  });
+
+  it.fails('creates compose service with base64-encoded docker_compose_raw per SVC-07', async () => {
+    vi.mocked(createService).mockResolvedValue({
+      uuid: 'svc-compose-uuid',
+      docker_compose_raw: sampleComposeBase64,
+    });
+
+    await handleServiceAction(
+      {
+        action: 'create',
+        compose: sampleComposeYaml,
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(createService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        docker_compose_raw: sampleComposeBase64,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('reads compose_file and encodes to base64 per SVC-07', async () => {
+    vi.mocked(readFileSync).mockReturnValue(sampleComposeYaml);
+
+    await handleServiceAction(
+      {
+        action: 'create',
+        compose_file: '/path/to/docker-compose.yml',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(readFileSync).toHaveBeenCalledWith('/path/to/docker-compose.yml', 'utf8');
+    expect(createService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({
+        docker_compose_raw: sampleComposeBase64,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('rejects create with both type and compose per SVC-07 XOR', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        compose: sampleComposeYaml,
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it.fails('rejects create with neither type nor compose per SVC-07 XOR', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it.fails('defaults instant_deploy to true on one-click create per D-11', async () => {
+    await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(createService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({ instant_deploy: true }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('defaults instant_deploy to true on compose create per D-11', async () => {
+    await handleServiceAction(
+      {
+        action: 'create',
+        compose: sampleComposeYaml,
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(createService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({ instant_deploy: true }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('maps HTTP 409 domain conflicts to COOLIFY_409 with force_domain_override hint per SVC-10', async () => {
+    const conflicts = [{ domain: 'redis.example.com', message: 'Domain in use' }];
+    vi.mocked(createService).mockRejectedValue(
+      Object.assign(new Error('Conflict'), {
+        response: {
+          status: 409,
+          _data: { conflicts },
+        },
+      }),
+    );
+
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_409');
+    expect(result.structuredContent.error.data?.conflicts).toEqual(conflicts);
+    expect(
+      result.structuredContent.error.recoveryHints.join(' '),
+    ).toMatch(/force_domain_override:\s*true/i);
+  });
+
+  it.fails('passes force_domain_override:true on create happy path per SVC-10', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        ...baseServiceCreateFields,
+        force_domain_override: true,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(createService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      expect.objectContaining({ force_domain_override: true }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ uuid: 'svc-new-uuid' });
+  });
+
+  it.fails('returns decoded compose on create success per D-06', async () => {
+    vi.mocked(createService).mockResolvedValue({
+      uuid: 'svc-compose-uuid',
+      docker_compose_raw: sampleComposeBase64,
+    });
+
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        compose: sampleComposeYaml,
+        ...baseServiceCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.docker_compose_raw).toBeUndefined();
+  });
+
+  it.fails('rejects create with unknown field before API call per SAF-03', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        ...baseServiceCreateFields,
+        unexpected_field: 'foo',
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createService).not.toHaveBeenCalled();
+  });
+
+  it.fails('rejects create without project_uuid or project_name per D-02', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        environment_name: 'production',
+        server_uuid: 'srv-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createService).not.toHaveBeenCalled();
+  });
+});
+
+describe('service update', () => {
+  beforeEach(() => {
+    vi.mocked(updateService).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(updateService).mockResolvedValue({
+      ...mockService,
+      docker_compose_raw: sampleComposeBase64,
+    });
+  });
+
+  it.fails('patches compose via base64-encoded docker_compose_raw per SVC-08', async () => {
+    await handleServiceAction(
+      {
+        action: 'update',
+        uuid: 'svc-uuid-1',
+        compose: sampleComposeYaml,
+      },
+      testEnv,
+    );
+
+    expect(updateService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      expect.objectContaining({
+        docker_compose_raw: sampleComposeBase64,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('returns decoded compose on update success per D-06', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'update',
+        uuid: 'svc-uuid-1',
+        compose: sampleComposeYaml,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.compose).toBe(sampleComposeYaml);
+    expect(data.docker_compose_raw).toBeUndefined();
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-18', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceServiceDup1,
+      mockResourceServiceDup2,
+    ]);
+
+    const result = await handleServiceAction(
+      {
+        action: 'update',
+        name: 'redis',
+        compose: sampleComposeYaml,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(updateService).not.toHaveBeenCalled();
+  });
+
+  it.fails('rejects unknown update fields via strict schema per SAF-03', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'update',
+        uuid: 'svc-uuid-1',
+        unexpected_field: 'foo',
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(updateService).not.toHaveBeenCalled();
+  });
+});
+
+describe('service delete', () => {
+  beforeEach(() => {
+    vi.mocked(deleteService).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(deleteService).mockResolvedValue({ message: 'Service deleted.' });
+  });
+
+  it.fails('deletes service when confirm:true with safe defaults per SVC-09', async () => {
+    const result = await handleServiceAction(
+      { action: 'delete', uuid: 'svc-uuid-1', confirm: true },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(deleteService).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      {
+        delete_volumes: false,
+        delete_configurations: false,
+        docker_cleanup: false,
+        delete_connected_networks: false,
+      },
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ ok: true, uuid: 'svc-uuid-1' });
+  });
+
+  it.fails('returns COOLIFY_CONFIRM_REQUIRED when confirm is false per SVC-09', async () => {
+    const result = await handleServiceAction(
+      { action: 'delete', uuid: 'svc-uuid-1', confirm: false },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteService).not.toHaveBeenCalled();
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-18', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceServiceDup1,
+      mockResourceServiceDup2,
+    ]);
+
+    const result = await handleServiceAction(
+      { action: 'delete', name: 'redis', confirm: true },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(deleteService).not.toHaveBeenCalled();
+  });
+});
+
+describe('service delete_preview', () => {
+  beforeEach(() => {
+    vi.mocked(deleteService).mockReset();
+    vi.mocked(fetchService).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchService).mockResolvedValue(mockService);
+  });
+
+  it.fails('returns would_delete preview without calling deleteService', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      { uuid: 'child-1', name: 'linked-resource', type: 'application' },
+    ]);
+
+    const result = await handleServiceAction(
+      { action: 'delete_preview', uuid: 'svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(deleteService).not.toHaveBeenCalled();
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({
+      uuid: 'svc-uuid-1',
+      would_delete: true,
+    });
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.child_resources)).toBe(true);
   });
 });
