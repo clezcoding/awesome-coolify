@@ -608,6 +608,7 @@ describe('database create', () => {
     if (!isDatabaseErrorResult(result)) return;
 
     expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(result.structuredContent.error.message).toMatch(/database create/);
     expect(createPostgresqlDatabase).not.toHaveBeenCalled();
   });
 

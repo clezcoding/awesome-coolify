@@ -170,12 +170,12 @@ function requireProjectAndEnvironment(
 function requireConfirmForPublicAccess(
   data: { is_public?: boolean; confirm?: boolean },
   ctx: z.RefinementCtx,
+  actionName: 'create' | 'update',
 ): void {
   if (data.is_public === true && data.confirm !== true) {
     ctx.addIssue({
       code: 'custom',
-      message:
-        'is_public: true requires confirm: true for database create — COOLIFY_CONFIRM_REQUIRED',
+      message: `is_public: true requires confirm: true for database ${actionName} — COOLIFY_CONFIRM_REQUIRED`,
       params: { code: 'COOLIFY_CONFIRM_REQUIRED' },
     });
   }
@@ -230,7 +230,7 @@ function withCreateRefines<T extends z.ZodRawShape>(shape: T) {
     .strict()
     .superRefine((data, ctx) => {
       requireProjectAndEnvironment(data, ctx);
-      requireConfirmForPublicAccess(data, ctx);
+      requireConfirmForPublicAccess(data, ctx, 'create');
     });
 }
 
@@ -367,7 +367,7 @@ const updateDatabaseSchema = requireDatabaseIdentifier(
     })
     .strict()
     .superRefine((data, ctx) => {
-      requireConfirmForPublicAccess(data, ctx);
+      requireConfirmForPublicAccess(data, ctx, 'update');
     }),
   'update',
 );
