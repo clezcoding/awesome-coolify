@@ -532,6 +532,52 @@ const updateActionSchema = requireMutationIdentifier(
   'update',
 );
 
+const deleteActionSchema = requireMutationIdentifier(
+  z
+    .object({
+      action: z.literal('delete'),
+      uuid: z.string().optional().describe('Application UUID'),
+      name: z.string().optional().describe('Application name substring'),
+      fqdn: z.string().optional().describe('Application FQDN substring'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for destructive delete'),
+      delete_volumes: z
+        .boolean()
+        .default(false)
+        .describe('Also delete attached volumes (default false)'),
+      delete_configurations: z
+        .boolean()
+        .default(false)
+        .describe('Also delete configurations (default false)'),
+      docker_cleanup: z
+        .boolean()
+        .default(false)
+        .describe('Run docker cleanup after delete (default false)'),
+      delete_connected_networks: z
+        .boolean()
+        .default(false)
+        .describe('Delete connected networks (default false)'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete',
+);
+
+const deletePreviewActionSchema = requireMutationIdentifier(
+  z
+    .object({
+      action: z.literal('delete_preview'),
+      uuid: z.string().optional().describe('Application UUID'),
+      name: z.string().optional().describe('Application name substring'),
+      fqdn: z.string().optional().describe('Application FQDN substring'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'delete_preview',
+);
+
 const UPDATE_CURATED_FIELD_KEYS = [
   'name',
   'description',
@@ -590,6 +636,8 @@ const lifecycleActionSchema = z.discriminatedUnion('action', [
   deployActionSchema,
   applicationLogsSchema,
   updateActionSchema,
+  deleteActionSchema,
+  deletePreviewActionSchema,
 ]);
 
 export const applicationActionSchema = z.union([
