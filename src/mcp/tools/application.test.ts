@@ -2417,7 +2417,7 @@ describe('application envs:sync', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('throws COOLIFY_VALIDATION_ERROR when both env_file and env_content provided per D-05 XOR', async () => {
+  it('throws COOLIFY_VALIDATION_ERROR when both env_file and env_content provided per D-05 XOR', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:sync',
@@ -2435,7 +2435,7 @@ describe('application envs:sync', () => {
     expect(fetchEnvs).not.toHaveBeenCalled();
   });
 
-  it.fails('throws COOLIFY_VALIDATION_ERROR when neither env_file nor env_content provided', async () => {
+  it('throws COOLIFY_VALIDATION_ERROR when neither env_file nor env_content provided', async () => {
     const result = await handleApplicationAction(
       { action: 'envs:sync', uuid: 'app-uuid-1' },
       testEnv,
@@ -2447,7 +2447,7 @@ describe('application envs:sync', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
   });
 
-  it.fails('dry_run:true returns diff without writing per D-06', async () => {
+  it('dry_run:true returns diff without writing per D-06', async () => {
     vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value\nDATABASE_URL=local-value');
 
     const result = await handleApplicationAction(
@@ -2473,7 +2473,7 @@ describe('application envs:sync', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
-  it.fails('apply path without confirm throws COOLIFY_CONFIRM_REQUIRED per D-12', async () => {
+  it('apply path without confirm throws COOLIFY_CONFIRM_REQUIRED per D-12', async () => {
     vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value');
 
     const result = await handleApplicationAction(
@@ -2493,7 +2493,7 @@ describe('application envs:sync', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
   });
 
-  it.fails('prune:true without confirm throws COOLIFY_CONFIRM_REQUIRED per D-07', async () => {
+  it('prune:true without confirm throws COOLIFY_CONFIRM_REQUIRED per D-07', async () => {
     vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=local-value');
 
     const result = await handleApplicationAction(
@@ -2513,7 +2513,7 @@ describe('application envs:sync', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
   });
 
-  it.fails('apply with conflicts and no conflict_policy throws COOLIFY_CONFIRM_REQUIRED per D-08', async () => {
+  it('apply with conflicts and no conflict_policy throws COOLIFY_CONFIRM_REQUIRED per D-08', async () => {
     vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
 
     const result = await handleApplicationAction(
@@ -2535,7 +2535,7 @@ describe('application envs:sync', () => {
     expect(JSON.stringify(result)).toMatch(/overwrite|keep_remote|abort/);
   });
 
-  it.fails('conflict_policy:overwrite applies and reports overwritten keys', async () => {
+  it('conflict_policy:overwrite applies and reports overwritten keys', async () => {
     vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
 
     const result = await handleApplicationAction(
@@ -2562,7 +2562,7 @@ describe('application envs:sync', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
-  it.fails('conflict_policy:keep_remote returns kept-remote entries without throw', async () => {
+  it('conflict_policy:keep_remote returns kept-remote entries without throw', async () => {
     vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
 
     const result = await handleApplicationAction(
@@ -2585,7 +2585,7 @@ describe('application envs:sync', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
-  it.fails('conflict_policy:abort returns aborted entries without throw', async () => {
+  it('conflict_policy:abort returns aborted entries without throw', async () => {
     vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
 
     const result = await handleApplicationAction(
@@ -2608,7 +2608,7 @@ describe('application envs:sync', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
-  it.fails('sync response never includes plaintext values regardless of reveal', async () => {
+  it('sync response never includes plaintext values regardless of reveal', async () => {
     vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value');
 
     const result = await handleApplicationAction(
