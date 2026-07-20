@@ -1108,7 +1108,7 @@ describe('database envs:create', () => {
     });
   });
 
-  it.fails('rejects is_preview with COOLIFY_VALIDATION_ERROR per D-16 Pitfall 1', async () => {
+  it('rejects is_preview with COOLIFY_VALIDATION_ERROR per D-16 Pitfall 1', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'envs:create',
@@ -1153,7 +1153,7 @@ describe('database envs:update', () => {
     expect(updateEnvViaBulk).toHaveBeenCalled();
   });
 
-  it.fails('rejects is_preview with COOLIFY_VALIDATION_ERROR per D-16', async () => {
+  it('rejects is_preview with COOLIFY_VALIDATION_ERROR per D-16', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'envs:update',
@@ -1223,7 +1223,7 @@ describe('database envs:bulk-update', () => {
     expect(bulkUpdateEnvs).toHaveBeenCalled();
   });
 
-  it.fails('rejects is_preview in any entry with COOLIFY_VALIDATION_ERROR per D-16', async () => {
+  it('rejects is_preview in any entry with COOLIFY_VALIDATION_ERROR per D-16', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'envs:bulk-update',

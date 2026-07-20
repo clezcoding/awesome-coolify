@@ -9,13 +9,20 @@ import {
   createMysqlDatabase,
   createPostgresqlDatabase,
   createRedisDatabase,
+  bulkUpdateEnvs,
+  createEnv,
   deleteDatabase,
+  deleteEnv,
   fetchDatabase,
+  fetchEnvs,
   fetchResources,
   triggerDatabaseRestart,
   updateDatabase,
+  updateEnvViaBulk,
   triggerDatabaseStart,
   triggerDatabaseStop,
+  type Env,
+  type EnvBulkEntry,
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
@@ -417,6 +424,152 @@ const deletePreviewActionSchema = requireDatabaseIdentifier(
   'delete_preview',
 );
 
+const envParentFields = {
+  uuid: z.string().optional().describe('Database UUID'),
+  name: z.string().optional().describe('Database name substring'),
+  reveal: z
+    .boolean()
+    .default(false)
+    .describe('Reveal masked env values for this call only'),
+  ...mutationResponseParamsSchema,
+};
+
+const databaseEnvFlagFields = {
+  is_literal: z
+    .boolean()
+    .default(false)
+    .describe('Treat value as literal (no variable interpolation)'),
+  is_multiline: z
+    .boolean()
+    .default(false)
+    .describe('Multiline env value'),
+  is_shown_once: z
+    .boolean()
+    .default(false)
+    .describe('Show value once in Coolify UI'),
+};
+
+function requireEnvUuidOrKey(
+  data: { env_uuid?: string; key?: string },
+  ctx: z.RefinementCtx,
+  actionName: string,
+): void {
+  const hasUuid =
+    typeof data.env_uuid === 'string' && data.env_uuid.length > 0;
+  const hasKey = typeof data.key === 'string' && data.key.length > 0;
+
+  if (!hasUuid && !hasKey) {
+    ctx.addIssue({
+      code: 'custom',
+      message: `At least one of env_uuid or key is required for action ${actionName}`,
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+const envsListActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:list'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:list',
+);
+
+const envsGetActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:get'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:get');
+    }),
+  'envs:get',
+);
+
+const envsCreateActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:create'),
+      key: z.string().describe('Environment variable key'),
+      value: z.string().describe('Environment variable value'),
+      ...databaseEnvFlagFields,
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:create',
+);
+
+const envsUpdateActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:update'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      value: z.string().describe('New environment variable value'),
+      is_literal: z.boolean().optional().describe('Literal flag override'),
+      is_multiline: z.boolean().optional().describe('Multiline flag override'),
+      is_shown_once: z
+        .boolean()
+        .optional()
+        .describe('Show-once flag override'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:update');
+    }),
+  'envs:update',
+);
+
+const envsDeleteActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:delete'),
+      env_uuid: z.string().describe('Environment variable UUID to delete'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for env delete'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:delete',
+);
+
+const envBulkEntrySchema = z
+  .object({
+    key: z.string().describe('Environment variable key'),
+    value: z.string().describe('Environment variable value'),
+    is_literal: z.boolean().optional().describe('Literal flag'),
+    is_multiline: z.boolean().optional().describe('Multiline flag'),
+    is_shown_once: z.boolean().optional().describe('Show-once flag'),
+  })
+  .strict();
+
+const envsBulkUpdateActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:bulk-update'),
+      entries: z
+        .array(envBulkEntrySchema)
+        .min(1)
+        .describe('Bulk env entries (min 1, soft limit ~100)'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for bulk env update'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:bulk-update',
+);
+
 const DATABASE_UPDATE_CURATED_FIELD_KEYS = [
   'name',
   'description',
@@ -463,6 +616,12 @@ export const databaseActionSchema = z.discriminatedUnion('action', [
   updateDatabaseSchema,
   deleteActionSchema,
   deletePreviewActionSchema,
+  envsListActionSchema,
+  envsGetActionSchema,
+  envsCreateActionSchema,
+  envsUpdateActionSchema,
+  envsDeleteActionSchema,
+  envsBulkUpdateActionSchema,
 ]);
 
 export type DatabaseAction = z.infer<typeof databaseActionSchema>;
@@ -546,7 +705,13 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
     ((customIssue as { params?: { code?: CoolifyErrorCode } } | undefined)?.params
       ?.code as CoolifyErrorCode | undefined) ?? undefined;
 
-  if (!code && isRecord(args) && (args.action === 'create' || args.action === 'update')) {
+  if (
+    !code &&
+    isRecord(args) &&
+    (args.action === 'create' ||
+      args.action === 'update' ||
+      (typeof args.action === 'string' && args.action.startsWith('envs:')))
+  ) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
 
