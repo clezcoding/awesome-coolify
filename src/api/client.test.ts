@@ -1243,3 +1243,258 @@ describe('fetchApplicationLogs', () => {
     expect(result).toEqual(response);
   });
 });
+
+describe('fetchEnvs', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails.each([
+    ['application', 'app-uuid-1', '/api/v1/applications/app-uuid-1/envs'],
+    ['service', 'svc-uuid-1', '/api/v1/services/svc-uuid-1/envs'],
+    ['database', 'db-uuid-1', '/api/v1/databases/db-uuid-1/envs'],
+  ] as const)(
+    'fetchEnvs(%s) GET %s returns env array',
+    async (resourceType, uuid, expectedPath) => {
+      expect(clientCrud.fetchEnvs).toBeTypeOf('function');
+      const envs = [{ uuid: 'env-1', key: 'K', value: 'FAKE_VALUE' }];
+      fetchMock.mockResolvedValueOnce(Response.json(envs, { status: 200 }));
+
+      const result = await (
+        clientCrud.fetchEnvs as (
+          type: string,
+          url: string,
+          token: string,
+          uuid: string,
+          verifySsl?: boolean,
+        ) => Promise<unknown[]>
+      )(
+        resourceType,
+        'https://coolify.example.com',
+        'test-token',
+        uuid,
+      );
+
+      expect(fetchMock.mock.calls[0][0]).toContain(expectedPath);
+      expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('GET');
+      expect(result).toEqual(envs);
+    },
+  );
+});
+
+describe('createEnv', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('createEnv(application) POSTs to /applications/{uuid}/envs with flags', async () => {
+    expect(clientCrud.createEnv).toBeTypeOf('function');
+    const payload = {
+      key: 'NEW_KEY',
+      value: 'FAKE_SECRET_VALUE',
+      is_preview: true,
+      is_literal: true,
+      is_multiline: false,
+      is_shown_once: false,
+    };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ uuid: 'env-new' }, { status: 201 }),
+    );
+
+    await (
+      clientCrud.createEnv as (
+        type: string,
+        url: string,
+        token: string,
+        uuid: string,
+        body: unknown,
+        verifySsl?: boolean,
+      ) => Promise<unknown>
+    )(
+      'application',
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      payload,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/applications/app-uuid-1/envs',
+    );
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+  });
+
+  it.fails('createEnv(database) rejects is_preview before HTTP call per D-16', async () => {
+    expect(clientCrud.createEnv).toBeTypeOf('function');
+
+    await expect(
+      (
+        clientCrud.createEnv as (
+          type: string,
+          url: string,
+          token: string,
+          uuid: string,
+          body: unknown,
+          verifySsl?: boolean,
+        ) => Promise<unknown>
+      )(
+        'database',
+        'https://coolify.example.com',
+        'test-token',
+        'db-uuid-1',
+        { key: 'K', value: 'v', is_preview: true },
+      ),
+    ).rejects.toMatchObject({
+      envelope: expect.objectContaining({ code: 'COOLIFY_VALIDATION_ERROR' }),
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateEnvViaBulk', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('PATCHes /applications/{uuid}/envs/bulk with data array body', async () => {
+    expect(clientCrud.updateEnvViaBulk).toBeTypeOf('function');
+    const entries = [{ key: 'DATABASE_URL', value: 'updated' }];
+    fetchMock.mockResolvedValueOnce(Response.json({ updated: 1 }, { status: 200 }));
+
+    await (
+      clientCrud.updateEnvViaBulk as (
+        type: string,
+        url: string,
+        token: string,
+        uuid: string,
+        data: unknown[],
+        verifySsl?: boolean,
+      ) => Promise<unknown>
+    )(
+      'application',
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      entries,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/applications/app-uuid-1/envs/bulk',
+    );
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({ data: entries });
+  });
+});
+
+describe('bulkUpdateEnvs', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('is alias for updateEnvViaBulk with multi-element array', async () => {
+    expect(clientCrud.bulkUpdateEnvs).toBeTypeOf('function');
+    const entries = [
+      { key: 'A', value: '1' },
+      { key: 'B', value: '2' },
+    ];
+    fetchMock.mockResolvedValueOnce(Response.json({ updated: 2 }, { status: 200 }));
+
+    await (
+      clientCrud.bulkUpdateEnvs as (
+        type: string,
+        url: string,
+        token: string,
+        uuid: string,
+        data: unknown[],
+        verifySsl?: boolean,
+      ) => Promise<unknown>
+    )(
+      'service',
+      'https://coolify.example.com',
+      'test-token',
+      'svc-uuid-1',
+      entries,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/services/svc-uuid-1/envs/bulk',
+    );
+    expect(JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)).toEqual({
+      data: entries,
+    });
+  });
+});
+
+describe('deleteEnv', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('DELETEs /applications/{uuid}/envs/{env_uuid}', async () => {
+    expect(clientCrud.deleteEnv).toBeTypeOf('function');
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Deleted.' }, { status: 200 }),
+    );
+
+    await (
+      clientCrud.deleteEnv as (
+        type: string,
+        url: string,
+        token: string,
+        uuid: string,
+        envUuid: string,
+        verifySsl?: boolean,
+      ) => Promise<unknown>
+    )(
+      'application',
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      'env-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/applications/app-uuid-1/envs/env-uuid-1',
+    );
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
+  });
+});
