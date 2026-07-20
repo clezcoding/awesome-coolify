@@ -2159,7 +2159,7 @@ describe('application envs:get', () => {
     expect(data.value).toBe('***');
   });
 
-  it.fails('throws COOLIFY_VALIDATION_ERROR when neither env_uuid nor key provided', async () => {
+  it('throws COOLIFY_VALIDATION_ERROR when neither env_uuid nor key provided', async () => {
     const result = await handleApplicationAction(
       { action: 'envs:get', uuid: 'app-uuid-1' },
       testEnv,
