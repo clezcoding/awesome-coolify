@@ -416,6 +416,158 @@ const deletePreviewActionSchema = requireServiceMutationIdentifier(
   'delete_preview',
 );
 
+const envParentFields = {
+  uuid: z.string().optional().describe('Service UUID'),
+  name: z.string().optional().describe('Service name substring'),
+  reveal: z
+    .boolean()
+    .default(false)
+    .describe('Reveal masked env values for this call only'),
+  ...mutationResponseParamsSchema,
+};
+
+const envFlagFields = {
+  is_preview: z
+    .boolean()
+    .default(false)
+    .describe('Preview variable (build-time only)'),
+  is_literal: z
+    .boolean()
+    .default(false)
+    .describe('Treat value as literal (no variable interpolation)'),
+  is_multiline: z
+    .boolean()
+    .default(false)
+    .describe('Multiline env value'),
+  is_shown_once: z
+    .boolean()
+    .default(false)
+    .describe('Show value once in Coolify UI'),
+};
+
+function requireEnvUuidOrKey(
+  data: { env_uuid?: string; key?: string },
+  ctx: z.RefinementCtx,
+  actionName: string,
+): void {
+  const hasUuid =
+    typeof data.env_uuid === 'string' && data.env_uuid.length > 0;
+  const hasKey = typeof data.key === 'string' && data.key.length > 0;
+
+  if (!hasUuid && !hasKey) {
+    ctx.addIssue({
+      code: 'custom',
+      message: `At least one of env_uuid or key is required for action ${actionName}`,
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+const envsListActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:list'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:list',
+);
+
+const envsGetActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:get'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:get');
+    }),
+  'envs:get',
+);
+
+const envsCreateActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:create'),
+      key: z.string().describe('Environment variable key'),
+      value: z.string().describe('Environment variable value'),
+      ...envFlagFields,
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:create',
+);
+
+const envsUpdateActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:update'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      value: z.string().describe('New environment variable value'),
+      is_preview: z.boolean().optional().describe('Preview variable override'),
+      is_literal: z.boolean().optional().describe('Literal flag override'),
+      is_multiline: z.boolean().optional().describe('Multiline flag override'),
+      is_shown_once: z
+        .boolean()
+        .optional()
+        .describe('Show-once flag override'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:update');
+    }),
+  'envs:update',
+);
+
+const envsDeleteActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:delete'),
+      env_uuid: z.string().describe('Environment variable UUID to delete'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for env delete'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:delete',
+);
+
+const envBulkEntrySchema = z
+  .object({
+    key: z.string().describe('Environment variable key'),
+    value: z.string().describe('Environment variable value'),
+    is_preview: z.boolean().optional().describe('Preview variable'),
+    is_literal: z.boolean().optional().describe('Literal flag'),
+    is_multiline: z.boolean().optional().describe('Multiline flag'),
+    is_shown_once: z.boolean().optional().describe('Show-once flag'),
+  })
+  .strict();
+
+const envsBulkUpdateActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:bulk-update'),
+      entries: z
+        .array(envBulkEntrySchema)
+        .min(1)
+        .describe('Bulk env entries (min 1, soft limit ~100)'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for bulk env update'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:bulk-update',
+);
+
 export const serviceActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('get'),
@@ -430,6 +582,12 @@ export const serviceActionSchema = z.discriminatedUnion('action', [
   stopActionSchema,
   restartActionSchema,
   deployActionSchema,
+  envsListActionSchema,
+  envsGetActionSchema,
+  envsCreateActionSchema,
+  envsUpdateActionSchema,
+  envsDeleteActionSchema,
+  envsBulkUpdateActionSchema,
 ]);
 
 export type ServiceAction = z.infer<typeof serviceActionSchema>;
