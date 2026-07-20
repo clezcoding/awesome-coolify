@@ -14,7 +14,7 @@
 | update env by env_uuid (`PATCH /applications/{uuid}/envs/bulk` with single-element `data[]`) | INTEGRATE | Phase 12 — `application({ action: 'envs:update', env_uuid })` resolves key from list, then bulk PATCH one element (research finding — no single-env PATCH-by-env_uuid endpoint; D-02) |
 | delete env by env_uuid (`DELETE /applications/{uuid}/envs/{env_uuid}`) | INTEGRATE | Phase 12 — `application({ action: 'envs:delete', env_uuid, confirm: true })` (ENV-03, D-13) |
 | bulk-update envs (`PATCH /applications/{uuid}/envs/bulk` with `data: [...]`) | INTEGRATE | Phase 12 — `application({ action: 'envs:bulk-update', entries: [...], confirm: true })` (ENV-04, D-10, D-11) |
-| sync local `.env` (`GET` + `POST` + `PATCH /bulk` + optional `DELETE`) | INTEGRATE | Phase 12 — `application({ action: 'envs:sync', env_file|env_content, dry_run, prune, confirm, conflict_policy })` (ENV-05, D-05..D-08, D-12) — MCP-side diff engine, app-only per D-09 |
+| sync local `.env` (`GET` + `POST` + `PATCH /bulk` + optional `DELETE`) | INTEGRATE | Phase 12 — `application({ action: 'envs:sync', env_file|env_content, dry_run, prune, confirm, conflict_policy })` (ENV-05, D-05..D-08, D-12) — MCP-side diff engine, app-only per D-09. `dry_run` defaults to `false` (apply path) per D-06. `conflict_policy` enum is `overwrite|keep_remote|abort` per D-08; apply with conflicts and no `conflict_policy` → `COOLIFY_CONFIRM_REQUIRED` + ask-human recovery hint (no `COOLIFY_SYNC_CONFLICT` error code). |
 
 ## Services (`/services/{uuid}/envs`)
 
@@ -81,13 +81,25 @@ All flags default `false` on create and on sync-created keys (D-16). Sync does N
 | `envs:delete` | YES — `COOLIFY_CONFIRM_REQUIRED` if missing | D-13 |
 | `envs:bulk-update` | YES — `COOLIFY_CONFIRM_REQUIRED` if missing | D-11 |
 | `envs:sync` with `dry_run: true` | no | D-12 — dry_run does not write |
-| `envs:sync` with `dry_run: false` | YES — `COOLIFY_CONFIRM_REQUIRED` if missing | D-12 |
+| `envs:sync` with `dry_run: false` (default per D-06) | YES — `COOLIFY_CONFIRM_REQUIRED` if missing | D-12 |
 | `envs:sync` with `prune: true` | YES (plus `confirm: true`) | D-07 — prune requires confirm |
+| `envs:sync` apply with conflicts and NO `conflict_policy` | YES — `COOLIFY_CONFIRM_REQUIRED` + `ask_human_conflict_policy` recovery hint | D-08 |
+
+## Conflict Policy Matrix (D-08)
+
+| `conflict_policy` | behavior on conflict | disposition field |
+|---|---|---|
+| (unset, with conflicts) | throw `COOLIFY_CONFIRM_REQUIRED` + ask-human recovery hint; no writes | — |
+| `overwrite` | clobber remote with local value | `updated[]` (overwritten keys reported) |
+| `keep_remote` | skip the conflicting key; keep remote value | `kept_remote[]` |
+| `abort` | do not write the conflicting key; no throw | `aborted[]` |
+
+Enum is `overwrite|keep_remote|abort` only — `fail` and `skip` are NOT in the enum (rejected pre-D-08 design). No `COOLIFY_SYNC_CONFLICT` error code is introduced; D-08 uses the existing `COOLIFY_CONFIRM_REQUIRED` code with an ask-human recovery hint.
 
 ## Reveal Policy (D-14 / D-15)
 
 - All `envs:*` responses mask env `value` as `***` by default via `sanitizeFullProjection`.
 - `reveal: true` on the call unmasks values for that call only — keys, UUIDs, and flags remain visible always.
 - Agent MUST ask the human whether they want masked or revealed values before setting `reveal: true`. Never auto-set.
-- If `reveal: true` is passed without prior human preference, surface `ask_human_reveal` recovery hint.
-- Sync/bulk responses and logs NEVER include plaintext values; `redactSecrets` is applied to stderr/error paths.
+- If `reveal: true` is passed without prior human preference, the handler surfaces an `ask_human_reveal` recovery hint in the response `data.recoveryHints` array (D-15). The handler does NOT refuse the call — it returns the revealed values AND includes the reminder hint for the agent's next iteration.
+- Sync/bulk responses and logs NEVER include plaintext values; `redactSecrets` is applied to stderr/error paths. Sync disposition values are ALWAYS masked regardless of `reveal` (sync is a control plane, not a secret viewer).

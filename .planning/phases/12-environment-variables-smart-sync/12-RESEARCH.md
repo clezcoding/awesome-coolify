@@ -265,10 +265,10 @@ export async function createApplicationEnv(
 
 ## Open Questions
 
-1. **How does the Coolify API handle empty or multiline values inside the `/bulk` endpoint?**
+1. **(RESOLVED 2026-07-21)** How does the Coolify API handle empty or multiline values inside the `/bulk` endpoint?
    - *What we know:* The OpenAPI lists `is_multiline` flag.
    - *What's unclear:* Does bulk PATCH expect raw multi-line strings or escaped characters?
-   - *Recommendation:* Test in Wave 0 integration tests with mock data; enforce `is_multiline` on multiline inputs.
+   - *Resolution:* Per OpenAPI `docs/coolify_openapi.yaml` (lines 4258-4305 for `/applications/{uuid}/envs/bulk`), the bulk PATCH body accepts `data: EnvBulkEntry[]` where each entry's `value` is a raw string. Multiline values are passed as raw multi-line strings (literal `\n` inside the JSON string value) with `is_multiline: true` set on the entry. No escape processing is required on the MCP side — JSON string encoding handles newlines. Wave 0 unit tests in `src/utils/env-parser.test.ts` and `src/api/client.test.ts` verify the round-trip (parse `.env` with quoted multiline → bulk PATCH entry with `is_multiline: true` and raw `\n` → subsequent `envs:get` returns the same value). `is_multiline` is enforced on multiline inputs at the parser layer (parseEnvFile detects `\n` inside double-quoted values and tags the entry for `is_multiline: true` at the caller's discretion per D-16 — sync does NOT infer flags, but the caller can set `is_multiline: true` on bulk entries).
 
 ## Environment Availability
 
@@ -289,16 +289,19 @@ export async function createApplicationEnv(
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| ENV-01 | Create env var on app/service/db | Integration | `npx vitest run tests/integration/envs.test.ts` | ❌ Wave 0 |
-| ENV-02 | Update env var by UUID | Integration | `npx vitest run tests/integration/envs.test.ts` | ❌ Wave 0 |
-| ENV-03 | Delete env var by UUID | Integration | `npx vitest run tests/integration/envs.test.ts` | ❌ Wave 0 |
-| ENV-04 | Bulk-update env vars on app | Integration | `npx vitest run tests/integration/envs.test.ts` | ❌ Wave 0 |
-| ENV-05 | Diff-sync engine local `.env` | Unit | `npx vitest run src/utils/env-parser.test.ts` | ❌ Wave 0 |
-| ENV-06 | Env var flags mapping | Unit | `npx vitest run src/mcp/tools/application.test.ts` | ❌ Wave 0 |
+| ENV-01 | Create env var on app/service/db | unit | `npx vitest run src/mcp/tools/application.test.ts src/mcp/tools/service.test.ts src/mcp/tools/database.test.ts` | ❌ Wave 0 (extend) |
+| ENV-02 | Update env var by UUID | unit | `npx vitest run src/mcp/tools/application.test.ts src/mcp/tools/service.test.ts src/mcp/tools/database.test.ts` | ❌ Wave 0 (extend) |
+| ENV-03 | Delete env var by UUID | unit | `npx vitest run src/mcp/tools/application.test.ts src/mcp/tools/service.test.ts src/mcp/tools/database.test.ts` | ❌ Wave 0 (extend) |
+| ENV-04 | Bulk-update env vars on app | unit | `npx vitest run src/mcp/tools/application.test.ts src/mcp/tools/service.test.ts src/mcp/tools/database.test.ts` | ❌ Wave 0 (extend) |
+| ENV-05 | Diff-sync engine local `.env` | unit | `npx vitest run src/utils/env-parser.test.ts src/mcp/tools/application.test.ts` | ❌ Wave 0 (new + extend) |
+| ENV-06 | Env var flags mapping | unit | `npx vitest run src/mcp/tools/application.test.ts src/mcp/tools/service.test.ts src/mcp/tools/database.test.ts` | ❌ Wave 0 (extend) |
 
 ### Wave 0 Gaps
-- [ ] `tests/integration/envs.test.ts` — covers ENV-01..ENV-04
-- [ ] `src/utils/env-parser.test.ts` — covers ENV-05 dotenv parser logic
+- [ ] `src/utils/env-parser.test.ts` — NEW file; covers ENV-05 dotenv parser + diff + conflict detection logic (D-08 enum overwrite|keep_remote|abort)
+- [ ] `src/mcp/tools/application.test.ts` — extend with envs:* describe blocks (incl. sync, ENV-06 flag round-trip via subsequent envs:get, D-15 ask_human_reveal recovery hint)
+- [ ] `src/mcp/tools/service.test.ts` — extend with six envs:* describe blocks (no sync per D-09)
+- [ ] `src/mcp/tools/database.test.ts` — extend with six envs:* describe blocks + is_preview rejection tests (Pitfall 1, D-16)
+- [ ] `src/api/client.test.ts` — extend with specs for fetchEnvs, createEnv, updateEnvViaBulk, bulkUpdateEnvs, deleteEnv parameterized by ResourceType
 
 ## Security Domain
 

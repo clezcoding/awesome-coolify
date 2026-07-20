@@ -14,7 +14,7 @@
 | `src/mcp/tools/database.ts` | controller | request-response | `src/mcp/tools/private_key.ts` | role-match |
 | `src/utils/env-parser.ts` | utility | transform | `src/utils/yaml-validator.ts` | role-match |
 | `src/utils/env-parser.test.ts` | test | transform | `src/utils/redact.test.ts` | exact |
-| `tests/integration/envs.test.ts` | test | request-response | `src/mcp/tools/private_key.test.ts` | exact |
+| `src/mcp/tools/application.test.ts` (envs:* extension) | test | request-response | `src/mcp/tools/private_key.test.ts` | exact |
 
 ## Pattern Assignments
 
@@ -244,7 +244,7 @@ describe('redactSecrets', () => {
 
 ---
 
-### `tests/integration/envs.test.ts` (test, request-response)
+### `src/mcp/tools/application.test.ts` envs:* extension (test, request-response)
 
 **Analog:** `src/mcp/tools/private_key.test.ts`
 
@@ -287,6 +287,8 @@ describe('private_key list', () => {
   });
 });
 ```
+
+Note: Phase 12 uses colocated unit tests (`src/mcp/tools/application.test.ts`, `src/mcp/tools/service.test.ts`, `src/mcp/tools/database.test.ts`, `src/api/client.test.ts`, `src/utils/env-parser.test.ts`) — NOT `tests/integration/envs.test.ts`. The integration test path was a planning placeholder that did not match the repo convention (Phase 11 used colocated unit tests); it is dropped in favor of the colocated unit tests above.
 
 ---
 
@@ -356,3 +358,4 @@ All files mapped. No files missing analogs.
 **Analog search scope:** `src/`
 **Files scanned:** 60
 **Pattern extraction date:** 2026-07-21
+**Revision:** 2026-07-21 — replaced `tests/integration/envs.test.ts` placeholder with colocated `src/mcp/tools/application.test.ts` envs:* extension to match Phase 11 repo convention.
