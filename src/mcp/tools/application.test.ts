@@ -26,6 +26,16 @@ vi.mock('../../api/client.js', () => ({
   createDockerimageApplication: vi.fn(),
   updateApplication: vi.fn(),
   deleteApplication: vi.fn(),
+  fetchEnvs: vi.fn(),
+  createEnv: vi.fn(),
+  updateEnvViaBulk: vi.fn(),
+  bulkUpdateEnvs: vi.fn(),
+  deleteEnv: vi.fn(),
+}));
+
+vi.mock('node:fs', () => ({
+  readFileSync: vi.fn(),
+  realpathSync: vi.fn((p: string) => p),
 }));
 
 import {
@@ -46,7 +56,13 @@ import {
   createDockerimageApplication,
   updateApplication,
   deleteApplication,
+  fetchEnvs,
+  createEnv,
+  updateEnvViaBulk,
+  bulkUpdateEnvs,
+  deleteEnv,
 } from '../../api/client.js';
+import { readFileSync } from 'node:fs';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -2036,5 +2052,580 @@ describe('application delete_preview', () => {
     });
     const data = result.data as Record<string, unknown>;
     expect(Array.isArray(data.child_resources)).toBe(true);
+  });
+});
+
+const FAKE_SECRET_VALUE = 'FAKE_SECRET_VALUE';
+
+const mockEnv = {
+  uuid: 'env-uuid-1',
+  key: 'DATABASE_URL',
+  value: FAKE_SECRET_VALUE,
+  is_preview: true,
+  is_literal: true,
+  is_multiline: false,
+  is_shown_once: true,
+};
+
+const mockEnvList = [
+  mockEnv,
+  {
+    uuid: 'env-uuid-2',
+    key: 'API_KEY',
+    value: 'FAKE_API_KEY_VALUE',
+    is_preview: false,
+    is_literal: false,
+    is_multiline: false,
+    is_shown_once: false,
+  },
+];
+
+function responseIncludesAskHumanReveal(payload: unknown): boolean {
+  const text = JSON.stringify(payload);
+  return text.includes('ask_human_reveal');
+}
+
+describe('application envs:list', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockEnvList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns masked env summaries by default per D-14', async () => {
+    const result = await handleApplicationAction(
+      { action: 'envs:list', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Array<Record<string, unknown>>;
+    expect(Array.isArray(data)).toBe(true);
+    expect(data[0]?.value).toBe('***');
+    expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
+  });
+
+  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+    const result = await handleApplicationAction(
+      { action: 'envs:list', uuid: 'app-uuid-1', reveal: true },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(responseIncludesAskHumanReveal(result)).toBe(true);
+    const data = result.data as Array<Record<string, unknown>>;
+    expect(data[0]?.value).toBe(FAKE_SECRET_VALUE);
+  });
+});
+
+describe('application envs:get', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockEnvList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns single env by env_uuid with masked value', async () => {
+    const result = await handleApplicationAction(
+      { action: 'envs:get', uuid: 'app-uuid-1', env_uuid: 'env-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.uuid).toBe('env-uuid-1');
+    expect(data.value).toBe('***');
+  });
+
+  it.fails('returns single env by key with masked value', async () => {
+    const result = await handleApplicationAction(
+      { action: 'envs:get', uuid: 'app-uuid-1', key: 'DATABASE_URL' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.key).toBe('DATABASE_URL');
+    expect(data.value).toBe('***');
+  });
+
+  it.fails('throws COOLIFY_VALIDATION_ERROR when neither env_uuid nor key provided', async () => {
+    const result = await handleApplicationAction(
+      { action: 'envs:get', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(fetchEnvs).not.toHaveBeenCalled();
+  });
+
+  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:get',
+        uuid: 'app-uuid-1',
+        env_uuid: 'env-uuid-1',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(responseIncludesAskHumanReveal(result)).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.value).toBe(FAKE_SECRET_VALUE);
+  });
+});
+
+describe('application envs:create', () => {
+  beforeEach(() => {
+    vi.mocked(createEnv).mockReset();
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(createEnv).mockResolvedValue({ uuid: 'env-new-uuid', key: 'NEW_KEY' });
+    vi.mocked(fetchEnvs).mockResolvedValue([
+      {
+        uuid: 'env-new-uuid',
+        key: 'NEW_KEY',
+        value: FAKE_SECRET_VALUE,
+        is_preview: true,
+        is_literal: true,
+        is_multiline: true,
+        is_shown_once: true,
+      },
+    ]);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('creates env with all four flags and returns uuid per ENV-06', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:create',
+        uuid: 'app-uuid-1',
+        key: 'NEW_KEY',
+        value: FAKE_SECRET_VALUE,
+        is_preview: true,
+        is_literal: true,
+        is_multiline: true,
+        is_shown_once: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(createEnv).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({
+        key: 'NEW_KEY',
+        is_preview: true,
+        is_literal: true,
+        is_multiline: true,
+        is_shown_once: true,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+
+    const getResult = await handleApplicationAction(
+      {
+        action: 'envs:get',
+        uuid: 'app-uuid-1',
+        env_uuid: 'env-new-uuid',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(getResult)).toBe(false);
+    if (isApplicationErrorResult(getResult)) return;
+
+    const data = getResult.data as Record<string, unknown>;
+    expect(data).toMatchObject({
+      is_preview: true,
+      is_literal: true,
+      is_multiline: true,
+      is_shown_once: true,
+    });
+  });
+});
+
+describe('application envs:update', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(updateEnvViaBulk).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockEnvList);
+    vi.mocked(updateEnvViaBulk).mockResolvedValue({ updated: 1 });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('resolves key from env_uuid then bulk-patches one element per ENV-02', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:update',
+        uuid: 'app-uuid-1',
+        env_uuid: 'env-uuid-1',
+        value: 'updated-value',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(updateEnvViaBulk).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      [
+        expect.objectContaining({
+          key: 'DATABASE_URL',
+          value: 'updated-value',
+        }),
+      ],
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+});
+
+describe('application envs:delete', () => {
+  beforeEach(() => {
+    vi.mocked(deleteEnv).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(deleteEnv).mockResolvedValue({ deleted: true });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:delete',
+        uuid: 'app-uuid-1',
+        env_uuid: 'env-uuid-1',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteEnv).not.toHaveBeenCalled();
+  });
+
+  it.fails('deletes env when confirm:true and returns disposition', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:delete',
+        uuid: 'app-uuid-1',
+        env_uuid: 'env-uuid-1',
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(deleteEnv).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      'env-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ ok: true, env_uuid: 'env-uuid-1' });
+  });
+});
+
+describe('application envs:bulk-update', () => {
+  beforeEach(() => {
+    vi.mocked(bulkUpdateEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(bulkUpdateEnvs).mockResolvedValue({ updated: 2 });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-11', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:bulk-update',
+        uuid: 'app-uuid-1',
+        entries: [{ key: 'A', value: '1' }],
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+  });
+
+  it.fails('applies entries when confirm:true and returns disposition', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:bulk-update',
+        uuid: 'app-uuid-1',
+        entries: [
+          { key: 'A', value: '1' },
+          { key: 'B', value: '2' },
+        ],
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(bulkUpdateEnvs).toHaveBeenCalled();
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ ok: true });
+  });
+});
+
+describe('application envs:sync', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(bulkUpdateEnvs).mockReset();
+    vi.mocked(createEnv).mockReset();
+    vi.mocked(deleteEnv).mockReset();
+    vi.mocked(readFileSync).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockEnvList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('throws COOLIFY_VALIDATION_ERROR when both env_file and env_content provided per D-05 XOR', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        env_content: 'KEY=value',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(fetchEnvs).not.toHaveBeenCalled();
+  });
+
+  it.fails('throws COOLIFY_VALIDATION_ERROR when neither env_file nor env_content provided', async () => {
+    const result = await handleApplicationAction(
+      { action: 'envs:sync', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+  });
+
+  it.fails('dry_run:true returns diff without writing per D-06', async () => {
+    vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value\nDATABASE_URL=local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        dry_run: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+    expect(createEnv).not.toHaveBeenCalled();
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data).toHaveProperty('added');
+    expect(data).toHaveProperty('updated');
+    expect(data).toHaveProperty('unchanged');
+    expect(data).toHaveProperty('removed');
+    expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
+  });
+
+  it.fails('apply path without confirm throws COOLIFY_CONFIRM_REQUIRED per D-12', async () => {
+    vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        dry_run: false,
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it.fails('prune:true without confirm throws COOLIFY_CONFIRM_REQUIRED per D-07', async () => {
+    vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        prune: true,
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it.fails('apply with conflicts and no conflict_policy throws COOLIFY_CONFIRM_REQUIRED per D-08', async () => {
+    vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        dry_run: false,
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(JSON.stringify(result)).toMatch(/conflict_policy/);
+    expect(JSON.stringify(result)).toMatch(/overwrite|keep_remote|abort/);
+  });
+
+  it.fails('conflict_policy:overwrite applies and reports overwritten keys', async () => {
+    vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'overwrite',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.updated).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: 'DATABASE_URL' }),
+      ]),
+    );
+    expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
+  });
+
+  it.fails('conflict_policy:keep_remote returns kept-remote entries without throw', async () => {
+    vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'keep_remote',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.kept_remote)).toBe(true);
+    expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
+  });
+
+  it.fails('conflict_policy:abort returns aborted entries without throw', async () => {
+    vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=conflicting-local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'abort',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.aborted)).toBe(true);
+    expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
+  });
+
+  it.fails('sync response never includes plaintext values regardless of reveal', async () => {
+    vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '/tmp/.env',
+        dry_run: true,
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(JSON.stringify(result.data)).not.toContain(FAKE_SECRET_VALUE);
+    expect(JSON.stringify(result.data)).not.toContain('new-value');
   });
 });
