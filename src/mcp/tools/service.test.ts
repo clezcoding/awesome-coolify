@@ -1199,7 +1199,7 @@ describe('service envs:list', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns masked env summaries by default per D-14', async () => {
+  it('returns masked env summaries by default per D-14', async () => {
     const result = await handleServiceAction(
       { action: 'envs:list', uuid: 'svc-uuid-1' },
       testEnv,
@@ -1213,7 +1213,7 @@ describe('service envs:list', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
-  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+  it('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
     const result = await handleServiceAction(
       { action: 'envs:list', uuid: 'svc-uuid-1', reveal: true },
       testEnv,
@@ -1234,7 +1234,7 @@ describe('service envs:get', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns single env by env_uuid with masked value', async () => {
+  it('returns single env by env_uuid with masked value', async () => {
     const result = await handleServiceAction(
       { action: 'envs:get', uuid: 'svc-uuid-1', env_uuid: 'env-svc-uuid-1' },
       testEnv,
@@ -1247,7 +1247,7 @@ describe('service envs:get', () => {
     expect(data.value).toBe('***');
   });
 
-  it.fails('returns single env by key with masked value', async () => {
+  it('returns single env by key with masked value', async () => {
     const result = await handleServiceAction(
       { action: 'envs:get', uuid: 'svc-uuid-1', key: 'REDIS_PASSWORD' },
       testEnv,
@@ -1282,7 +1282,7 @@ describe('service envs:create', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('creates env with all four flags and round-trips via envs:get per ENV-06', async () => {
+  it('creates env with all four flags and round-trips via envs:get per ENV-06', async () => {
     const result = await handleServiceAction(
       {
         action: 'envs:create',
@@ -1331,7 +1331,7 @@ describe('service envs:update', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('resolves key from env_uuid then bulk-patches one element', async () => {
+  it('resolves key from env_uuid then bulk-patches one element', async () => {
     const result = await handleServiceAction(
       {
         action: 'envs:update',
@@ -1362,7 +1362,7 @@ describe('service envs:delete', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
+  it('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
     const result = await handleServiceAction(
       {
         action: 'envs:delete',
@@ -1389,7 +1389,7 @@ describe('service envs:bulk-update', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('applies entries when confirm:true per D-11', async () => {
+  it('applies entries when confirm:true per D-11', async () => {
     const result = await handleServiceAction(
       {
         action: 'envs:bulk-update',
