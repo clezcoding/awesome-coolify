@@ -990,7 +990,7 @@ describe('database envs:list', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns masked env summaries by default per D-14', async () => {
+  it('returns masked env summaries by default per D-14', async () => {
     const result = await handleDatabaseAction(
       { action: 'envs:list', uuid: 'db-uuid-1' },
       testEnv,
@@ -1004,7 +1004,7 @@ describe('database envs:list', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_DB_SECRET);
   });
 
-  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+  it('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
     const result = await handleDatabaseAction(
       { action: 'envs:list', uuid: 'db-uuid-1', reveal: true },
       testEnv,
@@ -1025,7 +1025,7 @@ describe('database envs:get', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns single env by env_uuid with masked value', async () => {
+  it('returns single env by env_uuid with masked value', async () => {
     const result = await handleDatabaseAction(
       { action: 'envs:get', uuid: 'db-uuid-1', env_uuid: 'env-db-uuid-1' },
       testEnv,
@@ -1038,7 +1038,7 @@ describe('database envs:get', () => {
     expect(data.value).toBe('***');
   });
 
-  it.fails('returns single env by key with masked value', async () => {
+  it('returns single env by key with masked value', async () => {
     const result = await handleDatabaseAction(
       { action: 'envs:get', uuid: 'db-uuid-1', key: 'POSTGRES_PASSWORD' },
       testEnv,
@@ -1072,7 +1072,7 @@ describe('database envs:create', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('accepts three supported flags and round-trips via envs:get per ENV-06 D-16', async () => {
+  it('accepts three supported flags and round-trips via envs:get per ENV-06 D-16', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'envs:create',
@@ -1138,7 +1138,7 @@ describe('database envs:update', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('resolves key from env_uuid then bulk-patches one element', async () => {
+  it('resolves key from env_uuid then bulk-patches one element', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'envs:update',
@@ -1181,7 +1181,7 @@ describe('database envs:delete', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
+  it('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'envs:delete',
@@ -1208,7 +1208,7 @@ describe('database envs:bulk-update', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('applies entries when confirm:true per D-11', async () => {
+  it('applies entries when confirm:true per D-11', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'envs:bulk-update',
