@@ -24,6 +24,11 @@ vi.mock('../../api/client.js', () => ({
   createKeydbDatabase: vi.fn(),
   updateDatabase: vi.fn(),
   deleteDatabase: vi.fn(),
+  fetchEnvs: vi.fn(),
+  createEnv: vi.fn(),
+  updateEnvViaBulk: vi.fn(),
+  bulkUpdateEnvs: vi.fn(),
+  deleteEnv: vi.fn(),
 }));
 
 import {
@@ -44,6 +49,11 @@ import {
   createKeydbDatabase,
   updateDatabase,
   deleteDatabase,
+  fetchEnvs,
+  createEnv,
+  updateEnvViaBulk,
+  bulkUpdateEnvs,
+  deleteEnv,
 } from '../../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -952,5 +962,282 @@ describe('database delete_preview', () => {
       { uuid: 'child-1', name: 'linked-app', type: 'application' },
     ]);
     expect(data.warning).toMatch(/child resources/i);
+  });
+});
+
+const FAKE_DB_SECRET = 'FAKE_DB_SECRET_VALUE';
+
+const mockDatabaseEnv = {
+  uuid: 'env-db-uuid-1',
+  key: 'POSTGRES_PASSWORD',
+  value: FAKE_DB_SECRET,
+  is_literal: true,
+  is_multiline: false,
+  is_shown_once: false,
+};
+
+const mockDatabaseEnvList = [mockDatabaseEnv];
+
+function databaseResponseIncludesAskHumanReveal(payload: unknown): boolean {
+  return JSON.stringify(payload).includes('ask_human_reveal');
+}
+
+describe('database envs:list', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockDatabaseEnvList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns masked env summaries by default per D-14', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'envs:list', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Array<Record<string, unknown>>;
+    expect(data[0]?.value).toBe('***');
+    expect(JSON.stringify(data)).not.toContain(FAKE_DB_SECRET);
+  });
+
+  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'envs:list', uuid: 'db-uuid-1', reveal: true },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(databaseResponseIncludesAskHumanReveal(result)).toBe(true);
+  });
+});
+
+describe('database envs:get', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockDatabaseEnvList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns single env by env_uuid with masked value', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'envs:get', uuid: 'db-uuid-1', env_uuid: 'env-db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.value).toBe('***');
+  });
+
+  it.fails('returns single env by key with masked value', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'envs:get', uuid: 'db-uuid-1', key: 'POSTGRES_PASSWORD' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.key).toBe('POSTGRES_PASSWORD');
+    expect(data.value).toBe('***');
+  });
+});
+
+describe('database envs:create', () => {
+  beforeEach(() => {
+    vi.mocked(createEnv).mockReset();
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(createEnv).mockResolvedValue({ uuid: 'env-db-new', key: 'NEW_KEY' });
+    vi.mocked(fetchEnvs).mockResolvedValue([
+      {
+        uuid: 'env-db-new',
+        key: 'NEW_KEY',
+        value: FAKE_DB_SECRET,
+        is_literal: true,
+        is_multiline: true,
+        is_shown_once: false,
+      },
+    ]);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('accepts three supported flags and round-trips via envs:get per ENV-06 D-16', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'envs:create',
+        uuid: 'db-uuid-1',
+        key: 'NEW_KEY',
+        value: FAKE_DB_SECRET,
+        is_literal: true,
+        is_multiline: true,
+        is_shown_once: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    const getResult = await handleDatabaseAction(
+      {
+        action: 'envs:get',
+        uuid: 'db-uuid-1',
+        env_uuid: 'env-db-new',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(getResult)).toBe(false);
+    if (isDatabaseErrorResult(getResult)) return;
+
+    expect(getResult.data).toMatchObject({
+      is_literal: true,
+      is_multiline: true,
+      is_shown_once: false,
+    });
+  });
+
+  it.fails('rejects is_preview with COOLIFY_VALIDATION_ERROR per D-16 Pitfall 1', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'envs:create',
+        uuid: 'db-uuid-1',
+        key: 'NEW_KEY',
+        value: FAKE_DB_SECRET,
+        is_preview: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createEnv).not.toHaveBeenCalled();
+  });
+});
+
+describe('database envs:update', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(updateEnvViaBulk).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockDatabaseEnvList);
+    vi.mocked(updateEnvViaBulk).mockResolvedValue({ updated: 1 });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('resolves key from env_uuid then bulk-patches one element', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'envs:update',
+        uuid: 'db-uuid-1',
+        env_uuid: 'env-db-uuid-1',
+        value: 'updated',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(updateEnvViaBulk).toHaveBeenCalled();
+  });
+
+  it.fails('rejects is_preview with COOLIFY_VALIDATION_ERROR per D-16', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'envs:update',
+        uuid: 'db-uuid-1',
+        env_uuid: 'env-db-uuid-1',
+        value: 'updated',
+        is_preview: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(updateEnvViaBulk).not.toHaveBeenCalled();
+  });
+});
+
+describe('database envs:delete', () => {
+  beforeEach(() => {
+    vi.mocked(deleteEnv).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(deleteEnv).mockResolvedValue({ deleted: true });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'envs:delete',
+        uuid: 'db-uuid-1',
+        env_uuid: 'env-db-uuid-1',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteEnv).not.toHaveBeenCalled();
+  });
+});
+
+describe('database envs:bulk-update', () => {
+  beforeEach(() => {
+    vi.mocked(bulkUpdateEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(bulkUpdateEnvs).mockResolvedValue({ updated: 1 });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('applies entries when confirm:true per D-11', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'envs:bulk-update',
+        uuid: 'db-uuid-1',
+        entries: [{ key: 'A', value: '1' }],
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(bulkUpdateEnvs).toHaveBeenCalled();
+  });
+
+  it.fails('rejects is_preview in any entry with COOLIFY_VALIDATION_ERROR per D-16', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'envs:bulk-update',
+        uuid: 'db-uuid-1',
+        entries: [{ key: 'A', value: '1', is_preview: true }],
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(bulkUpdateEnvs).not.toHaveBeenCalled();
   });
 });

@@ -17,6 +17,11 @@ vi.mock('../../api/client.js', () => ({
   createService: vi.fn(),
   updateService: vi.fn(),
   deleteService: vi.fn(),
+  fetchEnvs: vi.fn(),
+  createEnv: vi.fn(),
+  updateEnvViaBulk: vi.fn(),
+  bulkUpdateEnvs: vi.fn(),
+  deleteEnv: vi.fn(),
 }));
 
 vi.mock('node:fs', () => ({
@@ -38,6 +43,11 @@ import {
   createService,
   updateService,
   deleteService,
+  fetchEnvs,
+  createEnv,
+  updateEnvViaBulk,
+  bulkUpdateEnvs,
+  deleteEnv,
 } from '../../api/client.js';
 import {
   closeSync,
@@ -1160,5 +1170,237 @@ describe('service delete_preview', () => {
       { uuid: 'child-db-1', name: 'pg', type: 'service-database' },
     ]);
     expect(data.warning).toMatch(/child resources/i);
+  });
+});
+
+const FAKE_SECRET_VALUE = 'FAKE_SECRET_VALUE';
+
+const mockServiceEnv = {
+  uuid: 'env-svc-uuid-1',
+  key: 'REDIS_PASSWORD',
+  value: FAKE_SECRET_VALUE,
+  is_preview: true,
+  is_literal: true,
+  is_multiline: true,
+  is_shown_once: true,
+};
+
+const mockServiceEnvList = [mockServiceEnv];
+
+function serviceResponseIncludesAskHumanReveal(payload: unknown): boolean {
+  return JSON.stringify(payload).includes('ask_human_reveal');
+}
+
+describe('service envs:list', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockServiceEnvList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns masked env summaries by default per D-14', async () => {
+    const result = await handleServiceAction(
+      { action: 'envs:list', uuid: 'svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Array<Record<string, unknown>>;
+    expect(data[0]?.value).toBe('***');
+    expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
+  });
+
+  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+    const result = await handleServiceAction(
+      { action: 'envs:list', uuid: 'svc-uuid-1', reveal: true },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect(serviceResponseIncludesAskHumanReveal(result)).toBe(true);
+  });
+});
+
+describe('service envs:get', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockServiceEnvList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns single env by env_uuid with masked value', async () => {
+    const result = await handleServiceAction(
+      { action: 'envs:get', uuid: 'svc-uuid-1', env_uuid: 'env-svc-uuid-1' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.value).toBe('***');
+  });
+
+  it.fails('returns single env by key with masked value', async () => {
+    const result = await handleServiceAction(
+      { action: 'envs:get', uuid: 'svc-uuid-1', key: 'REDIS_PASSWORD' },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.key).toBe('REDIS_PASSWORD');
+    expect(data.value).toBe('***');
+  });
+});
+
+describe('service envs:create', () => {
+  beforeEach(() => {
+    vi.mocked(createEnv).mockReset();
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(createEnv).mockResolvedValue({ uuid: 'env-svc-new', key: 'NEW_KEY' });
+    vi.mocked(fetchEnvs).mockResolvedValue([
+      {
+        uuid: 'env-svc-new',
+        key: 'NEW_KEY',
+        value: FAKE_SECRET_VALUE,
+        is_preview: true,
+        is_literal: true,
+        is_multiline: true,
+        is_shown_once: true,
+      },
+    ]);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('creates env with all four flags and round-trips via envs:get per ENV-06', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'envs:create',
+        uuid: 'svc-uuid-1',
+        key: 'NEW_KEY',
+        value: FAKE_SECRET_VALUE,
+        is_preview: true,
+        is_literal: true,
+        is_multiline: true,
+        is_shown_once: true,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const getResult = await handleServiceAction(
+      {
+        action: 'envs:get',
+        uuid: 'svc-uuid-1',
+        env_uuid: 'env-svc-new',
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(getResult)).toBe(false);
+    if (isServiceErrorResult(getResult)) return;
+
+    expect(getResult.data).toMatchObject({
+      is_preview: true,
+      is_literal: true,
+      is_multiline: true,
+      is_shown_once: true,
+    });
+  });
+});
+
+describe('service envs:update', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(updateEnvViaBulk).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchEnvs).mockResolvedValue(mockServiceEnvList);
+    vi.mocked(updateEnvViaBulk).mockResolvedValue({ updated: 1 });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('resolves key from env_uuid then bulk-patches one element', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'envs:update',
+        uuid: 'svc-uuid-1',
+        env_uuid: 'env-svc-uuid-1',
+        value: 'updated',
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(updateEnvViaBulk).toHaveBeenCalledWith(
+      'service',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'svc-uuid-1',
+      [expect.objectContaining({ key: 'REDIS_PASSWORD', value: 'updated' })],
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+});
+
+describe('service envs:delete', () => {
+  beforeEach(() => {
+    vi.mocked(deleteEnv).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(deleteEnv).mockResolvedValue({ deleted: true });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'envs:delete',
+        uuid: 'svc-uuid-1',
+        env_uuid: 'env-svc-uuid-1',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteEnv).not.toHaveBeenCalled();
+  });
+});
+
+describe('service envs:bulk-update', () => {
+  beforeEach(() => {
+    vi.mocked(bulkUpdateEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(bulkUpdateEnvs).mockResolvedValue({ updated: 1 });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('applies entries when confirm:true per D-11', async () => {
+    const result = await handleServiceAction(
+      {
+        action: 'envs:bulk-update',
+        uuid: 'svc-uuid-1',
+        entries: [{ key: 'A', value: '1' }],
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    expect(bulkUpdateEnvs).toHaveBeenCalled();
   });
 });
