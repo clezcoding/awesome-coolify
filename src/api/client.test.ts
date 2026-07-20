@@ -1256,7 +1256,7 @@ describe('fetchEnvs', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails.each([
+  it.each([
     ['application', 'app-uuid-1', '/api/v1/applications/app-uuid-1/envs'],
     ['service', 'svc-uuid-1', '/api/v1/services/svc-uuid-1/envs'],
     ['database', 'db-uuid-1', '/api/v1/databases/db-uuid-1/envs'],
@@ -1301,7 +1301,7 @@ describe('createEnv', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('createEnv(application) POSTs to /applications/{uuid}/envs with flags', async () => {
+  it('createEnv(application) POSTs to /applications/{uuid}/envs with flags', async () => {
     expect(clientCrud.createEnv).toBeTypeOf('function');
     const payload = {
       key: 'NEW_KEY',
@@ -1340,7 +1340,7 @@ describe('createEnv', () => {
     expect(JSON.parse(init.body as string)).toEqual(payload);
   });
 
-  it.fails('createEnv(database) rejects is_preview before HTTP call per D-16', async () => {
+  it('createEnv(database) rejects is_preview before HTTP call per D-16', async () => {
     expect(clientCrud.createEnv).toBeTypeOf('function');
 
     await expect(
@@ -1380,7 +1380,7 @@ describe('updateEnvViaBulk', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('PATCHes /applications/{uuid}/envs/bulk with data array body', async () => {
+  it('PATCHes /applications/{uuid}/envs/bulk with data array body', async () => {
     expect(clientCrud.updateEnvViaBulk).toBeTypeOf('function');
     const entries = [{ key: 'DATABASE_URL', value: 'updated' }];
     fetchMock.mockResolvedValueOnce(Response.json({ updated: 1 }, { status: 200 }));
@@ -1423,7 +1423,7 @@ describe('bulkUpdateEnvs', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('is alias for updateEnvViaBulk with multi-element array', async () => {
+  it('is alias for updateEnvViaBulk with multi-element array', async () => {
     expect(clientCrud.bulkUpdateEnvs).toBeTypeOf('function');
     const entries = [
       { key: 'A', value: '1' },
@@ -1469,7 +1469,7 @@ describe('deleteEnv', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('DELETEs /applications/{uuid}/envs/{env_uuid}', async () => {
+  it('DELETEs /applications/{uuid}/envs/{env_uuid}', async () => {
     expect(clientCrud.deleteEnv).toBeTypeOf('function');
     fetchMock.mockResolvedValueOnce(
       Response.json({ message: 'Deleted.' }, { status: 200 }),
