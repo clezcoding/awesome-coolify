@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 describe('parseEnvFile', () => {
-  it.fails('parses KEY=value, comments, and empty values', async () => {
+  it('parses KEY=value, comments, and empty values', async () => {
     const { parseEnvFile } = await import('./env-parser.js');
     const result = parseEnvFile('KEY=value\n# comment\nEMPTY=');
     expect(result).toEqual([
@@ -10,7 +10,7 @@ describe('parseEnvFile', () => {
     ]);
   });
 
-  it.fails('strips surrounding single and double quotes from values', async () => {
+  it('strips surrounding single and double quotes from values', async () => {
     const { parseEnvFile } = await import('./env-parser.js');
     const result = parseEnvFile("SINGLE='quoted'\nDOUBLE=\"quoted\"");
     expect(result).toEqual([
@@ -19,19 +19,19 @@ describe('parseEnvFile', () => {
     ]);
   });
 
-  it.fails('unescapes \\n inside double-quoted multiline values', async () => {
+  it('unescapes \\n inside double-quoted multiline values', async () => {
     const { parseEnvFile } = await import('./env-parser.js');
     const result = parseEnvFile('MULTI="line1\\nline2"');
     expect(result).toEqual([{ key: 'MULTI', value: 'line1\nline2' }]);
   });
 
-  it.fails('ignores blank lines and hash comments', async () => {
+  it('ignores blank lines and hash comments', async () => {
     const { parseEnvFile } = await import('./env-parser.js');
     const result = parseEnvFile('\n\n# full line comment\n\nKEY=ok\n');
     expect(result).toEqual([{ key: 'KEY', value: 'ok' }]);
   });
 
-  it.fails('preserves leading and trailing whitespace inside double quotes', async () => {
+  it('preserves leading and trailing whitespace inside double quotes', async () => {
     const { parseEnvFile } = await import('./env-parser.js');
     const result = parseEnvFile('SPACED="  padded  "');
     expect(result).toEqual([{ key: 'SPACED', value: '  padded  ' }]);
@@ -39,7 +39,7 @@ describe('parseEnvFile', () => {
 });
 
 describe('diffEnvs', () => {
-  it.fails('returns added, updated, unchanged, removed buckets by key', async () => {
+  it('returns added, updated, unchanged, removed buckets by key', async () => {
     const { diffEnvs } = await import('./env-parser.js');
     const local = [
       { key: 'NEW', value: '1' },
@@ -61,7 +61,7 @@ describe('diffEnvs', () => {
     expect(result.removed).toEqual([{ key: 'OLD', value: 'gone' }]);
   });
 
-  it.fails('marks updated only when local value differs from remote', async () => {
+  it('marks updated only when local value differs from remote', async () => {
     const { diffEnvs } = await import('./env-parser.js');
     const result = diffEnvs(
       [{ key: 'A', value: 'x' }],
@@ -77,13 +77,13 @@ describe('detectConflicts', () => {
   const remote = [{ key: 'SHARED', value: 'remote-value' }];
   const baseline = [{ key: 'SHARED', value: 'baseline-value' }];
 
-  it.fails("policy 'overwrite' returns empty conflicts for caller clobber", async () => {
+  it("policy 'overwrite' returns empty conflicts for caller clobber", async () => {
     const { detectConflicts } = await import('./env-parser.js');
     const result = detectConflicts(local, remote, baseline, 'overwrite');
     expect(result.conflicts).toEqual([]);
   });
 
-  it.fails("policy 'keep_remote' returns keep-remote decisions without throw", async () => {
+  it("policy 'keep_remote' returns keep-remote decisions without throw", async () => {
     const { detectConflicts } = await import('./env-parser.js');
     const result = detectConflicts(local, remote, baseline, 'keep_remote');
     expect(result.decisions).toEqual(
@@ -93,7 +93,7 @@ describe('detectConflicts', () => {
     );
   });
 
-  it.fails("policy 'abort' returns abort decisions without throw", async () => {
+  it("policy 'abort' returns abort decisions without throw", async () => {
     const { detectConflicts } = await import('./env-parser.js');
     const result = detectConflicts(local, remote, baseline, 'abort');
     expect(result.decisions).toEqual(
@@ -103,7 +103,7 @@ describe('detectConflicts', () => {
     );
   });
 
-  it.fails('detects out-of-band remote edits since local snapshot', async () => {
+  it('detects out-of-band remote edits since local snapshot', async () => {
     const { detectConflicts } = await import('./env-parser.js');
     const result = detectConflicts(local, remote, baseline, 'keep_remote');
     expect(result.conflicts.length).toBeGreaterThan(0);
