@@ -1,4 +1,5 @@
 import * as z from 'zod/v4';
+import { readFileSync } from 'node:fs';
 import type { EnvConfig } from '../config/env.js';
 import {
   createDockerfileApplication,
@@ -62,6 +63,15 @@ import {
   rankFindMatches,
   type FindableResource,
 } from './resource.js';
+import {
+  parseEnvFile,
+  diffEnvs,
+  detectConflicts,
+  type Conflict,
+  type ConflictPolicy,
+  type DiffResult,
+  type ParsedEnv,
+} from '../../utils/env-parser.js';
 
 const MUTATION_IDENTIFIER_FIELDS = ['uuid', 'name', 'fqdn'] as const;
 
@@ -739,6 +749,78 @@ const envsBulkUpdateActionSchema = requireMutationIdentifier(
   'envs:bulk-update',
 );
 
+const envsSyncActionSchema = requireMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:sync'),
+      env_file: z
+        .string()
+        .optional()
+        .describe('Local filesystem path to a .env file'),
+      env_content: z
+        .string()
+        .optional()
+        .describe('Inline .env file content'),
+      dry_run: z
+        .boolean()
+        .default(false)
+        .describe(
+          'Preview diff only — no API writes when true (default false = apply path)',
+        ),
+      prune: z
+        .boolean()
+        .default(false)
+        .describe(
+          'Delete remote env keys absent from local (requires confirm:true)',
+        ),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe(
+          'Explicit confirmation required when applying (dry_run:false) or pruning',
+        ),
+      conflict_policy: z
+        .union([
+          z.literal('overwrite'),
+          z.literal('keep_remote'),
+          z.literal('abort'),
+        ])
+        .optional()
+        .describe(
+          'How to resolve value conflicts on apply — ask human if unset (D-08)',
+        ),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      const hasFile =
+        typeof data.env_file === 'string' && data.env_file.length > 0;
+      const hasContent =
+        typeof data.env_content === 'string' && data.env_content.length > 0;
+
+      if (hasFile === hasContent) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Exactly one of env_file (local path) or env_content (inline .env text) is required for envs:sync',
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    })
+    .superRefine((data, ctx) => {
+      const needsConfirm = data.dry_run === false || data.prune === true;
+      if (needsConfirm && data.confirm !== true) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            "Action 'envs:sync' requires confirm:true when applying (dry_run:false) or when prune:true",
+          params: { code: 'COOLIFY_CONFIRM_REQUIRED' },
+        });
+      }
+    }),
+  'envs:sync',
+);
+
 const envsActionSchema = z.discriminatedUnion('action', [
   envsListActionSchema,
   envsGetActionSchema,
@@ -746,6 +828,7 @@ const envsActionSchema = z.discriminatedUnion('action', [
   envsUpdateActionSchema,
   envsDeleteActionSchema,
   envsBulkUpdateActionSchema,
+  envsSyncActionSchema,
 ]);
 
 const UPDATE_CURATED_FIELD_KEYS = [
@@ -936,6 +1019,18 @@ export type ApplicationEnvsBulkUpdateResult = ReadResponse<{
   ok: true;
 }> & { recoveryHints?: string[] };
 
+export type ApplicationEnvsSyncResult = ReadResponse<{
+  added: Array<Record<string, unknown>>;
+  updated: Array<Record<string, unknown>>;
+  unchanged: Array<Record<string, unknown>>;
+  removed: Array<Record<string, unknown>>;
+  conflicts: Conflict[];
+  kept_remote?: Array<Record<string, unknown>>;
+  aborted?: Array<Record<string, unknown>>;
+  pruned?: Array<Record<string, unknown>>;
+  dry_run: boolean;
+}> & { recoveryHints?: string[] };
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
@@ -951,6 +1046,7 @@ export type ApplicationActionResult =
   | ApplicationEnvsUpdateResult
   | ApplicationEnvsDeleteResult
   | ApplicationEnvsBulkUpdateResult
+  | ApplicationEnvsSyncResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -970,6 +1066,7 @@ type EnvsCreateAction = z.infer<typeof envsCreateActionSchema>;
 type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
 type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
 type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
+type EnvsSyncAction = z.infer<typeof envsSyncActionSchema>;
 
 const ASK_HUMAN_REVEAL_HINT =
   'ask_human_reveal: confirm with the human that they want revealed values before retrying with reveal: true';
@@ -2194,6 +2291,227 @@ async function handleApplicationEnvsBulkUpdate(
   );
 }
 
+const ASK_HUMAN_CONFLICT_POLICY_HINT =
+  'ask_human_conflict_policy: ask the human whether to overwrite, keep_remote, or abort; then retry with conflict_policy set';
+
+function buildValueConflicts(diff: DiffResult): Conflict[] {
+  return diff.updated.map((entry) => ({
+    key: entry.key,
+    remote_masked: '***',
+    local_present: true,
+  }));
+}
+
+function maskSyncEnvEntry(
+  entry: ParsedEnv | { key: string; value?: string; localValue?: string; remoteValue?: string },
+): Record<string, unknown> {
+  const projected = sanitizeFullProjection(entry, false) as Record<
+    string,
+    unknown
+  >;
+  projected.value = '***';
+  if ('localValue' in entry && entry.localValue !== undefined) {
+    projected.localValue = '***';
+  }
+  if ('remoteValue' in entry && entry.remoteValue !== undefined) {
+    projected.remoteValue = '***';
+  }
+  return projected;
+}
+
+function maskSyncUpdatedEntry(
+  entry: DiffResult['updated'][number],
+): Record<string, unknown> {
+  return {
+    key: entry.key,
+    localValue: '***',
+    remoteValue: '***',
+  };
+}
+
+function buildSyncDisposition(
+  diff: DiffResult,
+  conflicts: Conflict[],
+  options: {
+    dry_run: boolean;
+    kept_remote?: Array<Record<string, unknown>>;
+    aborted?: Array<Record<string, unknown>>;
+    pruned?: Array<Record<string, unknown>>;
+  },
+): ApplicationEnvsSyncResult['data'] {
+  return {
+    added: diff.added.map((entry) => maskSyncEnvEntry(entry)),
+    updated: diff.updated.map((entry) => maskSyncUpdatedEntry(entry)),
+    unchanged: diff.unchanged.map((entry) => maskSyncEnvEntry(entry)),
+    removed: diff.removed.map((entry) => maskSyncEnvEntry(entry)),
+    conflicts,
+    ...(options.kept_remote ? { kept_remote: options.kept_remote } : {}),
+    ...(options.aborted ? { aborted: options.aborted } : {}),
+    ...(options.pruned ? { pruned: options.pruned } : {}),
+    dry_run: options.dry_run,
+  };
+}
+
+function validateSyncConflictPolicy(
+  conflicts: Conflict[],
+  conflictPolicy: ConflictPolicy | undefined,
+  uuid: string,
+): void {
+  if (conflicts.length === 0 || conflictPolicy !== undefined) {
+    return;
+  }
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_CONFIRM_REQUIRED',
+    message: `Action 'envs:sync' on application '${uuid}' has value conflicts — set conflict_policy to overwrite, keep_remote, or abort after asking the human.`,
+    recoveryHints: [
+      ASK_HUMAN_CONFLICT_POLICY_HINT,
+      ...RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+    ],
+    data: {
+      action: 'envs:sync',
+      uuid,
+      conflict_policy_options: ['overwrite', 'keep_remote', 'abort'],
+    },
+  });
+}
+
+async function handleApplicationEnvsSync(
+  parsed: EnvsSyncAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsSyncResult> {
+  const uuid = await resolveAppMutationUuid(parsed, env);
+
+  const content =
+    typeof parsed.env_file === 'string' && parsed.env_file.length > 0
+      ? readFileSync(parsed.env_file, 'utf8')
+      : parsed.env_content!;
+
+  const local = parseEnvFile(content);
+  const remote = await fetchEnvs(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const baseline = remote;
+  const diff = diffEnvs(local, remote);
+  const valueConflicts = buildValueConflicts(diff);
+
+  const outOfBandResult = parsed.conflict_policy
+    ? detectConflicts(local, remote, baseline, parsed.conflict_policy)
+    : detectConflicts(local, remote, baseline, 'abort');
+
+  const conflicts =
+    parsed.conflict_policy !== undefined
+      ? [...valueConflicts, ...outOfBandResult.conflicts].filter(
+          (conflict, index, all) =>
+            all.findIndex((entry) => entry.key === conflict.key) === index,
+        )
+      : valueConflicts;
+
+  if (parsed.dry_run) {
+    return buildReadResponse(
+      buildSyncDisposition(diff, conflicts, { dry_run: true }),
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
+
+  validateSyncConflictPolicy(conflicts, parsed.conflict_policy, uuid);
+
+  const policy = parsed.conflict_policy!;
+  const kept_remote: Array<Record<string, unknown>> = [];
+  const aborted: Array<Record<string, unknown>> = [];
+  const pruned: Array<Record<string, unknown>> = [];
+  const bulkUpdates: EnvBulkEntry[] = [];
+
+  for (const entry of diff.added) {
+    await createEnv(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      uuid,
+      {
+        key: entry.key,
+        value: entry.value,
+        is_preview: false,
+        is_literal: false,
+        is_multiline: false,
+        is_shown_once: false,
+      },
+      env.COOLIFY_VERIFY_SSL,
+    );
+  }
+
+  for (const entry of diff.updated) {
+    if (policy === 'keep_remote') {
+      kept_remote.push({ key: entry.key, value: '***' });
+      continue;
+    }
+    if (policy === 'abort') {
+      aborted.push({ key: entry.key, value: '***' });
+      continue;
+    }
+
+    bulkUpdates.push({
+      key: entry.key,
+      value: entry.localValue,
+      is_preview: false,
+      is_literal: false,
+      is_multiline: false,
+      is_shown_once: false,
+    });
+  }
+
+  if (bulkUpdates.length > 0) {
+    await updateEnvViaBulk(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      uuid,
+      bulkUpdates,
+      env.COOLIFY_VERIFY_SSL,
+    );
+  }
+
+  if (parsed.prune) {
+    for (const entry of diff.removed) {
+      const remoteEntry = remote.find((item) => item.key === entry.key);
+      const envUuid = remoteEntry?.uuid ?? entry.uuid;
+      if (!envUuid) {
+        continue;
+      }
+
+      await deleteEnv(
+        'application',
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        uuid,
+        envUuid,
+        env.COOLIFY_VERIFY_SSL,
+      );
+      pruned.push({ key: entry.key, env_uuid: envUuid });
+    }
+  }
+
+  return buildReadResponse(
+    buildSyncDisposition(diff, conflicts, {
+      dry_run: false,
+      ...(kept_remote.length > 0 ? { kept_remote } : {}),
+      ...(aborted.length > 0 ? { aborted } : {}),
+      ...(parsed.prune ? { pruned } : {}),
+    }),
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
 export async function handleApplicationAction(
   args: unknown,
   env: EnvConfig,
@@ -2230,6 +2548,8 @@ export async function handleApplicationAction(
         return await handleApplicationEnvsDelete(parsed, env);
       case 'envs:bulk-update':
         return await handleApplicationEnvsBulkUpdate(parsed, env);
+      case 'envs:sync':
+        return await handleApplicationEnvsSync(parsed, env);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
