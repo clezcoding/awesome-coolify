@@ -911,6 +911,31 @@ export type ApplicationDeletePreviewResult = ReadResponse<{
   warning?: string;
 }>;
 
+export type ApplicationEnvsListResult = ReadResponse<
+  Array<Record<string, unknown>>
+> & { recoveryHints?: string[] };
+
+export type ApplicationEnvsGetResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type ApplicationEnvsCreateResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type ApplicationEnvsUpdateResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type ApplicationEnvsDeleteResult = ReadResponse<{
+  ok: true;
+  env_uuid: string;
+}> & { recoveryHints?: string[] };
+
+export type ApplicationEnvsBulkUpdateResult = ReadResponse<{
+  ok: true;
+}> & { recoveryHints?: string[] };
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
@@ -920,6 +945,12 @@ export type ApplicationActionResult =
   | ApplicationUpdateResult
   | ApplicationDeleteResult
   | ApplicationDeletePreviewResult
+  | ApplicationEnvsListResult
+  | ApplicationEnvsGetResult
+  | ApplicationEnvsCreateResult
+  | ApplicationEnvsUpdateResult
+  | ApplicationEnvsDeleteResult
+  | ApplicationEnvsBulkUpdateResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -933,6 +964,15 @@ type CreateAction = z.infer<typeof createActionSchema>;
 type UpdateAction = z.infer<typeof updateActionSchema>;
 type DeleteAction = z.infer<typeof deleteActionSchema>;
 type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
+type EnvsListAction = z.infer<typeof envsListActionSchema>;
+type EnvsGetAction = z.infer<typeof envsGetActionSchema>;
+type EnvsCreateAction = z.infer<typeof envsCreateActionSchema>;
+type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
+type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
+type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
+
+const ASK_HUMAN_REVEAL_HINT =
+  'ask_human_reveal: confirm with the human that they want revealed values before retrying with reveal: true';
 
 function validateDeleteConfirm(confirm: boolean, uuid: string): void {
   if (confirm === true) {
@@ -948,6 +988,156 @@ function validateDeleteConfirm(confirm: boolean, uuid: string): void {
       uuid,
     },
   });
+}
+
+function validateEnvMutationConfirm(
+  confirm: boolean,
+  action: string,
+  uuid: string,
+): void {
+  if (confirm === true) {
+    return;
+  }
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_CONFIRM_REQUIRED',
+    message: `Action '${action}' on application '${uuid}' requires explicit confirmation.`,
+    recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+    data: {
+      action,
+      uuid,
+    },
+  });
+}
+
+function maskEnvRecord(
+  env: Env,
+  reveal: boolean,
+): Record<string, unknown> {
+  const projected = sanitizeFullProjection(env, reveal) as Record<
+    string,
+    unknown
+  >;
+
+  if (!reveal && typeof projected.value === 'string') {
+    projected.value = '***';
+  }
+
+  return projected;
+}
+
+function maskEnvRecords(
+  envs: Env[],
+  reveal: boolean,
+): Array<Record<string, unknown>> {
+  return envs.map((env) => maskEnvRecord(env, reveal));
+}
+
+function withRevealRecoveryHints<T extends ReadResponse<unknown>>(
+  response: T,
+  reveal: boolean,
+): T & { recoveryHints?: string[] } {
+  if (!reveal) {
+    return response;
+  }
+
+  return {
+    ...response,
+    recoveryHints: [ASK_HUMAN_REVEAL_HINT],
+  };
+}
+
+function resolveEnvIdentity(
+  envs: Env[],
+  input: { env_uuid?: string; key?: string },
+): Env {
+  if (input.env_uuid) {
+    const matches = envs.filter((env) => env.uuid === input.env_uuid);
+    if (matches.length === 0) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_404',
+        message: `No environment variable matched env_uuid '${input.env_uuid}'.`,
+        recoveryHints: [
+          'Check that the env UUID exists on this application.',
+          'Use envs:list to enumerate environment variables.',
+        ],
+      });
+    }
+    if (matches.length > 1) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_AMBIGUOUS_MATCH',
+        message:
+          'Multiple environment variables matched env_uuid — refusing to mutate.',
+        recoveryHints: [
+          'Re-run with an explicit env_uuid from envs:list.',
+        ],
+      });
+    }
+    return matches[0];
+  }
+
+  if (input.key) {
+    const matches = envs.filter((env) => env.key === input.key);
+    if (matches.length === 0) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_404',
+        message: `No environment variable matched key '${input.key}'.`,
+        recoveryHints: [
+          'Check that the env key exists on this application.',
+          'Use envs:list to enumerate environment variables.',
+        ],
+      });
+    }
+    if (matches.length > 1) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_AMBIGUOUS_MATCH',
+        message:
+          'Multiple environment variables matched key — refusing to mutate. Re-run with env_uuid.',
+        recoveryHints: [
+          'Re-run with an explicit env_uuid from envs:list.',
+          'Multiple env vars share this key — pass env_uuid directly.',
+        ],
+      });
+    }
+    return matches[0];
+  }
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_VALIDATION_ERROR',
+    message: 'At least one of env_uuid or key is required.',
+    recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+  });
+}
+
+function buildEnvBulkEntry(
+  input: {
+    key: string;
+    value: string;
+    is_preview?: boolean;
+    is_literal?: boolean;
+    is_multiline?: boolean;
+    is_shown_once?: boolean;
+  },
+): EnvBulkEntry {
+  const entry: EnvBulkEntry = {
+    key: input.key,
+    value: input.value,
+  };
+
+  if (input.is_preview !== undefined) {
+    entry.is_preview = input.is_preview;
+  }
+  if (input.is_literal !== undefined) {
+    entry.is_literal = input.is_literal;
+  }
+  if (input.is_multiline !== undefined) {
+    entry.is_multiline = input.is_multiline;
+  }
+  if (input.is_shown_once !== undefined) {
+    entry.is_shown_once = input.is_shown_once;
+  }
+
+  return entry;
 }
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
@@ -1783,6 +1973,227 @@ async function handleApplicationCreate(
   }
 }
 
+async function handleApplicationEnvsList(
+  parsed: EnvsListAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsListResult> {
+  const uuid = await resolveAppMutationUuid(parsed, env);
+  const envs = await fetchEnvs(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const data = maskEnvRecords(envs, parsed.reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleApplicationEnvsGet(
+  parsed: EnvsGetAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsGetResult> {
+  const uuid = await resolveAppMutationUuid(parsed, env);
+  const envs = await fetchEnvs(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const found = resolveEnvIdentity(envs, {
+    env_uuid: parsed.env_uuid,
+    key: parsed.key,
+  });
+  const data = maskEnvRecord(found, parsed.reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleApplicationEnvsCreate(
+  parsed: EnvsCreateAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsCreateResult> {
+  const uuid = await resolveAppMutationUuid(parsed, env);
+  const created = await createEnv(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    {
+      key: parsed.key,
+      value: parsed.value,
+      is_preview: parsed.is_preview,
+      is_literal: parsed.is_literal,
+      is_multiline: parsed.is_multiline,
+      is_shown_once: parsed.is_shown_once,
+    },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const data = maskEnvRecord(
+    {
+      uuid: created.uuid,
+      key: parsed.key,
+      value: parsed.value,
+      is_preview: parsed.is_preview,
+      is_literal: parsed.is_literal,
+      is_multiline: parsed.is_multiline,
+      is_shown_once: parsed.is_shown_once,
+    },
+    parsed.reveal,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleApplicationEnvsUpdate(
+  parsed: EnvsUpdateAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsUpdateResult> {
+  const uuid = await resolveAppMutationUuid(parsed, env);
+  let resolvedKey = parsed.key;
+
+  if (parsed.env_uuid) {
+    const envs = await fetchEnvs(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      uuid,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const found = resolveEnvIdentity(envs, { env_uuid: parsed.env_uuid });
+    resolvedKey = found.key;
+  }
+
+  if (!resolvedKey) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'At least one of env_uuid or key is required.',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const entry = buildEnvBulkEntry({
+    key: resolvedKey,
+    value: parsed.value,
+    is_preview: parsed.is_preview,
+    is_literal: parsed.is_literal,
+    is_multiline: parsed.is_multiline,
+    is_shown_once: parsed.is_shown_once,
+  });
+
+  await updateEnvViaBulk(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    [entry],
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const data = maskEnvRecord(
+    {
+      uuid: parsed.env_uuid,
+      key: resolvedKey,
+      value: parsed.value,
+      is_preview: parsed.is_preview,
+      is_literal: parsed.is_literal,
+      is_multiline: parsed.is_multiline,
+      is_shown_once: parsed.is_shown_once,
+    },
+    parsed.reveal,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleApplicationEnvsDelete(
+  parsed: EnvsDeleteAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsDeleteResult> {
+  const uuid = await resolveAppMutationUuid(parsed, env);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:delete', uuid);
+
+  await deleteEnv(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    parsed.env_uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      {
+        ok: true as const,
+        env_uuid: parsed.env_uuid,
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    parsed.reveal,
+  );
+}
+
+async function handleApplicationEnvsBulkUpdate(
+  parsed: EnvsBulkUpdateAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsBulkUpdateResult> {
+  const uuid = await resolveAppMutationUuid(parsed, env);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:bulk-update', uuid);
+
+  const entries = parsed.entries.map((entry) => buildEnvBulkEntry(entry));
+
+  await bulkUpdateEnvs(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    entries,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      { ok: true as const },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    parsed.reveal,
+  );
+}
+
 export async function handleApplicationAction(
   args: unknown,
   env: EnvConfig,
@@ -1807,6 +2218,18 @@ export async function handleApplicationAction(
         return await handleApplicationDeploy(parsed, env);
       case 'logs':
         return await handleApplicationLogs(parsed, env);
+      case 'envs:list':
+        return await handleApplicationEnvsList(parsed, env);
+      case 'envs:get':
+        return await handleApplicationEnvsGet(parsed, env);
+      case 'envs:create':
+        return await handleApplicationEnvsCreate(parsed, env);
+      case 'envs:update':
+        return await handleApplicationEnvsUpdate(parsed, env);
+      case 'envs:delete':
+        return await handleApplicationEnvsDelete(parsed, env);
+      case 'envs:bulk-update':
+        return await handleApplicationEnvsBulkUpdate(parsed, env);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,

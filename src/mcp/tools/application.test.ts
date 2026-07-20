@@ -2093,7 +2093,7 @@ describe('application envs:list', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns masked env summaries by default per D-14', async () => {
+  it('returns masked env summaries by default per D-14', async () => {
     const result = await handleApplicationAction(
       { action: 'envs:list', uuid: 'app-uuid-1' },
       testEnv,
@@ -2108,7 +2108,7 @@ describe('application envs:list', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
-  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+  it('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
     const result = await handleApplicationAction(
       { action: 'envs:list', uuid: 'app-uuid-1', reveal: true },
       testEnv,
@@ -2131,7 +2131,7 @@ describe('application envs:get', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns single env by env_uuid with masked value', async () => {
+  it('returns single env by env_uuid with masked value', async () => {
     const result = await handleApplicationAction(
       { action: 'envs:get', uuid: 'app-uuid-1', env_uuid: 'env-uuid-1' },
       testEnv,
@@ -2145,7 +2145,7 @@ describe('application envs:get', () => {
     expect(data.value).toBe('***');
   });
 
-  it.fails('returns single env by key with masked value', async () => {
+  it('returns single env by key with masked value', async () => {
     const result = await handleApplicationAction(
       { action: 'envs:get', uuid: 'app-uuid-1', key: 'DATABASE_URL' },
       testEnv,
@@ -2172,7 +2172,7 @@ describe('application envs:get', () => {
     expect(fetchEnvs).not.toHaveBeenCalled();
   });
 
-  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
+  it('surfaces ask_human_reveal recovery hint when reveal:true per D-15', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:get',
@@ -2212,7 +2212,7 @@ describe('application envs:create', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('creates env with all four flags and returns uuid per ENV-06', async () => {
+  it('creates env with all four flags and returns uuid per ENV-06', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:create',
@@ -2277,7 +2277,7 @@ describe('application envs:update', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('resolves key from env_uuid then bulk-patches one element per ENV-02', async () => {
+  it('resolves key from env_uuid then bulk-patches one element per ENV-02', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:update',
@@ -2313,7 +2313,7 @@ describe('application envs:delete', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
+  it('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-13', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:delete',
@@ -2331,7 +2331,7 @@ describe('application envs:delete', () => {
     expect(deleteEnv).not.toHaveBeenCalled();
   });
 
-  it.fails('deletes env when confirm:true and returns disposition', async () => {
+  it('deletes env when confirm:true and returns disposition', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:delete',
@@ -2365,7 +2365,7 @@ describe('application envs:bulk-update', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-11', async () => {
+  it('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-11', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:bulk-update',
@@ -2383,7 +2383,7 @@ describe('application envs:bulk-update', () => {
     expect(bulkUpdateEnvs).not.toHaveBeenCalled();
   });
 
-  it.fails('applies entries when confirm:true and returns disposition', async () => {
+  it('applies entries when confirm:true and returns disposition', async () => {
     const result = await handleApplicationAction(
       {
         action: 'envs:bulk-update',
