@@ -241,7 +241,7 @@ export function registerCoolifyTools(
     'application',
     {
       description:
-        'Application lifecycle, deploy, and log actions (get, start, stop, restart, deploy, logs) — list via resource tool. Full-projection reads mask sensitive keys (password/token/secret/private/env) as *** by default; pass reveal: true to retrieve plaintext only when needed — do not persist revealed secrets. Log line content is not masked and may contain secrets printed by the application; do not persist logs to long-term storage.',
+        'Application lifecycle, deploy, log, and environment-variable actions (get, start, stop, restart, deploy, logs, envs:list, envs:get, envs:create, envs:update, envs:delete, envs:bulk-update, envs:sync) — list via resource tool. envs:delete, envs:bulk-update, and envs:sync apply/prune require confirm:true. envs:sync accepts XOR env_file|env_content; dry_run defaults false (apply); optional prune with confirm; conflict_policy overwrite|keep_remote|abort when values conflict. Env values masked as *** by default; pass reveal:true only after asking the human — do not persist revealed secrets. Log line content is not masked and may contain secrets printed by the application; do not persist logs to long-term storage.',
       inputSchema: applicationActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
@@ -337,7 +337,7 @@ export function registerCoolifyTools(
     'service',
     {
       description:
-        'Service CRUD and lifecycle (get, start, stop, restart, deploy, create, update, delete, delete_preview) — list via resource tool. create: one-click type XOR compose/compose_file; instant_deploy defaults true. update: curated fields + transparent compose I/O; HTTP 409 domain conflicts include recovery hint to retry with force_domain_override: true. delete requires confirm: true with safe defaults (delete_volumes/delete_configurations/docker_cleanup/delete_connected_networks default false). Full-projection get/update masks sensitive keys as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets.',
+        'Service CRUD, lifecycle, and environment-variable actions (get, start, stop, restart, deploy, create, update, delete, delete_preview, envs:list, envs:get, envs:create, envs:update, envs:delete, envs:bulk-update) — list via resource tool. Local .env sync is application-only (not on service). envs:delete and envs:bulk-update require confirm:true. Env values masked as *** by default; pass reveal:true only after asking the human — do not persist revealed secrets. create: one-click type XOR compose/compose_file; instant_deploy defaults true. update: curated fields + transparent compose I/O; HTTP 409 domain conflicts include recovery hint to retry with force_domain_override: true. delete requires confirm: true with safe defaults (delete_volumes/delete_configurations/docker_cleanup/delete_connected_networks default false). Full-projection get/update masks sensitive keys as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets.',
       inputSchema: serviceActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
@@ -368,7 +368,7 @@ export function registerCoolifyTools(
     'database',
     {
       description:
-        'Database CRUD and lifecycle (get, start, stop, restart, create, update, delete, delete_preview) — list via resource tool. create: 8 engines via engine discriminator; instant_deploy defaults true. update: curated engine-specific fields; is_public: true requires confirm: true. delete requires confirm: true with safe defaults (delete_volumes/delete_configurations/docker_cleanup/delete_connected_networks default false). Full-projection get/create/update masks credentials and connection strings as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets.',
+        'Database CRUD, lifecycle, and environment-variable actions (get, start, stop, restart, create, update, delete, delete_preview, envs:list, envs:get, envs:create, envs:update, envs:delete, envs:bulk-update) — list via resource tool. Local .env sync is application-only (not on database). Database envs:* omit is_preview (OpenAPI Pitfall 1). envs:delete and envs:bulk-update require confirm:true. Env values masked as *** by default; pass reveal:true only after asking the human — do not persist revealed secrets. create: 8 engines via engine discriminator; instant_deploy defaults true. update: curated engine-specific fields; is_public: true requires confirm: true. delete requires confirm: true with safe defaults (delete_volumes/delete_configurations/docker_cleanup/delete_connected_networks default false). Full-projection get/create/update masks credentials and connection strings as *** by default; pass reveal: true for plaintext only when needed — do not persist revealed secrets.',
       inputSchema: databaseActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
