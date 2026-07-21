@@ -736,7 +736,9 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
   if (
     !code &&
     isRecord(args) &&
-    (args.action === 'create' || args.action === 'update')
+    (args.action === 'create' ||
+      args.action === 'update' ||
+      (typeof args.action === 'string' && args.action.startsWith('envs:')))
   ) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
