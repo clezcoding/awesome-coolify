@@ -2545,6 +2545,15 @@ async function handleApplicationEnvsSync(
 
   validateSyncConflictPolicy(conflicts, parsed.conflict_policy, uuid);
 
+  if (parsed.prune && parsed.conflict_policy !== 'overwrite') {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message:
+        "Action 'envs:sync' with prune:true requires conflict_policy:'overwrite'",
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
   const policy = parsed.conflict_policy!;
   const conflictKeys = new Set(conflicts.map((conflict) => conflict.key));
   const baselineByKey = new Map(baseline.map((entry) => [entry.key, entry]));
@@ -2661,7 +2670,7 @@ async function handleApplicationEnvsSync(
       appliedUpdates.push(...bulkUpdates.map((entry) => entry.key));
     }
 
-    if (parsed.prune && policy === 'overwrite') {
+    if (parsed.prune) {
       for (const entry of diff.removed) {
         const remoteEntry = remote.find((item) => item.key === entry.key);
         const baselineEntry = baselineByKey.get(entry.key);
