@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CoolifyApiError } from './errors.js';
 
-// TODO: Plan 15-01 wires test-only registry path via COOLIFY_MCP_TEST_REGISTRY_DIR or constructor option
+// Test hook: COOLIFY_MCP_TEST_REGISTRY_DIR overrides ~/.coolify-mcp for isolated registry files.
 let registryDir: string;
 
 beforeEach(() => {
