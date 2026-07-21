@@ -43,7 +43,7 @@ export interface ConflictDetectionResult {
  * Soft limit: callers should reject inputs over ~1 MiB before invoking.
  */
 export function parseEnvFile(content: string): ParsedEnv[] {
-  const result: ParsedEnv[] = [];
+  const byKey = new Map<string, ParsedEnv>();
   const lines = content.split(/\r?\n/);
 
   for (const line of lines) {
@@ -85,10 +85,10 @@ export function parseEnvFile(content: string): ParsedEnv[] {
       value = rawValue.trim();
     }
 
-    result.push({ key, value });
+    byKey.set(key, { key, value });
   }
 
-  return result;
+  return [...byKey.values()];
 }
 
 function unescapeDoubleQuoted(value: string): string {
