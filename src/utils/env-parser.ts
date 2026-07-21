@@ -57,7 +57,11 @@ export function parseEnvFile(content: string): ParsedEnv[] {
       continue;
     }
 
-    const key = line.slice(0, eqIndex).trim();
+    let keyPart = line.slice(0, eqIndex).trim();
+    if (keyPart.startsWith('export ')) {
+      keyPart = keyPart.slice('export '.length).trim();
+    }
+    const key = keyPart;
     let rawValue = line.slice(eqIndex + 1);
     let value = rawValue;
 
