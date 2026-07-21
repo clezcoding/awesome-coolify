@@ -2803,6 +2803,20 @@ async function handleApplicationEnvsSync(
         : {}),
     };
 
+    if (rollbackErrors.length > 0) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_500',
+        message:
+          'envs:sync apply failed and rollback partially failed — inspect remote env state and reconcile manually',
+        recoveryHints: [
+          'Compare remote env keys against partialData.applied, partialData.applied_updates, and partialData.pruned.',
+          'Re-run envs:list after asking the human to assess drift before retrying sync.',
+          ...RECOVERY_HINTS.COOLIFY_500,
+        ],
+        data: partialData,
+      });
+    }
+
     if (error instanceof CoolifyApiError) {
       throw new CoolifyApiError({
         ...error.envelope,
