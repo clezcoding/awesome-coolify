@@ -578,7 +578,14 @@ export async function fetchEnvs(
   const result = await client(resourceEnvsPath(resource, uuid), {
     method: 'GET',
   });
-  return Array.isArray(result) ? (result as Env[]) : [];
+  if (!Array.isArray(result)) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: `Unexpected env list response for ${resource} ${uuid}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
+  return result as Env[];
 }
 
 export async function createEnv(
@@ -613,7 +620,14 @@ export async function updateEnvViaBulk(
     method: 'PATCH',
     body: { data: entries },
   });
-  return Array.isArray(result) ? (result as Env[]) : [];
+  if (!Array.isArray(result)) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: `Unexpected bulk env update response for ${resource} ${uuid}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
+  return result as Env[];
 }
 
 export const bulkUpdateEnvs = updateEnvViaBulk;

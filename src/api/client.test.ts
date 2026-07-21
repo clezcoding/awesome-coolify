@@ -1287,6 +1287,31 @@ describe('fetchEnvs', () => {
       expect(result).toEqual(envs);
     },
   );
+
+  it('fetchEnvs throws COOLIFY_500 when response body is not an array', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ data: [] }, { status: 200 }),
+    );
+
+    await expect(
+      (
+        clientCrud.fetchEnvs as (
+          type: string,
+          url: string,
+          token: string,
+          uuid: string,
+          verifySsl?: boolean,
+        ) => Promise<unknown[]>
+      )(
+        'application',
+        'https://coolify.example.com',
+        'test-token',
+        'app-uuid-1',
+      ),
+    ).rejects.toMatchObject({
+      envelope: expect.objectContaining({ code: 'COOLIFY_500' }),
+    });
+  });
 });
 
 describe('createEnv', () => {
@@ -1408,6 +1433,33 @@ describe('updateEnvViaBulk', () => {
     const init = fetchMock.mock.calls[0][1] as RequestInit;
     expect(init.method).toBe('PATCH');
     expect(JSON.parse(init.body as string)).toEqual({ data: entries });
+  });
+
+  it('updateEnvViaBulk throws COOLIFY_500 when response body is not an array', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ updated: 1 }, { status: 200 }),
+    );
+
+    await expect(
+      (
+        clientCrud.updateEnvViaBulk as (
+          type: string,
+          url: string,
+          token: string,
+          uuid: string,
+          data: unknown[],
+          verifySsl?: boolean,
+        ) => Promise<unknown>
+      )(
+        'application',
+        'https://coolify.example.com',
+        'test-token',
+        'app-uuid-1',
+        [{ key: 'A', value: '1' }],
+      ),
+    ).rejects.toMatchObject({
+      envelope: expect.objectContaining({ code: 'COOLIFY_500' }),
+    });
   });
 });
 
