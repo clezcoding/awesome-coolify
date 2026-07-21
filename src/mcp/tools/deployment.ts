@@ -23,7 +23,9 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 
@@ -202,16 +204,17 @@ export async function handleDeploymentAction(
   args: DeploymentAction,
   env: EnvConfig,
 ): Promise<DeploymentActionResult> {
-  const parsed = deploymentToolSchema.parse(args);
-
   try {
+    const parsed = parseWithInstanceRouting(deploymentToolSchema, args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
+
     switch (parsed.action) {
       case 'list':
-        return await handleDeploymentList(parsed, env);
+        return await handleDeploymentList(parsed, routingEnv);
       case 'get':
-        return await handleDeploymentGet(parsed, env);
+        return await handleDeploymentGet(parsed, routingEnv);
       case 'cancel':
-        return await handleDeploymentCancel(parsed, env);
+        return await handleDeploymentCancel(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown deployment action: ${String(_exhaustive)}`);

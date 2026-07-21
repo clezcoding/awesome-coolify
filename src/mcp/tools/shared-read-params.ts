@@ -1,6 +1,79 @@
 import * as z from 'zod/v4';
+import type { EnvConfig } from '../../config/env.js';
 import { resolveProjection, type ProjectionMode } from '../../utils/projections.js';
 import { CoolifyApiError } from '../../utils/errors.js';
+import { InstanceManager } from '../../utils/instance-registry.js';
+
+/** Optional multi-instance routing param (D-08) — shared across domain tools. */
+export const optionalInstanceParam = {
+  instance: z
+    .string()
+    .regex(/^[a-z][a-z0-9_-]{1,31}$/)
+    .optional()
+    .describe(
+      'Coolify instance name from registry (optional — uses env credentials or registry default)',
+    ),
+};
+
+export const instanceRoutingExtension = z.object(optionalInstanceParam);
+
+/** Strip + validate instance param without weakening inner strict action schemas. */
+export function parseWithInstanceRouting<T extends Record<string, unknown>>(
+  schema: z.ZodType<T>,
+  args: unknown,
+): T & { instance?: string } {
+  const record =
+    typeof args === 'object' && args !== null
+      ? ({ ...(args as Record<string, unknown>) } as Record<string, unknown>)
+      : {};
+  const instanceParsed = instanceRoutingExtension.parse({
+    instance: record.instance,
+  });
+  delete record.instance;
+  const parsed = schema.parse(record) as T;
+  return { ...parsed, ...instanceParsed };
+}
+
+/** safeParse variant for handlers that map Zod failures to validation errors. */
+export function safeParseWithInstanceRouting<T extends Record<string, unknown>>(
+  schema: z.ZodType<T>,
+  args: unknown,
+): z.ZodSafeParseResult<T & { instance?: string }> {
+  const record =
+    typeof args === 'object' && args !== null
+      ? ({ ...(args as Record<string, unknown>) } as Record<string, unknown>)
+      : {};
+  const instanceResult = instanceRoutingExtension.safeParse({
+    instance: record.instance,
+  });
+  if (!instanceResult.success) {
+    return instanceResult as z.ZodSafeParseResult<T & { instance?: string }>;
+  }
+  delete record.instance;
+  const parsed = schema.safeParse(record);
+  if (!parsed.success) {
+    return parsed as z.ZodSafeParseResult<T & { instance?: string }>;
+  }
+  return {
+    success: true,
+    data: { ...parsed.data, ...instanceResult.data },
+  };
+}
+
+/** Resolve per-request credentials; returns EnvConfig with routed URL/token/verifySsl. */
+export function resolveRoutingEnv(env: EnvConfig, instance?: string): EnvConfig {
+  const creds = InstanceManager.resolveCredentials(instance, {
+    COOLIFY_URL: env.COOLIFY_URL,
+    COOLIFY_TOKEN: env.COOLIFY_TOKEN,
+    COOLIFY_VERIFY_SSL: env.COOLIFY_VERIFY_SSL === false ? 'false' : 'true',
+  });
+  return {
+    ...env,
+    COOLIFY_URL: creds.url,
+    COOLIFY_TOKEN: creds.token,
+    COOLIFY_VERIFY_SSL: creds.verifySsl,
+  };
+}
 
 export const sharedLogParamsSchema = {
   lines: z

@@ -173,7 +173,7 @@ describe('P2 read slice integration', () => {
   });
 });
 
-describe('CTX-06 multi-instance routing (RED until Plan 15-03)', () => {
+describe('CTX-06 multi-instance routing', () => {
   const emptyEnv: EnvConfig = {
     COOLIFY_URL: undefined as unknown as string,
     COOLIFY_TOKEN: undefined as unknown as string,
@@ -199,7 +199,7 @@ describe('CTX-06 multi-instance routing (RED until Plan 15-03)', () => {
     });
   });
 
-  it.fails('application.get with instance unknown returns COOLIFY_INSTANCE_NOT_FOUND', async () => {
+  it('application.get with instance unknown returns COOLIFY_INSTANCE_NOT_FOUND', async () => {
     const result = await handleApplicationAction(
       { action: 'get', uuid: 'app-uuid-1', instance: 'unknown' },
       emptyEnv,
@@ -209,7 +209,7 @@ describe('CTX-06 multi-instance routing (RED until Plan 15-03)', () => {
     });
   });
 
-  it.fails('application.get with no instance and no env and no default returns COOLIFY_NO_INSTANCE', async () => {
+  it('application.get with no instance and no env and no default returns COOLIFY_NO_INSTANCE', async () => {
     const result = await handleApplicationAction(
       { action: 'get', uuid: 'app-uuid-1' },
       emptyEnv,
@@ -219,7 +219,7 @@ describe('CTX-06 multi-instance routing (RED until Plan 15-03)', () => {
     });
   });
 
-  it.fails('application.get with partial env returns COOLIFY_PARTIAL_ENV', async () => {
+  it('application.get with partial env returns COOLIFY_PARTIAL_ENV', async () => {
     const result = await handleApplicationAction(
       { action: 'get', uuid: 'app-uuid-1' },
       {
