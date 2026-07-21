@@ -2176,17 +2176,24 @@ async function handleApplicationEnvsUpdate(
 ): Promise<ApplicationEnvsUpdateResult> {
   const uuid = await resolveAppMutationUuid(parsed, env);
   let resolvedKey = parsed.key;
+  let resolvedEnvUuid = parsed.env_uuid;
+
+  const envs = await fetchEnvs(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
 
   if (parsed.env_uuid) {
-    const envs = await fetchEnvs(
-      'application',
-      env.COOLIFY_URL,
-      env.COOLIFY_TOKEN,
-      uuid,
-      env.COOLIFY_VERIFY_SSL,
-    );
     const found = resolveEnvIdentity(envs, { env_uuid: parsed.env_uuid });
     resolvedKey = found.key;
+    resolvedEnvUuid = found.uuid;
+  } else if (parsed.key) {
+    const found = resolveEnvIdentity(envs, { key: parsed.key });
+    resolvedKey = found.key;
+    resolvedEnvUuid = found.uuid;
   }
 
   if (!resolvedKey) {
@@ -2217,7 +2224,7 @@ async function handleApplicationEnvsUpdate(
 
   const data = maskEnvRecord(
     {
-      uuid: parsed.env_uuid,
+      uuid: resolvedEnvUuid,
       key: resolvedKey,
       value: parsed.value,
       is_preview: parsed.is_preview,

@@ -1634,17 +1634,24 @@ async function handleServiceEnvsUpdate(
 ): Promise<ServiceEnvsUpdateResult> {
   const uuid = await resolveServiceMutationUuid(parsed, env);
   let resolvedKey = parsed.key;
+  let resolvedEnvUuid = parsed.env_uuid;
+
+  const envs = await fetchEnvs(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
 
   if (parsed.env_uuid) {
-    const envs = await fetchEnvs(
-      'service',
-      env.COOLIFY_URL,
-      env.COOLIFY_TOKEN,
-      uuid,
-      env.COOLIFY_VERIFY_SSL,
-    );
     const found = resolveServiceEnvIdentity(envs, { env_uuid: parsed.env_uuid });
     resolvedKey = found.key;
+    resolvedEnvUuid = found.uuid;
+  } else if (parsed.key) {
+    const found = resolveServiceEnvIdentity(envs, { key: parsed.key });
+    resolvedKey = found.key;
+    resolvedEnvUuid = found.uuid;
   }
 
   if (!resolvedKey) {
@@ -1675,7 +1682,7 @@ async function handleServiceEnvsUpdate(
 
   const data = maskEnvRecord(
     {
-      uuid: parsed.env_uuid,
+      uuid: resolvedEnvUuid,
       key: resolvedKey,
       value: parsed.value,
       is_preview: parsed.is_preview,

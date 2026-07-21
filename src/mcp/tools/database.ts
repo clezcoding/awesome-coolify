@@ -1523,17 +1523,24 @@ async function handleDatabaseEnvsUpdate(
 ): Promise<DatabaseEnvsUpdateResult> {
   const uuid = await resolveDatabaseUuid(parsed, env);
   let resolvedKey = parsed.key;
+  let resolvedEnvUuid = parsed.env_uuid;
+
+  const envs = await fetchEnvs(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
 
   if (parsed.env_uuid) {
-    const envs = await fetchEnvs(
-      'database',
-      env.COOLIFY_URL,
-      env.COOLIFY_TOKEN,
-      uuid,
-      env.COOLIFY_VERIFY_SSL,
-    );
     const found = resolveDatabaseEnvIdentity(envs, { env_uuid: parsed.env_uuid });
     resolvedKey = found.key;
+    resolvedEnvUuid = found.uuid;
+  } else if (parsed.key) {
+    const found = resolveDatabaseEnvIdentity(envs, { key: parsed.key });
+    resolvedKey = found.key;
+    resolvedEnvUuid = found.uuid;
   }
 
   if (!resolvedKey) {
@@ -1563,7 +1570,7 @@ async function handleDatabaseEnvsUpdate(
 
   const data = maskEnvRecord(
     {
-      uuid: parsed.env_uuid,
+      uuid: resolvedEnvUuid,
       key: resolvedKey,
       value: parsed.value,
       is_literal: parsed.is_literal,
