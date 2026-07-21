@@ -2519,6 +2519,11 @@ async function handleApplicationEnvsSync(
   const bulkUpdates: EnvBulkEntry[] = [];
 
   for (const entry of diff.added) {
+    if (policy === 'abort') {
+      aborted.push({ key: entry.key, value: '***' });
+      continue;
+    }
+
     await createEnv(
       'application',
       env.COOLIFY_URL,
