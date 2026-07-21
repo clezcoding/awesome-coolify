@@ -2717,6 +2717,8 @@ async function handleApplicationEnvsSync(
       }
     }
   } catch (error) {
+    const rollbackErrors: string[] = [];
+
     for (const applied of [...appliedCreates].reverse()) {
       try {
         await deleteEnv(
@@ -2727,8 +2729,10 @@ async function handleApplicationEnvsSync(
           applied.env_uuid,
           env.COOLIFY_VERIFY_SSL,
         );
-      } catch {
-        // best-effort rollback of partial creates
+      } catch (err) {
+        rollbackErrors.push(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     }
 
@@ -2742,8 +2746,10 @@ async function handleApplicationEnvsSync(
           bulkRollbackEntries,
           env.COOLIFY_VERIFY_SSL,
         );
-      } catch {
-        // best-effort rollback of bulk updates
+      } catch (err) {
+        rollbackErrors.push(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     }
 
@@ -2757,8 +2763,10 @@ async function handleApplicationEnvsSync(
           applied.restore,
           env.COOLIFY_VERIFY_SSL,
         );
-      } catch {
-        // best-effort rollback of partial prunes
+      } catch (err) {
+        rollbackErrors.push(
+          err instanceof Error ? err.message : String(err),
+        );
       }
     }
 
@@ -2767,6 +2775,9 @@ async function handleApplicationEnvsSync(
       applied_updates: appliedUpdates.map((key) => ({ key })),
       pruned: appliedPrunes.map(({ key, env_uuid }) => ({ key, env_uuid })),
       ...(failedAt ? { failed_at: failedAt } : {}),
+      ...(rollbackErrors.length > 0
+        ? { rollback_failed: true, rollback_errors: rollbackErrors }
+        : {}),
     };
 
     if (error instanceof CoolifyApiError) {
