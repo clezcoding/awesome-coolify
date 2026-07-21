@@ -2607,13 +2607,14 @@ async function handleApplicationEnvsSync(
         continue;
       }
 
+      const baselineEntry = baselineByKey.get(entry.key);
       bulkUpdates.push({
         key: entry.key,
         value: entry.localValue,
-        is_preview: false,
-        is_literal: false,
-        is_multiline: false,
-        is_shown_once: false,
+        is_preview: baselineEntry?.is_preview ?? false,
+        is_literal: baselineEntry?.is_literal ?? false,
+        is_multiline: baselineEntry?.is_multiline ?? false,
+        is_shown_once: baselineEntry?.is_shown_once ?? false,
       });
     }
 
@@ -2636,13 +2637,14 @@ async function handleApplicationEnvsSync(
         continue;
       }
 
+      const baselineEntry = baselineByKey.get(entry.key);
       bulkUpdates.push({
         key: entry.key,
         value: entry.value,
-        is_preview: false,
-        is_literal: false,
-        is_multiline: false,
-        is_shown_once: false,
+        is_preview: baselineEntry?.is_preview ?? false,
+        is_literal: baselineEntry?.is_literal ?? false,
+        is_multiline: baselineEntry?.is_multiline ?? false,
+        is_shown_once: baselineEntry?.is_shown_once ?? false,
       });
     }
 
