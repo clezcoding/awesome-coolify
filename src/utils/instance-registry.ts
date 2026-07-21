@@ -13,7 +13,6 @@ import { z } from 'zod';
 import {
   CoolifyApiError,
   RECOVERY_HINTS,
-  type CoolifyErrorCode,
 } from './errors.js';
 
 export const instanceSchema = z.object({
@@ -41,31 +40,25 @@ function registryFilePath(): string {
 
 function instanceNotFoundError(name: string): CoolifyApiError {
   return new CoolifyApiError({
-    code: 'COOLIFY_INSTANCE_NOT_FOUND' as CoolifyErrorCode,
+    code: 'COOLIFY_INSTANCE_NOT_FOUND',
     message: `Instance '${name}' not found in registry`,
-    recoveryHints: RECOVERY_HINTS.COOLIFY_INSTANCE_NOT_FOUND ?? [
-      'Run instance.list to see available instances.',
-    ],
+    recoveryHints: RECOVERY_HINTS.COOLIFY_INSTANCE_NOT_FOUND,
   });
 }
 
 function partialEnvError(): CoolifyApiError {
   return new CoolifyApiError({
-    code: 'COOLIFY_PARTIAL_ENV' as CoolifyErrorCode,
+    code: 'COOLIFY_PARTIAL_ENV',
     message: 'Partial environment configuration: both COOLIFY_URL and COOLIFY_TOKEN must be set, or neither',
-    recoveryHints: RECOVERY_HINTS.COOLIFY_PARTIAL_ENV ?? [
-      'Set both COOLIFY_URL and COOLIFY_TOKEN, or unset both.',
-    ],
+    recoveryHints: RECOVERY_HINTS.COOLIFY_PARTIAL_ENV,
   });
 }
 
 function noInstanceError(): CoolifyApiError {
   return new CoolifyApiError({
-    code: 'COOLIFY_NO_INSTANCE' as CoolifyErrorCode,
+    code: 'COOLIFY_NO_INSTANCE',
     message: 'No Coolify instance configured',
-    recoveryHints: RECOVERY_HINTS.COOLIFY_NO_INSTANCE ?? [
-      'Use instance.add to register an instance, set COOLIFY_URL and COOLIFY_TOKEN, or set a default instance.',
-    ],
+    recoveryHints: RECOVERY_HINTS.COOLIFY_NO_INSTANCE,
   });
 }
 
