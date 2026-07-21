@@ -2364,6 +2364,14 @@ async function handleApplicationEnvsSync(
       data: { duplicate_keys: parsedEnv.duplicateKeys },
     });
   }
+  if (parsedEnv.malformedLines.length > 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Malformed env line(s) without '=': ${parsedEnv.malformedLines.join(', ')}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      data: { malformed_lines: parsedEnv.malformedLines },
+    });
+  }
   const local = parsedEnv.entries;
   const baseline = await fetchEnvs(
     'application',
