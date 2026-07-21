@@ -42,6 +42,7 @@ export interface ParseEnvFileResult {
   entries: ParsedEnv[];
   invalidKeys: string[];
   duplicateKeys: string[];
+  malformedLines: string[];
 }
 
 /**
@@ -52,6 +53,7 @@ export function parseEnvFileDetailed(content: string): ParseEnvFileResult {
   const byKey = new Map<string, ParsedEnv>();
   const invalidKeys: string[] = [];
   const duplicateKeys: string[] = [];
+  const malformedLines: string[] = [];
   const lines = content.split(/\r?\n/);
 
   for (const line of lines) {
@@ -62,6 +64,7 @@ export function parseEnvFileDetailed(content: string): ParseEnvFileResult {
 
     const eqIndex = line.indexOf('=');
     if (eqIndex === -1) {
+      malformedLines.push(trimmed);
       continue;
     }
 
@@ -104,6 +107,7 @@ export function parseEnvFileDetailed(content: string): ParseEnvFileResult {
     entries: [...byKey.values()],
     invalidKeys: [...new Set(invalidKeys)],
     duplicateKeys: [...new Set(duplicateKeys)],
+    malformedLines: [...new Set(malformedLines)],
   };
 }
 
