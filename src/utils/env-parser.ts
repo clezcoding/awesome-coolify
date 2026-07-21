@@ -62,6 +62,9 @@ export function parseEnvFile(content: string): ParsedEnv[] {
       keyPart = keyPart.slice('export '.length).trim();
     }
     const key = keyPart;
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+      continue;
+    }
     let rawValue = line.slice(eqIndex + 1);
     let value = rawValue;
 
