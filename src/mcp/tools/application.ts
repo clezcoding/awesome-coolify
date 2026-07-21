@@ -2531,17 +2531,17 @@ async function handleApplicationEnvsSync(
     uuid,
     env.COOLIFY_VERIFY_SSL,
   );
-  const outOfBandResult = parsed.conflict_policy
-    ? detectConflicts(local, remote, baseline, parsed.conflict_policy)
-    : detectConflicts(local, remote, baseline, 'abort');
+  const outOfBandResult = detectConflicts(
+    local,
+    remote,
+    baseline,
+    parsed.conflict_policy ?? 'abort',
+  );
 
-  const conflicts =
-    parsed.conflict_policy !== undefined
-      ? [...valueConflicts, ...outOfBandResult.conflicts].filter(
-          (conflict, index, all) =>
-            all.findIndex((entry) => entry.key === conflict.key) === index,
-        )
-      : valueConflicts;
+  const conflicts = [...valueConflicts, ...outOfBandResult.conflicts].filter(
+    (conflict, index, all) =>
+      all.findIndex((entry) => entry.key === conflict.key) === index,
+  );
 
   validateSyncConflictPolicy(conflicts, parsed.conflict_policy, uuid);
 
