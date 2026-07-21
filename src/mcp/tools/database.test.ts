@@ -29,6 +29,11 @@ vi.mock('../../api/client.js', () => ({
   updateEnvViaBulk: vi.fn(),
   bulkUpdateEnvs: vi.fn(),
   deleteEnv: vi.fn(),
+  fetchDatabaseBackups: vi.fn(),
+  createDatabaseBackup: vi.fn(),
+  updateDatabaseBackup: vi.fn(),
+  deleteDatabaseBackup: vi.fn(),
+  fetchBackupExecutions: vi.fn(),
 }));
 
 import {
@@ -54,6 +59,11 @@ import {
   updateEnvViaBulk,
   bulkUpdateEnvs,
   deleteEnv,
+  fetchDatabaseBackups,
+  createDatabaseBackup,
+  updateDatabaseBackup,
+  deleteDatabaseBackup,
+  fetchBackupExecutions,
 } from '../../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -1239,5 +1249,608 @@ describe('database envs:bulk-update', () => {
 
     expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
     expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+  });
+});
+
+const FAKE_S3_SECRET = 'FAKE_S3_SECRET_VALUE';
+
+const mockBackupSchedule = {
+  uuid: 'backup-sched-uuid-1',
+  frequency: 'daily',
+  enabled: true,
+  save_s3: true,
+  s3_storage_uuid: 's3-dest-uuid-1',
+  secret_key: FAKE_S3_SECRET,
+  database_backup_retention_amount_locally: 7,
+  database_backup_retention_days_locally: 30,
+};
+
+const mockBackupScheduleList = [mockBackupSchedule];
+
+const mockBackupExecutions = {
+  executions: [
+    {
+      uuid: 'exec-uuid-1',
+      filename: 'backup-2026-07-21.sql',
+      size: 1024,
+      created_at: '2026-07-21T00:00:00Z',
+      status: 'finished',
+      message: 'Backup completed.',
+    },
+  ],
+};
+
+describe('database backup:create', () => {
+  beforeEach(() => {
+    vi.mocked(createDatabaseBackup).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(createDatabaseBackup).mockResolvedValue({
+      uuid: 'backup-sched-uuid-1',
+      message: 'Backup schedule created.',
+      ...mockBackupSchedule,
+    });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('creates backup with daily preset and masks S3 credentials per D-15', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:create',
+        uuid: 'db-uuid-1',
+        frequency: 'daily',
+        save_s3: true,
+        s3_storage_uuid: 's3-dest-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(createDatabaseBackup).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      expect.objectContaining({
+        frequency: 'daily',
+        save_s3: true,
+        s3_storage_uuid: 's3-dest-uuid-1',
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.uuid).toBe('backup-sched-uuid-1');
+    expect(data.secret_key).toBe('***');
+    expect(JSON.stringify(data)).not.toContain(FAKE_S3_SECRET);
+  });
+
+  it.fails('accepts cron expression frequency on create per D-04', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:create',
+        uuid: 'db-uuid-1',
+        frequency: '0 12 * * *',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(createDatabaseBackup).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      expect.objectContaining({ frequency: '0 12 * * *' }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('throws COOLIFY_VALIDATION_ERROR when save_s3:true without s3_storage_uuid per D-06', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:create',
+        uuid: 'db-uuid-1',
+        frequency: 'daily',
+        save_s3: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createDatabaseBackup).not.toHaveBeenCalled();
+  });
+
+  it.fails('supports backup_now:true on create per D-07', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:create',
+        uuid: 'db-uuid-1',
+        frequency: 'daily',
+        backup_now: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(createDatabaseBackup).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      expect.objectContaining({ frequency: 'daily', backup_now: true }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('does not require confirm per D-10', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:create',
+        uuid: 'db-uuid-1',
+        frequency: 'daily',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on create by name multi-match per D-03', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:create',
+        name: 'postgres',
+        frequency: 'daily',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(createDatabaseBackup).not.toHaveBeenCalled();
+  });
+});
+
+describe('database backup:list', () => {
+  beforeEach(() => {
+    vi.mocked(fetchDatabaseBackups).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchDatabaseBackups).mockResolvedValue(mockBackupScheduleList);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns masked backup schedule summaries by default per D-15', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'backup:list', uuid: 'db-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(fetchDatabaseBackups).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+
+    const data = result.data as Array<Record<string, unknown>>;
+    expect(data[0]?.secret_key).toBe('***');
+    expect(data[0]?.frequency).toBe('daily');
+    expect(JSON.stringify(data)).not.toContain(FAKE_S3_SECRET);
+  });
+
+  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-16', async () => {
+    const result = await handleDatabaseAction(
+      { action: 'backup:list', uuid: 'db-uuid-1', reveal: true },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(databaseResponseIncludesAskHumanReveal(result)).toBe(true);
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on list by name multi-match per D-03', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      { action: 'backup:list', name: 'postgres' },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(fetchDatabaseBackups).not.toHaveBeenCalled();
+  });
+});
+
+describe('database backup:update', () => {
+  beforeEach(() => {
+    vi.mocked(updateDatabaseBackup).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(updateDatabaseBackup).mockResolvedValue({
+      message: 'Backup schedule updated.',
+    });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('updates backup with hourly preset per D-04', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:update',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        frequency: 'hourly',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(updateDatabaseBackup).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+      expect.objectContaining({ frequency: 'hourly' }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('rejects cron expression frequency with COOLIFY_VALIDATION_ERROR per Pitfall 1', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:update',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        frequency: '0 12 * * *',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(updateDatabaseBackup).not.toHaveBeenCalled();
+  });
+
+  it.fails('does not require confirm per D-10', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:update',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        frequency: 'daily',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-03', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:update',
+        name: 'postgres',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        frequency: 'daily',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(updateDatabaseBackup).not.toHaveBeenCalled();
+  });
+});
+
+describe('database backup:delete', () => {
+  beforeEach(() => {
+    vi.mocked(deleteDatabaseBackup).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(deleteDatabaseBackup).mockResolvedValue({
+      message: 'Backup schedule deleted.',
+    });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-08', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:delete',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteDatabaseBackup).not.toHaveBeenCalled();
+  });
+
+  it.fails('deletes backup with confirm:true and delete_s3 defaults false per D-09', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:delete',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(deleteDatabaseBackup).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+      false,
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({
+      ok: true,
+      scheduled_backup_uuid: 'backup-sched-uuid-1',
+      delete_s3: false,
+    });
+  });
+
+  it.fails('throws COOLIFY_CONFIRM_REQUIRED when delete_s3:true without confirm per D-09', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:delete',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        delete_s3: true,
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(deleteDatabaseBackup).not.toHaveBeenCalled();
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-03', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:delete',
+        name: 'postgres',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(deleteDatabaseBackup).not.toHaveBeenCalled();
+  });
+});
+
+describe('database backup:now', () => {
+  beforeEach(() => {
+    vi.mocked(updateDatabaseBackup).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(updateDatabaseBackup).mockResolvedValue({
+      message: 'Backup triggered.',
+      uuid: 'exec-uuid-1',
+    });
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('requires parent DB identity and scheduled_backup_uuid per D-13', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:now',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(updateDatabaseBackup).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+      { backup_now: true },
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it.fails('PATCHes with backup_now:true per D-12', async () => {
+    await handleDatabaseAction(
+      {
+        action: 'backup:now',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(updateDatabaseBackup).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+      { backup_now: true },
+      expect.any(Boolean),
+    );
+  });
+
+  it.fails('does not require confirm per D-10', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:now',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on now by name multi-match per D-03', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:now',
+        name: 'postgres',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(updateDatabaseBackup).not.toHaveBeenCalled();
+  });
+});
+
+describe('database backup:history', () => {
+  beforeEach(() => {
+    vi.mocked(fetchBackupExecutions).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchBackupExecutions).mockResolvedValue(mockBackupExecutions);
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails('returns executions with status, timestamps, and size per D-14', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:history',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(fetchBackupExecutions).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+
+    const data = result.data as { executions: Array<Record<string, unknown>> };
+    expect(data.executions[0]).toMatchObject({
+      status: 'finished',
+      size: 1024,
+      created_at: '2026-07-21T00:00:00Z',
+    });
+  });
+
+  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-16', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:history',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        reveal: true,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(databaseResponseIncludesAskHumanReveal(result)).toBe(true);
+  });
+
+  it.fails('does not require confirm per D-10', async () => {
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:history',
+        uuid: 'db-uuid-1',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on history by name multi-match per D-03', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      mockResourceDatabaseDup1,
+      mockResourceDatabaseDup2,
+    ]);
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'backup:history',
+        name: 'postgres',
+        scheduled_backup_uuid: 'backup-sched-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(true);
+    if (!isDatabaseErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_AMBIGUOUS_MATCH');
+    expect(fetchBackupExecutions).not.toHaveBeenCalled();
   });
 });
