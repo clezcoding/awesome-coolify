@@ -222,7 +222,38 @@ describe('instance tool', () => {
         name: expect.any(String),
         url: testEnv.COOLIFY_URL,
         token: '***',
+        type: 'self-hosted',
       },
+    });
+  });
+
+  it('handleInstanceAction import-env infers type cloud for *.coolify.io (IN-03)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+    const result = await handleInstanceAction(
+      { action: 'import-env', name: 'cloud1' },
+      {
+        ...testEnv,
+        COOLIFY_URL: 'https://app.coolify.io',
+        COOLIFY_TOKEN: 'cloud-token',
+      },
+    );
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
+    expect(result).toMatchObject({
+      data: { name: 'cloud1', url: 'https://app.coolify.io', type: 'cloud' },
+    });
+  });
+
+  it('handleInstanceAction import-env accepts explicit type overriding hostname heuristic (IN-03)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+    const result = await handleInstanceAction(
+      { action: 'import-env', name: 'forced', type: 'cloud' },
+      testEnv,
+    );
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
+    expect(result).toMatchObject({
+      data: { name: 'forced', type: 'cloud', url: testEnv.COOLIFY_URL },
     });
   });
 

@@ -96,6 +96,10 @@ const importEnvActionSchema = z
   .object({
     action: z.literal('import-env'),
     name: instanceNameSchema.optional().describe('Name for the imported entry (auto-derived from URL when omitted)'),
+    type: z
+      .enum(['self-hosted', 'cloud'])
+      .optional()
+      .describe('Instance type (default: cloud when hostname is *.coolify.io, else self-hosted)'),
     verifySsl: z.boolean().optional(),
   })
   .strict();
@@ -215,6 +219,18 @@ function rejectMaskedToken(token: string): void {
   }
 }
 
+function inferInstanceType(url: string): 'self-hosted' | 'cloud' {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (hostname === 'coolify.io' || hostname.endsWith('.coolify.io')) {
+      return 'cloud';
+    }
+  } catch {
+    /* invalid URL handled by schema / resolveEnvCredentials */
+  }
+  return 'self-hosted';
+}
+
 function withEnvOverrideMeta<T extends ReadResponse<unknown>>(
   response: T,
   env?: EnvConfig,
@@ -296,13 +312,14 @@ export async function handleInstanceAction(
         const creds = resolveEnvCredentials(env);
         rejectMaskedToken(creds.token);
         const name = parsed.name ?? deriveImportName(creds.url);
+        const type = parsed.type ?? inferInstanceType(creds.url);
         let instance: Instance;
         try {
           instance = await InstanceManager.add({
             name,
             url: creds.url,
             token: creds.token,
-            type: 'self-hosted',
+            type,
             verifySsl: parsed.verifySsl ?? creds.verifySsl,
           });
         } catch (error) {
