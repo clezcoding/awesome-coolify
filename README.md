@@ -351,7 +351,7 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 | Tool | Actions |
 |------|---------|
 | `service` | `get`, `start`, `stop`, `restart`, `deploy`, `create` (one-click type XOR compose), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
-| `database` | `get`, `start`, `stop`, `restart`, `create` (8 engines), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
+| `database` | `get`, `start`, `stop`, `restart`, `create` (8 engines), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `backup:create`, `backup:list`, `backup:update`, `backup:delete`, `backup:now`, `backup:history` |
 
 ### 🌱 Resource environment variables (`envs:*`)
 
@@ -373,6 +373,38 @@ Manage Coolify runtime configuration on applications, services, and databases th
 application({ action: "envs:list", uuid: "<app-uuid>" })
 application({ action: "envs:sync", uuid: "<app-uuid>", env_file: "./.env", dry_run: true })
 application({ action: "envs:sync", uuid: "<app-uuid>", env_content: "API_KEY=EXAMPLE_VALUE\n", confirm: true, conflict_policy: "overwrite" })
+```
+
+### 💾 Database backups (`backup:*`)
+
+Configure, list, update, delete, and trigger backup schedules — and inspect execution history — on the existing `database` tool. No separate backup MCP tool.
+
+| Action | Purpose |
+|--------|---------|
+| `backup:create` | Create a backup schedule (frequency required; optional S3, retention, `backup_now: true`) |
+| `backup:list` | List backup schedules for a database |
+| `backup:update` | Update schedule fields (frequency, retention, S3 flags) |
+| `backup:delete` | Remove a schedule — **requires `confirm: true`** |
+| `backup:now` | Trigger an immediate backup run |
+| `backup:history` | List executions for a schedule (status, timestamps, size) |
+
+**Parent identity:** All backup actions require the parent database via `uuid` or `name`. Schedule-scoped actions (`backup:update`, `backup:delete`, `backup:now`, `backup:history`) also require `scheduled_backup_uuid`.
+
+**Confirm gates:** `backup:delete` requires `confirm: true` — otherwise `COOLIFY_CONFIRM_REQUIRED`. `delete_s3` defaults **`false`** (config-only delete). When `delete_s3: true`, deletion still requires `confirm: true` — purging S3 artifacts is treated as destructive.
+
+**Frequency (Pitfall 1):** `backup:create` accepts OpenAPI named presets (`every_minute`, `hourly`, `daily`, `weekly`, `monthly`, `yearly`) **or** a cron expression. `backup:update` accepts **presets only** — passing cron on update returns `COOLIFY_VALIDATION_ERROR`.
+
+**`backup:now` semantics:** Maps to Coolify `PATCH` with `{ backup_now: true }` on the schedule — no separate trigger endpoint. Requires `scheduled_backup_uuid`.
+
+**Reveal policy:** S3-related credentials in backup config responses are masked as `***` by default. Pass `reveal: true` only after the human explicitly asks for plaintext — the agent must not auto-set `reveal: true`.
+
+**Out of scope (v2.x+):** Backup execution delete, restore/import from backup, and S3 storage destination CRUD are not available in this release.
+
+```js
+database({ action: "backup:list", uuid: "<db-uuid>" })
+database({ action: "backup:create", uuid: "<db-uuid>", frequency: "daily", save_s3: false })
+database({ action: "backup:now", uuid: "<db-uuid>", scheduled_backup_uuid: "<schedule-uuid>" })
+database({ action: "backup:delete", uuid: "<db-uuid>", scheduled_backup_uuid: "<schedule-uuid>", confirm: true })
 ```
 
 ### 🔑 `private_key` — SSH key CRUD
