@@ -2523,13 +2523,14 @@ async function handleApplicationEnvsSync(
   validateSyncConflictPolicy(conflicts, parsed.conflict_policy, uuid);
 
   const policy = parsed.conflict_policy!;
+  const conflictKeys = new Set(conflicts.map((conflict) => conflict.key));
   const kept_remote: Array<Record<string, unknown>> = [];
   const aborted: Array<Record<string, unknown>> = [];
   const pruned: Array<Record<string, unknown>> = [];
   const bulkUpdates: EnvBulkEntry[] = [];
 
   for (const entry of diff.added) {
-    if (policy === 'abort') {
+    if (policy === 'abort' && conflictKeys.has(entry.key)) {
       aborted.push({ key: entry.key, value: '***' });
       continue;
     }
@@ -2556,7 +2557,7 @@ async function handleApplicationEnvsSync(
       kept_remote.push({ key: entry.key, value: '***' });
       continue;
     }
-    if (policy === 'abort') {
+    if (policy === 'abort' && conflictKeys.has(entry.key)) {
       aborted.push({ key: entry.key, value: '***' });
       continue;
     }
