@@ -323,16 +323,16 @@ export class InstanceManager {
     }
 
     const registry = InstanceManager.loadRegistry();
-    if (registry.default) {
-      const entry = registry.instances.find((instance) => instance.name === registry.default);
-      if (entry) {
-        return {
-          url: entry.url,
-          token: entry.token,
-          verifySsl: entry.verifySsl,
-        };
-      }
-      if (registry.instances.length > 0) {
+    if (registry.instances.length > 0) {
+      if (registry.default) {
+        const entry = registry.instances.find((instance) => instance.name === registry.default);
+        if (entry) {
+          return {
+            url: entry.url,
+            token: entry.token,
+            verifySsl: entry.verifySsl,
+          };
+        }
         throw new CoolifyApiError({
           code: 'COOLIFY_VALIDATION_ERROR',
           message: `Registry default '${registry.default}' does not match any registered instance`,
@@ -342,6 +342,14 @@ export class InstanceManager {
           ],
         });
       }
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'Registry has instances but no default is set',
+        recoveryHints: [
+          'Run instance.set-default with a name from instance.list.',
+          'Or pass instance: <name> explicitly on the tool call.',
+        ],
+      });
     }
 
     throw noInstanceError();

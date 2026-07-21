@@ -264,4 +264,29 @@ describe('resolveCredentials', () => {
       )).toBe(true);
     }
   });
+
+  it('instances without default throws COOLIFY_VALIDATION_ERROR with set-default hint (WR-02)', async () => {
+    const { InstanceManager } = await loadInstanceRegistry();
+    writeFileSync(
+      join(registryDir, 'instances.json'),
+      JSON.stringify({
+        instances: [sampleInstance],
+      }, null, 2),
+      'utf-8',
+    );
+    try {
+      InstanceManager.resolveCredentials(undefined, {});
+      expect.fail('expected COOLIFY_VALIDATION_ERROR');
+    } catch (error) {
+      expect(error).toMatchObject({
+        envelope: {
+          code: 'COOLIFY_VALIDATION_ERROR',
+          message: expect.stringContaining('no default'),
+        },
+      });
+      expect((error as CoolifyApiError).envelope.recoveryHints.some((h) =>
+        h.includes('instance.set-default'),
+      )).toBe(true);
+    }
+  });
 });
