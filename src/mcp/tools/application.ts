@@ -5,6 +5,7 @@ import {
   openSync,
   readFileSync,
   realpathSync,
+  statSync,
 } from 'node:fs';
 import path from 'node:path';
 import type { EnvConfig } from '../config/env.js';
@@ -2211,6 +2212,13 @@ function readBoundedEnvFile(envFilePath: string): string {
 
   let fd: number;
   try {
+    if (!statSync(realPath).isFile()) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'env_file must be a regular file',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
     fd = openSync(realPath, 'r');
   } catch {
     throw new CoolifyApiError({
