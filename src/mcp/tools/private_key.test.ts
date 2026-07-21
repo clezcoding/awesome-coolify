@@ -1,11 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   handlePrivateKeyAction,
   privateKeyActionSchema,
   isPrivateKeyErrorResult,
 } from './private_key.js';
 import type { EnvConfig } from '../../config/env.js';
+import { InstanceManager } from '../../utils/instance-registry.js';
 
 vi.mock('../../api/client.js', () => ({
   fetchPrivateKeys: vi.fn(),
@@ -16,9 +19,13 @@ vi.mock('../../api/client.js', () => ({
   fetchServers: vi.fn(),
 }));
 
-vi.mock('node:fs', () => ({
-  readFileSync: vi.fn(),
-}));
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>();
+  return {
+    ...actual,
+    readFileSync: vi.fn(actual.readFileSync),
+  };
+});
 
 import {
   fetchPrivateKeys,
@@ -403,5 +410,68 @@ describe('private_key delete_preview', () => {
         expect.objectContaining({ uuid: 'srv-uuid-1' }),
       ]),
     });
+  });
+
+  it('delete_preview with instance routes dependent lookup via routingEnv (CR-01)', async () => {
+    const registryDir = mkdtempSync(join(tmpdir(), 'coolify-mcp-pk-route-'));
+    process.env.COOLIFY_MCP_TEST_REGISTRY_DIR = registryDir;
+    // Prior tests stub readFileSync for PEM paths; restore real fs for registry I/O.
+    const fsActual = await vi.importActual<typeof import('node:fs')>('node:fs');
+    vi.mocked(readFileSync).mockImplementation(
+      fsActual.readFileSync as typeof readFileSync,
+    );
+    try {
+      await InstanceManager.add({
+        name: 'prod',
+        url: 'https://prod.coolify.example.com',
+        token: 'prod-token',
+        type: 'self-hosted',
+        verifySsl: true,
+      });
+
+      vi.mocked(fetchPrivateKey).mockResolvedValue(mockKey);
+      vi.mocked(fetchServers).mockResolvedValue([
+        {
+          uuid: 'srv-uuid-prod',
+          name: 'prod-server',
+          private_key_id: 7,
+        },
+      ]);
+
+      const emptyEnv: EnvConfig = {
+        COOLIFY_URL: undefined as unknown as string,
+        COOLIFY_TOKEN: undefined as unknown as string,
+        COOLIFY_VERIFY_SSL: true,
+        COOLIFY_MCP_LOG: 'info',
+      };
+
+      const result = await handlePrivateKeyAction(
+        { action: 'delete_preview', uuid: 'key-uuid-7', instance: 'prod' },
+        emptyEnv,
+      );
+
+      expect(isPrivateKeyErrorResult(result)).toBe(false);
+      expect(fetchPrivateKey).toHaveBeenCalledWith(
+        'https://prod.coolify.example.com',
+        'prod-token',
+        'key-uuid-7',
+        true,
+      );
+      expect(fetchServers).toHaveBeenCalledWith(
+        'https://prod.coolify.example.com',
+        'prod-token',
+        true,
+      );
+      if (isPrivateKeyErrorResult(result)) return;
+      expect(result.data).toMatchObject({
+        would_delete: false,
+        dependents: expect.arrayContaining([
+          expect.objectContaining({ uuid: 'srv-uuid-prod' }),
+        ]),
+      });
+    } finally {
+      delete process.env.COOLIFY_MCP_TEST_REGISTRY_DIR;
+      rmSync(registryDir, { recursive: true, force: true });
+    }
   });
 });

@@ -419,7 +419,7 @@ export async function handlePrivateKeyAction(
       case 'delete': {
         validateDeleteConfirm(parsed.confirm, parsed.uuid);
 
-        const dependents = await findDependentServers(env, parsed.uuid);
+        const dependents = await findDependentServers(routingEnv, parsed.uuid);
         if (dependents.length > 0) {
           throw new CoolifyApiError({
             code: 'COOLIFY_409',
@@ -449,7 +449,7 @@ export async function handlePrivateKeyAction(
       }
 
       case 'delete_preview': {
-        const dependents = await findDependentServers(env, parsed.uuid);
+        const dependents = await findDependentServers(routingEnv, parsed.uuid);
 
         return buildReadResponse(
           {
