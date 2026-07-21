@@ -24,13 +24,13 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 
 ## CI/CD
 
-- `.github/workflows/ci.yml` — Lint/Test/Build auf Node 24, bei jedem Push/PR gegen `main`
+- `.github/workflows/ci.yml` — zwei parallele Jobs: `Lint, Test & Build` (npm ci/lint/test/publint, ~20s) + `MegaLinter` (javascript-Flavor, diff-only auf PRs)
 - `.github/workflows/pages.yml` — deployt `docs/` nach GitHub Pages bei Push auf `main` (Pfad `docs/**`)
 - `.github/workflows/release.yml` — Changesets-Workflow, erzeugt automatisch einen "Version Packages"-PR + GitHub Release
 - `.github/workflows/publish.yml` — npm-Veröffentlichung per Trusted Publishing (OIDC), kein `NPM_TOKEN`/2FA-Blocker mehr
 - `.github/workflows/release-drafter.yml` — Release Drafter, pflegt einen Draft-Release bei jedem Push auf `main` (parallel zu Changesets `release.yml`)
 - `.github/workflows/publish-comfy.yml` — Comfy-Org/publish-node-action Stub; läuft nur, wenn Repo-Variable `COMFY_PUBLISH_ENABLED=true`; benötigt `REGISTRY_ACCESS_TOKEN` Secret + `pyproject.toml` (siehe Workflow-Kommentar)
-- Publint + MegaLinter Schritte in `ci.yml` ergänzt (siehe `## Lint & Quality` unten)
+- Publint + MegaLinter als parallele CI-Jobs (MegaLinter javascript-Flavor, `VALIDATE_ALL_CODEBASE` nur auf `main`-Push)
 
 ## Lint & Quality
 
@@ -66,8 +66,8 @@ Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/
 
 | Baustein | Status | Evidenz / Aktion |
 |----------|--------|------------------|
-| CI (lint/test/publint/megalinter) | ✅ grün | `ci.yml` aktiv; letzte Runs erfolgreich |
-| Branch Protection | ✅ grün | `main` erfordert `Lint, Test & Build` |
+| CI (lint/test/publint/megalinter) | ✅ grün | Zwei parallele Jobs; MegaLinter javascript-Flavor |
+| Branch Protection | ✅ grün | `main` erfordert `Lint, Test & Build` + `MegaLinter` |
 | Labels Sync | ✅ grün | `automerge` + GSD-Labels via `labels.yml` |
 | Release (Changesets) | ✅ grün | Version-Packages-PRs merged |
 | npm Publish (OIDC) | ✅ grün | `awesome-coolify-mcp@0.1.2` auf npm |
@@ -76,10 +76,11 @@ Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/
 | Dependabot | ✅ grün | wöchentlich npm + actions |
 | Comfy Publish | ⏸️ Stub | `COMFY_PUBLISH_ENABLED` nicht gesetzt (absichtlich) |
 | MCP Registry Publish | ⏸️ zurückgestellt | Kein Workflow — später separat |
-| Kodiak | ⚠️ manuell | `.kodiak.toml` OK; **App-Install prüfen** |
+| Kodiak | ✅ aktiv | App installiert; PR mit `automerge`-Label → squash-merge nach CI |
 | Bugbot | N/A | Cursor-Produkt, kein Repo-Bot |
 
 ### Manuelle Follow-ups
 
-1. **Kodiak GitHub App** — einmalig installieren: [Marketplace](https://github.com/marketplace/kodiakhq) → Repo `clezcoding/awesome-coolify` auswählen. Verifizieren mit `./scripts/setup-kodiak.sh`.
+1. **PRs für Auto-Merge** — Label `automerge` setzen wenn CI-ready: `gh pr edit <nr> --add-label automerge` oder `./scripts/setup-kodiak.sh --pr <nr>`
 2. **Wiederholbare Prüfung** — `./scripts/verify-github-setup.sh` (Exit 0 mit Warnungen für manuelle Items; Exit 1 nur bei kritischen Repo-Lücken).
+3. **Branch Protection aktualisieren** — nach CI-Änderung einmal `./scripts/setup-branch-protection.sh` ausführen (fügt `MegaLinter` als required check hinzu).
