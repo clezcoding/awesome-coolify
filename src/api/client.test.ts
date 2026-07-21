@@ -1562,3 +1562,399 @@ describe('deleteEnv', () => {
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
   });
 });
+
+describe('fetchDatabaseBackups', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('GET /databases/{uuid}/backups returns array', async () => {
+    expect(clientCrud.fetchDatabaseBackups).toBeTypeOf('function');
+    const schedules = [
+      {
+        uuid: 'backup-sched-uuid-1',
+        frequency: 'daily',
+        enabled: true,
+        save_s3: false,
+      },
+    ];
+    fetchMock.mockResolvedValueOnce(Response.json(schedules, { status: 200 }));
+
+    const result = await (
+      clientCrud.fetchDatabaseBackups as (
+        url: string,
+        token: string,
+        databaseUuid: string,
+        verifySsl?: boolean,
+      ) => Promise<unknown[]>
+    )(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/databases/db-uuid-1/backups');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('GET');
+    expect(result).toEqual(schedules);
+  });
+
+  it.fails('returns empty array when response is not an array', async () => {
+    expect(clientCrud.fetchDatabaseBackups).toBeTypeOf('function');
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ data: [] }, { status: 200 }),
+    );
+
+    const result = await (
+      clientCrud.fetchDatabaseBackups as (
+        url: string,
+        token: string,
+        databaseUuid: string,
+        verifySsl?: boolean,
+      ) => Promise<unknown[]>
+    )(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+    expect(clientCrud.fetchDatabaseBackups).toBeTypeOf('function');
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Not Found', { status: 404 })),
+    );
+
+    await expect(
+      (
+        clientCrud.fetchDatabaseBackups as (
+          url: string,
+          token: string,
+          databaseUuid: string,
+          verifySsl?: boolean,
+        ) => Promise<unknown[]>
+      )('https://coolify.example.com', 'test-token', 'missing'),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('createDatabaseBackup', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('POST /databases/{uuid}/backups with payload returns uuid and message', async () => {
+    expect(clientCrud.createDatabaseBackup).toBeTypeOf('function');
+    const payload = { frequency: 'daily', save_s3: false };
+    const response = {
+      uuid: 'backup-sched-uuid-1',
+      message: 'Backup schedule created.',
+    };
+    fetchMock.mockResolvedValueOnce(Response.json(response, { status: 201 }));
+
+    const result = await (
+      clientCrud.createDatabaseBackup as (
+        url: string,
+        token: string,
+        databaseUuid: string,
+        body: unknown,
+        verifySsl?: boolean,
+      ) => Promise<{ uuid: string; message: string }>
+    )(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+      payload,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/databases/db-uuid-1/backups');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+    expect(result).toEqual(response);
+  });
+
+  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+    expect(clientCrud.createDatabaseBackup).toBeTypeOf('function');
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Unprocessable', { status: 422 })),
+    );
+
+    await expect(
+      (
+        clientCrud.createDatabaseBackup as (
+          url: string,
+          token: string,
+          databaseUuid: string,
+          body: unknown,
+          verifySsl?: boolean,
+        ) => Promise<unknown>
+      )(
+        'https://coolify.example.com',
+        'test-token',
+        'db-uuid-1',
+        { frequency: 'daily' },
+      ),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('updateDatabaseBackup', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('PATCH /databases/{uuid}/backups/{scheduled_backup_uuid} with payload', async () => {
+    expect(clientCrud.updateDatabaseBackup).toBeTypeOf('function');
+    const payload = { frequency: 'hourly', backup_now: true };
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Backup schedule updated.' }, { status: 200 }),
+    );
+
+    const result = await (
+      clientCrud.updateDatabaseBackup as (
+        url: string,
+        token: string,
+        databaseUuid: string,
+        scheduledBackupUuid: string,
+        body: unknown,
+        verifySsl?: boolean,
+      ) => Promise<{ message: string }>
+    )(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+      payload,
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/databases/db-uuid-1/backups/backup-sched-uuid-1',
+    );
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual(payload);
+    expect(result).toEqual({ message: 'Backup schedule updated.' });
+  });
+
+  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+    expect(clientCrud.updateDatabaseBackup).toBeTypeOf('function');
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Not Found', { status: 404 })),
+    );
+
+    await expect(
+      (
+        clientCrud.updateDatabaseBackup as (
+          url: string,
+          token: string,
+          databaseUuid: string,
+          scheduledBackupUuid: string,
+          body: unknown,
+          verifySsl?: boolean,
+        ) => Promise<unknown>
+      )(
+        'https://coolify.example.com',
+        'test-token',
+        'db-uuid-1',
+        'missing-backup',
+        { frequency: 'daily' },
+      ),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('deleteDatabaseBackup', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('DELETE /databases/{uuid}/backups/{scheduled_backup_uuid} with delete_s3=false by default', async () => {
+    expect(clientCrud.deleteDatabaseBackup).toBeTypeOf('function');
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Backup schedule deleted.' }, { status: 200 }),
+    );
+
+    const result = await (
+      clientCrud.deleteDatabaseBackup as (
+        url: string,
+        token: string,
+        databaseUuid: string,
+        scheduledBackupUuid: string,
+        deleteS3?: boolean,
+        verifySsl?: boolean,
+      ) => Promise<{ message: string }>
+    )(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain(
+      '/api/v1/databases/db-uuid-1/backups/backup-sched-uuid-1',
+    );
+    expect(url).toContain('delete_s3=false');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
+    expect(result).toEqual({ message: 'Backup schedule deleted.' });
+  });
+
+  it.fails('DELETE forwards delete_s3=true when explicitly passed', async () => {
+    expect(clientCrud.deleteDatabaseBackup).toBeTypeOf('function');
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ message: 'Backup schedule deleted.' }, { status: 200 }),
+    );
+
+    await (
+      clientCrud.deleteDatabaseBackup as (
+        url: string,
+        token: string,
+        databaseUuid: string,
+        scheduledBackupUuid: string,
+        deleteS3?: boolean,
+        verifySsl?: boolean,
+      ) => Promise<{ message: string }>
+    )(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+      true,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('delete_s3=true');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
+  });
+
+  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+    expect(clientCrud.deleteDatabaseBackup).toBeTypeOf('function');
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Not Found', { status: 404 })),
+    );
+
+    await expect(
+      (
+        clientCrud.deleteDatabaseBackup as (
+          url: string,
+          token: string,
+          databaseUuid: string,
+          scheduledBackupUuid: string,
+          deleteS3?: boolean,
+          verifySsl?: boolean,
+        ) => Promise<unknown>
+      )(
+        'https://coolify.example.com',
+        'test-token',
+        'db-uuid-1',
+        'missing-backup',
+      ),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
+
+describe('fetchBackupExecutions', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.fails('GET /databases/{uuid}/backups/{scheduled_backup_uuid}/executions returns executions envelope', async () => {
+    expect(clientCrud.fetchBackupExecutions).toBeTypeOf('function');
+    const response = {
+      executions: [
+        {
+          uuid: 'exec-uuid-1',
+          filename: 'backup-2026-07-21.sql',
+          size: 1024,
+          created_at: '2026-07-21T00:00:00Z',
+          status: 'finished',
+          message: 'Backup completed.',
+        },
+      ],
+    };
+    fetchMock.mockResolvedValueOnce(Response.json(response, { status: 200 }));
+
+    const result = await (
+      clientCrud.fetchBackupExecutions as (
+        url: string,
+        token: string,
+        databaseUuid: string,
+        scheduledBackupUuid: string,
+        verifySsl?: boolean,
+      ) => Promise<{ executions: unknown[] }>
+    )(
+      'https://coolify.example.com',
+      'test-token',
+      'db-uuid-1',
+      'backup-sched-uuid-1',
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toContain(
+      '/api/v1/databases/db-uuid-1/backups/backup-sched-uuid-1/executions',
+    );
+    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('GET');
+    expect(result).toEqual(response);
+    expect(Array.isArray(result.executions)).toBe(true);
+  });
+
+  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+    expect(clientCrud.fetchBackupExecutions).toBeTypeOf('function');
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response('Not Found', { status: 404 })),
+    );
+
+    await expect(
+      (
+        clientCrud.fetchBackupExecutions as (
+          url: string,
+          token: string,
+          databaseUuid: string,
+          scheduledBackupUuid: string,
+          verifySsl?: boolean,
+        ) => Promise<unknown>
+      )(
+        'https://coolify.example.com',
+        'test-token',
+        'db-uuid-1',
+        'missing-backup',
+      ),
+    ).rejects.toBeInstanceOf(CoolifyApiError);
+  });
+});
