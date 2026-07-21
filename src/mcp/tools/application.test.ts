@@ -2430,7 +2430,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         env_content: 'KEY=value',
       },
       testEnv,
@@ -2462,7 +2462,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         dry_run: true,
       },
       testEnv,
@@ -2488,7 +2488,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         dry_run: false,
         confirm: false,
       },
@@ -2508,7 +2508,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         prune: true,
         confirm: false,
       },
@@ -2528,7 +2528,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         dry_run: false,
         confirm: true,
       },
@@ -2550,7 +2550,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         dry_run: false,
         confirm: true,
         conflict_policy: 'overwrite',
@@ -2577,7 +2577,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         dry_run: false,
         confirm: true,
         conflict_policy: 'keep_remote',
@@ -2600,7 +2600,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         dry_run: false,
         confirm: true,
         conflict_policy: 'abort',
@@ -2623,7 +2623,7 @@ describe('application envs:sync', () => {
       {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
-        env_file: '/tmp/.env',
+        env_file: '.env.sync-test',
         dry_run: true,
         reveal: true,
       },
