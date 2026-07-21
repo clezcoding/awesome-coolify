@@ -36,6 +36,9 @@ vi.mock('../../api/client.js', () => ({
 vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
   realpathSync: vi.fn((p: string) => p),
+  openSync: vi.fn(() => 42),
+  fstatSync: vi.fn(() => ({ size: 64 })),
+  closeSync: vi.fn(),
 }));
 
 import {
@@ -62,7 +65,7 @@ import {
   bulkUpdateEnvs,
   deleteEnv,
 } from '../../api/client.js';
-import { readFileSync } from 'node:fs';
+import { readFileSync, openSync, fstatSync, closeSync } from 'node:fs';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -2412,6 +2415,11 @@ describe('application envs:sync', () => {
     vi.mocked(createEnv).mockReset();
     vi.mocked(deleteEnv).mockReset();
     vi.mocked(readFileSync).mockReset();
+    vi.mocked(openSync).mockReset();
+    vi.mocked(fstatSync).mockReset();
+    vi.mocked(closeSync).mockReset();
+    vi.mocked(openSync).mockReturnValue(42);
+    vi.mocked(fstatSync).mockReturnValue({ size: 64 } as ReturnType<typeof fstatSync>);
     vi.mocked(fetchResources).mockReset();
     vi.mocked(fetchEnvs).mockResolvedValue(mockEnvList);
     vi.mocked(fetchResources).mockResolvedValue([]);
