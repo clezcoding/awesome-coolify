@@ -215,4 +215,31 @@ describe('resolveCredentials', () => {
       expect(error).toMatchObject({ envelope: { code: 'COOLIFY_NO_INSTANCE' } });
     }
   });
+
+  it('stale registry.default with other instances throws validation error (WR-01)', async () => {
+    const { InstanceManager } = await loadInstanceRegistry();
+    await InstanceManager.add(sampleInstance);
+    writeFileSync(
+      join(registryDir, 'instances.json'),
+      JSON.stringify({
+        default: 'gone',
+        instances: [sampleInstance],
+      }, null, 2),
+      'utf-8',
+    );
+    try {
+      InstanceManager.resolveCredentials(undefined, {});
+      expect.fail('expected COOLIFY_VALIDATION_ERROR');
+    } catch (error) {
+      expect(error).toMatchObject({
+        envelope: {
+          code: 'COOLIFY_VALIDATION_ERROR',
+          message: expect.stringContaining("default 'gone'"),
+        },
+      });
+      expect((error as CoolifyApiError).envelope.recoveryHints.some((h) =>
+        h.includes('instance.set-default'),
+      )).toBe(true);
+    }
+  });
 });

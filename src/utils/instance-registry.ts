@@ -308,6 +308,16 @@ export class InstanceManager {
           verifySsl: entry.verifySsl,
         };
       }
+      if (registry.instances.length > 0) {
+        throw new CoolifyApiError({
+          code: 'COOLIFY_VALIDATION_ERROR',
+          message: `Registry default '${registry.default}' does not match any registered instance`,
+          recoveryHints: [
+            'Run instance.set-default with a valid instance name from instance.list.',
+            'Or fix registry.default in ~/.coolify-mcp/instances.json to an existing name.',
+          ],
+        });
+      }
     }
 
     throw noInstanceError();
