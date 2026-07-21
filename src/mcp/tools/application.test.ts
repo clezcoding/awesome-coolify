@@ -38,6 +38,7 @@ vi.mock('node:fs', () => ({
   realpathSync: vi.fn((p: string) => p),
   openSync: vi.fn(() => 42),
   fstatSync: vi.fn(() => ({ size: 64 })),
+  statSync: vi.fn(() => ({ isFile: () => true })),
   closeSync: vi.fn(),
 }));
 
@@ -65,7 +66,7 @@ import {
   bulkUpdateEnvs,
   deleteEnv,
 } from '../../api/client.js';
-import { readFileSync, openSync, fstatSync, closeSync } from 'node:fs';
+import { readFileSync, openSync, fstatSync, closeSync, statSync } from 'node:fs';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -2301,10 +2302,38 @@ describe('application envs:update', () => {
         expect.objectContaining({
           key: 'DATABASE_URL',
           value: 'updated-value',
+          is_preview: true,
+          is_literal: true,
+          is_multiline: false,
+          is_shown_once: true,
         }),
       ],
       testEnv.COOLIFY_VERIFY_SSL,
     );
+  });
+
+  it('returns stored flags in response when update omits optional flags', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:update',
+        uuid: 'app-uuid-1',
+        env_uuid: 'env-uuid-1',
+        value: 'updated-value',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data).toMatchObject({
+      key: 'DATABASE_URL',
+      is_preview: true,
+      is_literal: true,
+      is_multiline: false,
+      is_shown_once: true,
+    });
   });
 });
 
@@ -2437,15 +2466,19 @@ describe('application envs:sync', () => {
     vi.mocked(bulkUpdateEnvs).mockReset();
     vi.mocked(createEnv).mockReset();
     vi.mocked(deleteEnv).mockReset();
+    vi.mocked(updateEnvViaBulk).mockReset();
     vi.mocked(readFileSync).mockReset();
     vi.mocked(openSync).mockReset();
     vi.mocked(fstatSync).mockReset();
+    vi.mocked(statSync).mockReset();
     vi.mocked(closeSync).mockReset();
     vi.mocked(openSync).mockReturnValue(42);
     vi.mocked(fstatSync).mockReturnValue({ size: 64 } as ReturnType<typeof fstatSync>);
+    vi.mocked(statSync).mockReturnValue({ isFile: () => true } as ReturnType<typeof statSync>);
     vi.mocked(fetchResources).mockReset();
     vi.mocked(fetchEnvs).mockResolvedValue(mockEnvList);
     vi.mocked(fetchResources).mockResolvedValue([]);
+    vi.mocked(updateEnvViaBulk).mockResolvedValue([]);
   });
 
   it('throws COOLIFY_VALIDATION_ERROR when both env_file and env_content provided per D-05 XOR', async () => {
@@ -2502,6 +2535,24 @@ describe('application envs:sync', () => {
         action: 'envs:sync',
         uuid: 'app-uuid-1',
         env_content: 'DUP=first\nDUP=second',
+        dry_run: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(fetchEnvs).not.toHaveBeenCalled();
+  });
+
+  it('throws COOLIFY_VALIDATION_ERROR for malformed env lines without equals', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_content: 'MY_KEY\nVALID=ok',
         dry_run: true,
       },
       testEnv,
@@ -2648,6 +2699,7 @@ describe('application envs:sync', () => {
         expect.objectContaining({ key: 'DATABASE_URL' }),
       ]),
     );
+    expect(data.conflicts).toEqual([]);
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
@@ -2716,5 +2768,109 @@ describe('application envs:sync', () => {
 
     expect(JSON.stringify(result.data)).not.toContain(FAKE_SECRET_VALUE);
     expect(JSON.stringify(result.data)).not.toContain('new-value');
+  });
+
+  it('apply with prune:true deletes remote-only env keys', async () => {
+    vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '.env.sync-test',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'overwrite',
+        prune: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    expect(deleteEnv).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      'env-uuid-2',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    if (isApplicationErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.pruned)).toBe(true);
+  });
+
+  it('rolls back created envs when bulk update fails during apply', async () => {
+    vi.mocked(readFileSync).mockReturnValue(
+      'NEW_KEY=new-value\nDATABASE_URL=updated-value',
+    );
+    vi.mocked(createEnv).mockResolvedValue({ uuid: 'env-new-uuid' });
+    vi.mocked(updateEnvViaBulk).mockRejectedValue(new Error('bulk update failed'));
+    vi.mocked(deleteEnv).mockResolvedValue(undefined);
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '.env.sync-test',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'overwrite',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(createEnv).toHaveBeenCalled();
+    expect(updateEnvViaBulk).toHaveBeenCalled();
+    expect(deleteEnv).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      'env-new-uuid',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    expect(result.structuredContent.error.data).toMatchObject({
+      applied: expect.arrayContaining([
+        expect.objectContaining({ key: 'NEW_KEY', env_uuid: 'env-new-uuid' }),
+      ]),
+      failed_at: expect.any(String),
+    });
+  });
+
+  it('reports rollback_failed when rollback deleteEnv fails', async () => {
+    vi.mocked(readFileSync).mockReturnValue(
+      'NEW_KEY=new-value\nDATABASE_URL=updated-value',
+    );
+    vi.mocked(createEnv).mockResolvedValue({ uuid: 'env-new-uuid' });
+    vi.mocked(updateEnvViaBulk).mockRejectedValue(new Error('bulk update failed'));
+    vi.mocked(deleteEnv).mockRejectedValue(new Error('rollback delete failed'));
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '.env.sync-test',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'overwrite',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_500');
+    expect(result.structuredContent.error.data).toMatchObject({
+      rollback_failed: true,
+      rollback_errors: expect.arrayContaining([
+        expect.stringContaining('rollback delete failed'),
+      ]),
+    });
   });
 });

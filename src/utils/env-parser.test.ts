@@ -50,6 +50,13 @@ describe('parseEnvFile', () => {
     expect(result.duplicateKeys).toEqual(['DUP']);
     expect(result.entries).toEqual([{ key: 'DUP', value: 'second' }]);
   });
+
+  it('parseEnvFileDetailed reports malformed lines without equals', async () => {
+    const { parseEnvFileDetailed } = await import('./env-parser.js');
+    const result = parseEnvFileDetailed('MY_KEY\nVALID=ok');
+    expect(result.malformedLines).toEqual(['MY_KEY']);
+    expect(result.entries).toEqual([{ key: 'VALID', value: 'ok' }]);
+  });
 });
 
 describe('diffEnvs', () => {
