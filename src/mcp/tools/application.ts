@@ -1,5 +1,12 @@
 import * as z from 'zod/v4';
-import { readFileSync } from 'node:fs';
+import {
+  closeSync,
+  fstatSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+} from 'node:fs';
+import path from 'node:path';
 import type { EnvConfig } from '../config/env.js';
 import {
   createDockerfileApplication,
@@ -2294,6 +2301,75 @@ async function handleApplicationEnvsBulkUpdate(
 const ASK_HUMAN_CONFLICT_POLICY_HINT =
   'ask_human_conflict_policy: ask the human whether to overwrite, keep_remote, or abort; then retry with conflict_policy set';
 
+const ENV_FILE_SIZE_LIMIT = 1024 * 1024;
+
+function readBoundedEnvFile(envFilePath: string): string {
+  let root: string;
+  try {
+    root = realpathSync(process.cwd());
+  } catch {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'Cannot resolve env_file allowlist root',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const resolved = path.resolve(root, envFilePath);
+  let realPath: string;
+  try {
+    realPath = realpathSync(resolved);
+  } catch {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'Cannot read env_file',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const rootPrefix = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+  if (realPath !== root && !realPath.startsWith(rootPrefix)) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `env_file path escapes allowlisted root (${root})`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  let fd: number;
+  try {
+    fd = openSync(realPath, 'r');
+  } catch {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'Cannot read env_file',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  try {
+    if (fstatSync(fd).size > ENV_FILE_SIZE_LIMIT) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'env_file exceeds 1 MiB limit',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
+    return readFileSync(fd, 'utf8');
+  } catch (error) {
+    if (error instanceof CoolifyApiError) {
+      throw error;
+    }
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'Cannot read env_file',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  } finally {
+    closeSync(fd);
+  }
+}
+
 function buildValueConflicts(diff: DiffResult): Conflict[] {
   return diff.updated.map((entry) => ({
     key: entry.key,
@@ -2384,7 +2460,7 @@ async function handleApplicationEnvsSync(
 
   const content =
     typeof parsed.env_file === 'string' && parsed.env_file.length > 0
-      ? readFileSync(parsed.env_file, 'utf8')
+      ? readBoundedEnvFile(parsed.env_file)
       : parsed.env_content!;
 
   const local = parseEnvFile(content);
