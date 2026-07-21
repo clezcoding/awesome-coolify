@@ -60,6 +60,7 @@ import {
   buildEnvBulkEntry,
   maskEnvRecord,
   maskEnvRecords,
+  mergeEnvMutationFlags,
   resolveEnvIdentity,
   validateEnvMutationConfirm,
   withRevealRecoveryHints,
@@ -1403,8 +1404,6 @@ async function handleDatabaseEnvsUpdate(
   env: EnvConfig,
 ): Promise<DatabaseEnvsUpdateResult> {
   const uuid = await resolveDatabaseUuid(parsed, env);
-  let resolvedKey = parsed.key;
-  let resolvedEnvUuid = parsed.env_uuid;
 
   const envs = await fetchEnvs(
     'database',
@@ -1414,17 +1413,13 @@ async function handleDatabaseEnvsUpdate(
     env.COOLIFY_VERIFY_SSL,
   );
 
-  if (parsed.env_uuid) {
-    const found = resolveEnvIdentity(envs, { env_uuid: parsed.env_uuid }, 'database');
-    resolvedKey = found.key;
-    resolvedEnvUuid = found.uuid;
-  } else if (parsed.key) {
-    const found = resolveEnvIdentity(envs, { key: parsed.key }, 'database');
-    resolvedKey = found.key;
-    resolvedEnvUuid = found.uuid;
-  }
+  const found = parsed.env_uuid
+    ? resolveEnvIdentity(envs, { env_uuid: parsed.env_uuid }, 'database')
+    : parsed.key
+      ? resolveEnvIdentity(envs, { key: parsed.key }, 'database')
+      : undefined;
 
-  if (!resolvedKey) {
+  if (!found) {
     throw new CoolifyApiError({
       code: 'COOLIFY_VALIDATION_ERROR',
       message: 'At least one of env_uuid or key is required.',
@@ -1432,12 +1427,14 @@ async function handleDatabaseEnvsUpdate(
     });
   }
 
+  const mergedFlags = mergeEnvMutationFlags(found, parsed);
+
   const entry = buildEnvBulkEntry({
-    key: resolvedKey,
+    key: found.key,
     value: parsed.value,
-    is_literal: parsed.is_literal,
-    is_multiline: parsed.is_multiline,
-    is_shown_once: parsed.is_shown_once,
+    is_literal: mergedFlags.is_literal,
+    is_multiline: mergedFlags.is_multiline,
+    is_shown_once: mergedFlags.is_shown_once,
   });
 
   await updateEnvViaBulk(
@@ -1451,8 +1448,8 @@ async function handleDatabaseEnvsUpdate(
 
   const data = maskEnvRecord(
     {
-      uuid: resolvedEnvUuid,
-      key: resolvedKey,
+      uuid: found.uuid,
+      key: found.key,
       value: parsed.value,
       is_literal: parsed.is_literal,
       is_multiline: parsed.is_multiline,

@@ -72,6 +72,28 @@ export function buildEnvBulkEntry(input: {
   return entry;
 }
 
+export function mergeEnvMutationFlags(
+  found: Env,
+  parsed: {
+    is_preview?: boolean;
+    is_literal?: boolean;
+    is_multiline?: boolean;
+    is_shown_once?: boolean;
+  },
+): {
+  is_preview: boolean;
+  is_literal: boolean;
+  is_multiline: boolean;
+  is_shown_once: boolean;
+} {
+  return {
+    is_preview: parsed.is_preview ?? found.is_preview ?? false,
+    is_literal: parsed.is_literal ?? found.is_literal ?? false,
+    is_multiline: parsed.is_multiline ?? found.is_multiline ?? false,
+    is_shown_once: parsed.is_shown_once ?? found.is_shown_once ?? false,
+  };
+}
+
 export function validateEnvMutationConfirm(
   confirm: boolean,
   action: string,
