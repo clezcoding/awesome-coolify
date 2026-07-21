@@ -1408,7 +1408,11 @@ describe('updateEnvViaBulk', () => {
   it('PATCHes /applications/{uuid}/envs/bulk with data array body', async () => {
     expect(clientCrud.updateEnvViaBulk).toBeTypeOf('function');
     const entries = [{ key: 'DATABASE_URL', value: 'updated' }];
-    fetchMock.mockResolvedValueOnce(Response.json({ updated: 1 }, { status: 200 }));
+    fetchMock.mockResolvedValueOnce(
+      Response.json([{ uuid: 'env-1', key: 'DATABASE_URL', value: 'updated' }], {
+        status: 200,
+      }),
+    );
 
     await (
       clientCrud.updateEnvViaBulk as (
@@ -1481,7 +1485,15 @@ describe('bulkUpdateEnvs', () => {
       { key: 'A', value: '1' },
       { key: 'B', value: '2' },
     ];
-    fetchMock.mockResolvedValueOnce(Response.json({ updated: 2 }, { status: 200 }));
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        [
+          { uuid: 'env-a', key: 'A', value: '1' },
+          { uuid: 'env-b', key: 'B', value: '2' },
+        ],
+        { status: 200 },
+      ),
+    );
 
     await (
       clientCrud.bulkUpdateEnvs as (

@@ -71,7 +71,6 @@ import {
   type FindableResource,
 } from './resource.js';
 import {
-  parseEnvFile,
   parseEnvFileDetailed,
   diffEnvs,
   detectConflicts,
