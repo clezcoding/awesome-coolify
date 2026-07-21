@@ -1,5 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { sharedReadParamsSchema, parseReadParams } from './shared-read-params.js';
+import * as z from 'zod/v4';
+import { CoolifyApiError } from '../../utils/errors.js';
+import {
+  sharedReadParamsSchema,
+  parseReadParams,
+  parseWithInstanceRouting,
+} from './shared-read-params.js';
+
+describe('parseWithInstanceRouting', () => {
+  const actionSchema = z
+    .object({
+      action: z.literal('health'),
+    })
+    .strict();
+
+  it('maps invalid instance slug to CoolifyApiError COOLIFY_VALIDATION_ERROR (WR-03)', () => {
+    expect(() =>
+      parseWithInstanceRouting(actionSchema, { action: 'health', instance: 'PROD' }),
+    ).toThrow(CoolifyApiError);
+
+    try {
+      parseWithInstanceRouting(actionSchema, { action: 'health', instance: 'PROD' });
+      expect.fail('expected CoolifyApiError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(CoolifyApiError);
+      expect((error as CoolifyApiError).envelope.code).toBe('COOLIFY_VALIDATION_ERROR');
+    }
+  });
+
+  it('returns parsed data with valid optional instance', () => {
+    const parsed = parseWithInstanceRouting(actionSchema, {
+      action: 'health',
+      instance: 'prod',
+    });
+    expect(parsed).toEqual({ action: 'health', instance: 'prod' });
+  });
+});
 
 describe('sharedReadParamsSchema', () => {
   it('defaults format pretty page 1 per_page 10 max_chars 16000 per D-09 D-13 D-15', () => {

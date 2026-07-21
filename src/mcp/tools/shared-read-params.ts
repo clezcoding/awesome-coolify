@@ -1,7 +1,7 @@
 import * as z from 'zod/v4';
 import type { EnvConfig } from '../../config/env.js';
 import { resolveProjection, type ProjectionMode } from '../../utils/projections.js';
-import { CoolifyApiError } from '../../utils/errors.js';
+import { CoolifyApiError, RECOVERY_HINTS } from '../../utils/errors.js';
 import { InstanceManager } from '../../utils/instance-registry.js';
 
 /** Optional multi-instance routing param (D-08) — shared across domain tools. */
@@ -22,16 +22,15 @@ export function parseWithInstanceRouting<T extends Record<string, unknown>>(
   schema: z.ZodType<T>,
   args: unknown,
 ): T & { instance?: string } {
-  const record =
-    typeof args === 'object' && args !== null
-      ? ({ ...(args as Record<string, unknown>) } as Record<string, unknown>)
-      : {};
-  const instanceParsed = instanceRoutingExtension.parse({
-    instance: record.instance,
-  });
-  delete record.instance;
-  const parsed = schema.parse(record) as T;
-  return { ...parsed, ...instanceParsed };
+  const result = safeParseWithInstanceRouting(schema, args);
+  if (!result.success) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: result.error.issues.map((i) => i.message).join('; '),
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+  return result.data;
 }
 
 /** safeParse variant for handlers that map Zod failures to validation errors. */
