@@ -4,7 +4,12 @@
 
 - ✅ **v1.0 Ops MVP** — Phases 1–7 (shipped 2026-07-16) → [archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v2.0 Creation & CRUD** — Phases 8–13 (shipped 2026-07-21) → [archive](milestones/v2.0-ROADMAP.md)
-- 📋 **v3.0+** — Not planned yet → `/gsd-new-milestone`
+- 🚧 **v3.0 Platform Foundation** — Phases 15–18 (in progress)
+- 📋 **v3.1 Setup & Skills** — Phases 19+ (planned)
+
+## v3.0 Platform Foundation — Milestone Goal
+
+Agent can manage multiple Coolify instances (self-hosted + Cloud), route any tool call to a named instance, and persist UUID/domain metadata locally across sessions via a gitignored workspace manifest. A single CLI live-UAT script proves all 14 tools against real Coolify data before the milestone ships.
 
 ## Phases
 
@@ -37,45 +42,89 @@ Full phase details: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 
 </details>
 
-## Progress
+### 🚧 v3.0 Platform Foundation (In Progress)
 
-| Phase | Milestone | Status | Completed |
-|-------|-----------|--------|-----------|
-| 1–7 | v1.0 | Complete | 2026-07-16 |
-| 8–13 | v2.0 | Complete | 2026-07-21 |
+- [ ] **Phase 15: Multi-Instance Registry & Routing** - Secure `instances.json` CRUD with per-request routing and env override
+- [ ] **Phase 16: Coolify Cloud & Server Branding** - `app.coolify.io` support, cloud error hints, MCP list icon via `serverInfo.icons`, docs EN/DE
+- [ ] **Phase 17: Local Manifest & Sync** - `.coolify/manifest.json` schema, gitignore injection, `manifest:sync` reconciliation
+- [ ] **Phase 18: Live UAT Harness** - One CLI script testing all 14 tools against real Coolify data with JSON report
 
-**Next:** Run `/gsd-new-milestone` to define v3.0 scope.
+### 📋 v3.1 Setup & Skills (Planned)
 
----
+- [ ] **Phase 19+:** Standard setup wizard (`gh` preflight + Coolify wiring) and IDE skills package
 
-## Backlog
+## Phase Details
 
-> Items here are unsequenced. Promote with `/gsd-review-backlog` when ready for active planning.
-
-### Phase 999.1: Feasibility Audit — Milestone-Ideen Jul 2026 (BACKLOG)
-
-**Gate:** ✅ v2.0 shipped 2026-07-21 — eligible for promotion via `/gsd-review-backlog`.
-
-**Goal:** Capture explore-session feasibility findings for four post-v2.0 ideas; use as input for v3.0 milestone scoping.
-
-**Requirements:** TBD (promote to REQ-IDs when v3.0 is opened)
-
-**Plans:** 0 plans
-
-**Findings summary:**
-
-| Idea | Verdict | Blocker / Dependency |
-|------|---------|----------------------|
-| Coolify Cloud MCP support | ✅ Likely works today (`COOLIFY_URL=https://app.coolify.io`) | Docs/branding + live smoke test |
-| Standard-Setup Tool (incl. `gh` repo create) | ✅ API ready; MCP Create-CRUD needed first | v2.0 Phases 8–11; GitHub CLI preflight |
-| Custom Skills pro IDE | ✅ Pure DX, no API | Content + per-IDE install paths |
-| Lokale Manifest-Datei (UUIDs, Domains) | ✅ Agent-side only | Schema + `.gitignore` convention |
-
-**Setup-Tool design note (Idee 2):** On first invoke, preflight `gh` CLI — check installed + authenticated. If missing, emit step-by-step setup guide and pause until user confirms ready. Repo creation via `gh repo create`; Coolify wiring via existing GitHub App + Create endpoints (post-v2.0).
+### Phase 15: Multi-Instance Registry & Routing
+**Goal**: Agent can manage named Coolify instances in a secure registry and route any tool call to a chosen instance without cross-instance leakage
+**Depends on**: Phase 13 (v2.0 shipped)
+**Requirements**: CTX-04, CTX-05, CTX-06, CTX-08, CTX-09
+**Success Criteria** (what must be TRUE):
+  1. Agent can add, list, update, and delete named instances in `~/.coolify-mcp/instances.json` and the entries persist across sessions
+  2. Agent can set a default instance, and `COOLIFY_URL`/`COOLIFY_TOKEN` env vars override the registry default when present
+  3. Agent can call any of the 14 tools with an optional `instance` parameter and the call routes to that named instance's credentials
+  4. Registry directory and file are created with `0o700`/`0o600` permissions, and list/get responses redact tokens unless `reveal: true`
+  5. Concurrent registry writes do not corrupt the file (atomic temp-file + rename)
+**Plans**: 5 plans
 
 Plans:
+- [ ] 15-00-PLAN.md — Wave 0 RED test scaffolds (instance-registry.test.ts, instance.test.ts, env.test.ts soft-start)
+- [ ] 15-01-PLAN.md — InstanceManager core (CRUD, atomic writes, 0o700/0o600 perms, resolveCredentials) + errors.ts extension
+- [ ] 15-02-PLAN.md — `instance` tool (list/get/add/update/delete/set-default/import-env) + softened env.ts + server soft-start
+- [ ] 15-03-PLAN.md — Route 5 lifecycle tools (application, service, database, deployment, emergency) via optional `instance` param
+- [ ] 15-04-PLAN.md — Route 7 read/CRUD tools (resource, system, diagnose, server, private_key, project, environment) via optional `instance` param
 
-- [ ] TBD (promote with `/gsd-review-backlog`)
+### Phase 16: Coolify Cloud & Server Branding
+**Goal**: Agent can operate Coolify Cloud with the same tool surface, recover from cloud-only restrictions, and users see a branded icon in the MCP server list (like pg-aiguide)
+**Depends on**: Phase 15
+**Requirements**: CLD-01, CLD-02, CLD-03, BRND-01, BRND-02, BRND-03
+**Success Criteria** (what must be TRUE):
+  1. Agent can connect to `https://app.coolify.io` with a team-scoped Bearer token using the same tools as self-hosted instances
+  2. Cloud-only or permission-denied endpoint failures return structured recovery hints instead of opaque 403/404 loops
+  3. README EN/DE and install docs include a Coolify Cloud setup path with smoke-test instructions
+  4. MCP `initialize` response includes `serverInfo.icons` pointing at a public HTTPS PNG (192×192 Hex Robot Helper on brand violet)
+  5. Cursor MCP server list displays the awesome-coolify icon after reconnect (or documents known client limitation with title/description fallback)
+  6. `McpServer` exposes `title`, `description`, and `websiteUrl` alongside icons
+**Plans**: TBD
+
+### Phase 17: Local Manifest & Sync
+**Goal**: Agent can persist project/environment/server/resource UUIDs and domains in a workspace-local manifest and keep it fresh against the live API
+**Depends on**: Phase 16
+**Requirements**: MAN-01, MAN-02, MAN-03, MAN-04
+**Success Criteria** (what must be TRUE):
+  1. Agent can read and write `.coolify/manifest.json` storing project, environment, server, and resource UUIDs plus domains
+  2. First manifest write auto-appends `.coolify/` to the workspace `.gitignore` if not already present
+  3. Agent can run a `manifest:sync` action that reconciles manifest entries against the live API and refreshes stale UUIDs
+  4. Operations against stale manifest UUIDs surface a refresh hint on API 404 (manifest is treated as cache, not source of truth)
+**Plans**: TBD
+
+### Phase 18: Live UAT Harness
+**Goal**: Maintainer can prove all 14 MCP tools work against a live Coolify instance with one CLI script before v3.0 ships
+**Depends on**: Phase 17
+**Requirements**: UAT-01, UAT-02, UAT-03, UAT-04, UAT-05, UAT-06
+**Success Criteria** (what must be TRUE):
+  1. Maintainer can run one CLI script that exercises all 14 MCP tools against a live Coolify instance with real data
+  2. Script resolves credentials from `.cursor/mcp.json`, env vars, or `instances.json` without printing tokens in output
+  3. Script emits a structured JSON pass/fail report per tool/action with duration, error code, and recovery-hint presence
+  4. Script covers v3.0 additions: multi-instance routing, cloud instance profile, and manifest read/write/sync
+  5. Script documents safe preconditions and never deletes production resources without explicit `--confirm-destructive`
+  6. CONTRIBUTING.md documents how to run live UAT locally and interpret failures
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1–7 | v1.0 | 37/37 | Complete | 2026-07-16 |
+| 8–13 | v2.0 | 36/36 | Complete | 2026-07-21 |
+| 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
+| 15 | v3.0 | 0/5 | Planning complete — awaiting `/gsd-execute-phase 15` | - |
+| 16 | v3.0 | 0/TBD | Not started | - |
+| 17 | v3.0 | 0/TBD | Not started | - |
+| 18 | v3.0 | 0/TBD | Not started | - |
+
+**Next:** `/gsd-plan-phase 15`
 
 ---
-*Last updated: 2026-07-21 after v2.0 milestone shipped*
+
+*Last updated: 2026-07-21 — v3.0 roadmap revised (21 requirements: +BRND icon, +UAT harness)*
