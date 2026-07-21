@@ -1493,7 +1493,7 @@ describe('database backup:update', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('updates backup with hourly preset per D-04', async () => {
+  it('updates backup with hourly preset per D-04', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:update',
@@ -1515,7 +1515,7 @@ describe('database backup:update', () => {
     );
   });
 
-  it.fails('rejects cron expression frequency with COOLIFY_VALIDATION_ERROR per Pitfall 1', async () => {
+  it('rejects cron expression frequency with COOLIFY_VALIDATION_ERROR per Pitfall 1', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:update',
@@ -1533,7 +1533,7 @@ describe('database backup:update', () => {
     expect(updateDatabaseBackup).not.toHaveBeenCalled();
   });
 
-  it.fails('does not require confirm per D-10', async () => {
+  it('does not require confirm per D-10', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:update',
@@ -1549,7 +1549,7 @@ describe('database backup:update', () => {
     expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-03', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on update by name multi-match per D-03', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
@@ -1583,7 +1583,7 @@ describe('database backup:delete', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-08', async () => {
+  it('throws COOLIFY_CONFIRM_REQUIRED without confirm per D-08', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:delete',
@@ -1601,7 +1601,7 @@ describe('database backup:delete', () => {
     expect(deleteDatabaseBackup).not.toHaveBeenCalled();
   });
 
-  it.fails('deletes backup with confirm:true and delete_s3 defaults false per D-09', async () => {
+  it('deletes backup with confirm:true and delete_s3 defaults false per D-09', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:delete',
@@ -1630,7 +1630,7 @@ describe('database backup:delete', () => {
     });
   });
 
-  it.fails('throws COOLIFY_CONFIRM_REQUIRED when delete_s3:true without confirm per D-09', async () => {
+  it('throws COOLIFY_CONFIRM_REQUIRED when delete_s3:true without confirm per D-09', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:delete',
@@ -1649,7 +1649,7 @@ describe('database backup:delete', () => {
     expect(deleteDatabaseBackup).not.toHaveBeenCalled();
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-03', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on delete by name multi-match per D-03', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
@@ -1684,7 +1684,7 @@ describe('database backup:now', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('requires parent DB identity and scheduled_backup_uuid per D-13', async () => {
+  it('requires parent DB identity and scheduled_backup_uuid per D-13', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:now',
@@ -1705,7 +1705,7 @@ describe('database backup:now', () => {
     );
   });
 
-  it.fails('PATCHes with backup_now:true per D-12', async () => {
+  it('PATCHes with backup_now:true per D-12', async () => {
     await handleDatabaseAction(
       {
         action: 'backup:now',
@@ -1725,7 +1725,7 @@ describe('database backup:now', () => {
     );
   });
 
-  it.fails('does not require confirm per D-10', async () => {
+  it('does not require confirm per D-10', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:now',
@@ -1740,7 +1740,7 @@ describe('database backup:now', () => {
     expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on now by name multi-match per D-03', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on now by name multi-match per D-03', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
