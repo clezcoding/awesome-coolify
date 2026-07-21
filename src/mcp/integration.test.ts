@@ -173,7 +173,8 @@ describe('P2 read slice integration', () => {
       'utf8',
     );
     const readOnlyCount = (source.match(/readOnlyHint:\s*true/g) ?? []).length;
-    expect(readOnlyCount).toBe(5);
+    // system, meta, resource, docs — instance is mutable and must not be read-only
+    expect(readOnlyCount).toBe(4);
 
     for (const tool of ['resource', 'docs']) {
       expect(source).toContain(`registerTool(\n    '${tool}'`);
@@ -182,12 +183,12 @@ describe('P2 read slice integration', () => {
       );
     }
 
-    for (const tool of ['application', 'service', 'database']) {
+    for (const tool of ['application', 'service', 'database', 'instance']) {
       expect(source).toContain(`registerTool(\n    '${tool}'`);
-      const toolBlock = source.match(
-        new RegExp(`registerTool\\(\\s*'${tool}'[\\s\\S]*?\\n  \\);`),
-      )?.[0];
-      expect(toolBlock).toBeTruthy();
+      const start = source.indexOf(`registerTool(\n    '${tool}'`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = source.indexOf('registerTool(', start + 1);
+      const toolBlock = next === -1 ? source.slice(start) : source.slice(start, next);
       expect(toolBlock).not.toMatch(/readOnlyHint:\s*true/);
     }
   });

@@ -66,6 +66,7 @@ describe('MCP server tool registration', () => {
     expect(source).toContain("registerTool(\n    'database'");
     expect(source).toContain("registerTool(\n    'private_key'");
     expect(source).toContain("registerTool(\n    'instance'");
+    expect(source).toMatch(/handleInstanceAction\(args,\s*env\)/);
     expect(source).toContain("registerTool(\n    'server'");
     expect(source).toContain("registerTool(\n    'project'");
     expect(source).toContain("registerTool(\n    'environment'");
