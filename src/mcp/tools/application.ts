@@ -2463,6 +2463,7 @@ function validateSyncConflictPolicy(
     data: {
       action: 'envs:sync',
       uuid,
+      conflicts,
       conflict_policy_options: ['overwrite', 'keep_remote', 'abort'],
     },
   });
@@ -2606,7 +2607,7 @@ async function handleApplicationEnvsSync(
       dry_run: false,
       ...(kept_remote.length > 0 ? { kept_remote } : {}),
       ...(aborted.length > 0 ? { aborted } : {}),
-      ...(pruned.length > 0 ? { pruned } : {}),
+      ...(parsed.prune ? { pruned } : {}),
     }),
     {
       format: parsed.format,
