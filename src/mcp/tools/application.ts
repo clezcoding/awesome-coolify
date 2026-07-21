@@ -2502,8 +2502,21 @@ async function handleApplicationEnvsSync(
   const valueConflicts = buildValueConflicts(diff);
 
   if (parsed.dry_run) {
+    const remote = await fetchEnvs(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      uuid,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const outOfBandResult = detectConflicts(local, remote, baseline, 'abort');
+    const dryRunConflicts = [...valueConflicts, ...outOfBandResult.conflicts].filter(
+      (conflict, index, all) =>
+        all.findIndex((entry) => entry.key === conflict.key) === index,
+    );
+
     return buildReadResponse(
-      buildSyncDisposition(diff, valueConflicts, { dry_run: true }),
+      buildSyncDisposition(diff, dryRunConflicts, { dry_run: true }),
       {
         format: parsed.format,
         max_chars: parsed.max_chars,
