@@ -38,13 +38,13 @@ const stagingInstance = {
 };
 
 describe('InstanceManager', () => {
-  it.fails('loadRegistry returns { instances: [] } when instances.json absent (CTX-04 empty)', async () => {
+  it('loadRegistry returns { instances: [] } when instances.json absent (CTX-04 empty)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     const registry = InstanceManager.loadRegistry();
     expect(registry).toEqual({ instances: [] });
   });
 
-  it.fails('add persists instance; first add into empty registry auto-sets default (D-15)', async () => {
+  it('add persists instance; first add into empty registry auto-sets default (D-15)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     const registry = InstanceManager.loadRegistry();
@@ -53,7 +53,7 @@ describe('InstanceManager', () => {
     expect(registry.default).toBe('prod');
   });
 
-  it.fails('add with duplicate name fails with structured error — no merge/overwrite (CTX-04)', async () => {
+  it('add with duplicate name fails with structured error — no merge/overwrite (CTX-04)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     await expect(
@@ -61,7 +61,7 @@ describe('InstanceManager', () => {
     ).rejects.toThrow(CoolifyApiError);
   });
 
-  it.fails('list returns registry entries in insertion order (CTX-04 ordering stable)', async () => {
+  it('list returns registry entries in insertion order (CTX-04 ordering stable)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     await InstanceManager.add(stagingInstance);
@@ -69,7 +69,7 @@ describe('InstanceManager', () => {
     expect(entries.map((e) => e.name)).toEqual(['prod', 'staging']);
   });
 
-  it.fails('set-default on already-default name is idempotent no-op (CTX-04 idempotency)', async () => {
+  it('set-default on already-default name is idempotent no-op (CTX-04 idempotency)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     await InstanceManager.setDefault('prod');
@@ -77,14 +77,14 @@ describe('InstanceManager', () => {
     expect(registry.default).toBe('prod');
   });
 
-  it.fails('set-default on unknown name throws COOLIFY_INSTANCE_NOT_FOUND (D-16)', async () => {
+  it('set-default on unknown name throws COOLIFY_INSTANCE_NOT_FOUND (D-16)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await expect(InstanceManager.setDefault('missing')).rejects.toMatchObject({
       envelope: { code: 'COOLIFY_INSTANCE_NOT_FOUND' },
     });
   });
 
-  it.fails('delete with confirm:true removes entry (D-04)', async () => {
+  it('delete with confirm:true removes entry (D-04)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     await InstanceManager.add(stagingInstance);
@@ -93,7 +93,7 @@ describe('InstanceManager', () => {
     expect(registry.instances.map((i) => i.name)).toEqual(['prod']);
   });
 
-  it.fails('delete on default or last instance without force throws structured error (D-04)', async () => {
+  it('delete on default or last instance without force throws structured error (D-04)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     await expect(
@@ -101,7 +101,7 @@ describe('InstanceManager', () => {
     ).rejects.toThrow(CoolifyApiError);
   });
 
-  it.fails('saveRegistry creates dir with 0o700 and file with 0o600 via chmodSync override (CTX-08)', async () => {
+  it('saveRegistry creates dir with 0o700 and file with 0o600 via chmodSync override (CTX-08)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     const dirStat = statSync(registryDir);
@@ -112,7 +112,7 @@ describe('InstanceManager', () => {
     expect(fileStat.mode & 0o777).toBe(0o600);
   });
 
-  it.fails('saveRegistry uses temp file + rename; concurrent saves serialized by in-memory lock (CTX-09)', async () => {
+  it('saveRegistry uses temp file + rename; concurrent saves serialized by in-memory lock (CTX-09)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await Promise.all([
       InstanceManager.add(sampleInstance),
@@ -125,7 +125,7 @@ describe('InstanceManager', () => {
     expect(existsSync(`${filePath}.tmp`)).toBe(false);
   });
 
-  it.fails('list redacts token as *** unless reveal:true (CTX-08)', async () => {
+  it('list redacts token as *** unless reveal:true (CTX-08)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     const masked = InstanceManager.list();
@@ -136,7 +136,7 @@ describe('InstanceManager', () => {
 });
 
 describe('resolveCredentials', () => {
-  it.fails('explicit instance param wins over env (D-10/D-11)', async () => {
+  it('explicit instance param wins over env (D-10/D-11)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     const creds = InstanceManager.resolveCredentials('prod', {
@@ -147,7 +147,7 @@ describe('resolveCredentials', () => {
     expect(creds.token).toBe('prod-token-secret');
   });
 
-  it.fails('env both-set overrides registry default (CTX-05 adjacency)', async () => {
+  it('env both-set overrides registry default (CTX-05 adjacency)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);
     const creds = InstanceManager.resolveCredentials(undefined, {
@@ -158,20 +158,29 @@ describe('resolveCredentials', () => {
     expect(creds.token).toBe('env-token');
   });
 
-  it.fails('partial env (only URL or only TOKEN) throws COOLIFY_PARTIAL_ENV (D-13)', async () => {
+  it('partial env (only URL or only TOKEN) throws COOLIFY_PARTIAL_ENV (D-13)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
-    await expect(
-      InstanceManager.resolveCredentials(undefined, { COOLIFY_URL: 'https://only-url.example.com' }),
-    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } });
-    await expect(
-      InstanceManager.resolveCredentials(undefined, { COOLIFY_TOKEN: 'only-token' }),
-    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } });
+    try {
+      InstanceManager.resolveCredentials(undefined, { COOLIFY_URL: 'https://only-url.example.com' });
+      expect.fail('expected COOLIFY_PARTIAL_ENV');
+    } catch (error) {
+      expect(error).toMatchObject({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } });
+    }
+    try {
+      InstanceManager.resolveCredentials(undefined, { COOLIFY_TOKEN: 'only-token' });
+      expect.fail('expected COOLIFY_PARTIAL_ENV');
+    } catch (error) {
+      expect(error).toMatchObject({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } });
+    }
   });
 
-  it.fails('no param, no env, no default throws COOLIFY_NO_INSTANCE (CTX-05 / D-18/D-20)', async () => {
+  it('no param, no env, no default throws COOLIFY_NO_INSTANCE (CTX-05 / D-18/D-20)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
-    await expect(
-      InstanceManager.resolveCredentials(undefined, {}),
-    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_NO_INSTANCE' } });
+    try {
+      InstanceManager.resolveCredentials(undefined, {});
+      expect.fail('expected COOLIFY_NO_INSTANCE');
+    } catch (error) {
+      expect(error).toMatchObject({ envelope: { code: 'COOLIFY_NO_INSTANCE' } });
+    }
   });
 });
