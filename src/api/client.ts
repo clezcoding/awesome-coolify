@@ -511,6 +511,91 @@ export async function deleteDatabase(
   });
 }
 
+export async function fetchDatabaseBackups(
+  url: string,
+  token: string,
+  databaseUuid: string,
+  verifySsl = true,
+): Promise<unknown[]> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(`/databases/${databaseUuid}/backups`, {
+    method: 'GET',
+  });
+  return Array.isArray(result) ? result : [];
+}
+
+export async function createDatabaseBackup(
+  url: string,
+  token: string,
+  databaseUuid: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<{ uuid: string; message: string }> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(`/databases/${databaseUuid}/backups`, {
+    method: 'POST',
+    body: payload,
+  }) as Promise<{ uuid: string; message: string }>;
+}
+
+export async function updateDatabaseBackup(
+  url: string,
+  token: string,
+  databaseUuid: string,
+  scheduledBackupUuid: string,
+  payload: unknown,
+  verifySsl = true,
+): Promise<{ message: string }> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(
+    `/databases/${databaseUuid}/backups/${scheduledBackupUuid}`,
+    {
+      method: 'PATCH',
+      body: payload,
+    },
+  ) as Promise<{ message: string }>;
+}
+
+export async function deleteDatabaseBackup(
+  url: string,
+  token: string,
+  databaseUuid: string,
+  scheduledBackupUuid: string,
+  deleteS3 = false,
+  verifySsl = true,
+): Promise<{ message: string }> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  return client(
+    `/databases/${databaseUuid}/backups/${scheduledBackupUuid}`,
+    {
+      method: 'DELETE',
+      query: { delete_s3: deleteS3 },
+    },
+  ) as Promise<{ message: string }>;
+}
+
+export async function fetchBackupExecutions(
+  url: string,
+  token: string,
+  databaseUuid: string,
+  scheduledBackupUuid: string,
+  verifySsl = true,
+): Promise<{ executions: unknown[] }> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(
+    `/databases/${databaseUuid}/backups/${scheduledBackupUuid}/executions`,
+    { method: 'GET' },
+  );
+  if (
+    result &&
+    typeof result === 'object' &&
+    Array.isArray((result as { executions?: unknown }).executions)
+  ) {
+    return { executions: (result as { executions: unknown[] }).executions };
+  }
+  return { executions: [] };
+}
+
 export async function fetchApplicationEnvs(
   url: string,
   token: string,
