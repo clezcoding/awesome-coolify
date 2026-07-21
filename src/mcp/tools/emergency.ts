@@ -21,6 +21,10 @@ import { logsAvailableHint } from '../../utils/diagnose-hints.js';
 import { pollDeploymentUntilTerminal } from '../../utils/deploy-poll.js';
 import { projectDeploymentSummary } from '../../utils/projections.js';
 import type { FollowUpHint } from '../../utils/diagnose-hints.js';
+import {
+  parseWithInstanceRouting,
+  resolveRoutingEnv,
+} from './shared-read-params.js';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -283,14 +287,15 @@ export async function handleEmergencyAction(
   env: EnvConfig,
 ): Promise<EmergencyActionResult> {
   try {
-    const parsed = emergencyToolSchema.parse(args);
+    const parsed = parseWithInstanceRouting(emergencyToolSchema, args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'stop_all': {
         const raw = await fetchResources(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const runningApps = mapRunningApps(raw);
         await validateConfirmGate('stop_all', parsed.confirm, runningApps);
@@ -305,10 +310,10 @@ export async function handleEmergencyAction(
         for (const app of runningApps) {
           try {
             await triggerAppStop(
-              env.COOLIFY_URL,
-              env.COOLIFY_TOKEN,
+              routingEnv.COOLIFY_URL,
+              routingEnv.COOLIFY_TOKEN,
               app.uuid,
-              env.COOLIFY_VERIFY_SSL,
+              routingEnv.COOLIFY_VERIFY_SSL,
             );
             results.push({
               uuid: app.uuid,
@@ -338,15 +343,15 @@ export async function handleEmergencyAction(
         const projectUuid = await resolveProjectUuid(
           parsed.project_uuid,
           parsed.project_name,
-          env,
+          routingEnv,
         );
         const [raw, environmentIds] = await Promise.all([
           fetchResources(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           ),
-          resolveProjectEnvironmentIds(projectUuid, env),
+          resolveProjectEnvironmentIds(projectUuid, routingEnv),
         ]);
         const projectApps = mapProjectApps(raw, projectUuid, environmentIds);
         await validateConfirmGate(
@@ -372,11 +377,11 @@ export async function handleEmergencyAction(
         for (const app of projectApps) {
           try {
             const deployRaw = await triggerDeploy(
-              env.COOLIFY_URL,
-              env.COOLIFY_TOKEN,
+              routingEnv.COOLIFY_URL,
+              routingEnv.COOLIFY_TOKEN,
               app.uuid,
               parsed.force,
-              env.COOLIFY_VERIFY_SSL,
+              routingEnv.COOLIFY_VERIFY_SSL,
             );
             const deploymentUuid = extractDeploymentUuid(deployRaw);
 
@@ -392,10 +397,10 @@ export async function handleEmergencyAction(
             if (parsed.wait && deploymentUuid) {
               const fetcher = async () => {
                 const dep = await fetchDeployment(
-                  env.COOLIFY_URL,
-                  env.COOLIFY_TOKEN,
+                  routingEnv.COOLIFY_URL,
+                  routingEnv.COOLIFY_TOKEN,
                   deploymentUuid,
-                  env.COOLIFY_VERIFY_SSL,
+                  routingEnv.COOLIFY_VERIFY_SSL,
                 );
                 return (isRecord(dep) ? dep : {}) as Record<string, unknown>;
               };
@@ -441,15 +446,15 @@ export async function handleEmergencyAction(
         const projectUuid = await resolveProjectUuid(
           parsed.project_uuid,
           parsed.project_name,
-          env,
+          routingEnv,
         );
         const [raw, environmentIds] = await Promise.all([
           fetchResources(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           ),
-          resolveProjectEnvironmentIds(projectUuid, env),
+          resolveProjectEnvironmentIds(projectUuid, routingEnv),
         ]);
         const projectApps = mapProjectApps(raw, projectUuid, environmentIds);
         await validateConfirmGate(
@@ -468,10 +473,10 @@ export async function handleEmergencyAction(
         for (const app of projectApps) {
           try {
             await triggerAppRestart(
-              env.COOLIFY_URL,
-              env.COOLIFY_TOKEN,
+              routingEnv.COOLIFY_URL,
+              routingEnv.COOLIFY_TOKEN,
               app.uuid,
-              env.COOLIFY_VERIFY_SSL,
+              routingEnv.COOLIFY_VERIFY_SSL,
             );
             results.push({
               uuid: app.uuid,

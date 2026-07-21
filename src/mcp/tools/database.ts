@@ -52,6 +52,8 @@ import {
 import { redactSecrets } from '../../utils/redact.js';
 import {
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
+  safeParseWithInstanceRouting,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import { generateHints } from '../../utils/diagnose-hints.js';
@@ -1039,8 +1041,8 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
   });
 }
 
-function parseDatabaseAction(args: unknown): DatabaseAction {
-  const parsed = databaseActionSchema.safeParse(args);
+function parseDatabaseAction(args: unknown): DatabaseAction & { instance?: string } {
+  const parsed = safeParseWithInstanceRouting(databaseActionSchema, args);
   if (!parsed.success) {
     throwValidationError(parsed.error, args);
   }
@@ -2020,44 +2022,45 @@ export async function handleDatabaseAction(
 ): Promise<DatabaseActionResult> {
   try {
     const parsed = parseDatabaseAction(args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'create':
-        return await handleDatabaseCreate(parsed, env);
+        return await handleDatabaseCreate(parsed, routingEnv);
       case 'update':
-        return await handleDatabaseUpdate(parsed, env);
+        return await handleDatabaseUpdate(parsed, routingEnv);
       case 'delete':
-        return await handleDatabaseDelete(parsed, env);
+        return await handleDatabaseDelete(parsed, routingEnv);
       case 'delete_preview':
-        return await handleDatabaseDeletePreview(parsed, env);
+        return await handleDatabaseDeletePreview(parsed, routingEnv);
       case 'envs:list':
-        return await handleDatabaseEnvsList(parsed, env);
+        return await handleDatabaseEnvsList(parsed, routingEnv);
       case 'envs:get':
-        return await handleDatabaseEnvsGet(parsed, env);
+        return await handleDatabaseEnvsGet(parsed, routingEnv);
       case 'envs:create':
-        return await handleDatabaseEnvsCreate(parsed, env);
+        return await handleDatabaseEnvsCreate(parsed, routingEnv);
       case 'envs:update':
-        return await handleDatabaseEnvsUpdate(parsed, env);
+        return await handleDatabaseEnvsUpdate(parsed, routingEnv);
       case 'envs:delete':
-        return await handleDatabaseEnvsDelete(parsed, env);
+        return await handleDatabaseEnvsDelete(parsed, routingEnv);
       case 'envs:bulk-update':
-        return await handleDatabaseEnvsBulkUpdate(parsed, env);
+        return await handleDatabaseEnvsBulkUpdate(parsed, routingEnv);
       case 'backup:create':
-        return await handleDatabaseBackupCreate(parsed, env);
+        return await handleDatabaseBackupCreate(parsed, routingEnv);
       case 'backup:list':
-        return await handleDatabaseBackupList(parsed, env);
+        return await handleDatabaseBackupList(parsed, routingEnv);
       case 'backup:history':
-        return await handleDatabaseBackupHistory(parsed, env);
+        return await handleDatabaseBackupHistory(parsed, routingEnv);
       case 'backup:update':
-        return await handleDatabaseBackupUpdate(parsed, env);
+        return await handleDatabaseBackupUpdate(parsed, routingEnv);
       case 'backup:delete':
-        return await handleDatabaseBackupDelete(parsed, env);
+        return await handleDatabaseBackupDelete(parsed, routingEnv);
       case 'backup:now':
-        return await handleDatabaseBackupNow(parsed, env);
+        return await handleDatabaseBackupNow(parsed, routingEnv);
       case 'start':
       case 'stop':
       case 'restart':
-        return await handleDatabaseMutation(parsed, env);
+        return await handleDatabaseMutation(parsed, routingEnv);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
@@ -2066,13 +2069,13 @@ export async function handleDatabaseAction(
 
         rejectTableFormatOnFullProjection(parsed.format, projection);
 
-        const resolvedUuid = await resolveDatabaseUuid(parsed, env);
+        const resolvedUuid = await resolveDatabaseUuid(parsed, routingEnv);
 
         const raw = await fetchDatabase(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           resolvedUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const rawRecord = isRecord(raw) ? raw : {};
@@ -2085,7 +2088,7 @@ export async function handleDatabaseAction(
             : undefined,
         );
 
-        const lookup = await buildProjectEnvironmentIndex(env);
+        const lookup = await buildProjectEnvironmentIndex(routingEnv);
         const data =
           projection === 'full'
             ? {

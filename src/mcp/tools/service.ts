@@ -52,6 +52,8 @@ import {
 import { redactSecrets } from '../../utils/redact.js';
 import {
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
+  safeParseWithInstanceRouting,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import { generateHints } from '../../utils/diagnose-hints.js';
@@ -770,8 +772,8 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
   });
 }
 
-function parseServiceAction(args: unknown): ServiceAction {
-  const parsed = serviceActionSchema.safeParse(args);
+function parseServiceAction(args: unknown): ServiceAction & { instance?: string } {
+  const parsed = safeParseWithInstanceRouting(serviceActionSchema, args);
   if (!parsed.success) {
     throwValidationError(parsed.error, args);
   }
@@ -1637,34 +1639,35 @@ export async function handleServiceAction(
 ): Promise<ServiceActionResult> {
   try {
     const parsed = parseServiceAction(args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'create':
-        return await handleServiceCreate(parsed, env);
+        return await handleServiceCreate(parsed, routingEnv);
       case 'update':
-        return await handleServiceUpdate(parsed, env);
+        return await handleServiceUpdate(parsed, routingEnv);
       case 'delete':
-        return await handleServiceDelete(parsed, env);
+        return await handleServiceDelete(parsed, routingEnv);
       case 'delete_preview':
-        return await handleServiceDeletePreview(parsed, env);
+        return await handleServiceDeletePreview(parsed, routingEnv);
       case 'start':
       case 'stop':
       case 'restart':
-        return await handleServiceMutation(parsed, env);
+        return await handleServiceMutation(parsed, routingEnv);
       case 'deploy':
-        return await handleServiceDeploy(parsed, env);
+        return await handleServiceDeploy(parsed, routingEnv);
       case 'envs:list':
-        return await handleServiceEnvsList(parsed, env);
+        return await handleServiceEnvsList(parsed, routingEnv);
       case 'envs:get':
-        return await handleServiceEnvsGet(parsed, env);
+        return await handleServiceEnvsGet(parsed, routingEnv);
       case 'envs:create':
-        return await handleServiceEnvsCreate(parsed, env);
+        return await handleServiceEnvsCreate(parsed, routingEnv);
       case 'envs:update':
-        return await handleServiceEnvsUpdate(parsed, env);
+        return await handleServiceEnvsUpdate(parsed, routingEnv);
       case 'envs:delete':
-        return await handleServiceEnvsDelete(parsed, env);
+        return await handleServiceEnvsDelete(parsed, routingEnv);
       case 'envs:bulk-update':
-        return await handleServiceEnvsBulkUpdate(parsed, env);
+        return await handleServiceEnvsBulkUpdate(parsed, routingEnv);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
@@ -1674,10 +1677,10 @@ export async function handleServiceAction(
         rejectTableFormatOnFullProjection(parsed.format, projection);
 
         const raw = await fetchService(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const rawRecord = isRecord(raw) ? raw : {};
@@ -1691,7 +1694,7 @@ export async function handleServiceAction(
             : undefined,
         );
 
-        const lookup = await buildProjectEnvironmentIndex(env);
+        const lookup = await buildProjectEnvironmentIndex(routingEnv);
         const data =
           projection === 'full'
             ? {
