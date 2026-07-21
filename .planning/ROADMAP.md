@@ -54,7 +54,7 @@ Full phase details: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 
 ### Phase 999.1: Feasibility Audit — Milestone-Ideen Jul 2026 (BACKLOG)
 
-**Gate:** Start only after **v2.0 Creation & CRUD** (Phases 8–13) is fully complete.
+**Gate:** ✅ v2.0 shipped 2026-07-21 — eligible for promotion via `/gsd-review-backlog`.
 
 **Goal:** Capture explore-session feasibility findings for four post-v2.0 ideas; use as input for v3.0 milestone scoping.
 
@@ -75,7 +75,7 @@ Full phase details: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 
 Plans:
 
-- [ ] TBD (promote with `/gsd-review-backlog` after v2.0 ships)
+- [ ] TBD (promote with `/gsd-review-backlog`)
 
 ---
 *Last updated: 2026-07-21 after v2.0 milestone shipped*
