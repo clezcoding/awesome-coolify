@@ -2517,6 +2517,28 @@ describe('application envs:sync', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_SECRET_VALUE);
   });
 
+  it('dry_run:true with prune:true without confirm throws COOLIFY_CONFIRM_REQUIRED per D-07', async () => {
+    vi.mocked(readFileSync).mockReturnValue('DATABASE_URL=local-value');
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_file: '.env.sync-test',
+        dry_run: true,
+        prune: true,
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(fetchEnvs).not.toHaveBeenCalled();
+  });
+
   it('apply path without confirm throws COOLIFY_CONFIRM_REQUIRED per D-12', async () => {
     vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value');
 
