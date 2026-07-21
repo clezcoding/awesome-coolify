@@ -241,7 +241,7 @@ export function registerCoolifyTools(
     'application',
     {
       description:
-        'Application lifecycle, deploy, log, and environment-variable actions (get, start, stop, restart, deploy, logs, envs:list, envs:get, envs:create, envs:update, envs:delete, envs:bulk-update, envs:sync) — list via resource tool. envs:delete, envs:bulk-update, and envs:sync apply/prune require confirm:true. envs:sync accepts XOR env_file|env_content; dry_run defaults false (apply); optional prune with confirm; conflict_policy overwrite|keep_remote|abort when values conflict. Env values masked as *** by default; pass reveal:true only after asking the human — do not persist revealed secrets. Log line content is not masked and may contain secrets printed by the application; do not persist logs to long-term storage.',
+        'Application lifecycle, deploy, log, and environment-variable actions (get, start, stop, restart, deploy, logs, envs:list, envs:get, envs:create, envs:update, envs:delete, envs:bulk-update, envs:sync) — list via resource tool. envs:delete, envs:bulk-update, and envs:sync apply/prune require confirm:true. envs:sync accepts XOR env_file|env_content; dry_run defaults false (apply); optional prune with confirm; conflict_policy overwrite|keep_remote|abort when values conflict (abort skips conflicted keys only — other writes still apply). Env values masked as *** by default; pass reveal:true only after asking the human — do not persist revealed secrets. Log line content is not masked and may contain secrets printed by the application; do not persist logs to long-term storage.',
       inputSchema: applicationActionSchema,
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },

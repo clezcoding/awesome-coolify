@@ -795,7 +795,7 @@ const envsSyncActionSchema = requireMutationIdentifier(
         ])
         .optional()
         .describe(
-          'How to resolve value conflicts on apply — ask human if unset (D-08)',
+          'How to resolve value conflicts on apply — ask human if unset (D-08). abort skips conflicted keys only; non-conflicted writes still apply.',
         ),
       ...envParentFields,
     })
