@@ -11,7 +11,11 @@ import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
 import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
 import { createLogger } from '../../utils/logger.js';
 import { isDatabaseRawType } from '../../utils/projections.js';
-import { sharedReadParamsSchema } from './shared-read-params.js';
+import {
+  parseWithInstanceRouting,
+  resolveRoutingEnv,
+  sharedReadParamsSchema,
+} from './shared-read-params.js';
 
 export const systemActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('health') }),
@@ -112,32 +116,33 @@ function countByStatus(
 }
 
 export async function handleSystemAction(
-  args: SystemAction,
+  args: unknown,
   env: EnvConfig,
 ): Promise<SystemActionResult> {
-  const parsed = systemActionSchema.parse(args);
-  const logger = createLogger(env.COOLIFY_MCP_LOG);
-
   try {
+    const parsed = parseWithInstanceRouting(systemActionSchema, args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
+    const logger = createLogger(routingEnv.COOLIFY_MCP_LOG);
+
     switch (parsed.action) {
       case 'health': {
         logger.httpDebug('/api/health', 0);
         await fetchHealth(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         return {
           connected: true,
-          host: hostnameFromUrl(env.COOLIFY_URL),
+          host: hostnameFromUrl(routingEnv.COOLIFY_URL),
         };
       }
       case 'version': {
         logger.httpDebug('/api/v1/version', 0);
         const versionData = await fetchVersion(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const version =
           typeof versionData === 'object' &&
@@ -150,9 +155,9 @@ export async function handleSystemAction(
       case 'verify': {
         logger.httpDebug('/api/v1/version', 0);
         const versionData = await fetchVersion(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const coolifyVersion =
           typeof versionData === 'object' &&
@@ -162,26 +167,26 @@ export async function handleSystemAction(
             : String(versionData);
         return {
           connected: true,
-          host: hostnameFromUrl(env.COOLIFY_URL),
+          host: hostnameFromUrl(routingEnv.COOLIFY_URL),
           coolifyVersion,
         };
       }
       case 'infrastructure_overview': {
         const [rawResources, rawServers, rawProjects] = await Promise.all([
           fetchResources(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           ),
           fetchServers(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           ),
           fetchProjects(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           ),
         ]);
 

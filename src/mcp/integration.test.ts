@@ -1,11 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve, join } from 'node:path';
 import type { EnvConfig } from '../config/env.js';
 import { handleSystemAction } from './tools/system.js';
 import { handleResourceAction } from './tools/resource.js';
 import { handleApplicationAction } from './tools/application.js';
 import { handleDocsAction } from './tools/docs.js';
+import { InstanceManager } from '../utils/instance-registry.js';
 
 vi.mock('../api/client.js', () => ({
   fetchResources: vi.fn(),
@@ -13,6 +15,7 @@ vi.mock('../api/client.js', () => ({
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
   fetchApplication: vi.fn(),
+  fetchHealth: vi.fn(),
   createCoolifyClient: vi.fn(),
 }));
 
@@ -22,6 +25,7 @@ import {
   fetchProjects,
   fetchProject,
   fetchApplication,
+  fetchHealth,
   createCoolifyClient,
 } from '../api/client.js';
 
@@ -174,6 +178,8 @@ describe('P2 read slice integration', () => {
 });
 
 describe('CTX-06 multi-instance routing', () => {
+  let registryDir: string;
+
   const emptyEnv: EnvConfig = {
     COOLIFY_URL: undefined as unknown as string,
     COOLIFY_TOKEN: undefined as unknown as string,
@@ -181,11 +187,50 @@ describe('CTX-06 multi-instance routing', () => {
     COOLIFY_MCP_LOG: 'info',
   };
 
-  it.fails('application.get with instance prod routes to prod creds', async () => {
+  beforeEach(() => {
+    registryDir = mkdtempSync(join(tmpdir(), 'coolify-mcp-int-'));
+    process.env.COOLIFY_MCP_TEST_REGISTRY_DIR = registryDir;
+    vi.mocked(createCoolifyClient).mockReset();
+  });
+
+  afterEach(() => {
+    delete process.env.COOLIFY_MCP_TEST_REGISTRY_DIR;
+    rmSync(registryDir, { recursive: true, force: true });
+  });
+
+  function mockFetchWithClientCapture(
+    fetchFn: typeof fetchResources,
+    returnValue: unknown,
+  ): Array<{ url: string; token: string }> {
+    const captured: Array<{ url: string; token: string }> = [];
+    vi.mocked(fetchFn).mockImplementation(async (url, token, verifySsl) => {
+      createCoolifyClient(url, token, verifySsl);
+      captured.push({ url, token });
+      return returnValue as never;
+    });
+    return captured;
+  }
+
+  describe('named instance routes to registry creds', () => {
+    beforeEach(async () => {
+      await InstanceManager.add({
+        name: 'prod',
+        url: 'https://prod.coolify.example.com',
+        token: 'prod-token',
+        type: 'self-hosted',
+        verifySsl: true,
+      });
+    });
+
+    it('application.get with instance prod routes to prod creds', async () => {
     const captured: Array<{ url: string; token: string }> = [];
     vi.mocked(createCoolifyClient).mockImplementation((url, token) => {
       captured.push({ url, token });
       return vi.fn() as ReturnType<typeof createCoolifyClient>;
+    });
+    vi.mocked(fetchApplication).mockImplementation(async (url, token, _uuid, verifySsl) => {
+      createCoolifyClient(url, token, verifySsl);
+      return mockApplication;
     });
 
     await handleApplicationAction(
@@ -197,6 +242,34 @@ describe('CTX-06 multi-instance routing', () => {
       url: 'https://prod.coolify.example.com',
       token: 'prod-token',
     });
+  });
+
+  it('resource.find with instance prod routes to prod creds', async () => {
+    const resourceCaptured = mockFetchWithClientCapture(fetchResources, []);
+    mockFetchWithClientCapture(fetchServers, []);
+    mockFetchWithClientCapture(fetchProjects, []);
+
+    await handleResourceAction(
+      { action: 'find', query: 'test', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(resourceCaptured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('system.health with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchHealth, { ok: true });
+
+    await handleSystemAction({ action: 'health', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
   });
 
   it('application.get with instance unknown returns COOLIFY_INSTANCE_NOT_FOUND', async () => {

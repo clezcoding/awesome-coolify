@@ -5,7 +5,11 @@ import { buildProjectEnvironmentIndex } from '../../utils/project-lookup.js';
 import { projectResourceSummary, type ResourceSummary } from '../../utils/projections.js';
 import { buildReadResponse, paginateArray, type ReadResponse } from '../../utils/formatters.js';
 import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
-import { sharedReadParamsSchema } from './shared-read-params.js';
+import {
+  parseWithInstanceRouting,
+  resolveRoutingEnv,
+  sharedReadParamsSchema,
+} from './shared-read-params.js';
 
 export const resourceActionSchema = z.discriminatedUnion('action', [
   z.object({
@@ -213,19 +217,20 @@ export function rankFindMatches(
 }
 
 export async function handleResourceAction(
-  args: ResourceAction,
+  args: unknown,
   env: EnvConfig,
 ): Promise<ResourceActionResult> {
-  const parsed = resourceActionSchema.parse(args);
-
   try {
+    const parsed = parseWithInstanceRouting(resourceActionSchema, args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
+
     switch (parsed.action) {
       case 'list': {
         if (parsed.type === 'server') {
           const rawServers = await fetchServers(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           );
           const projected = rawServers
             .filter(isRecord)
@@ -248,9 +253,9 @@ export async function handleResourceAction(
 
         if (parsed.type === 'project') {
           const rawProjects = await fetchProjects(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           );
           const projected = rawProjects
             .filter(isRecord)
@@ -273,9 +278,9 @@ export async function handleResourceAction(
 
         if (parsed.type === 'environment') {
           const rawProjects = await fetchProjects(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           );
           const projected: EnvironmentSummary[] = [];
           for (const raw of rawProjects) {
@@ -308,11 +313,11 @@ export async function handleResourceAction(
         }
 
         const rawResources = await fetchResources(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
-        const lookup = await buildProjectEnvironmentIndex(env);
+        const lookup = await buildProjectEnvironmentIndex(routingEnv);
         const projected = rawResources
           .filter(isRecord)
           .map((raw) => projectResourceSummary(raw, lookup));
@@ -350,18 +355,18 @@ export async function handleResourceAction(
 
         const [rawResources, rawServers] = await Promise.all([
           fetchResources(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           ),
           fetchServers(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_VERIFY_SSL,
           ),
         ]);
 
-        const lookup = await buildProjectEnvironmentIndex(env);
+        const lookup = await buildProjectEnvironmentIndex(routingEnv);
         const projectedResources = rawResources
           .filter(isRecord)
           .map((raw) => projectResourceSummary(raw, lookup)) as FindableResource[];
