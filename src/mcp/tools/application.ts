@@ -2500,6 +2500,14 @@ async function handleApplicationEnvsSync(
       data: { invalid_keys: parsedEnv.invalidKeys },
     });
   }
+  if (parsedEnv.duplicateKeys.length > 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Duplicate env key(s) in file: ${parsedEnv.duplicateKeys.join(', ')}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      data: { duplicate_keys: parsedEnv.duplicateKeys },
+    });
+  }
   const local = parsedEnv.entries;
   const baseline = await fetchEnvs(
     'application',

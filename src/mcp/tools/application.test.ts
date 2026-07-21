@@ -2455,6 +2455,42 @@ describe('application envs:sync', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
   });
 
+  it('throws COOLIFY_VALIDATION_ERROR for invalid env key names', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_content: 'MY-KEY=bad\nVALID=ok',
+        dry_run: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(fetchEnvs).not.toHaveBeenCalled();
+  });
+
+  it('throws COOLIFY_VALIDATION_ERROR for duplicate env keys', async () => {
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: 'app-uuid-1',
+        env_content: 'DUP=first\nDUP=second',
+        dry_run: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(fetchEnvs).not.toHaveBeenCalled();
+  });
+
   it('dry_run:true returns diff without writing per D-06', async () => {
     vi.mocked(readFileSync).mockReturnValue('NEW_KEY=new-value\nDATABASE_URL=local-value');
 

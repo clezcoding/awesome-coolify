@@ -36,6 +36,20 @@ describe('parseEnvFile', () => {
     const result = parseEnvFile('SPACED="  padded  "');
     expect(result).toEqual([{ key: 'SPACED', value: '  padded  ' }]);
   });
+
+  it('parseEnvFileDetailed reports invalid key names', async () => {
+    const { parseEnvFileDetailed } = await import('./env-parser.js');
+    const result = parseEnvFileDetailed('MY-KEY=bad\nVALID=ok');
+    expect(result.invalidKeys).toEqual(['MY-KEY']);
+    expect(result.entries).toEqual([{ key: 'VALID', value: 'ok' }]);
+  });
+
+  it('parseEnvFileDetailed reports duplicate keys', async () => {
+    const { parseEnvFileDetailed } = await import('./env-parser.js');
+    const result = parseEnvFileDetailed('DUP=first\nDUP=second');
+    expect(result.duplicateKeys).toEqual(['DUP']);
+    expect(result.entries).toEqual([{ key: 'DUP', value: 'second' }]);
+  });
 });
 
 describe('diffEnvs', () => {
