@@ -2708,8 +2708,18 @@ async function handleApplicationEnvsSync(
     });
   }
 
+  const handledConflictKeys = new Set([
+    ...appliedUpdates,
+    ...appliedCreates.map((entry) => entry.key),
+    ...kept_remote.map((entry) => String(entry.key)),
+    ...aborted.map((entry) => String(entry.key)),
+  ]);
+  const remainingConflicts = conflicts.filter(
+    (conflict) => !handledConflictKeys.has(conflict.key),
+  );
+
   return buildReadResponse(
-    buildSyncDisposition(diff, conflicts, {
+    buildSyncDisposition(diff, remainingConflicts, {
       dry_run: false,
       ...(kept_remote.length > 0 ? { kept_remote } : {}),
       ...(aborted.length > 0 ? { aborted } : {}),
