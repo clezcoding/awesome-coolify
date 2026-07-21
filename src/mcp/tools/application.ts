@@ -2478,7 +2478,17 @@ async function handleApplicationEnvsSync(
   const content =
     typeof parsed.env_file === 'string' && parsed.env_file.length > 0
       ? readBoundedEnvFile(parsed.env_file)
-      : parsed.env_content!;
+      : (() => {
+          const envContent = parsed.env_content ?? '';
+          if (Buffer.byteLength(envContent, 'utf8') > ENV_FILE_SIZE_LIMIT) {
+            throw new CoolifyApiError({
+              code: 'COOLIFY_VALIDATION_ERROR',
+              message: 'env_content exceeds 1 MiB limit',
+              recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+            });
+          }
+          return envContent;
+        })();
 
   const local = parseEnvFile(content);
   const baseline = await fetchEnvs(
