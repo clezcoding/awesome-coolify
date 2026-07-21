@@ -139,17 +139,22 @@ describe('MCP server tool registration', () => {
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
-    for (const tool of [
-      'resource',
-      'application',
-      'service',
-      'database',
-      'docs',
-    ]) {
+    // Read-only tools: system/meta/resource/docs. Mutable domain tools must not match.
+    for (const tool of ['system', 'meta', 'resource', 'docs']) {
       expect(source).toContain(`registerTool(\n    '${tool}'`);
-      expect(source).toMatch(
-        new RegExp(`'${tool}'[\\s\\S]*readOnlyHint:\\s*true`),
-      );
+      const start = source.indexOf(`registerTool(\n    '${tool}'`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = source.indexOf('registerTool(', start + 1);
+      const toolBlock = next === -1 ? source.slice(start) : source.slice(start, next);
+      expect(toolBlock).toMatch(/readOnlyHint:\s*true/);
+    }
+    for (const tool of ['application', 'service', 'database']) {
+      expect(source).toContain(`registerTool(\n    '${tool}'`);
+      const start = source.indexOf(`registerTool(\n    '${tool}'`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = source.indexOf('registerTool(', start + 1);
+      const toolBlock = next === -1 ? source.slice(start) : source.slice(start, next);
+      expect(toolBlock).not.toMatch(/readOnlyHint:\s*true/);
     }
   });
 
