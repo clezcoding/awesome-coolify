@@ -2464,6 +2464,26 @@ async function handleApplicationEnvsSync(
       : parsed.env_content!;
 
   const local = parseEnvFile(content);
+  const baseline = await fetchEnvs(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const diff = diffEnvs(local, baseline);
+  const valueConflicts = buildValueConflicts(diff);
+
+  if (parsed.dry_run) {
+    return buildReadResponse(
+      buildSyncDisposition(diff, valueConflicts, { dry_run: true }),
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    );
+  }
+
   const remote = await fetchEnvs(
     'application',
     env.COOLIFY_URL,
@@ -2471,10 +2491,6 @@ async function handleApplicationEnvsSync(
     uuid,
     env.COOLIFY_VERIFY_SSL,
   );
-  const baseline = remote;
-  const diff = diffEnvs(local, remote);
-  const valueConflicts = buildValueConflicts(diff);
-
   const outOfBandResult = parsed.conflict_policy
     ? detectConflicts(local, remote, baseline, parsed.conflict_policy)
     : detectConflicts(local, remote, baseline, 'abort');
@@ -2486,16 +2502,6 @@ async function handleApplicationEnvsSync(
             all.findIndex((entry) => entry.key === conflict.key) === index,
         )
       : valueConflicts;
-
-  if (parsed.dry_run) {
-    return buildReadResponse(
-      buildSyncDisposition(diff, conflicts, { dry_run: true }),
-      {
-        format: parsed.format,
-        max_chars: parsed.max_chars,
-      },
-    );
-  }
 
   validateSyncConflictPolicy(conflicts, parsed.conflict_policy, uuid);
 
