@@ -153,7 +153,7 @@ describe('P2 read slice integration', () => {
       'utf8',
     );
     const readOnlyCount = (source.match(/readOnlyHint:\s*true/g) ?? []).length;
-    expect(readOnlyCount).toBe(4);
+    expect(readOnlyCount).toBe(5);
 
     for (const tool of ['resource', 'docs']) {
       expect(source).toContain(`registerTool(\n    '${tool}'`);

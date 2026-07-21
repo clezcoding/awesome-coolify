@@ -40,6 +40,11 @@ import {
   privateKeyActionSchema,
 } from './tools/private_key.js';
 import {
+  handleInstanceAction,
+  isInstanceErrorResult,
+  instanceActionSchema,
+} from './tools/instance.js';
+import {
   handleServerAction,
   isServerErrorResult,
   serverActionSchema,
@@ -111,6 +116,7 @@ export const toolOutputSchema = z.object({
       page: z.number().optional(),
       per_page: z.number().optional(),
       total: z.number().optional(),
+      envOverride: z.boolean().optional(),
     })
     .optional(),
   _formattedText: z.string().optional(),
@@ -407,6 +413,37 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handlePrivateKeyAction(args, env);
       if (isPrivateKeyErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'instance',
+    {
+      description:
+        'Multi-instance registry CRUD (list, get, add, update, delete, set-default, import-env) for ~/.coolify-mcp/instances.json. Tokens masked as *** unless reveal:true — do not persist revealed secrets. delete requires confirm:true; deleting the default or last instance requires force:true. import-env opt-in copies COOLIFY_URL+COOLIFY_TOKEN from process env — never auto-run. No instance routing param — ops always target the local registry file (D-03).',
+      inputSchema: instanceActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { readOnlyHint: true },
+    },
+    async (args) => {
+      const result = await handleInstanceAction(args);
+      if (isInstanceErrorResult(result)) {
         return {
           ...result,
           structuredContent: {
