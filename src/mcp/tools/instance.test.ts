@@ -142,6 +142,35 @@ describe('instance tool', () => {
     expect(revealed).toMatchObject({ data: { token: 'prod-token-secret' } });
   });
 
+  it('handleInstanceAction add rejects masked token placeholder *** (WR-01)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+    const result = await handleInstanceAction(
+      { ...sampleAddPayload, token: '***' },
+      testEnv,
+    );
+    expect(isInstanceErrorResult(result)).toBe(true);
+    if (!isInstanceErrorResult(result)) return;
+    expect(result.structuredContent.error?.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error?.message).toMatch(/masked placeholder/i);
+
+    const list = await handleInstanceAction({ action: 'list' }, testEnv);
+    expect(isInstanceErrorResult(list)).toBe(false);
+    if (isInstanceErrorResult(list)) return;
+    expect(list.data).toEqual([]);
+  });
+
+  it('handleInstanceAction import-env rejects masked COOLIFY_TOKEN *** (WR-01)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+    const result = await handleInstanceAction(
+      { action: 'import-env' },
+      { ...testEnv, COOLIFY_TOKEN: '***' },
+    );
+    expect(isInstanceErrorResult(result)).toBe(true);
+    if (!isInstanceErrorResult(result)) return;
+    expect(result.structuredContent.error?.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error?.message).toMatch(/masked placeholder/i);
+  });
+
   it('handleInstanceAction delete without confirm throws COOLIFY_CONFIRM_REQUIRED (D-04)', async () => {
     const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);

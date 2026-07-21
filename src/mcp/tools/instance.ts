@@ -204,6 +204,17 @@ function deriveImportName(url: string): string {
   return 'imported';
 }
 
+function rejectMaskedToken(token: string): void {
+  if (token === '***') {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message:
+        'Cannot persist masked placeholder token *** — pass the real token (use reveal:true on get if needed)',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+}
+
 function withEnvOverrideMeta<T extends ReadResponse<unknown>>(
   response: T,
   env?: EnvConfig,
@@ -240,6 +251,7 @@ export async function handleInstanceAction(
       }
 
       case 'add': {
+        rejectMaskedToken(parsed.token);
         let instance: Instance;
         try {
           instance = await InstanceManager.add(parsed);
@@ -256,14 +268,7 @@ export async function handleInstanceAction(
         const patch: Partial<Omit<Instance, 'name'>> = {};
         if (parsed.url !== undefined) patch.url = parsed.url;
         if (parsed.token !== undefined) {
-          if (parsed.token === '***') {
-            throw new CoolifyApiError({
-              code: 'COOLIFY_VALIDATION_ERROR',
-              message:
-                'Cannot update token with masked placeholder — omit token or pass reveal:true on get first',
-              recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
-            });
-          }
+          rejectMaskedToken(parsed.token);
           patch.token = parsed.token;
         }
         if (parsed.type !== undefined) patch.type = parsed.type;
@@ -289,6 +294,7 @@ export async function handleInstanceAction(
 
       case 'import-env': {
         const creds = resolveEnvCredentials(env);
+        rejectMaskedToken(creds.token);
         const name = parsed.name ?? deriveImportName(creds.url);
         let instance: Instance;
         try {
