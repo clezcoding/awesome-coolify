@@ -2600,6 +2600,35 @@ async function handleApplicationEnvsSync(
       });
     }
 
+    const updatedKeys = new Set(diff.updated.map((entry) => entry.key));
+    const remoteByKey = new Map(remote.map((entry) => [entry.key, entry]));
+    for (const entry of local) {
+      if (updatedKeys.has(entry.key)) {
+        continue;
+      }
+      const remoteEntry = remoteByKey.get(entry.key);
+      if (!remoteEntry || remoteEntry.value === entry.value) {
+        continue;
+      }
+      if (policy === 'keep_remote') {
+        kept_remote.push({ key: entry.key, value: '***' });
+        continue;
+      }
+      if (policy === 'abort' && conflictKeys.has(entry.key)) {
+        aborted.push({ key: entry.key, value: '***' });
+        continue;
+      }
+
+      bulkUpdates.push({
+        key: entry.key,
+        value: entry.value,
+        is_preview: false,
+        is_literal: false,
+        is_multiline: false,
+        is_shown_once: false,
+      });
+    }
+
     if (bulkUpdates.length > 0) {
       failedAt = bulkUpdates[0]?.key ?? 'bulk-update';
       await updateEnvViaBulk(
