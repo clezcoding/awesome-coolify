@@ -1451,9 +1451,9 @@ async function handleDatabaseEnvsUpdate(
       uuid: found.uuid,
       key: found.key,
       value: parsed.value,
-      is_literal: parsed.is_literal,
-      is_multiline: parsed.is_multiline,
-      is_shown_once: parsed.is_shown_once,
+      is_literal: mergedFlags.is_literal,
+      is_multiline: mergedFlags.is_multiline,
+      is_shown_once: mergedFlags.is_shown_once,
     },
     parsed.reveal,
   );

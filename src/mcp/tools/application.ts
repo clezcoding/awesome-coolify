@@ -2096,10 +2096,7 @@ async function handleApplicationEnvsUpdate(
       uuid: found.uuid,
       key: found.key,
       value: parsed.value,
-      is_preview: parsed.is_preview,
-      is_literal: parsed.is_literal,
-      is_multiline: parsed.is_multiline,
-      is_shown_once: parsed.is_shown_once,
+      ...mergedFlags,
     },
     parsed.reveal,
   );
