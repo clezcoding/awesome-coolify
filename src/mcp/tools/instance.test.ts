@@ -3,9 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { EnvConfig } from '../../config/env.js';
-import { CoolifyApiError } from '../../utils/errors.js';
 
-// TODO: Plan 15-01 wires test-only registry path via COOLIFY_MCP_TEST_REGISTRY_DIR or constructor option
 let registryDir: string;
 
 beforeEach(() => {
@@ -39,33 +37,41 @@ const sampleAddPayload = {
 };
 
 describe('instance tool', () => {
-  it.fails('handleInstanceAction list returns registry entries with tokens redacted as ***', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction list returns registry entries with tokens redacted as ***', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
     const result = await handleInstanceAction({ action: 'list' }, testEnv);
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
     expect(result).toMatchObject({
       data: [{ name: 'prod', token: '***' }],
     });
   });
 
-  it.fails('handleInstanceAction list with reveal:true returns tokens in plaintext', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction list with reveal:true returns tokens in plaintext', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
     const result = await handleInstanceAction({ action: 'list', reveal: true }, testEnv);
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
     expect(result).toMatchObject({
       data: [{ name: 'prod', token: 'prod-token-secret' }],
     });
   });
 
-  it.fails('handleInstanceAction list includes _meta.envOverride:true when COOLIFY_URL+COOLIFY_TOKEN both set (D-17)', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction list includes _meta.envOverride:true when COOLIFY_URL+COOLIFY_TOKEN both set (D-17)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     const result = await handleInstanceAction({ action: 'list' }, testEnv);
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
     expect(result).toMatchObject({ _meta: { envOverride: true } });
   });
 
-  it.fails('handleInstanceAction add persists and returns the new entry', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction add persists and returns the new entry', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     const result = await handleInstanceAction(sampleAddPayload, testEnv);
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
     expect(result).toMatchObject({
       data: {
         name: 'prod',
@@ -75,58 +81,70 @@ describe('instance tool', () => {
     });
   });
 
-  it.fails('handleInstanceAction add with invalid name throws COOLIFY_VALIDATION_ERROR (D-08)', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
-    await expect(
-      handleInstanceAction(
-        { ...sampleAddPayload, name: 'INVALID' },
-        testEnv,
-      ),
-    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_VALIDATION_ERROR' } });
+  it('handleInstanceAction add with invalid name throws COOLIFY_VALIDATION_ERROR (D-08)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+    const result = await handleInstanceAction(
+      { ...sampleAddPayload, name: 'INVALID' },
+      testEnv,
+    );
+    expect(isInstanceErrorResult(result)).toBe(true);
+    if (!isInstanceErrorResult(result)) return;
+    expect(result.structuredContent.error?.code).toBe('COOLIFY_VALIDATION_ERROR');
   });
 
-  it.fails('handleInstanceAction get returns single entry; redacts token unless reveal:true', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction get returns single entry; redacts token unless reveal:true', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
     const masked = await handleInstanceAction({ action: 'get', name: 'prod' }, testEnv);
+    expect(isInstanceErrorResult(masked)).toBe(false);
+    if (isInstanceErrorResult(masked)) return;
     expect(masked).toMatchObject({ data: { name: 'prod', token: '***' } });
     const revealed = await handleInstanceAction(
       { action: 'get', name: 'prod', reveal: true },
       testEnv,
     );
+    expect(isInstanceErrorResult(revealed)).toBe(false);
+    if (isInstanceErrorResult(revealed)) return;
     expect(revealed).toMatchObject({ data: { name: 'prod', token: 'prod-token-secret' } });
   });
 
-  it.fails('handleInstanceAction update mutates and returns updated entry', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction update mutates and returns updated entry', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
     const result = await handleInstanceAction(
       { action: 'update', name: 'prod', url: 'https://new-prod.example.com' },
       testEnv,
     );
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
     expect(result).toMatchObject({
       data: { name: 'prod', url: 'https://new-prod.example.com' },
     });
   });
 
-  it.fails('handleInstanceAction delete without confirm throws COOLIFY_CONFIRM_REQUIRED (D-04)', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction delete without confirm throws COOLIFY_CONFIRM_REQUIRED (D-04)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
-    await expect(
-      handleInstanceAction({ action: 'delete', name: 'prod' }, testEnv),
-    ).rejects.toMatchObject({ envelope: { code: 'COOLIFY_CONFIRM_REQUIRED' } });
+    const result = await handleInstanceAction({ action: 'delete', name: 'prod' }, testEnv);
+    expect(isInstanceErrorResult(result)).toBe(true);
+    if (!isInstanceErrorResult(result)) return;
+    expect(result.structuredContent.error?.code).toBe('COOLIFY_CONFIRM_REQUIRED');
   });
 
-  it.fails('handleInstanceAction delete on default or last instance without force throws structured error (D-04)', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction delete on default or last instance without force throws structured error (D-04)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
-    await expect(
-      handleInstanceAction({ action: 'delete', name: 'prod', confirm: true }, testEnv),
-    ).rejects.toThrow(CoolifyApiError);
+    const result = await handleInstanceAction(
+      { action: 'delete', name: 'prod', confirm: true },
+      testEnv,
+    );
+    expect(isInstanceErrorResult(result)).toBe(true);
+    if (!isInstanceErrorResult(result)) return;
+    expect(result.structuredContent.error?.code).toBe('COOLIFY_VALIDATION_ERROR');
   });
 
-  it.fails('handleInstanceAction set-default updates registry.default', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction set-default updates registry.default', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
     await handleInstanceAction(
       {
@@ -140,12 +158,16 @@ describe('instance tool', () => {
       testEnv,
     );
     const result = await handleInstanceAction({ action: 'set-default', name: 'staging' }, testEnv);
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
     expect(result).toMatchObject({ data: { default: 'staging' } });
   });
 
-  it.fails('handleInstanceAction import-env imports COOLIFY_URL+COOLIFY_TOKEN from env as new entry (D-05)', async () => {
-    const { handleInstanceAction } = await loadInstanceTool();
+  it('handleInstanceAction import-env imports COOLIFY_URL+COOLIFY_TOKEN from env as new entry (D-05)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     const result = await handleInstanceAction({ action: 'import-env' }, testEnv);
+    expect(isInstanceErrorResult(result)).toBe(false);
+    if (isInstanceErrorResult(result)) return;
     expect(result).toMatchObject({
       data: {
         name: expect.any(String),
@@ -155,7 +177,7 @@ describe('instance tool', () => {
     });
   });
 
-  it.fails('handleInstanceAction never accepts instance routing param — schema rejects it (D-03)', async () => {
+  it('handleInstanceAction never accepts instance routing param — schema rejects it (D-03)', async () => {
     const { instanceActionSchema } = await loadInstanceTool();
     const parsed = instanceActionSchema.safeParse({
       action: 'list',

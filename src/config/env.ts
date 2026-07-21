@@ -1,10 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
+import { CoolifyApiError, RECOVERY_HINTS } from '../utils/errors.js';
 
 const envSchema = z.object({
-  COOLIFY_URL: z.string().url(),
-  COOLIFY_TOKEN: z.string().min(1),
+  COOLIFY_URL: z.string().url().optional(),
+  COOLIFY_TOKEN: z.string().min(1).optional(),
   COOLIFY_VERIFY_SSL: z
     .preprocess((val) => val !== 'false', z.boolean())
     .default(true),
@@ -73,7 +74,20 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): EnvConfig {
   // Only auto-load .env when callers use the real process.env (host/CLI).
   // Unit tests pass plain objects and must not touch the filesystem.
   const resolved = source === process.env ? mergeDotEnv(process.env) : source;
-  return envSchema.parse(resolved);
+  const parsed = envSchema.parse(resolved);
+
+  const hasUrl = Boolean(parsed.COOLIFY_URL);
+  const hasToken = Boolean(parsed.COOLIFY_TOKEN);
+  if (hasUrl !== hasToken) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_PARTIAL_ENV',
+      message:
+        'Partial environment configuration: both COOLIFY_URL and COOLIFY_TOKEN must be set, or neither',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_PARTIAL_ENV,
+    });
+  }
+
+  return parsed;
 }
 
 export function formatEnvLoadHint(error: unknown): string {
@@ -82,9 +96,12 @@ export function formatEnvLoadHint(error: unknown): string {
   return [
     base,
     '',
-    'COOLIFY_URL and COOLIFY_TOKEN are required.',
-    'Ways to provide them (same contract as production MCP hosts):',
+    'COOLIFY_URL and COOLIFY_TOKEN are optional for soft-start (D-18).',
+    'When both are set, they override the registry default at call time.',
+    'When neither is set, use the instance tool: instance.add or instance.import-env.',
+    'Ways to provide credentials (same contract as production MCP hosts):',
     '  1. IDE/host mcp.json `env` block (Cursor/Claude/Codex) — preferred',
     '  2. Project `.env` file (see .env.example) — for bare CLI',
+    '  3. instance.add / instance.import-env — persists to ~/.coolify-mcp/instances.json',
   ].join('\n');
 }
