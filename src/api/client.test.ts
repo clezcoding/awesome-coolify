@@ -1575,7 +1575,7 @@ describe('fetchDatabaseBackups', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('GET /databases/{uuid}/backups returns array', async () => {
+  it('GET /databases/{uuid}/backups returns array', async () => {
     expect(clientCrud.fetchDatabaseBackups).toBeTypeOf('function');
     const schedules = [
       {
@@ -1605,7 +1605,7 @@ describe('fetchDatabaseBackups', () => {
     expect(result).toEqual(schedules);
   });
 
-  it.fails('returns empty array when response is not an array', async () => {
+  it('returns empty array when response is not an array', async () => {
     expect(clientCrud.fetchDatabaseBackups).toBeTypeOf('function');
     fetchMock.mockResolvedValueOnce(
       Response.json({ data: [] }, { status: 200 }),
@@ -1627,7 +1627,7 @@ describe('fetchDatabaseBackups', () => {
     expect(result).toEqual([]);
   });
 
-  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+  it('throws CoolifyApiError on HTTP error via mapApiError', async () => {
     expect(clientCrud.fetchDatabaseBackups).toBeTypeOf('function');
     fetchMock.mockImplementation(() =>
       Promise.resolve(new Response('Not Found', { status: 404 })),
@@ -1658,7 +1658,7 @@ describe('createDatabaseBackup', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('POST /databases/{uuid}/backups with payload returns uuid and message', async () => {
+  it('POST /databases/{uuid}/backups with payload returns uuid and message', async () => {
     expect(clientCrud.createDatabaseBackup).toBeTypeOf('function');
     const payload = { frequency: 'daily', save_s3: false };
     const response = {
@@ -1689,7 +1689,7 @@ describe('createDatabaseBackup', () => {
     expect(result).toEqual(response);
   });
 
-  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+  it('throws CoolifyApiError on HTTP error via mapApiError', async () => {
     expect(clientCrud.createDatabaseBackup).toBeTypeOf('function');
     fetchMock.mockImplementation(() =>
       Promise.resolve(new Response('Unprocessable', { status: 422 })),
@@ -1726,7 +1726,7 @@ describe('updateDatabaseBackup', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('PATCH /databases/{uuid}/backups/{scheduled_backup_uuid} with payload', async () => {
+  it('PATCH /databases/{uuid}/backups/{scheduled_backup_uuid} with payload', async () => {
     expect(clientCrud.updateDatabaseBackup).toBeTypeOf('function');
     const payload = { frequency: 'hourly', backup_now: true };
     fetchMock.mockResolvedValueOnce(
@@ -1759,7 +1759,7 @@ describe('updateDatabaseBackup', () => {
     expect(result).toEqual({ message: 'Backup schedule updated.' });
   });
 
-  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+  it('throws CoolifyApiError on HTTP error via mapApiError', async () => {
     expect(clientCrud.updateDatabaseBackup).toBeTypeOf('function');
     fetchMock.mockImplementation(() =>
       Promise.resolve(new Response('Not Found', { status: 404 })),
@@ -1798,7 +1798,7 @@ describe('deleteDatabaseBackup', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('DELETE /databases/{uuid}/backups/{scheduled_backup_uuid} with delete_s3=false by default', async () => {
+  it('DELETE /databases/{uuid}/backups/{scheduled_backup_uuid} with delete_s3=false by default', async () => {
     expect(clientCrud.deleteDatabaseBackup).toBeTypeOf('function');
     fetchMock.mockResolvedValueOnce(
       Response.json({ message: 'Backup schedule deleted.' }, { status: 200 }),
@@ -1829,7 +1829,7 @@ describe('deleteDatabaseBackup', () => {
     expect(result).toEqual({ message: 'Backup schedule deleted.' });
   });
 
-  it.fails('DELETE forwards delete_s3=true when explicitly passed', async () => {
+  it('DELETE forwards delete_s3=true when explicitly passed', async () => {
     expect(clientCrud.deleteDatabaseBackup).toBeTypeOf('function');
     fetchMock.mockResolvedValueOnce(
       Response.json({ message: 'Backup schedule deleted.' }, { status: 200 }),
@@ -1857,7 +1857,7 @@ describe('deleteDatabaseBackup', () => {
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
   });
 
-  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+  it('throws CoolifyApiError on HTTP error via mapApiError', async () => {
     expect(clientCrud.deleteDatabaseBackup).toBeTypeOf('function');
     fetchMock.mockImplementation(() =>
       Promise.resolve(new Response('Not Found', { status: 404 })),
@@ -1895,7 +1895,7 @@ describe('fetchBackupExecutions', () => {
     vi.unstubAllGlobals();
   });
 
-  it.fails('GET /databases/{uuid}/backups/{scheduled_backup_uuid}/executions returns executions envelope', async () => {
+  it('GET /databases/{uuid}/backups/{scheduled_backup_uuid}/executions returns executions envelope', async () => {
     expect(clientCrud.fetchBackupExecutions).toBeTypeOf('function');
     const response = {
       executions: [
@@ -1934,7 +1934,7 @@ describe('fetchBackupExecutions', () => {
     expect(Array.isArray(result.executions)).toBe(true);
   });
 
-  it.fails('throws CoolifyApiError on HTTP error via mapApiError', async () => {
+  it('throws CoolifyApiError on HTTP error via mapApiError', async () => {
     expect(clientCrud.fetchBackupExecutions).toBeTypeOf('function');
     fetchMock.mockImplementation(() =>
       Promise.resolve(new Response('Not Found', { status: 404 })),
