@@ -7,6 +7,12 @@ import { handleSystemAction } from './tools/system.js';
 import { handleResourceAction } from './tools/resource.js';
 import { handleApplicationAction } from './tools/application.js';
 import { handleDocsAction } from './tools/docs.js';
+import { handlePrivateKeyAction } from './tools/private_key.js';
+import { handleProjectAction } from './tools/project.js';
+import { handleServiceAction } from './tools/service.js';
+import { handleDatabaseAction } from './tools/database.js';
+import { handleEmergencyAction } from './tools/emergency.js';
+import { handleDeploymentAction } from './tools/deployment.js';
 import { InstanceManager } from '../utils/instance-registry.js';
 
 vi.mock('../api/client.js', () => ({
@@ -16,6 +22,11 @@ vi.mock('../api/client.js', () => ({
   fetchProject: vi.fn(),
   fetchApplication: vi.fn(),
   fetchHealth: vi.fn(),
+  fetchPrivateKeys: vi.fn(),
+  fetchService: vi.fn(),
+  fetchDatabase: vi.fn(),
+  fetchAppDeployments: vi.fn(),
+  triggerAppStop: vi.fn(),
   createCoolifyClient: vi.fn(),
 }));
 
@@ -26,6 +37,11 @@ import {
   fetchProject,
   fetchApplication,
   fetchHealth,
+  fetchPrivateKeys,
+  fetchService,
+  fetchDatabase,
+  fetchAppDeployments,
+  triggerAppStop,
   createCoolifyClient,
 } from '../api/client.js';
 
@@ -264,6 +280,93 @@ describe('CTX-06 multi-instance routing', () => {
     const captured = mockFetchWithClientCapture(fetchHealth, { ok: true });
 
     await handleSystemAction({ action: 'health', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('private_key.list with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchPrivateKeys, []);
+
+    await handlePrivateKeyAction({ action: 'list', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('project.list with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchProjects, []);
+
+    await handleProjectAction({ action: 'list', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('service.get with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchService, {
+      uuid: 'svc-uuid-1',
+      name: 'worker',
+      status: 'running:healthy',
+    });
+
+    await handleServiceAction(
+      { action: 'get', uuid: 'svc-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('database.get with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchDatabase, {
+      uuid: 'db-uuid-1',
+      name: 'postgres',
+      status: 'running:healthy',
+    });
+
+    await handleDatabaseAction(
+      { action: 'get', uuid: 'db-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('emergency.stop_all with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchResources, []);
+    vi.mocked(triggerAppStop).mockResolvedValue(undefined);
+
+    await handleEmergencyAction(
+      { action: 'stop_all', confirm: true, instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('deployment.list with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchAppDeployments, []);
+
+    await handleDeploymentAction(
+      { action: 'list', application_uuid: 'app-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
 
     expect(captured).toContainEqual({
       url: 'https://prod.coolify.example.com',

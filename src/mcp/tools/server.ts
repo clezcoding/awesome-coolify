@@ -18,7 +18,9 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import {
@@ -305,7 +307,8 @@ export async function handleServerAction(
   env: EnvConfig,
 ): Promise<ServerActionResult> {
   try {
-    const parsed = serverActionSchema.parse(args);
+    const parsed = parseWithInstanceRouting(serverActionSchema, args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'get': {
@@ -317,17 +320,17 @@ export async function handleServerAction(
         rejectTableFormatOnFullProjection(parsed.format, projection);
 
         const raw = await fetchServer(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const rawRecord = isRecord(raw) ? raw : {};
 
         const keys = await fetchPrivateKeys(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const privateKeyUuid = resolvePrivateKeyUuidFromId(
           keys,
@@ -347,8 +350,8 @@ export async function handleServerAction(
 
       case 'create': {
         const created = await createServer(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           {
             name: parsed.name,
             ip: parsed.ip,
@@ -362,7 +365,7 @@ export async function handleServerAction(
               ? { proxy_type: parsed.proxy_type }
               : {}),
           },
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const createdRecord = isRecord(created) ? created : {};
@@ -382,7 +385,7 @@ export async function handleServerAction(
         }
 
         const validation = await runValidationCycle(
-          env,
+          routingEnv,
           uuid,
           DEFAULT_VALIDATE_TIMEOUT_MS,
         );
@@ -403,11 +406,11 @@ export async function handleServerAction(
         const payload = buildUpdatePayload(parsed);
 
         const updated = await updateServer(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
           payload,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const updatedRecord = isRecord(updated) ? updated : {};
@@ -435,10 +438,10 @@ export async function handleServerAction(
         const deleteVolumes = parsed.delete_volumes ?? false;
 
         await deleteServer(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
           deleteVolumes,
         );
 
@@ -458,10 +461,10 @@ export async function handleServerAction(
 
       case 'delete_preview': {
         const resources = await fetchServerResources(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const childResources = resources.filter(isRecord).map((resource) => ({
@@ -489,7 +492,7 @@ export async function handleServerAction(
 
       case 'validate': {
         const timeoutMs = (parsed.timeout ?? DEFAULT_VALIDATE_TIMEOUT_SEC) * 1000;
-        const validation = await runValidationCycle(env, parsed.uuid, timeoutMs);
+        const validation = await runValidationCycle(routingEnv, parsed.uuid, timeoutMs);
 
         return buildReadResponse(
           {

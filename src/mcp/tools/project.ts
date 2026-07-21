@@ -19,6 +19,8 @@ import {
 } from '../../utils/errors.js';
 import {
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
+  safeParseWithInstanceRouting,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import {
@@ -187,8 +189,10 @@ function throwValidationError(error: z.ZodError): never {
   });
 }
 
-function parseProjectAction(args: unknown): ProjectAction {
-  const parsed = projectActionSchema.safeParse(args);
+function parseProjectAction(
+  args: unknown,
+): ProjectAction & { instance?: string } {
+  const parsed = safeParseWithInstanceRouting(projectActionSchema, args);
   if (!parsed.success) {
     throwValidationError(parsed.error);
   }
@@ -314,13 +318,14 @@ export async function handleProjectAction(
 ): Promise<ProjectActionResult> {
   try {
     const parsed = parseProjectAction(args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'list': {
         const rawProjects = await fetchProjects(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const summaries = rawProjects
@@ -351,14 +356,14 @@ export async function handleProjectAction(
         const projectUuid = await resolveProjectIdentifier(
           parsed.uuid,
           parsed.name,
-          env,
+          routingEnv,
         );
 
         const raw = await fetchProject(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const rawRecord = isRecord(raw) ? raw : {};
 
@@ -385,20 +390,20 @@ export async function handleProjectAction(
         }
 
         const created = await createProject(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           {
             name: parsed.name,
             ...(parsed.description ? { description: parsed.description } : {}),
           },
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const createdRecord = isRecord(created) ? created : {};
         const projectUuid = String(createdRecord.uuid ?? '');
 
         const { environment, environments } = await ensureInitialEnvironment(
-          env,
+          routingEnv,
           projectUuid,
           initialEnv,
         );
@@ -429,7 +434,7 @@ export async function handleProjectAction(
         const projectUuid = await resolveProjectIdentifier(
           parsed.uuid,
           lookupName,
-          env,
+          routingEnv,
         );
 
         const payload: { name?: string; description?: string } = {};
@@ -445,11 +450,11 @@ export async function handleProjectAction(
         }
 
         const updated = await updateProject(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
           payload,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const updatedRecord = isRecord(updated) ? updated : {};
@@ -472,16 +477,16 @@ export async function handleProjectAction(
         const projectUuid = await resolveProjectIdentifier(
           parsed.uuid,
           parsed.name,
-          env,
+          routingEnv,
         );
 
         validateDeleteConfirm(parsed.confirm, projectUuid);
 
         const rawEnvironments = await fetchEnvironments(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const envRecords = rawEnvironments.filter(isRecord);
 
@@ -498,10 +503,10 @@ export async function handleProjectAction(
         }
 
         await deleteProject(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         return buildReadResponse(
@@ -517,14 +522,14 @@ export async function handleProjectAction(
         const projectUuid = await resolveProjectIdentifier(
           parsed.uuid,
           parsed.name,
-          env,
+          routingEnv,
         );
 
         const rawEnvironments = await fetchEnvironments(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const envRecords = rawEnvironments.filter(isRecord);
         const environmentUuids = envRecords.map((entry) => String(entry.uuid ?? ''));
