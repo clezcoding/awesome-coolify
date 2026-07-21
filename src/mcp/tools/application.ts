@@ -2547,11 +2547,19 @@ async function handleApplicationEnvsSync(
 
   const policy = parsed.conflict_policy!;
   const conflictKeys = new Set(conflicts.map((conflict) => conflict.key));
+  const baselineByKey = new Map(baseline.map((entry) => [entry.key, entry]));
   const kept_remote: Array<Record<string, unknown>> = [];
   const aborted: Array<Record<string, unknown>> = [];
   const pruned: Array<Record<string, unknown>> = [];
   const bulkUpdates: EnvBulkEntry[] = [];
   const appliedCreates: Array<{ key: string; env_uuid: string }> = [];
+  const appliedUpdates: string[] = [];
+  const appliedPrunes: Array<{
+    key: string;
+    env_uuid: string;
+    restore: EnvBulkEntry;
+  }> = [];
+  let bulkRollbackEntries: EnvBulkEntry[] = [];
   let failedAt: string | undefined;
 
   try {
@@ -2630,6 +2638,17 @@ async function handleApplicationEnvsSync(
     }
 
     if (bulkUpdates.length > 0) {
+      bulkRollbackEntries = bulkUpdates.map((entry) => {
+        const baselineEntry = baselineByKey.get(entry.key);
+        return {
+          key: entry.key,
+          value: baselineEntry?.value ?? entry.value,
+          is_preview: baselineEntry?.is_preview ?? false,
+          is_literal: baselineEntry?.is_literal ?? false,
+          is_multiline: baselineEntry?.is_multiline ?? false,
+          is_shown_once: baselineEntry?.is_shown_once ?? false,
+        };
+      });
       failedAt = bulkUpdates[0]?.key ?? 'bulk-update';
       await updateEnvViaBulk(
         'application',
@@ -2639,11 +2658,13 @@ async function handleApplicationEnvsSync(
         bulkUpdates,
         env.COOLIFY_VERIFY_SSL,
       );
+      appliedUpdates.push(...bulkUpdates.map((entry) => entry.key));
     }
 
     if (parsed.prune && policy === 'overwrite') {
       for (const entry of diff.removed) {
         const remoteEntry = remote.find((item) => item.key === entry.key);
+        const baselineEntry = baselineByKey.get(entry.key);
         const envUuid = remoteEntry?.uuid ?? entry.uuid;
         if (!envUuid) {
           continue;
@@ -2659,6 +2680,20 @@ async function handleApplicationEnvsSync(
           env.COOLIFY_VERIFY_SSL,
         );
         pruned.push({ key: entry.key, env_uuid: envUuid });
+        appliedPrunes.push({
+          key: entry.key,
+          env_uuid: envUuid,
+          restore: {
+            key: entry.key,
+            value: baselineEntry?.value ?? remoteEntry?.value ?? '',
+            is_preview: baselineEntry?.is_preview ?? remoteEntry?.is_preview ?? false,
+            is_literal: baselineEntry?.is_literal ?? remoteEntry?.is_literal ?? false,
+            is_multiline:
+              baselineEntry?.is_multiline ?? remoteEntry?.is_multiline ?? false,
+            is_shown_once:
+              baselineEntry?.is_shown_once ?? remoteEntry?.is_shown_once ?? false,
+          },
+        });
       }
     }
   } catch (error) {
@@ -2677,8 +2712,40 @@ async function handleApplicationEnvsSync(
       }
     }
 
+    if (bulkRollbackEntries.length > 0) {
+      try {
+        await updateEnvViaBulk(
+          'application',
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          uuid,
+          bulkRollbackEntries,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      } catch {
+        // best-effort rollback of bulk updates
+      }
+    }
+
+    for (const applied of [...appliedPrunes].reverse()) {
+      try {
+        await createEnv(
+          'application',
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          uuid,
+          applied.restore,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      } catch {
+        // best-effort rollback of partial prunes
+      }
+    }
+
     const partialData = {
       applied: appliedCreates.map(({ key, env_uuid }) => ({ key, env_uuid })),
+      applied_updates: appliedUpdates.map((key) => ({ key })),
+      pruned: appliedPrunes.map(({ key, env_uuid }) => ({ key, env_uuid })),
       ...(failedAt ? { failed_at: failedAt } : {}),
     };
 
