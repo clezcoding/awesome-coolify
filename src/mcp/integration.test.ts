@@ -13,6 +13,9 @@ import { handleServiceAction } from './tools/service.js';
 import { handleDatabaseAction } from './tools/database.js';
 import { handleEmergencyAction } from './tools/emergency.js';
 import { handleDeploymentAction } from './tools/deployment.js';
+import { handleDiagnoseAction } from './tools/diagnose.js';
+import { handleServerAction } from './tools/server.js';
+import { handleEnvironmentAction } from './tools/environment.js';
 import { InstanceManager } from '../utils/instance-registry.js';
 
 vi.mock('../api/client.js', () => ({
@@ -28,6 +31,9 @@ vi.mock('../api/client.js', () => ({
   fetchAppDeployments: vi.fn(),
   triggerAppStop: vi.fn(),
   createCoolifyClient: vi.fn(),
+  fetchServer: vi.fn(),
+  fetchEnvironments: vi.fn(),
+  fetchEnvironment: vi.fn(),
 }));
 
 import {
@@ -43,6 +49,9 @@ import {
   fetchAppDeployments,
   triggerAppStop,
   createCoolifyClient,
+  fetchServer,
+  fetchEnvironments,
+  fetchEnvironment,
 } from '../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -366,6 +375,48 @@ describe('CTX-06 multi-instance routing', () => {
 
     await handleDeploymentAction(
       { action: 'list', application_uuid: 'app-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('diagnose.scan with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchServers, []);
+    mockFetchWithClientCapture(fetchResources, []);
+
+    await handleDiagnoseAction({ action: 'scan', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('server.get with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchServer, {});
+    mockFetchWithClientCapture(fetchPrivateKeys, []);
+
+    await handleServerAction(
+      { action: 'get', uuid: 'server-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('environment.list with instance prod routes to prod creds', async () => {
+    mockFetchWithClientCapture(fetchProject, { uuid: 'proj-uuid-1', name: 'proj-a' });
+    const captured = mockFetchWithClientCapture(fetchEnvironments, []);
+
+    await handleEnvironmentAction(
+      { action: 'list', project_uuid: 'proj-uuid-1', instance: 'prod' },
       emptyEnv,
     );
 
