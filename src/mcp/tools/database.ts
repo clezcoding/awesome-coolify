@@ -14,6 +14,8 @@ import {
   deleteDatabase,
   deleteEnv,
   createDatabaseBackup,
+  updateDatabaseBackup,
+  deleteDatabaseBackup,
   fetchDatabaseBackups,
   fetchBackupExecutions,
   fetchDatabase,
@@ -70,8 +72,11 @@ import {
 } from './env-shared.js';
 import {
   backupFrequencyCreateSchema,
+  backupFrequencyUpdateSchema,
   buildBackupCreatePayload,
+  buildBackupUpdatePayload,
   maskBackupConfig,
+  validateBackupDeleteConfirm,
 } from './backup-shared.js';
 
 const DATABASE_IDENTIFIER_FIELDS = ['uuid', 'name'] as const;
@@ -665,6 +670,92 @@ const backupHistoryActionSchema = requireDatabaseIdentifier(
   'backup:history',
 );
 
+const backupUpdateActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('backup:update'),
+      scheduled_backup_uuid: z
+        .string()
+        .describe('Backup schedule UUID to update'),
+      frequency: backupFrequencyUpdateSchema
+        .optional()
+        .describe('Backup frequency preset (cron not allowed on update)'),
+      enabled: z.boolean().optional().describe('Enable or disable schedule'),
+      save_s3: z.boolean().optional().describe('Upload backups to S3'),
+      s3_storage_uuid: z
+        .string()
+        .optional()
+        .describe('S3 storage destination UUID (required when save_s3: true)'),
+      databases_to_backup: z
+        .string()
+        .optional()
+        .describe('Comma-separated database names to backup'),
+      dump_all: z
+        .boolean()
+        .optional()
+        .describe('Dump all databases on the server'),
+      database_backup_retention_amount_locally: z.number().int().optional(),
+      database_backup_retention_days_locally: z.number().int().optional(),
+      database_backup_retention_max_storage_locally: z
+        .string()
+        .optional(),
+      database_backup_retention_amount_s3: z.number().int().optional(),
+      database_backup_retention_days_s3: z.number().int().optional(),
+      database_backup_retention_max_storage_s3: z.string().optional(),
+      timeout: z.number().int().optional().describe('Backup timeout in seconds'),
+      ...backupParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      if (data.save_s3 === true && !data.s3_storage_uuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'save_s3: true requires s3_storage_uuid — COOLIFY_VALIDATION_ERROR',
+          path: ['s3_storage_uuid'],
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }),
+  'backup:update',
+);
+
+const backupDeleteActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('backup:delete'),
+      uuid: z.string().optional().describe('Database UUID'),
+      name: z.string().optional().describe('Database name substring'),
+      scheduled_backup_uuid: z
+        .string()
+        .describe('Backup schedule UUID to delete'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for backup delete'),
+      delete_s3: z
+        .boolean()
+        .default(false)
+        .describe('Also delete S3 backup artifacts (default false)'),
+      ...mutationResponseParamsSchema,
+    })
+    .strict(),
+  'backup:delete',
+);
+
+const backupNowActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('backup:now'),
+      scheduled_backup_uuid: z
+        .string()
+        .describe('Backup schedule UUID to trigger'),
+      ...backupParentFields,
+    })
+    .strict(),
+  'backup:now',
+);
+
 const envsBulkUpdateActionSchema = requireDatabaseIdentifier(
   z
     .object({
@@ -749,6 +840,9 @@ export const databaseActionSchema = z.discriminatedUnion('action', [
   backupCreateActionSchema,
   backupListActionSchema,
   backupHistoryActionSchema,
+  backupUpdateActionSchema,
+  backupDeleteActionSchema,
+  backupNowActionSchema,
 ]);
 
 export type DatabaseAction = z.infer<typeof databaseActionSchema>;
@@ -849,6 +943,26 @@ export type DatabaseBackupHistoryResult = ReadResponse<{
   }>;
 }> & { recoveryHints?: string[] };
 
+export type DatabaseBackupUpdateResult = ReadResponse<{
+  scheduled_backup_uuid: string;
+  schedule: Record<string, unknown>;
+  updated: true;
+}> & { recoveryHints?: string[] };
+
+export type DatabaseBackupDeleteResult = ReadResponse<{
+  ok: true;
+  scheduled_backup_uuid: string;
+  deleted: true;
+  delete_s3: boolean;
+}>;
+
+export type DatabaseBackupNowResult = ReadResponse<{
+  scheduled_backup_uuid: string;
+  triggered: true;
+  message?: string;
+  uuid?: string;
+}>;
+
 export type DatabaseActionResult =
   | DatabaseGetResult
   | DatabaseMutationResult
@@ -865,6 +979,9 @@ export type DatabaseActionResult =
   | DatabaseBackupCreateResult
   | DatabaseBackupListResult
   | DatabaseBackupHistoryResult
+  | DatabaseBackupUpdateResult
+  | DatabaseBackupDeleteResult
+  | DatabaseBackupNowResult
   | McpErrorResult;
 
 type DatabaseMatchable = FindableResource & { environment_name: string };
@@ -888,6 +1005,9 @@ type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
 type BackupCreateAction = z.infer<typeof backupCreateActionSchema>;
 type BackupListAction = z.infer<typeof backupListActionSchema>;
 type BackupHistoryAction = z.infer<typeof backupHistoryActionSchema>;
+type BackupUpdateAction = z.infer<typeof backupUpdateActionSchema>;
+type BackupDeleteAction = z.infer<typeof backupDeleteActionSchema>;
+type BackupNowAction = z.infer<typeof backupNowActionSchema>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -903,6 +1023,7 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
     isRecord(args) &&
     (args.action === 'create' ||
       args.action === 'update' ||
+      args.action === 'backup:update' ||
       (typeof args.action === 'string' && args.action.startsWith('envs:')))
   ) {
     code = 'COOLIFY_VALIDATION_ERROR';
@@ -1780,6 +1901,119 @@ async function handleDatabaseBackupHistory(
   );
 }
 
+async function handleDatabaseBackupUpdate(
+  parsed: BackupUpdateAction,
+  env: EnvConfig,
+): Promise<DatabaseBackupUpdateResult> {
+  const dbUuid = await resolveDatabaseUuid(parsed, env);
+  const payload = buildBackupUpdatePayload(parsed);
+
+  await updateDatabaseBackup(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    dbUuid,
+    parsed.scheduled_backup_uuid,
+    payload,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const schedules = await fetchDatabaseBackups(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    dbUuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const updated = schedules.find(
+    (schedule) => schedule.uuid === parsed.scheduled_backup_uuid,
+  );
+
+  const masked = maskBackupConfig(updated ?? {}, parsed.reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      {
+        scheduled_backup_uuid: parsed.scheduled_backup_uuid,
+        schedule: masked,
+        updated: true as const,
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    parsed.reveal,
+  );
+}
+
+async function handleDatabaseBackupDelete(
+  parsed: BackupDeleteAction,
+  env: EnvConfig,
+): Promise<DatabaseBackupDeleteResult> {
+  const dbUuid = await resolveDatabaseUuid(parsed, env);
+
+  validateBackupDeleteConfirm(
+    parsed.confirm,
+    parsed.delete_s3,
+    dbUuid,
+    parsed.scheduled_backup_uuid,
+  );
+
+  await deleteDatabaseBackup(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    dbUuid,
+    parsed.scheduled_backup_uuid,
+    parsed.delete_s3,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return buildReadResponse(
+    {
+      ok: true as const,
+      scheduled_backup_uuid: parsed.scheduled_backup_uuid,
+      deleted: true as const,
+      delete_s3: parsed.delete_s3,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+async function handleDatabaseBackupNow(
+  parsed: BackupNowAction,
+  env: EnvConfig,
+): Promise<DatabaseBackupNowResult> {
+  const dbUuid = await resolveDatabaseUuid(parsed, env);
+
+  const raw = await updateDatabaseBackup(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    dbUuid,
+    parsed.scheduled_backup_uuid,
+    { backup_now: true },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const response = isRecord(raw) ? raw : {};
+
+  return buildReadResponse(
+    {
+      scheduled_backup_uuid: parsed.scheduled_backup_uuid,
+      triggered: true as const,
+      message:
+        typeof response.message === 'string' ? response.message : undefined,
+      ...(typeof response.uuid === 'string' ? { uuid: response.uuid } : {}),
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
 export async function handleDatabaseAction(
   args: unknown,
   env: EnvConfig,
@@ -1814,6 +2048,12 @@ export async function handleDatabaseAction(
         return await handleDatabaseBackupList(parsed, env);
       case 'backup:history':
         return await handleDatabaseBackupHistory(parsed, env);
+      case 'backup:update':
+        return await handleDatabaseBackupUpdate(parsed, env);
+      case 'backup:delete':
+        return await handleDatabaseBackupDelete(parsed, env);
+      case 'backup:now':
+        return await handleDatabaseBackupNow(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':
