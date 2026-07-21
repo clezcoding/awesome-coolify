@@ -61,6 +61,14 @@ import {
   rankFindMatches,
   type FindableResource,
 } from './resource.js';
+import {
+  buildEnvBulkEntry,
+  maskEnvRecord,
+  maskEnvRecords,
+  resolveEnvIdentity,
+  validateEnvMutationConfirm,
+  withRevealRecoveryHints,
+} from './env-shared.js';
 
 const SERVICE_IDENTIFIER_FIELDS = ['uuid', 'name'] as const;
 
@@ -732,9 +740,6 @@ type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
 type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
 type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
 
-const ASK_HUMAN_REVEAL_HINT =
-  'ask_human_reveal: confirm with the human that they want revealed values before retrying with reveal: true';
-
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
     (issue) =>
@@ -1173,156 +1178,6 @@ function validateDeleteConfirm(confirm: boolean, uuid: string): void {
   });
 }
 
-function validateEnvMutationConfirm(
-  confirm: boolean,
-  action: string,
-  uuid: string,
-): void {
-  if (confirm === true) {
-    return;
-  }
-
-  throw new CoolifyApiError({
-    code: 'COOLIFY_CONFIRM_REQUIRED',
-    message: `Action '${action}' on service '${uuid}' requires explicit confirmation.`,
-    recoveryHints: RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
-    data: {
-      action,
-      uuid,
-    },
-  });
-}
-
-function maskEnvRecord(
-  env: Env,
-  reveal: boolean,
-): Record<string, unknown> {
-  const projected = sanitizeFullProjection(env, reveal) as Record<
-    string,
-    unknown
-  >;
-
-  if (!reveal && typeof projected.value === 'string') {
-    projected.value = '***';
-  }
-
-  return projected;
-}
-
-function maskEnvRecords(
-  envs: Env[],
-  reveal: boolean,
-): Array<Record<string, unknown>> {
-  return envs.map((env) => maskEnvRecord(env, reveal));
-}
-
-function withRevealRecoveryHints<T extends ReadResponse<unknown>>(
-  response: T,
-  reveal: boolean,
-): T & { recoveryHints?: string[] } {
-  if (!reveal) {
-    return response;
-  }
-
-  return {
-    ...response,
-    recoveryHints: [ASK_HUMAN_REVEAL_HINT],
-  };
-}
-
-function resolveServiceEnvIdentity(
-  envs: Env[],
-  input: { env_uuid?: string; key?: string },
-): Env {
-  if (input.env_uuid) {
-    const matches = envs.filter((env) => env.uuid === input.env_uuid);
-    if (matches.length === 0) {
-      throw new CoolifyApiError({
-        code: 'COOLIFY_404',
-        message: `No environment variable matched env_uuid '${input.env_uuid}'.`,
-        recoveryHints: [
-          'Check that the env UUID exists on this service.',
-          'Use envs:list to enumerate environment variables.',
-        ],
-      });
-    }
-    if (matches.length > 1) {
-      throw new CoolifyApiError({
-        code: 'COOLIFY_AMBIGUOUS_MATCH',
-        message:
-          'Multiple environment variables matched env_uuid — refusing to mutate.',
-        recoveryHints: [
-          'Re-run with an explicit env_uuid from envs:list.',
-        ],
-      });
-    }
-    return matches[0];
-  }
-
-  if (input.key) {
-    const matches = envs.filter((env) => env.key === input.key);
-    if (matches.length === 0) {
-      throw new CoolifyApiError({
-        code: 'COOLIFY_404',
-        message: `No environment variable matched key '${input.key}'.`,
-        recoveryHints: [
-          'Check that the env key exists on this service.',
-          'Use envs:list to enumerate environment variables.',
-        ],
-      });
-    }
-    if (matches.length > 1) {
-      throw new CoolifyApiError({
-        code: 'COOLIFY_AMBIGUOUS_MATCH',
-        message:
-          'Multiple environment variables matched key — refusing to mutate. Re-run with env_uuid.',
-        recoveryHints: [
-          'Re-run with an explicit env_uuid from envs:list.',
-          'Multiple env vars share this key — pass env_uuid directly.',
-        ],
-      });
-    }
-    return matches[0];
-  }
-
-  throw new CoolifyApiError({
-    code: 'COOLIFY_VALIDATION_ERROR',
-    message: 'At least one of env_uuid or key is required.',
-    recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
-  });
-}
-
-function buildEnvBulkEntry(
-  input: {
-    key: string;
-    value: string;
-    is_preview?: boolean;
-    is_literal?: boolean;
-    is_multiline?: boolean;
-    is_shown_once?: boolean;
-  },
-): EnvBulkEntry {
-  const entry: EnvBulkEntry = {
-    key: input.key,
-    value: input.value,
-  };
-
-  if (input.is_preview !== undefined) {
-    entry.is_preview = input.is_preview;
-  }
-  if (input.is_literal !== undefined) {
-    entry.is_literal = input.is_literal;
-  }
-  if (input.is_multiline !== undefined) {
-    entry.is_multiline = input.is_multiline;
-  }
-  if (input.is_shown_once !== undefined) {
-    entry.is_shown_once = input.is_shown_once;
-  }
-
-  return entry;
-}
-
 function buildUpdatePayload(
   parsed: UpdateAction,
   docker_compose_raw?: string,
@@ -1583,10 +1438,10 @@ async function handleServiceEnvsGet(
     uuid,
     env.COOLIFY_VERIFY_SSL,
   );
-  const found = resolveServiceEnvIdentity(envs, {
+  const found = resolveEnvIdentity(envs, {
     env_uuid: parsed.env_uuid,
     key: parsed.key,
-  });
+  }, 'service');
   const data = maskEnvRecord(found, parsed.reveal);
 
   return withRevealRecoveryHints(
@@ -1626,7 +1481,7 @@ async function handleServiceEnvsCreate(
     uuid,
     env.COOLIFY_VERIFY_SSL,
   );
-  const stored = resolveServiceEnvIdentity(envs, { env_uuid: created.uuid });
+  const stored = resolveEnvIdentity(envs, { env_uuid: created.uuid }, 'service');
 
   const data = maskEnvRecord(
     {
@@ -1667,11 +1522,11 @@ async function handleServiceEnvsUpdate(
   );
 
   if (parsed.env_uuid) {
-    const found = resolveServiceEnvIdentity(envs, { env_uuid: parsed.env_uuid });
+    const found = resolveEnvIdentity(envs, { env_uuid: parsed.env_uuid }, 'service');
     resolvedKey = found.key;
     resolvedEnvUuid = found.uuid;
   } else if (parsed.key) {
-    const found = resolveServiceEnvIdentity(envs, { key: parsed.key });
+    const found = resolveEnvIdentity(envs, { key: parsed.key }, 'service');
     resolvedKey = found.key;
     resolvedEnvUuid = found.uuid;
   }
@@ -1729,7 +1584,7 @@ async function handleServiceEnvsDelete(
   env: EnvConfig,
 ): Promise<ServiceEnvsDeleteResult> {
   const uuid = await resolveServiceMutationUuid(parsed, env);
-  validateEnvMutationConfirm(parsed.confirm, 'envs:delete', uuid);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:delete', uuid, 'service');
 
   await deleteEnv(
     'service',
@@ -1760,7 +1615,7 @@ async function handleServiceEnvsBulkUpdate(
   env: EnvConfig,
 ): Promise<ServiceEnvsBulkUpdateResult> {
   const uuid = await resolveServiceMutationUuid(parsed, env);
-  validateEnvMutationConfirm(parsed.confirm, 'envs:bulk-update', uuid);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:bulk-update', uuid, 'service');
 
   const entries = parsed.entries.map((entry) => buildEnvBulkEntry(entry));
 
