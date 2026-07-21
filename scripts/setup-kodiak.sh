@@ -54,10 +54,17 @@ fi
 
 if gh api "repos/${REPO}/branches/main/protection" >/dev/null 2>&1; then
   CI_CONTEXT="$(gh api "repos/${REPO}/branches/main/protection/required_status_checks" -q '.contexts[]' 2>/dev/null || true)"
-  if grep -qx 'Lint, Test & Build' <<<"${CI_CONTEXT}"; then
-    echo "✓ main branch protection requires CI check 'Lint, Test & Build'"
-  else
-    echo "⚠ main is protected but CI context may differ — run scripts/setup-branch-protection.sh" >&2
+  missing=0
+  for ctx in 'Lint, Test & Build' 'MegaLinter'; do
+    if grep -qx "${ctx}" <<<"${CI_CONTEXT}"; then
+      echo "✓ main branch protection requires CI check '${ctx}'"
+    else
+      echo "⚠ main protection missing required check '${ctx}' — run scripts/setup-branch-protection.sh" >&2
+      missing=1
+    fi
+  done
+  if [[ "${missing}" -ne 0 ]]; then
+    fail=1
   fi
 else
   echo "⚠ main branch protection not configured — run scripts/setup-branch-protection.sh" >&2
@@ -76,7 +83,7 @@ if [[ -n "${PR_NUMBER}" ]]; then
   echo
   echo "==> Labeling PR #${PR_NUMBER} with automerge"
   gh pr edit "${PR_NUMBER}" --add-label automerge
-  echo "✓ PR #${PR_NUMBER} labeled — Kodiak merges when 'Lint, Test & Build' passes."
+  echo "✓ PR #${PR_NUMBER} labeled — Kodiak merges when 'Lint, Test & Build' and 'MegaLinter' pass."
 fi
 
 if [[ "${fail}" -ne 0 ]]; then

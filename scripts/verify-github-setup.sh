@@ -15,7 +15,7 @@ cd "${ROOT}"
 
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 EXPECTED_PAGES="https://clezcoding.github.io/awesome-coolify/"
-EXPECTED_CI_CONTEXT="Lint, Test & Build"
+EXPECTED_CI_CONTEXTS=("Lint, Test & Build" "MegaLinter")
 
 fail=0
 warn=0
@@ -46,11 +46,13 @@ echo
 echo "-- Branch protection"
 if gh api "repos/${REPO}/branches/main/protection" >/dev/null 2>&1; then
   contexts="$(gh api "repos/${REPO}/branches/main/protection/required_status_checks" -q '.contexts[]' 2>/dev/null || true)"
-  if grep -qx "${EXPECTED_CI_CONTEXT}" <<<"${contexts}"; then
-    pass "main requires '${EXPECTED_CI_CONTEXT}'"
-  else
-    crit "main protection missing required check '${EXPECTED_CI_CONTEXT}' (found: ${contexts:-none})"
-  fi
+  for ctx in "${EXPECTED_CI_CONTEXTS[@]}"; do
+    if grep -qx "${ctx}" <<<"${contexts}"; then
+      pass "main requires '${ctx}'"
+    else
+      crit "main protection missing required check '${ctx}' (found: ${contexts:-none})"
+    fi
+  done
 else
   crit "main branch protection not configured — run scripts/setup-branch-protection.sh"
 fi
@@ -104,10 +106,28 @@ else
 fi
 echo
 
+# --- Kodiak ---
+echo "-- Kodiak"
+if gh pr list --limit 1 --json number -q '.[0].number' 2>/dev/null | grep -q .; then
+  pr_num="$(gh pr list --limit 1 --json number -q '.[0].number')"
+  if gh pr checks "${pr_num}" 2>/dev/null | grep -q 'kodiakhq'; then
+    pass "Kodiak GitHub App active (kodiakhq check on PR #${pr_num})"
+  else
+    warn_msg "Kodiak app not detected on latest PR — install: https://github.com/marketplace/kodiakhq"
+  fi
+else
+  warn_msg "No open PRs — Kodiak app install not verified via checks"
+fi
+if [[ -f .kodiak.toml ]]; then
+  pass ".kodiak.toml present"
+else
+  crit ".kodiak.toml missing"
+fi
+echo
+
 # --- Manual follow-ups (warnings only) ---
 echo "-- Manual follow-ups"
-warn_msg "Kodiak GitHub App install — verify at https://github.com/marketplace/kodiakhq (repo: ${REPO})"
-warn_msg "Run ./scripts/setup-kodiak.sh after app install to confirm label + branch protection"
+warn_msg "Label ready PRs with automerge for Kodiak squash-merge after CI passes"
 echo
 
 echo "==> Summary"

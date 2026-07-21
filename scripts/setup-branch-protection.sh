@@ -21,7 +21,7 @@ gh api \
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": ["Lint, Test & Build"]
+    "contexts": ["Lint, Test & Build", "MegaLinter"]
   },
   "enforce_admins": true,
   "required_pull_request_reviews": null,
@@ -34,6 +34,6 @@ EOF
 
 echo "Done. main is now protected:"
 echo "  - Force-push/delete blocked"
-echo "  - CI check 'Lint, Test & Build' must be green before merging"
+echo "  - CI checks 'Lint, Test & Build' and 'MegaLinter' must be green before merging"
 echo "  - Admins included (enforce_admins=true) — CI must pass even for repo owners"
 echo "  - No required reviewer (solo project) - enable later in repo settings if needed"
