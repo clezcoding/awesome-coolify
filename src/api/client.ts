@@ -598,10 +598,23 @@ export async function createEnv(
 ): Promise<{ uuid: string }> {
   rejectDatabaseIsPreview(resource, payload.is_preview);
   const client = createCoolifyClient(url, token, verifySsl);
-  return client(resourceEnvsPath(resource, uuid), {
+  const result = await client(resourceEnvsPath(resource, uuid), {
     method: 'POST',
     body: payload,
-  }) as Promise<{ uuid: string }>;
+  });
+  if (
+    !result ||
+    typeof result !== 'object' ||
+    typeof (result as { uuid?: unknown }).uuid !== 'string' ||
+    (result as { uuid: string }).uuid.length === 0
+  ) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: `Unexpected create env response for ${resource} ${uuid}: missing env uuid`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
+  return { uuid: (result as { uuid: string }).uuid };
 }
 
 export async function updateEnvViaBulk(
