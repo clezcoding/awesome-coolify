@@ -54,6 +54,20 @@ describe('loadEnv', () => {
 
     expect(env.COOLIFY_MCP_LOG).toBe('debug');
   });
+
+  it.fails('loadEnv with no COOLIFY_* keys returns soft-start config (D-18)', () => {
+    const env = loadEnv({});
+    expect(env.COOLIFY_URL).toBeUndefined();
+    expect(env.COOLIFY_TOKEN).toBeUndefined();
+    expect(env.COOLIFY_VERIFY_SSL).toBe(true);
+    expect(env.COOLIFY_MCP_LOG).toBe('info');
+  });
+
+  it.fails('loadEnv with only COOLIFY_URL throws COOLIFY_PARTIAL_ENV (D-13)', () => {
+    expect(() => loadEnv({ COOLIFY_URL: 'https://only-url.example.com' })).toThrow(
+      expect.objectContaining({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } }),
+    );
+  });
 });
 
 describe('parseDotEnv', () => {

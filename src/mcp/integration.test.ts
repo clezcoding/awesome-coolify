@@ -13,6 +13,7 @@ vi.mock('../api/client.js', () => ({
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
   fetchApplication: vi.fn(),
+  createCoolifyClient: vi.fn(),
 }));
 
 import {
@@ -21,6 +22,7 @@ import {
   fetchProjects,
   fetchProject,
   fetchApplication,
+  createCoolifyClient,
 } from '../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -168,5 +170,65 @@ describe('P2 read slice integration', () => {
       expect(toolBlock).toBeTruthy();
       expect(toolBlock).not.toMatch(/readOnlyHint:\s*true/);
     }
+  });
+});
+
+describe('CTX-06 multi-instance routing (RED until Plan 15-03)', () => {
+  const emptyEnv: EnvConfig = {
+    COOLIFY_URL: undefined as unknown as string,
+    COOLIFY_TOKEN: undefined as unknown as string,
+    COOLIFY_VERIFY_SSL: true,
+    COOLIFY_MCP_LOG: 'info',
+  };
+
+  it.fails('application.get with instance prod routes to prod creds', async () => {
+    const captured: Array<{ url: string; token: string }> = [];
+    vi.mocked(createCoolifyClient).mockImplementation((url, token) => {
+      captured.push({ url, token });
+      return vi.fn() as ReturnType<typeof createCoolifyClient>;
+    });
+
+    await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it.fails('application.get with instance unknown returns COOLIFY_INSTANCE_NOT_FOUND', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1', instance: 'unknown' },
+      emptyEnv,
+    );
+    expect(result).toMatchObject({
+      structuredContent: { error: { code: 'COOLIFY_INSTANCE_NOT_FOUND' } },
+    });
+  });
+
+  it.fails('application.get with no instance and no env and no default returns COOLIFY_NO_INSTANCE', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1' },
+      emptyEnv,
+    );
+    expect(result).toMatchObject({
+      structuredContent: { error: { code: 'COOLIFY_NO_INSTANCE' } },
+    });
+  });
+
+  it.fails('application.get with partial env returns COOLIFY_PARTIAL_ENV', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1' },
+      {
+        ...emptyEnv,
+        COOLIFY_URL: 'https://only-url.example.com',
+      },
+    );
+    expect(result).toMatchObject({
+      structuredContent: { error: { code: 'COOLIFY_PARTIAL_ENV' } },
+    });
   });
 });
