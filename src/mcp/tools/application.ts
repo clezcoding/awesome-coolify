@@ -2687,7 +2687,12 @@ async function handleApplicationEnvsSync(
         const baselineEntry = baselineByKey.get(entry.key);
         const envUuid = remoteEntry?.uuid ?? entry.uuid;
         if (!envUuid) {
-          continue;
+          throw new CoolifyApiError({
+            code: 'COOLIFY_VALIDATION_ERROR',
+            message: `Cannot prune env '${entry.key}' — remote row lacks env uuid`,
+            recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+            data: { key: entry.key },
+          });
         }
 
         failedAt = entry.key;
