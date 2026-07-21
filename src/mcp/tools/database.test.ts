@@ -1292,7 +1292,7 @@ describe('database backup:create', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('creates backup with daily preset and masks S3 credentials per D-15', async () => {
+  it('creates backup with daily preset and masks S3 credentials per D-15', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:create',
@@ -1325,7 +1325,7 @@ describe('database backup:create', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_S3_SECRET);
   });
 
-  it.fails('accepts cron expression frequency on create per D-04', async () => {
+  it('accepts cron expression frequency on create per D-04', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:create',
@@ -1345,7 +1345,7 @@ describe('database backup:create', () => {
     );
   });
 
-  it.fails('throws COOLIFY_VALIDATION_ERROR when save_s3:true without s3_storage_uuid per D-06', async () => {
+  it('throws COOLIFY_VALIDATION_ERROR when save_s3:true without s3_storage_uuid per D-06', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:create',
@@ -1363,7 +1363,7 @@ describe('database backup:create', () => {
     expect(createDatabaseBackup).not.toHaveBeenCalled();
   });
 
-  it.fails('supports backup_now:true on create per D-07', async () => {
+  it('supports backup_now:true on create per D-07', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:create',
@@ -1384,7 +1384,7 @@ describe('database backup:create', () => {
     );
   });
 
-  it.fails('does not require confirm per D-10', async () => {
+  it('does not require confirm per D-10', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:create',
@@ -1399,7 +1399,7 @@ describe('database backup:create', () => {
     expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on create by name multi-match per D-03', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on create by name multi-match per D-03', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
@@ -1430,7 +1430,7 @@ describe('database backup:list', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns masked backup schedule summaries by default per D-15', async () => {
+  it('returns masked backup schedule summaries by default per D-15', async () => {
     const result = await handleDatabaseAction(
       { action: 'backup:list', uuid: 'db-uuid-1' },
       testEnv,
@@ -1452,7 +1452,7 @@ describe('database backup:list', () => {
     expect(JSON.stringify(data)).not.toContain(FAKE_S3_SECRET);
   });
 
-  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-16', async () => {
+  it('surfaces ask_human_reveal recovery hint when reveal:true per D-16', async () => {
     const result = await handleDatabaseAction(
       { action: 'backup:list', uuid: 'db-uuid-1', reveal: true },
       testEnv,
@@ -1464,7 +1464,7 @@ describe('database backup:list', () => {
     expect(databaseResponseIncludesAskHumanReveal(result)).toBe(true);
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on list by name multi-match per D-03', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on list by name multi-match per D-03', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
@@ -1771,7 +1771,7 @@ describe('database backup:history', () => {
     vi.mocked(fetchResources).mockResolvedValue([]);
   });
 
-  it.fails('returns executions with status, timestamps, and size per D-14', async () => {
+  it('returns executions with status, timestamps, and size per D-14', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:history',
@@ -1800,7 +1800,7 @@ describe('database backup:history', () => {
     });
   });
 
-  it.fails('surfaces ask_human_reveal recovery hint when reveal:true per D-16', async () => {
+  it('surfaces ask_human_reveal recovery hint when reveal:true per D-16', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:history',
@@ -1817,7 +1817,7 @@ describe('database backup:history', () => {
     expect(databaseResponseIncludesAskHumanReveal(result)).toBe(true);
   });
 
-  it.fails('does not require confirm per D-10', async () => {
+  it('does not require confirm per D-10', async () => {
     const result = await handleDatabaseAction(
       {
         action: 'backup:history',
@@ -1832,7 +1832,7 @@ describe('database backup:history', () => {
     expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
   });
 
-  it.fails('returns COOLIFY_AMBIGUOUS_MATCH on history by name multi-match per D-03', async () => {
+  it('returns COOLIFY_AMBIGUOUS_MATCH on history by name multi-match per D-03', async () => {
     vi.mocked(fetchResources).mockResolvedValue([
       mockResourceDatabaseDup1,
       mockResourceDatabaseDup2,
