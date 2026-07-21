@@ -38,12 +38,20 @@ export interface ConflictDetectionResult {
   decisions: Array<{ key: string; action: ConflictPolicy }>;
 }
 
+export interface ParseEnvFileResult {
+  entries: ParsedEnv[];
+  invalidKeys: string[];
+  duplicateKeys: string[];
+}
+
 /**
  * Parses `.env` file content into key/value pairs.
  * Soft limit: callers should reject inputs over ~1 MiB before invoking.
  */
-export function parseEnvFile(content: string): ParsedEnv[] {
+export function parseEnvFileDetailed(content: string): ParseEnvFileResult {
   const byKey = new Map<string, ParsedEnv>();
+  const invalidKeys: string[] = [];
+  const duplicateKeys: string[] = [];
   const lines = content.split(/\r?\n/);
 
   for (const line of lines) {
@@ -63,6 +71,7 @@ export function parseEnvFile(content: string): ParsedEnv[] {
     }
     const key = keyPart;
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+      invalidKeys.push(key);
       continue;
     }
     let rawValue = line.slice(eqIndex + 1);
@@ -85,10 +94,21 @@ export function parseEnvFile(content: string): ParsedEnv[] {
       value = rawValue.trim();
     }
 
+    if (byKey.has(key)) {
+      duplicateKeys.push(key);
+    }
     byKey.set(key, { key, value });
   }
 
-  return [...byKey.values()];
+  return {
+    entries: [...byKey.values()],
+    invalidKeys: [...new Set(invalidKeys)],
+    duplicateKeys: [...new Set(duplicateKeys)],
+  };
+}
+
+export function parseEnvFile(content: string): ParsedEnv[] {
+  return parseEnvFileDetailed(content).entries;
 }
 
 function unescapeDoubleQuoted(value: string): string {

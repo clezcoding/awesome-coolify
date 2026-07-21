@@ -72,6 +72,7 @@ import {
 } from './resource.js';
 import {
   parseEnvFile,
+  parseEnvFileDetailed,
   diffEnvs,
   detectConflicts,
   type Conflict,
@@ -2490,7 +2491,16 @@ async function handleApplicationEnvsSync(
           return envContent;
         })();
 
-  const local = parseEnvFile(content);
+  const parsedEnv = parseEnvFileDetailed(content);
+  if (parsedEnv.invalidKeys.length > 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Invalid env key name(s): ${parsedEnv.invalidKeys.join(', ')}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      data: { invalid_keys: parsedEnv.invalidKeys },
+    });
+  }
+  const local = parsedEnv.entries;
   const baseline = await fetchEnvs(
     'application',
     env.COOLIFY_URL,
