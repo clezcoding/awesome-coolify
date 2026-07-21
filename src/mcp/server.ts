@@ -442,7 +442,7 @@ export function registerCoolifyTools(
       annotations: { readOnlyHint: true },
     },
     async (args) => {
-      const result = await handleInstanceAction(args);
+      const result = await handleInstanceAction(args, env);
       if (isInstanceErrorResult(result)) {
         return {
           ...result,
