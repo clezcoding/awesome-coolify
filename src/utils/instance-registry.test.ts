@@ -216,6 +216,28 @@ describe('resolveCredentials', () => {
     }
   });
 
+  it('loadRegistry throws when an entry fails instanceSchema (WR-02)', async () => {
+    const { InstanceManager } = await loadInstanceRegistry();
+    writeFileSync(
+      join(registryDir, 'instances.json'),
+      JSON.stringify({
+        instances: [{ name: 'bad', url: 'not-a-url', token: '', type: 'self-hosted' }],
+      }),
+      'utf-8',
+    );
+    try {
+      InstanceManager.loadRegistry();
+      expect.fail('expected COOLIFY_VALIDATION_ERROR');
+    } catch (error) {
+      expect(error).toMatchObject({
+        envelope: {
+          code: 'COOLIFY_VALIDATION_ERROR',
+          message: expect.stringContaining("Registry entry 'bad'"),
+        },
+      });
+    }
+  });
+
   it('stale registry.default with other instances throws validation error (WR-01)', async () => {
     const { InstanceManager } = await loadInstanceRegistry();
     await InstanceManager.add(sampleInstance);

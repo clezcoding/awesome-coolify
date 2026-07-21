@@ -99,7 +99,31 @@ export class InstanceManager {
           ],
         });
       }
-      return parsed;
+      const instances: Instance[] = [];
+      for (let i = 0; i < parsed.instances.length; i++) {
+        const result = instanceSchema.safeParse(parsed.instances[i]);
+        if (!result.success) {
+          const entryName =
+            typeof parsed.instances[i] === 'object' &&
+            parsed.instances[i] !== null &&
+            'name' in (parsed.instances[i] as object)
+              ? String((parsed.instances[i] as { name: unknown }).name)
+              : `#${i}`;
+          throw new CoolifyApiError({
+            code: 'COOLIFY_VALIDATION_ERROR',
+            message: `Registry entry '${entryName}' failed schema validation: ${filePath}`,
+            recoveryHints: [
+              'Inspect ~/.coolify-mcp/instances.json and fix invalid instance fields (url, token, type, verifySsl).',
+              'Back up the file before rewriting via instance.add.',
+            ],
+          });
+        }
+        instances.push(result.data);
+      }
+      return {
+        ...(typeof parsed.default === 'string' ? { default: parsed.default } : {}),
+        instances,
+      };
     } catch (error) {
       if (error instanceof CoolifyApiError) throw error;
       throw new CoolifyApiError({
