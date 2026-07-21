@@ -2551,79 +2551,125 @@ async function handleApplicationEnvsSync(
   const aborted: Array<Record<string, unknown>> = [];
   const pruned: Array<Record<string, unknown>> = [];
   const bulkUpdates: EnvBulkEntry[] = [];
+  const appliedCreates: Array<{ key: string; env_uuid: string }> = [];
+  let failedAt: string | undefined;
 
-  for (const entry of diff.added) {
-    if (policy === 'abort' && conflictKeys.has(entry.key)) {
-      aborted.push({ key: entry.key, value: '***' });
-      continue;
-    }
-
-    await createEnv(
-      'application',
-      env.COOLIFY_URL,
-      env.COOLIFY_TOKEN,
-      uuid,
-      {
-        key: entry.key,
-        value: entry.value,
-        is_preview: false,
-        is_literal: false,
-        is_multiline: false,
-        is_shown_once: false,
-      },
-      env.COOLIFY_VERIFY_SSL,
-    );
-  }
-
-  for (const entry of diff.updated) {
-    if (policy === 'keep_remote') {
-      kept_remote.push({ key: entry.key, value: '***' });
-      continue;
-    }
-    if (policy === 'abort' && conflictKeys.has(entry.key)) {
-      aborted.push({ key: entry.key, value: '***' });
-      continue;
-    }
-
-    bulkUpdates.push({
-      key: entry.key,
-      value: entry.localValue,
-      is_preview: false,
-      is_literal: false,
-      is_multiline: false,
-      is_shown_once: false,
-    });
-  }
-
-  if (bulkUpdates.length > 0) {
-    await updateEnvViaBulk(
-      'application',
-      env.COOLIFY_URL,
-      env.COOLIFY_TOKEN,
-      uuid,
-      bulkUpdates,
-      env.COOLIFY_VERIFY_SSL,
-    );
-  }
-
-  if (parsed.prune && policy === 'overwrite') {
-    for (const entry of diff.removed) {
-      const remoteEntry = remote.find((item) => item.key === entry.key);
-      const envUuid = remoteEntry?.uuid ?? entry.uuid;
-      if (!envUuid) {
+  try {
+    for (const entry of diff.added) {
+      if (policy === 'abort' && conflictKeys.has(entry.key)) {
+        aborted.push({ key: entry.key, value: '***' });
         continue;
       }
 
-      await deleteEnv(
+      failedAt = entry.key;
+      const created = await createEnv(
         'application',
         env.COOLIFY_URL,
         env.COOLIFY_TOKEN,
         uuid,
-        envUuid,
+        {
+          key: entry.key,
+          value: entry.value,
+          is_preview: false,
+          is_literal: false,
+          is_multiline: false,
+          is_shown_once: false,
+        },
         env.COOLIFY_VERIFY_SSL,
       );
-      pruned.push({ key: entry.key, env_uuid: envUuid });
+      appliedCreates.push({ key: entry.key, env_uuid: created.uuid });
     }
+
+    for (const entry of diff.updated) {
+      if (policy === 'keep_remote') {
+        kept_remote.push({ key: entry.key, value: '***' });
+        continue;
+      }
+      if (policy === 'abort' && conflictKeys.has(entry.key)) {
+        aborted.push({ key: entry.key, value: '***' });
+        continue;
+      }
+
+      bulkUpdates.push({
+        key: entry.key,
+        value: entry.localValue,
+        is_preview: false,
+        is_literal: false,
+        is_multiline: false,
+        is_shown_once: false,
+      });
+    }
+
+    if (bulkUpdates.length > 0) {
+      failedAt = bulkUpdates[0]?.key ?? 'bulk-update';
+      await updateEnvViaBulk(
+        'application',
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        uuid,
+        bulkUpdates,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    }
+
+    if (parsed.prune && policy === 'overwrite') {
+      for (const entry of diff.removed) {
+        const remoteEntry = remote.find((item) => item.key === entry.key);
+        const envUuid = remoteEntry?.uuid ?? entry.uuid;
+        if (!envUuid) {
+          continue;
+        }
+
+        failedAt = entry.key;
+        await deleteEnv(
+          'application',
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          uuid,
+          envUuid,
+          env.COOLIFY_VERIFY_SSL,
+        );
+        pruned.push({ key: entry.key, env_uuid: envUuid });
+      }
+    }
+  } catch (error) {
+    for (const applied of [...appliedCreates].reverse()) {
+      try {
+        await deleteEnv(
+          'application',
+          env.COOLIFY_URL,
+          env.COOLIFY_TOKEN,
+          uuid,
+          applied.env_uuid,
+          env.COOLIFY_VERIFY_SSL,
+        );
+      } catch {
+        // best-effort rollback of partial creates
+      }
+    }
+
+    const partialData = {
+      applied: appliedCreates.map(({ key, env_uuid }) => ({ key, env_uuid })),
+      ...(failedAt ? { failed_at: failedAt } : {}),
+    };
+
+    if (error instanceof CoolifyApiError) {
+      throw new CoolifyApiError({
+        ...error.envelope,
+        data: {
+          ...(error.envelope.data ?? {}),
+          ...partialData,
+        },
+      });
+    }
+
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message:
+        error instanceof Error ? error.message : 'envs:sync apply failed',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+      data: partialData,
+    });
   }
 
   return buildReadResponse(
