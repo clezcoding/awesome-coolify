@@ -332,6 +332,11 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 | `start` / `stop` / `restart` | Container lifecycle control |
 | `deploy` | Trigger a deploy, with optional `wait`/poll and `force` rebuild |
 | `logs` | Paginated runtime or build logs, bounded so they never blow your context |
+| `envs:list` / `envs:get` | List or fetch env vars (values masked as `***` unless `reveal: true`) |
+| `envs:create` / `envs:update` | Create or update individual env vars (supports `is_preview`, `is_literal`, `is_multiline`, `is_shown_once`) |
+| `envs:delete` | Delete one env var — **requires `confirm: true`** |
+| `envs:bulk-update` | Patch many env vars at once — **requires `confirm: true`** |
+| `envs:sync` | Diff/apply a local `.env` file or inline content — **application only**; see [Resource env vars](#-resource-environment-variables-envs) |
 
 ### 📈 `deployment` — deploy tracking
 
@@ -345,8 +350,30 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 
 | Tool | Actions |
 |------|---------|
-| `service` | `get`, `start`, `stop`, `restart`, `deploy`, `create` (one-click type XOR compose), `update`, `delete`, `delete_preview` |
-| `database` | `get`, `start`, `stop`, `restart`, `create` (8 engines), `update`, `delete`, `delete_preview` |
+| `service` | `get`, `start`, `stop`, `restart`, `deploy`, `create` (one-click type XOR compose), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
+| `database` | `get`, `start`, `stop`, `restart`, `create` (8 engines), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
+
+### 🌱 Resource environment variables (`envs:*`)
+
+Manage Coolify runtime configuration on applications, services, and databases through `envs:*` actions on the existing domain tools — no separate env MCP tool.
+
+| Tool | `envs:*` actions | Notes |
+|------|------------------|-------|
+| `application` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `envs:sync` | Only tool with local `.env` sync |
+| `service` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` | No sync — use `application` for `.env` diff/apply |
+| `database` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` | **`is_preview` is not supported** on database env vars (Coolify OpenAPI gap) |
+
+**Confirm gates:** `envs:delete` and `envs:bulk-update` always require `confirm: true` on all three tools. On `application` only, `envs:sync` requires `confirm: true` when applying (`dry_run: false`, the default) or when `prune: true`.
+
+**Reveal policy:** Env values render as `***` by default. Pass `reveal: true` only after the human explicitly asks for plaintext — the agent must not auto-set `reveal: true`.
+
+**`envs:sync` semantics (application only):** Supply exactly one of `env_file` (local path) or `env_content` (inline `.env` text). `dry_run: true` returns a diff (`added`, `updated`, `unchanged`, `removed`, optional `conflicts`) with no API writes; default `dry_run: false` applies changes. Remote keys missing locally are never deleted unless `prune: true` (also requires `confirm: true`). When local and remote values differ, set `conflict_policy` to `overwrite`, `keep_remote`, or `abort` after asking the human — apply with conflicts and no policy returns `COOLIFY_CONFIRM_REQUIRED`.
+
+```js
+application({ action: "envs:list", uuid: "<app-uuid>" })
+application({ action: "envs:sync", uuid: "<app-uuid>", env_file: "./.env", dry_run: true })
+application({ action: "envs:sync", uuid: "<app-uuid>", env_content: "API_KEY=EXAMPLE_VALUE\n", confirm: true, conflict_policy: "overwrite" })
+```
 
 ### 🔑 `private_key` — SSH key CRUD
 
@@ -412,10 +439,12 @@ Destructive **emergency** actions follow a strict two-step pattern:
 
 Regular app/service/database mutations (start, stop, deploy, …) are **not** behind this gate — they simply follow Coolify's own API semantics, since they're scoped to one resource rather than your whole fleet.
 
+**Environment variables:** `envs:delete` and `envs:bulk-update` require `confirm: true` on application, service, and database. `envs:sync` apply (`dry_run: false`) and `envs:sync` with `prune: true` require `confirm: true` on application only. `dry_run: true` sync previews never mutate.
+
 ### Secret masking
 
 - Keys matching `password`, `token`, `secret`, `private`, or `env` render as `***` by default in tool output.
-- Pass `reveal: true` only when you explicitly need plaintext — for example, to copy an env var into another system.
+- Pass `reveal: true` only when you explicitly need plaintext — for example, to copy an env var into another system. **Ask the human first** before setting `reveal: true` on any `envs:*` call.
 - **Log line bodies are not masked.** Treat raw logs like you would any other sensitive output: don't paste them into long-lived agent memory or public tickets.
 
 ---

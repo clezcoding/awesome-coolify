@@ -17,6 +17,13 @@ import {
   triggerServiceStart,
   triggerServiceStop,
   updateService,
+  fetchEnvs,
+  createEnv,
+  updateEnvViaBulk,
+  bulkUpdateEnvs,
+  deleteEnv,
+  type Env,
+  type EnvBulkEntry,
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
@@ -54,6 +61,15 @@ import {
   rankFindMatches,
   type FindableResource,
 } from './resource.js';
+import {
+  buildEnvBulkEntry,
+  maskEnvRecord,
+  maskEnvRecords,
+  mergeEnvMutationFlags,
+  resolveEnvIdentity,
+  validateEnvMutationConfirm,
+  withRevealRecoveryHints,
+} from './env-shared.js';
 
 const SERVICE_IDENTIFIER_FIELDS = ['uuid', 'name'] as const;
 
@@ -416,6 +432,169 @@ const deletePreviewActionSchema = requireServiceMutationIdentifier(
   'delete_preview',
 );
 
+const envParentFields = {
+  uuid: z.string().optional().describe('Service UUID'),
+  name: z.string().optional().describe('Service name substring'),
+  reveal: z
+    .boolean()
+    .default(false)
+    .describe('Reveal masked env values for this call only'),
+  ...mutationResponseParamsSchema,
+};
+
+const envFlagFields = {
+  is_preview: z
+    .boolean()
+    .default(false)
+    .describe('Preview variable (build-time only)'),
+  is_literal: z
+    .boolean()
+    .default(false)
+    .describe('Treat value as literal (no variable interpolation)'),
+  is_multiline: z
+    .boolean()
+    .default(false)
+    .describe('Multiline env value'),
+  is_shown_once: z
+    .boolean()
+    .default(false)
+    .describe('Show value once in Coolify UI'),
+};
+
+function requireEnvUuidOrKey(
+  data: { env_uuid?: string; key?: string },
+  ctx: z.RefinementCtx,
+  actionName: string,
+): void {
+  const hasUuid =
+    typeof data.env_uuid === 'string' && data.env_uuid.length > 0;
+  const hasKey = typeof data.key === 'string' && data.key.length > 0;
+
+  if (!hasUuid && !hasKey) {
+    ctx.addIssue({
+      code: 'custom',
+      message: `At least one of env_uuid or key is required for action ${actionName}`,
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+const envsListActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:list'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:list',
+);
+
+const envsGetActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:get'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:get');
+    }),
+  'envs:get',
+);
+
+const envsCreateActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:create'),
+      key: z.string().describe('Environment variable key'),
+      value: z.string().describe('Environment variable value'),
+      ...envFlagFields,
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:create',
+);
+
+const envsUpdateActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:update'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      value: z.string().describe('New environment variable value'),
+      is_preview: z.boolean().optional().describe('Preview variable override'),
+      is_literal: z.boolean().optional().describe('Literal flag override'),
+      is_multiline: z.boolean().optional().describe('Multiline flag override'),
+      is_shown_once: z
+        .boolean()
+        .optional()
+        .describe('Show-once flag override'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:update');
+    }),
+  'envs:update',
+);
+
+const envsDeleteActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:delete'),
+      env_uuid: z.string().describe('Environment variable UUID to delete'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for env delete'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:delete',
+);
+
+const envBulkEntrySchema = z
+  .object({
+    key: z.string().describe('Environment variable key'),
+    value: z.string().describe('Environment variable value'),
+    is_preview: z.boolean().optional().describe('Preview variable'),
+    is_literal: z.boolean().optional().describe('Literal flag'),
+    is_multiline: z.boolean().optional().describe('Multiline flag'),
+    is_shown_once: z.boolean().optional().describe('Show-once flag'),
+  })
+  .strict();
+
+const envsBulkUpdateActionSchema = requireServiceMutationIdentifier(
+  z
+    .object({
+      action: z.literal('envs:bulk-update'),
+      entries: z
+        .array(envBulkEntrySchema)
+        .min(1)
+        .describe('Bulk env entries (min 1, max 100 per call)'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for bulk env update'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      if (data.entries.length > 100) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
+          path: ['entries'],
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }),
+  'envs:bulk-update',
+);
+
 export const serviceActionSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('get'),
@@ -430,6 +609,12 @@ export const serviceActionSchema = z.discriminatedUnion('action', [
   stopActionSchema,
   restartActionSchema,
   deployActionSchema,
+  envsListActionSchema,
+  envsGetActionSchema,
+  envsCreateActionSchema,
+  envsUpdateActionSchema,
+  envsDeleteActionSchema,
+  envsBulkUpdateActionSchema,
 ]);
 
 export type ServiceAction = z.infer<typeof serviceActionSchema>;
@@ -492,6 +677,31 @@ export type ServiceDeletePreviewResult = ReadResponse<{
   warning?: string;
 }>;
 
+export type ServiceEnvsListResult = ReadResponse<
+  Array<Record<string, unknown>>
+> & { recoveryHints?: string[] };
+
+export type ServiceEnvsGetResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type ServiceEnvsCreateResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type ServiceEnvsUpdateResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type ServiceEnvsDeleteResult = ReadResponse<{
+  ok: true;
+  env_uuid: string;
+}> & { recoveryHints?: string[] };
+
+export type ServiceEnvsBulkUpdateResult = ReadResponse<{
+  ok: true;
+}> & { recoveryHints?: string[] };
+
 export type ServiceActionResult =
   | ServiceGetResult
   | ServiceMutationResult
@@ -500,6 +710,12 @@ export type ServiceActionResult =
   | ServiceUpdateResult
   | ServiceDeleteResult
   | ServiceDeletePreviewResult
+  | ServiceEnvsListResult
+  | ServiceEnvsGetResult
+  | ServiceEnvsCreateResult
+  | ServiceEnvsUpdateResult
+  | ServiceEnvsDeleteResult
+  | ServiceEnvsBulkUpdateResult
   | McpErrorResult;
 
 type ServiceMatchable = FindableResource & { environment_name: string };
@@ -518,6 +734,12 @@ type CreateAction = z.infer<typeof createActionSchema>;
 type UpdateAction = z.infer<typeof updateActionSchema>;
 type DeleteAction = z.infer<typeof deleteActionSchema>;
 type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
+type EnvsListAction = z.infer<typeof envsListActionSchema>;
+type EnvsGetAction = z.infer<typeof envsGetActionSchema>;
+type EnvsCreateAction = z.infer<typeof envsCreateActionSchema>;
+type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
+type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
+type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -531,7 +753,9 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
   if (
     !code &&
     isRecord(args) &&
-    (args.action === 'create' || args.action === 'update')
+    (args.action === 'create' ||
+      args.action === 'update' ||
+      (typeof args.action === 'string' && args.action.startsWith('envs:')))
   ) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
@@ -1180,6 +1404,233 @@ async function handleServiceDeletePreview(
   });
 }
 
+async function handleServiceEnvsList(
+  parsed: EnvsListAction,
+  env: EnvConfig,
+): Promise<ServiceEnvsListResult> {
+  const uuid = await resolveServiceMutationUuid(parsed, env);
+  const envs = await fetchEnvs(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const data = maskEnvRecords(envs, parsed.reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleServiceEnvsGet(
+  parsed: EnvsGetAction,
+  env: EnvConfig,
+): Promise<ServiceEnvsGetResult> {
+  const uuid = await resolveServiceMutationUuid(parsed, env);
+  const envs = await fetchEnvs(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const found = resolveEnvIdentity(envs, {
+    env_uuid: parsed.env_uuid,
+    key: parsed.key,
+  }, 'service');
+  const data = maskEnvRecord(found, parsed.reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleServiceEnvsCreate(
+  parsed: EnvsCreateAction,
+  env: EnvConfig,
+): Promise<ServiceEnvsCreateResult> {
+  const uuid = await resolveServiceMutationUuid(parsed, env);
+  const created = await createEnv(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    {
+      key: parsed.key,
+      value: parsed.value,
+      is_preview: parsed.is_preview,
+      is_literal: parsed.is_literal,
+      is_multiline: parsed.is_multiline,
+      is_shown_once: parsed.is_shown_once,
+    },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const envs = await fetchEnvs(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const stored = resolveEnvIdentity(envs, { env_uuid: created.uuid }, 'service');
+
+  const data = maskEnvRecord(
+    {
+      uuid: stored.uuid,
+      key: stored.key,
+      value: stored.value,
+      is_preview: stored.is_preview ?? parsed.is_preview,
+      is_literal: stored.is_literal ?? parsed.is_literal,
+      is_multiline: stored.is_multiline ?? parsed.is_multiline,
+      is_shown_once: stored.is_shown_once ?? parsed.is_shown_once,
+    },
+    parsed.reveal,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleServiceEnvsUpdate(
+  parsed: EnvsUpdateAction,
+  env: EnvConfig,
+): Promise<ServiceEnvsUpdateResult> {
+  const uuid = await resolveServiceMutationUuid(parsed, env);
+
+  const envs = await fetchEnvs(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const found = parsed.env_uuid
+    ? resolveEnvIdentity(envs, { env_uuid: parsed.env_uuid }, 'service')
+    : parsed.key
+      ? resolveEnvIdentity(envs, { key: parsed.key }, 'service')
+      : undefined;
+
+  if (!found) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'At least one of env_uuid or key is required.',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const mergedFlags = mergeEnvMutationFlags(found, parsed);
+
+  const entry = buildEnvBulkEntry({
+    key: found.key,
+    value: parsed.value,
+    ...mergedFlags,
+  });
+
+  await updateEnvViaBulk(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    [entry],
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const data = maskEnvRecord(
+    {
+      uuid: found.uuid,
+      key: found.key,
+      value: parsed.value,
+      ...mergedFlags,
+    },
+    parsed.reveal,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleServiceEnvsDelete(
+  parsed: EnvsDeleteAction,
+  env: EnvConfig,
+): Promise<ServiceEnvsDeleteResult> {
+  const uuid = await resolveServiceMutationUuid(parsed, env);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:delete', uuid, 'service');
+
+  await deleteEnv(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    parsed.env_uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      {
+        ok: true as const,
+        env_uuid: parsed.env_uuid,
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    parsed.reveal,
+  );
+}
+
+async function handleServiceEnvsBulkUpdate(
+  parsed: EnvsBulkUpdateAction,
+  env: EnvConfig,
+): Promise<ServiceEnvsBulkUpdateResult> {
+  const uuid = await resolveServiceMutationUuid(parsed, env);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:bulk-update', uuid, 'service');
+
+  const entries = parsed.entries.map((entry) => buildEnvBulkEntry(entry));
+
+  await bulkUpdateEnvs(
+    'service',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    entries,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      { ok: true as const },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    parsed.reveal,
+  );
+}
+
 export async function handleServiceAction(
   args: unknown,
   env: EnvConfig,
@@ -1202,6 +1653,18 @@ export async function handleServiceAction(
         return await handleServiceMutation(parsed, env);
       case 'deploy':
         return await handleServiceDeploy(parsed, env);
+      case 'envs:list':
+        return await handleServiceEnvsList(parsed, env);
+      case 'envs:get':
+        return await handleServiceEnvsGet(parsed, env);
+      case 'envs:create':
+        return await handleServiceEnvsCreate(parsed, env);
+      case 'envs:update':
+        return await handleServiceEnvsUpdate(parsed, env);
+      case 'envs:delete':
+        return await handleServiceEnvsDelete(parsed, env);
+      case 'envs:bulk-update':
+        return await handleServiceEnvsBulkUpdate(parsed, env);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
@@ -1244,6 +1707,10 @@ export async function handleServiceAction(
           format: parsed.format,
           max_chars: parsed.max_chars,
         });
+      }
+      default: {
+        const _exhaustive: never = parsed;
+        throw new Error(`Unknown service action: ${String(_exhaustive)}`);
       }
     }
   } catch (error) {

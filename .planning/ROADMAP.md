@@ -218,6 +218,19 @@ Plans:
 5. Env var payloads accept all supported flags — `is_preview`, `is_literal`, `is_multiline`, `is_shown_once` — and the flags round-trip correctly on subsequent get (ENV-06).
 6. Sync and bulk operations never log raw env values to stderr; logs redact values with the same redactor used for API errors.
 
+**Plans:** 7 plans
+
+Plans:
+**Wave 0**
+
+- [ ] 12-00-PLAN.md — Wave 0 RED test scaffolds for envs:* actions (application/service/database) + client + env-parser (ENV-01..06)
+- [ ] 12-01-PLAN.md — API client env CRUD + bulk methods + env-parser utility (parseEnvFile, diffEnvs, detectConflicts)
+- [ ] 12-02-PLAN.md — application.ts envs:list/get/create/update/delete/bulk-update handler (ENV-01..04, ENV-06)
+- [ ] 12-03-PLAN.md — service.ts envs:list/get/create/update/delete/bulk-update handler (ENV-01..04, ENV-06)
+- [ ] 12-04-PLAN.md — database.ts envs:list/get/create/update/delete/bulk-update handler (no is_preview, ENV-01..04, ENV-06)
+- [ ] 12-05-PLAN.md — application.ts envs:sync handler (local .env diff-sync engine, app-only, ENV-05)
+- [ ] 12-06-PLAN.md — server.ts tool descriptions + bilingual README env behavior docs
+
 ### Phase 13: Database Backups
 
 **Slug:** `database-backups`

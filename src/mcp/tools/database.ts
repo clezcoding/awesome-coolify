@@ -9,13 +9,20 @@ import {
   createMysqlDatabase,
   createPostgresqlDatabase,
   createRedisDatabase,
+  bulkUpdateEnvs,
+  createEnv,
   deleteDatabase,
+  deleteEnv,
   fetchDatabase,
+  fetchEnvs,
   fetchResources,
   triggerDatabaseRestart,
   updateDatabase,
+  updateEnvViaBulk,
   triggerDatabaseStart,
   triggerDatabaseStop,
+  type Env,
+  type EnvBulkEntry,
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
@@ -49,6 +56,15 @@ import {
   rankFindMatches,
   type FindableResource,
 } from './resource.js';
+import {
+  buildEnvBulkEntry,
+  maskEnvRecord,
+  maskEnvRecords,
+  mergeEnvMutationFlags,
+  resolveEnvIdentity,
+  validateEnvMutationConfirm,
+  withRevealRecoveryHints,
+} from './env-shared.js';
 
 const DATABASE_IDENTIFIER_FIELDS = ['uuid', 'name'] as const;
 
@@ -417,6 +433,163 @@ const deletePreviewActionSchema = requireDatabaseIdentifier(
   'delete_preview',
 );
 
+const envParentFields = {
+  uuid: z.string().optional().describe('Database UUID'),
+  name: z.string().optional().describe('Database name substring'),
+  reveal: z
+    .boolean()
+    .default(false)
+    .describe('Reveal masked env values for this call only'),
+  ...mutationResponseParamsSchema,
+};
+
+const databaseEnvFlagFields = {
+  is_literal: z
+    .boolean()
+    .default(false)
+    .describe('Treat value as literal (no variable interpolation)'),
+  is_multiline: z
+    .boolean()
+    .default(false)
+    .describe('Multiline env value'),
+  is_shown_once: z
+    .boolean()
+    .default(false)
+    .describe('Show value once in Coolify UI'),
+};
+
+function requireEnvUuidOrKey(
+  data: { env_uuid?: string; key?: string },
+  ctx: z.RefinementCtx,
+  actionName: string,
+): void {
+  const hasUuid =
+    typeof data.env_uuid === 'string' && data.env_uuid.length > 0;
+  const hasKey = typeof data.key === 'string' && data.key.length > 0;
+
+  if (!hasUuid && !hasKey) {
+    ctx.addIssue({
+      code: 'custom',
+      message: `At least one of env_uuid or key is required for action ${actionName}`,
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+}
+
+const envsListActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:list'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:list',
+);
+
+const envsGetActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:get'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:get');
+    }),
+  'envs:get',
+);
+
+const envsCreateActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:create'),
+      key: z.string().describe('Environment variable key'),
+      value: z.string().describe('Environment variable value'),
+      ...databaseEnvFlagFields,
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:create',
+);
+
+const envsUpdateActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:update'),
+      env_uuid: z.string().optional().describe('Environment variable UUID'),
+      key: z.string().optional().describe('Environment variable key'),
+      value: z.string().describe('New environment variable value'),
+      is_literal: z.boolean().optional().describe('Literal flag override'),
+      is_multiline: z.boolean().optional().describe('Multiline flag override'),
+      is_shown_once: z
+        .boolean()
+        .optional()
+        .describe('Show-once flag override'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      requireEnvUuidOrKey(data, ctx, 'envs:update');
+    }),
+  'envs:update',
+);
+
+const envsDeleteActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:delete'),
+      env_uuid: z.string().describe('Environment variable UUID to delete'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for env delete'),
+      ...envParentFields,
+    })
+    .strict(),
+  'envs:delete',
+);
+
+const envBulkEntrySchema = z
+  .object({
+    key: z.string().describe('Environment variable key'),
+    value: z.string().describe('Environment variable value'),
+    is_literal: z.boolean().optional().describe('Literal flag'),
+    is_multiline: z.boolean().optional().describe('Multiline flag'),
+    is_shown_once: z.boolean().optional().describe('Show-once flag'),
+  })
+  .strict();
+
+const envsBulkUpdateActionSchema = requireDatabaseIdentifier(
+  z
+    .object({
+      action: z.literal('envs:bulk-update'),
+      entries: z
+        .array(envBulkEntrySchema)
+        .min(1)
+        .describe('Bulk env entries (min 1, max 100 per call)'),
+      confirm: z
+        .boolean()
+        .default(false)
+        .describe('Explicit confirmation required for bulk env update'),
+      ...envParentFields,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      if (data.entries.length > 100) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
+          path: ['entries'],
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }),
+  'envs:bulk-update',
+);
+
 const DATABASE_UPDATE_CURATED_FIELD_KEYS = [
   'name',
   'description',
@@ -463,6 +636,12 @@ export const databaseActionSchema = z.discriminatedUnion('action', [
   updateDatabaseSchema,
   deleteActionSchema,
   deletePreviewActionSchema,
+  envsListActionSchema,
+  envsGetActionSchema,
+  envsCreateActionSchema,
+  envsUpdateActionSchema,
+  envsDeleteActionSchema,
+  envsBulkUpdateActionSchema,
 ]);
 
 export type DatabaseAction = z.infer<typeof databaseActionSchema>;
@@ -515,6 +694,31 @@ export type DatabaseDeletePreviewResult = ReadResponse<{
   warning?: string;
 }>;
 
+export type DatabaseEnvsListResult = ReadResponse<
+  Array<Record<string, unknown>>
+> & { recoveryHints?: string[] };
+
+export type DatabaseEnvsGetResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type DatabaseEnvsCreateResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type DatabaseEnvsUpdateResult = ReadResponse<
+  Record<string, unknown>
+> & { recoveryHints?: string[] };
+
+export type DatabaseEnvsDeleteResult = ReadResponse<{
+  ok: true;
+  env_uuid: string;
+}> & { recoveryHints?: string[] };
+
+export type DatabaseEnvsBulkUpdateResult = ReadResponse<{
+  ok: true;
+}> & { recoveryHints?: string[] };
+
 export type DatabaseActionResult =
   | DatabaseGetResult
   | DatabaseMutationResult
@@ -522,6 +726,12 @@ export type DatabaseActionResult =
   | DatabaseUpdateResult
   | DatabaseDeleteResult
   | DatabaseDeletePreviewResult
+  | DatabaseEnvsListResult
+  | DatabaseEnvsGetResult
+  | DatabaseEnvsCreateResult
+  | DatabaseEnvsUpdateResult
+  | DatabaseEnvsDeleteResult
+  | DatabaseEnvsBulkUpdateResult
   | McpErrorResult;
 
 type DatabaseMatchable = FindableResource & { environment_name: string };
@@ -536,6 +746,12 @@ type CreateAction = z.infer<typeof createDatabaseSchema>;
 type UpdateAction = z.infer<typeof updateDatabaseSchema>;
 type DeleteAction = z.infer<typeof deleteActionSchema>;
 type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
+type EnvsListAction = z.infer<typeof envsListActionSchema>;
+type EnvsGetAction = z.infer<typeof envsGetActionSchema>;
+type EnvsCreateAction = z.infer<typeof envsCreateActionSchema>;
+type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
+type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
+type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -546,7 +762,13 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
     ((customIssue as { params?: { code?: CoolifyErrorCode } } | undefined)?.params
       ?.code as CoolifyErrorCode | undefined) ?? undefined;
 
-  if (!code && isRecord(args) && (args.action === 'create' || args.action === 'update')) {
+  if (
+    !code &&
+    isRecord(args) &&
+    (args.action === 'create' ||
+      args.action === 'update' ||
+      (typeof args.action === 'string' && args.action.startsWith('envs:')))
+  ) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
 
@@ -1077,6 +1299,235 @@ async function handleDatabaseDeletePreview(
   });
 }
 
+async function handleDatabaseEnvsList(
+  parsed: EnvsListAction,
+  env: EnvConfig,
+): Promise<DatabaseEnvsListResult> {
+  const uuid = await resolveDatabaseUuid(parsed, env);
+  const envs = await fetchEnvs(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const data = maskEnvRecords(envs, parsed.reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleDatabaseEnvsGet(
+  parsed: EnvsGetAction,
+  env: EnvConfig,
+): Promise<DatabaseEnvsGetResult> {
+  const uuid = await resolveDatabaseUuid(parsed, env);
+  const envs = await fetchEnvs(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const found = resolveEnvIdentity(envs, {
+    env_uuid: parsed.env_uuid,
+    key: parsed.key,
+  }, 'database');
+  const data = maskEnvRecord(found, parsed.reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleDatabaseEnvsCreate(
+  parsed: EnvsCreateAction,
+  env: EnvConfig,
+): Promise<DatabaseEnvsCreateResult> {
+  const uuid = await resolveDatabaseUuid(parsed, env);
+  const created = await createEnv(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    {
+      key: parsed.key,
+      value: parsed.value,
+      is_literal: parsed.is_literal,
+      is_multiline: parsed.is_multiline,
+      is_shown_once: parsed.is_shown_once,
+    },
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const envs = await fetchEnvs(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const stored = resolveEnvIdentity(envs, { env_uuid: created.uuid }, 'database');
+
+  const data = maskEnvRecord(
+    {
+      uuid: stored.uuid,
+      key: stored.key,
+      value: stored.value,
+      is_literal: stored.is_literal ?? parsed.is_literal,
+      is_multiline: stored.is_multiline ?? parsed.is_multiline,
+      is_shown_once: stored.is_shown_once ?? parsed.is_shown_once,
+    },
+    parsed.reveal,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleDatabaseEnvsUpdate(
+  parsed: EnvsUpdateAction,
+  env: EnvConfig,
+): Promise<DatabaseEnvsUpdateResult> {
+  const uuid = await resolveDatabaseUuid(parsed, env);
+
+  const envs = await fetchEnvs(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const found = parsed.env_uuid
+    ? resolveEnvIdentity(envs, { env_uuid: parsed.env_uuid }, 'database')
+    : parsed.key
+      ? resolveEnvIdentity(envs, { key: parsed.key }, 'database')
+      : undefined;
+
+  if (!found) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'At least one of env_uuid or key is required.',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const mergedFlags = mergeEnvMutationFlags(found, parsed);
+
+  const entry = buildEnvBulkEntry({
+    key: found.key,
+    value: parsed.value,
+    is_literal: mergedFlags.is_literal,
+    is_multiline: mergedFlags.is_multiline,
+    is_shown_once: mergedFlags.is_shown_once,
+  });
+
+  await updateEnvViaBulk(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    [entry],
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  const data = maskEnvRecord(
+    {
+      uuid: found.uuid,
+      key: found.key,
+      value: parsed.value,
+      is_literal: mergedFlags.is_literal,
+      is_multiline: mergedFlags.is_multiline,
+      is_shown_once: mergedFlags.is_shown_once,
+    },
+    parsed.reveal,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(data, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    }),
+    parsed.reveal,
+  );
+}
+
+async function handleDatabaseEnvsDelete(
+  parsed: EnvsDeleteAction,
+  env: EnvConfig,
+): Promise<DatabaseEnvsDeleteResult> {
+  const uuid = await resolveDatabaseUuid(parsed, env);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:delete', uuid, 'database');
+
+  await deleteEnv(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    parsed.env_uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      {
+        ok: true as const,
+        env_uuid: parsed.env_uuid,
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    parsed.reveal,
+  );
+}
+
+async function handleDatabaseEnvsBulkUpdate(
+  parsed: EnvsBulkUpdateAction,
+  env: EnvConfig,
+): Promise<DatabaseEnvsBulkUpdateResult> {
+  const uuid = await resolveDatabaseUuid(parsed, env);
+  validateEnvMutationConfirm(parsed.confirm, 'envs:bulk-update', uuid, 'database');
+
+  const entries = parsed.entries.map((entry) => buildEnvBulkEntry(entry));
+
+  await bulkUpdateEnvs(
+    'database',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    entries,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      { ok: true as const },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    parsed.reveal,
+  );
+}
+
 export async function handleDatabaseAction(
   args: unknown,
   env: EnvConfig,
@@ -1093,6 +1544,18 @@ export async function handleDatabaseAction(
         return await handleDatabaseDelete(parsed, env);
       case 'delete_preview':
         return await handleDatabaseDeletePreview(parsed, env);
+      case 'envs:list':
+        return await handleDatabaseEnvsList(parsed, env);
+      case 'envs:get':
+        return await handleDatabaseEnvsGet(parsed, env);
+      case 'envs:create':
+        return await handleDatabaseEnvsCreate(parsed, env);
+      case 'envs:update':
+        return await handleDatabaseEnvsUpdate(parsed, env);
+      case 'envs:delete':
+        return await handleDatabaseEnvsDelete(parsed, env);
+      case 'envs:bulk-update':
+        return await handleDatabaseEnvsBulkUpdate(parsed, env);
       case 'start':
       case 'stop':
       case 'restart':

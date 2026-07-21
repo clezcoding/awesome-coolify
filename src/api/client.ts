@@ -3,6 +3,7 @@ import { ofetch } from 'ofetch';
 import {
   CoolifyApiError,
   mapApiError,
+  RECOVERY_HINTS,
   toStructuredError,
 } from '../utils/errors.js';
 import { redactSecrets } from '../utils/redact.js';
@@ -516,9 +517,146 @@ export async function fetchApplicationEnvs(
   uuid: string,
   verifySsl = true,
 ): Promise<unknown[]> {
+  return fetchEnvs('application', url, token, uuid, verifySsl);
+}
+
+export type ResourceType = 'application' | 'service' | 'database';
+
+export interface Env {
+  uuid: string;
+  key: string;
+  value: string;
+  is_preview?: boolean;
+  is_literal?: boolean;
+  is_multiline?: boolean;
+  is_shown_once?: boolean;
+}
+
+export interface EnvBulkEntry {
+  key: string;
+  value: string;
+  is_preview?: boolean;
+  is_literal?: boolean;
+  is_multiline?: boolean;
+  is_shown_once?: boolean;
+}
+
+export interface EnvCreatePayload extends EnvBulkEntry {}
+
+const RESOURCE_PATH: Record<ResourceType, string> = {
+  application: 'applications',
+  service: 'services',
+  database: 'databases',
+};
+
+function resourceEnvsPath(resource: ResourceType, uuid: string): string {
+  return `/${RESOURCE_PATH[resource]}/${uuid}/envs`;
+}
+
+function rejectDatabaseIsPreview(
+  resource: ResourceType,
+  isPreview: boolean | undefined,
+): void {
+  if (resource === 'database' && isPreview === true) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message:
+        'is_preview is not supported for database environment variables (D-16)',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+}
+
+export async function fetchEnvs(
+  resource: ResourceType,
+  url: string,
+  token: string,
+  uuid: string,
+  verifySsl = true,
+): Promise<Env[]> {
   const client = createCoolifyClient(url, token, verifySsl);
-  const result = await client(`/applications/${uuid}/envs`, { method: 'GET' });
-  return Array.isArray(result) ? result : [];
+  const result = await client(resourceEnvsPath(resource, uuid), {
+    method: 'GET',
+  });
+  if (!Array.isArray(result)) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: `Unexpected env list response for ${resource} ${uuid}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
+  return result as Env[];
+}
+
+export async function createEnv(
+  resource: ResourceType,
+  url: string,
+  token: string,
+  uuid: string,
+  payload: EnvCreatePayload,
+  verifySsl = true,
+): Promise<{ uuid: string }> {
+  rejectDatabaseIsPreview(resource, payload.is_preview);
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(resourceEnvsPath(resource, uuid), {
+    method: 'POST',
+    body: payload,
+  });
+  if (
+    !result ||
+    typeof result !== 'object' ||
+    typeof (result as { uuid?: unknown }).uuid !== 'string' ||
+    (result as { uuid: string }).uuid.length === 0
+  ) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: `Unexpected create env response for ${resource} ${uuid}: missing env uuid`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
+  return { uuid: (result as { uuid: string }).uuid };
+}
+
+export async function updateEnvViaBulk(
+  resource: ResourceType,
+  url: string,
+  token: string,
+  uuid: string,
+  entries: EnvBulkEntry[],
+  verifySsl = true,
+): Promise<Env[]> {
+  for (const entry of entries) {
+    rejectDatabaseIsPreview(resource, entry.is_preview);
+  }
+  const client = createCoolifyClient(url, token, verifySsl);
+  const result = await client(`${resourceEnvsPath(resource, uuid)}/bulk`, {
+    method: 'PATCH',
+    body: { data: entries },
+  });
+  if (!Array.isArray(result)) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: `Unexpected bulk env update response for ${resource} ${uuid}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
+  return result as Env[];
+}
+
+export const bulkUpdateEnvs = updateEnvViaBulk;
+
+export async function deleteEnv(
+  resource: ResourceType,
+  url: string,
+  token: string,
+  uuid: string,
+  env_uuid: string,
+  verifySsl = true,
+): Promise<void> {
+  const client = createCoolifyClient(url, token, verifySsl);
+  await client(`${resourceEnvsPath(resource, uuid)}/${env_uuid}`, {
+    method: 'DELETE',
+  });
 }
 
 export async function fetchAppDeployments(
