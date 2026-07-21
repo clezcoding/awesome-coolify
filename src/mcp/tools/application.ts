@@ -815,12 +815,12 @@ const envsSyncActionSchema = requireMutationIdentifier(
       }
     })
     .superRefine((data, ctx) => {
-      const needsConfirm = data.dry_run === false || data.prune === true;
+      const needsConfirm = data.dry_run === false;
       if (needsConfirm && data.confirm !== true) {
         ctx.addIssue({
           code: 'custom',
           message:
-            "Action 'envs:sync' requires confirm:true when applying (dry_run:false) or when prune:true",
+            "Action 'envs:sync' requires confirm:true when applying (dry_run:false)",
           params: { code: 'COOLIFY_CONFIRM_REQUIRED' },
         });
       }
