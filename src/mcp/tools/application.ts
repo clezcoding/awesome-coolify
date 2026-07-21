@@ -2502,6 +2502,15 @@ async function handleApplicationEnvsSync(
   const valueConflicts = buildValueConflicts(diff);
 
   if (parsed.dry_run) {
+    if (parsed.prune && parsed.conflict_policy !== 'overwrite') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message:
+          "Action 'envs:sync' with prune:true requires conflict_policy:'overwrite'",
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
+
     const remote = await fetchEnvs(
       'application',
       env.COOLIFY_URL,
