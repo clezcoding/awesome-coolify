@@ -564,14 +564,25 @@ const envsBulkUpdateActionSchema = requireServiceMutationIdentifier(
       entries: z
         .array(envBulkEntrySchema)
         .min(1)
-        .describe('Bulk env entries (min 1, soft limit ~100)'),
+        .describe('Bulk env entries (min 1, max 100 per call)'),
       confirm: z
         .boolean()
         .default(false)
         .describe('Explicit confirmation required for bulk env update'),
       ...envParentFields,
     })
-    .strict(),
+    .strict()
+    .superRefine((data, ctx) => {
+      if (data.entries.length > 100) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
+          path: ['entries'],
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }),
   'envs:bulk-update',
 );
 

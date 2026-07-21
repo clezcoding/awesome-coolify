@@ -2386,6 +2386,29 @@ describe('application envs:bulk-update', () => {
     expect(bulkUpdateEnvs).not.toHaveBeenCalled();
   });
 
+  it('throws COOLIFY_VALIDATION_ERROR when entries exceed 100 per call', async () => {
+    const entries = Array.from({ length: 101 }, (_, index) => ({
+      key: `KEY_${index}`,
+      value: '1',
+    }));
+
+    const result = await handleApplicationAction(
+      {
+        action: 'envs:bulk-update',
+        uuid: 'app-uuid-1',
+        entries,
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(true);
+    if (!isApplicationErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+  });
+
   it('applies entries when confirm:true and returns disposition', async () => {
     const result = await handleApplicationAction(
       {
