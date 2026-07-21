@@ -2148,15 +2148,24 @@ async function handleApplicationEnvsCreate(
     env.COOLIFY_VERIFY_SSL,
   );
 
+  const envs = await fetchEnvs(
+    'application',
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    uuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const stored = resolveEnvIdentity(envs, { env_uuid: created.uuid });
+
   const data = maskEnvRecord(
     {
-      uuid: created.uuid,
-      key: parsed.key,
-      value: parsed.value,
-      is_preview: parsed.is_preview,
-      is_literal: parsed.is_literal,
-      is_multiline: parsed.is_multiline,
-      is_shown_once: parsed.is_shown_once,
+      uuid: stored.uuid,
+      key: stored.key,
+      value: stored.value,
+      is_preview: stored.is_preview ?? parsed.is_preview,
+      is_literal: stored.is_literal ?? parsed.is_literal,
+      is_multiline: stored.is_multiline ?? parsed.is_multiline,
+      is_shown_once: stored.is_shown_once ?? parsed.is_shown_once,
     },
     parsed.reveal,
   );
@@ -2597,7 +2606,7 @@ async function handleApplicationEnvsSync(
       dry_run: false,
       ...(kept_remote.length > 0 ? { kept_remote } : {}),
       ...(aborted.length > 0 ? { aborted } : {}),
-      ...(parsed.prune ? { pruned } : {}),
+      ...(pruned.length > 0 ? { pruned } : {}),
     }),
     {
       format: parsed.format,
