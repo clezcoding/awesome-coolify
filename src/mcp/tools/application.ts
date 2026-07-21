@@ -2572,7 +2572,7 @@ async function handleApplicationEnvsSync(
     );
   }
 
-  if (parsed.prune) {
+  if (parsed.prune && policy === 'overwrite') {
     for (const entry of diff.removed) {
       const remoteEntry = remote.find((item) => item.key === entry.key);
       const envUuid = remoteEntry?.uuid ?? entry.uuid;
