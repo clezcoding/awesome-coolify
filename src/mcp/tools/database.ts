@@ -575,7 +575,9 @@ const backupParentFields = {
   reveal: z
     .boolean()
     .default(false)
-    .describe('Reveal masked S3 credentials for this call only'),
+    .describe(
+      'Reveal masked S3 credentials for this call only (ask_human_reveal policy D-16)',
+    ),
   confirm: z
     .boolean()
     .optional()
