@@ -255,7 +255,17 @@ export async function handleInstanceAction(
       case 'update': {
         const patch: Partial<Omit<Instance, 'name'>> = {};
         if (parsed.url !== undefined) patch.url = parsed.url;
-        if (parsed.token !== undefined) patch.token = parsed.token;
+        if (parsed.token !== undefined) {
+          if (parsed.token === '***') {
+            throw new CoolifyApiError({
+              code: 'COOLIFY_VALIDATION_ERROR',
+              message:
+                'Cannot update token with masked placeholder — omit token or pass reveal:true on get first',
+              recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+            });
+          }
+          patch.token = parsed.token;
+        }
         if (parsed.type !== undefined) patch.type = parsed.type;
         if (parsed.verifySsl !== undefined) patch.verifySsl = parsed.verifySsl;
 

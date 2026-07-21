@@ -122,6 +122,26 @@ describe('instance tool', () => {
     });
   });
 
+  it('handleInstanceAction update rejects masked token placeholder *** (CR-02)', async () => {
+    const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+    await handleInstanceAction(sampleAddPayload, testEnv);
+    const result = await handleInstanceAction(
+      { action: 'update', name: 'prod', token: '***' },
+      testEnv,
+    );
+    expect(isInstanceErrorResult(result)).toBe(true);
+    if (!isInstanceErrorResult(result)) return;
+    expect(result.structuredContent.error?.code).toBe('COOLIFY_VALIDATION_ERROR');
+
+    const revealed = await handleInstanceAction(
+      { action: 'get', name: 'prod', reveal: true },
+      testEnv,
+    );
+    expect(isInstanceErrorResult(revealed)).toBe(false);
+    if (isInstanceErrorResult(revealed)) return;
+    expect(revealed).toMatchObject({ data: { token: 'prod-token-secret' } });
+  });
+
   it('handleInstanceAction delete without confirm throws COOLIFY_CONFIRM_REQUIRED (D-04)', async () => {
     const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
     await handleInstanceAction(sampleAddPayload, testEnv);
