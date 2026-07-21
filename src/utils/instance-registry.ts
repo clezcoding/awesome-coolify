@@ -90,11 +90,26 @@ export class InstanceManager {
       const raw = readFileSync(filePath, 'utf-8');
       const parsed = JSON.parse(raw) as Registry;
       if (!parsed || !Array.isArray(parsed.instances)) {
-        return { instances: [] };
+        throw new CoolifyApiError({
+          code: 'COOLIFY_VALIDATION_ERROR',
+          message: `Registry file is invalid (missing instances array): ${filePath}`,
+          recoveryHints: [
+            'Inspect ~/.coolify-mcp/instances.json and fix JSON shape.',
+            'Back up the file before re-running instance.add.',
+          ],
+        });
       }
       return parsed;
-    } catch {
-      return { instances: [] };
+    } catch (error) {
+      if (error instanceof CoolifyApiError) throw error;
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: `Failed to parse registry file: ${filePath}`,
+        recoveryHints: [
+          'Inspect ~/.coolify-mcp/instances.json for JSON syntax errors.',
+          'Back up the file before rewriting via instance.add.',
+        ],
+      });
     }
   }
 

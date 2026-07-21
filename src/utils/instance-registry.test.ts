@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, statSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CoolifyApiError } from './errors.js';
@@ -42,6 +42,38 @@ describe('InstanceManager', () => {
     const { InstanceManager } = await loadInstanceRegistry();
     const registry = InstanceManager.loadRegistry();
     expect(registry).toEqual({ instances: [] });
+  });
+
+  it('loadRegistry throws COOLIFY_VALIDATION_ERROR on corrupt JSON (CR-03)', async () => {
+    const { InstanceManager } = await loadInstanceRegistry();
+    writeFileSync(join(registryDir, 'instances.json'), '{not-json', 'utf-8');
+    expect(() => InstanceManager.loadRegistry()).toThrow(CoolifyApiError);
+    try {
+      InstanceManager.loadRegistry();
+    } catch (error) {
+      expect(error).toMatchObject({
+        envelope: {
+          code: 'COOLIFY_VALIDATION_ERROR',
+          message: expect.stringContaining('Failed to parse registry file'),
+        },
+      });
+    }
+  });
+
+  it('loadRegistry throws COOLIFY_VALIDATION_ERROR when instances array missing (CR-03)', async () => {
+    const { InstanceManager } = await loadInstanceRegistry();
+    writeFileSync(join(registryDir, 'instances.json'), JSON.stringify({ default: 'x' }), 'utf-8');
+    try {
+      InstanceManager.loadRegistry();
+      expect.fail('expected COOLIFY_VALIDATION_ERROR');
+    } catch (error) {
+      expect(error).toMatchObject({
+        envelope: {
+          code: 'COOLIFY_VALIDATION_ERROR',
+          message: expect.stringContaining('missing instances array'),
+        },
+      });
+    }
   });
 
   it('add persists instance; first add into empty registry auto-sets default (D-15)', async () => {
