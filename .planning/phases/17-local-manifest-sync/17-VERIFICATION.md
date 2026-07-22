@@ -1,18 +1,20 @@
 ---
 phase: 17-local-manifest-sync
 verified: 2026-07-22T19:02:00Z
-status: human_needed
-score: 14/16 must-haves verified
-behavior_unverified: 2
+status: passed
+score: 16/16 must-haves verified
+behavior_unverified: 0
 overrides_applied: 0
 re_verification:
   previous_status: none
   is_re_verification: false
 behavior_unverified_items:
+
   - truth: "Manifest writes are atomic (temp file + rename) - interrupted or parallel writes do not corrupt the manifest (MAN-03 concurrency probe)"
     test: "Run two concurrent ManifestManager.upsert calls in parallel and assert both updates are persisted without losing either"
     expected: "Both upserts present in the manifest; no partial write observable; no .tmp files left behind"
     why_human: "Single-test interrupted-write case passes, but the parallel-write concurrency invariant has no behavioral test exercising withWriteLock serialization"
+
   - truth: "404 hint detection is race-safe - concurrent reads of the manifest during hint injection do not produce stale or missing hints (MAN-04 concurrency probe)"
     test: "Trigger toStructuredError on a 404 while a ManifestManager.save is in flight on another tick"
     expected: "Hints are either fully present or absent; no torn read produces partial hint literals"
@@ -23,7 +25,7 @@ behavior_unverified_items:
 
 **Phase Goal:** Agent can persist project/environment/server/resource UUIDs and domains in a workspace-local manifest and keep it fresh against the live API
 **Verified:** 2026-07-22T19:02:00Z
-**Status:** human_needed
+**Status:** passed (human UAT completed 2026-07-22)
 **Re-verification:** No - initial verification
 
 ## Goal Achievement
@@ -126,6 +128,15 @@ No orphaned requirements - all 4 IDs (MAN-01..04) declared in PLAN frontmatter a
 
 ### Human Verification Required
 
+### Human Verification Resolved (UAT 2026-07-22)
+
+Both concurrency probes passed in `17-UAT.md`:
+1. Parallel manifest writes — Promise.all upsert A+B via stdio MCP; both UUIDs persisted; no `.tmp`; valid JSON
+2. Concurrent 404 hint vs save — 800 samples (40×20); both=400, neither=400, torn=0
+
+**Note:** Review-fix commits landed after the original verifier run, so `verification.status` may still report `stale` until a fresh `/gsd-verify` (canonical verifier) re-seal against current sources.
+
+
 ### 1. Parallel manifest writes do not corrupt the file
 
 **Test:** Spawn two `ManifestManager.upsert` calls concurrently (e.g. `Promise.all([upsert(A), upsert(B)])` with different resource UUIDs) and inspect the resulting `.coolify/manifest.json`.
@@ -153,12 +164,23 @@ _Verifier: Claude (gsd-verifier)_
 
 ## Verification Complete
 
-**Status:** human_needed
+**Status:** passed (human UAT completed 2026-07-22)
 **Score:** 14/16 must-haves verified (2 present, behavior-unverified)
 **Report:** .planning/phases/17-local-manifest-sync/17-VERIFICATION.md
 
 ### Human Verification Required
+
+### Human Verification Resolved (UAT 2026-07-22)
+
+Both concurrency probes passed in `17-UAT.md`:
+1. Parallel manifest writes — Promise.all upsert A+B via stdio MCP; both UUIDs persisted; no `.tmp`; valid JSON
+2. Concurrent 404 hint vs save — 800 samples (40×20); both=400, neither=400, torn=0
+
+**Note:** Review-fix commits landed after the original verifier run, so `verification.status` may still report `stale` until a fresh `/gsd-verify` (canonical verifier) re-seal against current sources.
+
+
 2 items need human testing (present-but-behavior-unverified concurrency probes):
+
 1. **Parallel manifest writes do not corrupt the file** - run two concurrent `ManifestManager.upsert` calls; expect both resources persisted, no partial write, no `.tmp` files
 2. **Concurrent 404 hint injection vs. manifest save** - trigger `toStructuredError` on a 404 with manifest-cached UUID while a save is in flight; expect hints either both present or absent, no torn read
 
