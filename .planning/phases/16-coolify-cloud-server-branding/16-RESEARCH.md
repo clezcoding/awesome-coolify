@@ -226,12 +226,12 @@ const isCloud = requestUrl ? isCloudUrl(requestUrl) : false;
 |---|-------|---------|---------------|
 | A1 | Cursor client icon rendering is inconsistent/limited | Common Pitfalls | User won't see the robot icon in the sidebar directly, but fallback title and description guarantee usability. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **When will Cursor fully support rendering custom icons?**
+1. **When will Cursor fully support rendering custom icons?** — RESOLVED (Phase 16, D-09): Out of scope to predict Cursor release timing; instead Phase 16 ships an aggressive verify gate (D-09 screenshot of Cursor MCP server list after reconnect) as the source of truth. If the screenshot shows the icon rendering, the question is moot. If the screenshot shows the icon NOT rendering, the client limitation is documented with evidence (screenshot showing fallback `title`/`description` rendering + MCP Inspector output proving `serverInfo.icons` is emitted in the initialize handshake) per RESEARCH Pitfall 2 / Assumption A1. No further research is required in Phase 16; the verify gate replaces the timeline question.
    - What we know: Cursor fixed `Icon.sizes` validation, but still does not consistently render custom icons in all UI surfaces.
    - What's unclear: Exact release timeline for stable custom icon rendering in Cursor.
-   - Recommendation: Always supply rich `title` and `description` fallbacks.
+   - Phase-bound resolution: D-09 aggressive screenshot verify is the answer — document client limitation only if that verify fails (with Inspector evidence). Always supply rich `title` and `description` fallbacks regardless.
 
 ## Environment Availability
 
@@ -256,11 +256,11 @@ const isCloud = requestUrl ? isCloudUrl(requestUrl) : false;
 |--------|----------|-----------|-------------------|-------------|
 | **CLD-02** | Cloud error mapping of 403 to `COOLIFY_CLOUD_FORBIDDEN` | unit | `npx vitest run src/utils/errors.test.ts` | ✅ |
 | **CLD-02** | Cloud error mapping of 404 to `COOLIFY_CLOUD_UNSUPPORTED` | unit | `npx vitest run src/utils/errors.test.ts` | ✅ |
-| **BRND-01** | McpServer handshake contains `icons` metadata | unit | `npx vitest run src/mcp/server.test.ts` | ❌ Wave 0 |
-| **BRND-03** | McpServer contains title/description/websiteUrl fallbacks | unit | `npx vitest run src/mcp/server.test.ts` | ❌ Wave 0 |
+| **BRND-01** | McpServer handshake contains `icons` metadata | unit | `npx vitest run src/mcp/server.test.ts` | ✅ |
+| **BRND-03** | McpServer contains title/description/websiteUrl fallbacks | unit | `npx vitest run src/mcp/server.test.ts` | ✅ |
 
 ### Wave 0 Gaps
-- [ ] Create `src/mcp/server.test.ts` to assert that the `McpServer` constructor correctly populates and returns `icons`, `title`, `description`, and `websiteUrl` inside `serverInfo`.
+- [ ] Append RED scaffolds to existing `src/mcp/server.test.ts` to assert that the `McpServer` constructor correctly populates and returns `icons`, `title`, `description`, and `websiteUrl` inside `serverInfo` (file already exists with tool-registration tests — append, do not recreate).
 - [ ] Add tests inside `src/utils/errors.test.ts` representing cloud hostnames mapping 403 and 404 errors.
 - [ ] Add tests in `src/mcp/tools/instance.test.ts` for the newly added `cloud-info` action.
 

@@ -40,7 +40,7 @@ created: 2026-07-22
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 16-00-01 | 00 | 0 | BRND-01 | T-16-01 | icons/title/description/websiteUrl in serverInfo; no token in handshake | unit | `npx vitest run src/mcp/server.test.ts` | ❌ W0 | ⬜ pending |
+| 16-00-01 | 00 | 0 | BRND-01 | T-16-01 | icons/title/description/websiteUrl in serverInfo; no token in handshake | unit | `npx vitest run src/mcp/server.test.ts` | ✅ | ⬜ pending |
 | 16-00-02 | 00 | 0 | CLD-02 | T-16-02 | 403/404 on coolify.io → cloud codes; tokens redacted | unit | `npx vitest run src/utils/errors.test.ts` | ✅ | ⬜ pending |
 | 16-00-03 | 00 | 0 | CLD-01 | — | `cloud-info` action returns isCloud/source/hints without live API | unit | `npx vitest run src/mcp/tools/instance.test.ts` | ✅ | ⬜ pending |
 
@@ -50,7 +50,7 @@ created: 2026-07-22
 
 ## Wave 0 Requirements
 
-- [ ] `src/mcp/server.test.ts` — stubs asserting McpServer `serverInfo` contains `icons`, `title`, `description`, `websiteUrl`
+- [ ] Append RED scaffolds to existing `src/mcp/server.test.ts` — stubs asserting McpServer `serverInfo` contains `icons`, `title`, `description`, `websiteUrl` (file already exists with tool-registration tests)
 - [ ] `src/utils/errors.test.ts` — cloud hostname 403→`COOLIFY_CLOUD_FORBIDDEN`, 404→`COOLIFY_CLOUD_UNSUPPORTED` cases
 - [ ] `src/mcp/tools/instance.test.ts` — `cloud-info` action cases (registry|env|infer)
 
