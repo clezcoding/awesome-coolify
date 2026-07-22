@@ -73,6 +73,37 @@ describe('MCP server tool registration', () => {
     expect(source).toContain("registerTool(\n    'docs'");
   });
 
+  it('wraps 12 routed tool inputSchemas with withInstanceRoutingSchema (MCP boundary)', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/mcp/server.ts'),
+      'utf8',
+    );
+    expect(source).toContain(
+      "import { withInstanceRoutingSchema } from './tools/shared-read-params.js'",
+    );
+    const routed = [
+      'systemActionSchema',
+      'resourceActionSchema',
+      'diagnoseToolSchema',
+      'applicationActionSchema',
+      'emergencyToolSchema',
+      'deploymentToolSchema',
+      'serviceActionSchema',
+      'databaseActionSchema',
+      'privateKeyActionSchema',
+      'serverActionSchema',
+      'projectActionSchema',
+      'environmentActionSchema',
+    ];
+    for (const schema of routed) {
+      expect(source).toContain(`withInstanceRoutingSchema(${schema})`);
+    }
+    // meta/docs/instance intentionally unwrapped (no Coolify routing)
+    expect(source).toContain('inputSchema: metaActionSchema');
+    expect(source).toContain('inputSchema: docsActionSchema');
+    expect(source).toContain('inputSchema: instanceActionSchema');
+  });
+
   it('uses discriminatedUnion schemas that reject unknown actions', () => {
     expect(systemActionSchema.safeParse({ action: 'invalid' }).success).toBe(
       false,

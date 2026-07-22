@@ -17,6 +17,51 @@ export const optionalInstanceParam = {
 
 export const instanceRoutingExtension = z.object(optionalInstanceParam);
 
+/**
+ * MCP `registerTool` inputSchema wrapper: extends every object option with
+ * `optionalInstanceParam` so SDK `validateToolInput` retains `instance`
+ * (does not strip/reject) and `tools/list` JSON Schema advertises the field.
+ *
+ * Handlers keep using `parseWithInstanceRouting` against unwrapped action
+ * schemas — both paths accept `instance`.
+ */
+export function withInstanceRoutingSchema(schema: z.ZodType): z.ZodType {
+  return extendSchemaWithInstance(schema);
+}
+
+function extendSchemaWithInstance(schema: z.ZodType): z.ZodType {
+  const ctor = schema.constructor.name;
+  const def = (
+    schema as {
+      def?: { type?: string; discriminator?: string };
+      options?: z.ZodType[];
+    }
+  ).def;
+  const options = (schema as { options?: z.ZodType[] }).options;
+
+  if (ctor === 'ZodObject') {
+    return (schema as z.ZodObject).extend(optionalInstanceParam);
+  }
+
+  if (def?.type === 'union' && Array.isArray(options)) {
+    const mapped = options.map(extendSchemaWithInstance);
+    if (mapped.length < 2) {
+      throw new Error('withInstanceRoutingSchema: union needs ≥2 options');
+    }
+    if (ctor === 'ZodDiscriminatedUnion' && def.discriminator) {
+      return z.discriminatedUnion(
+        def.discriminator,
+        mapped as [z.ZodObject, z.ZodObject, ...z.ZodObject[]],
+      );
+    }
+    return z.union(mapped as [z.ZodType, z.ZodType, ...z.ZodType[]]);
+  }
+
+  throw new Error(
+    `withInstanceRoutingSchema: unsupported schema type ${ctor}`,
+  );
+}
+
 /** Strip + validate instance param without weakening inner strict action schemas. */
 export function parseWithInstanceRouting<T extends Record<string, unknown>>(
   schema: z.ZodType<T>,
