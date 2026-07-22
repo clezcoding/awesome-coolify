@@ -4,17 +4,17 @@ milestone: v3.0
 milestone_name: Platform Foundation
 current_phase: 17
 current_phase_name: Local Manifest & Sync
-status: "Phase 17 researched"
-stopped_at: Phase 17 researched
-last_updated: "2026-07-22T18:20:00.000Z"
+status: Phase 17 pattern-mapped
+stopped_at: Phase 17 pattern-mapped
+last_updated: "2026-07-22T16:32:32.147Z"
 last_activity: 2026-07-22
+last_activity_desc: Phase 17 planning complete
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 10
   completed_plans: 10
   percent: 50
-last_activity_desc: Removed npm→pnpm Mac utility (out of project scope)
 ---
 
 # Project State
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 Phase: 17 — Local Manifest & Sync
 Plan: Not started
 Status: Phase 16 shipped — PR #37
-Last activity: 2026-07-22
+Last activity: 2026-07-22 — Phase 17 planning complete
 
 Progress: [██████████] 100%
 

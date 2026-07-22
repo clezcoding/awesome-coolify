@@ -40,10 +40,10 @@ created: 2026-07-22
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 17-xx-01 | 01 | 0 | MAN-01 | T-17-01 | No secrets in manifest; path confined to workspace | unit | `pnpm test src/utils/manifest.test.ts` | ❌ W0 | ⬜ pending |
-| 17-xx-02 | 01 | 0 | MAN-02 | — | `.coolify/` gitignored on first write | unit | `pnpm test src/utils/manifest.test.ts` | ❌ W0 | ⬜ pending |
-| 17-xx-03 | 02 | 1 | MAN-03 | — | sync reconciles stale UUIDs via live API | integration | `pnpm test src/mcp/tools/manifest.test.ts` | ❌ W0 | ⬜ pending |
-| 17-xx-04 | 02 | 1 | MAN-04 | T-17-02 | 404 on stale UUID surfaces refresh hint | integration | `pnpm test src/mcp/tools/manifest.test.ts` | ❌ W0 | ⬜ pending |
+| 17-00-* | 00 | 0 | MAN-01..04 | — | RED scaffolds (it.fails) | unit | `pnpm test -- src/utils/manifest.test.ts src/mcp/tools/manifest.test.ts src/utils/project-root.test.ts --run` | ❌ W0 | ⬜ pending |
+| 17-01-* | 01 | 1 | MAN-01, MAN-02 | T-17-01 | No secrets in manifest; path confined to workspace | unit | `pnpm test -- src/utils/manifest.test.ts src/utils/project-root.test.ts --run` | ❌ W0 | ⬜ pending |
+| 17-02-* | 02 | 2 | MAN-03, MAN-04 | T-17-02 | sync + 404 refresh hints | integration | `pnpm test -- src/mcp/tools/manifest.test.ts --run` | ❌ W0 | ⬜ pending |
+| 17-03-* | 03 | 2 | D-09, D-11 | — | auto-hooks best-effort warnings | integration | `pnpm test -- src/mcp/tools/application.test.ts src/mcp/tools/service.test.ts src/mcp/tools/database.test.ts --run` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,6 +53,7 @@ created: 2026-07-22
 
 - [ ] `src/utils/manifest.test.ts` — stubs for MAN-01 and MAN-02
 - [ ] `src/mcp/tools/manifest.test.ts` — stubs for MAN-03 and MAN-04
+- [ ] `src/utils/project-root.test.ts` — stubs for project-root resolver
 
 ---
 
