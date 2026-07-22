@@ -471,7 +471,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     '404 on a manifest-cached UUID surfaces recovery hints pointing to manifest.sync / manifest.diff (MAN-04)',
     async () => {
       const { handleInstanceAction } = await import('./instance.js');
