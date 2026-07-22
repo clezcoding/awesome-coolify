@@ -1,11 +1,22 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve, join } from 'node:path';
 import type { EnvConfig } from '../config/env.js';
 import { handleSystemAction } from './tools/system.js';
 import { handleResourceAction } from './tools/resource.js';
 import { handleApplicationAction } from './tools/application.js';
 import { handleDocsAction } from './tools/docs.js';
+import { handlePrivateKeyAction } from './tools/private_key.js';
+import { handleProjectAction } from './tools/project.js';
+import { handleServiceAction } from './tools/service.js';
+import { handleDatabaseAction } from './tools/database.js';
+import { handleEmergencyAction } from './tools/emergency.js';
+import { handleDeploymentAction } from './tools/deployment.js';
+import { handleDiagnoseAction } from './tools/diagnose.js';
+import { handleServerAction } from './tools/server.js';
+import { handleEnvironmentAction } from './tools/environment.js';
+import { InstanceManager } from '../utils/instance-registry.js';
 
 vi.mock('../api/client.js', () => ({
   fetchResources: vi.fn(),
@@ -13,6 +24,16 @@ vi.mock('../api/client.js', () => ({
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
   fetchApplication: vi.fn(),
+  fetchHealth: vi.fn(),
+  fetchPrivateKeys: vi.fn(),
+  fetchService: vi.fn(),
+  fetchDatabase: vi.fn(),
+  fetchAppDeployments: vi.fn(),
+  triggerAppStop: vi.fn(),
+  createCoolifyClient: vi.fn(),
+  fetchServer: vi.fn(),
+  fetchEnvironments: vi.fn(),
+  fetchEnvironment: vi.fn(),
 }));
 
 import {
@@ -21,6 +42,16 @@ import {
   fetchProjects,
   fetchProject,
   fetchApplication,
+  fetchHealth,
+  fetchPrivateKeys,
+  fetchService,
+  fetchDatabase,
+  fetchAppDeployments,
+  triggerAppStop,
+  createCoolifyClient,
+  fetchServer,
+  fetchEnvironments,
+  fetchEnvironment,
 } from '../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -151,6 +182,7 @@ describe('P2 read slice integration', () => {
       'utf8',
     );
     const readOnlyCount = (source.match(/readOnlyHint:\s*true/g) ?? []).length;
+    // system, meta, resource, docs — instance is mutable and must not be read-only
     expect(readOnlyCount).toBe(4);
 
     for (const tool of ['resource', 'docs']) {
@@ -160,13 +192,271 @@ describe('P2 read slice integration', () => {
       );
     }
 
-    for (const tool of ['application', 'service', 'database']) {
+    for (const tool of ['application', 'service', 'database', 'instance']) {
       expect(source).toContain(`registerTool(\n    '${tool}'`);
-      const toolBlock = source.match(
-        new RegExp(`registerTool\\(\\s*'${tool}'[\\s\\S]*?\\n  \\);`),
-      )?.[0];
-      expect(toolBlock).toBeTruthy();
+      const start = source.indexOf(`registerTool(\n    '${tool}'`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = source.indexOf('registerTool(', start + 1);
+      const toolBlock = next === -1 ? source.slice(start) : source.slice(start, next);
       expect(toolBlock).not.toMatch(/readOnlyHint:\s*true/);
     }
+  });
+});
+
+describe('CTX-06 multi-instance routing', () => {
+  let registryDir: string;
+
+  const emptyEnv: EnvConfig = {
+    COOLIFY_URL: undefined as unknown as string,
+    COOLIFY_TOKEN: undefined as unknown as string,
+    COOLIFY_VERIFY_SSL: true,
+    COOLIFY_MCP_LOG: 'info',
+  };
+
+  beforeEach(() => {
+    registryDir = mkdtempSync(join(tmpdir(), 'coolify-mcp-int-'));
+    process.env.COOLIFY_MCP_TEST_REGISTRY_DIR = registryDir;
+    vi.mocked(createCoolifyClient).mockReset();
+  });
+
+  afterEach(() => {
+    delete process.env.COOLIFY_MCP_TEST_REGISTRY_DIR;
+    rmSync(registryDir, { recursive: true, force: true });
+  });
+
+  function mockFetchWithClientCapture(
+    fetchFn: typeof fetchResources,
+    returnValue: unknown,
+  ): Array<{ url: string; token: string }> {
+    const captured: Array<{ url: string; token: string }> = [];
+    vi.mocked(fetchFn).mockImplementation(async (url, token, verifySsl) => {
+      createCoolifyClient(url, token, verifySsl);
+      captured.push({ url, token });
+      return returnValue as never;
+    });
+    return captured;
+  }
+
+  describe('named instance routes to registry creds', () => {
+    beforeEach(async () => {
+      await InstanceManager.add({
+        name: 'prod',
+        url: 'https://prod.coolify.example.com',
+        token: 'prod-token',
+        type: 'self-hosted',
+        verifySsl: true,
+      });
+    });
+
+    it('application.get with instance prod routes to prod creds', async () => {
+    const captured: Array<{ url: string; token: string }> = [];
+    vi.mocked(createCoolifyClient).mockImplementation((url, token) => {
+      captured.push({ url, token });
+      return vi.fn() as ReturnType<typeof createCoolifyClient>;
+    });
+    vi.mocked(fetchApplication).mockImplementation(async (url, token, _uuid, verifySsl) => {
+      createCoolifyClient(url, token, verifySsl);
+      return mockApplication;
+    });
+
+    await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('resource.find with instance prod routes to prod creds', async () => {
+    const resourceCaptured = mockFetchWithClientCapture(fetchResources, []);
+    mockFetchWithClientCapture(fetchServers, []);
+    mockFetchWithClientCapture(fetchProjects, []);
+
+    await handleResourceAction(
+      { action: 'find', query: 'test', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(resourceCaptured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('system.health with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchHealth, { ok: true });
+
+    await handleSystemAction({ action: 'health', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('private_key.list with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchPrivateKeys, []);
+
+    await handlePrivateKeyAction({ action: 'list', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('project.list with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchProjects, []);
+
+    await handleProjectAction({ action: 'list', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('service.get with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchService, {
+      uuid: 'svc-uuid-1',
+      name: 'worker',
+      status: 'running:healthy',
+    });
+
+    await handleServiceAction(
+      { action: 'get', uuid: 'svc-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('database.get with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchDatabase, {
+      uuid: 'db-uuid-1',
+      name: 'postgres',
+      status: 'running:healthy',
+    });
+
+    await handleDatabaseAction(
+      { action: 'get', uuid: 'db-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('emergency.stop_all with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchResources, []);
+    vi.mocked(triggerAppStop).mockResolvedValue(undefined);
+
+    await handleEmergencyAction(
+      { action: 'stop_all', confirm: true, instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('deployment.list with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchAppDeployments, []);
+
+    await handleDeploymentAction(
+      { action: 'list', application_uuid: 'app-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('diagnose.scan with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchServers, []);
+    mockFetchWithClientCapture(fetchResources, []);
+
+    await handleDiagnoseAction({ action: 'scan', instance: 'prod' }, emptyEnv);
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('server.get with instance prod routes to prod creds', async () => {
+    const captured = mockFetchWithClientCapture(fetchServer, {});
+    mockFetchWithClientCapture(fetchPrivateKeys, []);
+
+    await handleServerAction(
+      { action: 'get', uuid: 'server-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+
+  it('environment.list with instance prod routes to prod creds', async () => {
+    mockFetchWithClientCapture(fetchProject, { uuid: 'proj-uuid-1', name: 'proj-a' });
+    const captured = mockFetchWithClientCapture(fetchEnvironments, []);
+
+    await handleEnvironmentAction(
+      { action: 'list', project_uuid: 'proj-uuid-1', instance: 'prod' },
+      emptyEnv,
+    );
+
+    expect(captured).toContainEqual({
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+    });
+  });
+  });
+
+  it('application.get with instance unknown returns COOLIFY_INSTANCE_NOT_FOUND', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1', instance: 'unknown' },
+      emptyEnv,
+    );
+    expect(result).toMatchObject({
+      structuredContent: { error: { code: 'COOLIFY_INSTANCE_NOT_FOUND' } },
+    });
+  });
+
+  it('application.get with no instance and no env and no default returns COOLIFY_NO_INSTANCE', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1' },
+      emptyEnv,
+    );
+    expect(result).toMatchObject({
+      structuredContent: { error: { code: 'COOLIFY_NO_INSTANCE' } },
+    });
+  });
+
+  it('application.get with partial env returns COOLIFY_PARTIAL_ENV', async () => {
+    const result = await handleApplicationAction(
+      { action: 'get', uuid: 'app-uuid-1' },
+      {
+        ...emptyEnv,
+        COOLIFY_URL: 'https://only-url.example.com',
+      },
+    );
+    expect(result).toMatchObject({
+      structuredContent: { error: { code: 'COOLIFY_PARTIAL_ENV' } },
+    });
   });
 });

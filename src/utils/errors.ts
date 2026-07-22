@@ -12,7 +12,10 @@ export type CoolifyErrorCode =
   | 'COOLIFY_403_SENSITIVE_REQUIRED'
   | 'COOLIFY_CONFIRM_REQUIRED'
   | 'COOLIFY_SSH_UNREACHABLE'
-  | 'COOLIFY_VALIDATION_ERROR';
+  | 'COOLIFY_VALIDATION_ERROR'
+  | 'COOLIFY_NO_INSTANCE'
+  | 'COOLIFY_INSTANCE_NOT_FOUND'
+  | 'COOLIFY_PARTIAL_ENV';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -81,6 +84,19 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_VALIDATION_ERROR: [
     'Payload rejected by MCP Zod validation before any Coolify API call — fix the offending field paths in the error message.',
     "For build_pack='dockercompose' use service.create (Phase 11) — application dockercompose create is not supported.",
+  ],
+  COOLIFY_NO_INSTANCE: [
+    'Use instance.add to register a named Coolify instance.',
+    'Set both COOLIFY_URL and COOLIFY_TOKEN environment variables.',
+    'Run instance.set-default after adding instances to choose a registry default.',
+  ],
+  COOLIFY_INSTANCE_NOT_FOUND: [
+    'Run instance.list to see available registered instances.',
+    'Pass a valid instance slug from instance.list as the instance parameter.',
+  ],
+  COOLIFY_PARTIAL_ENV: [
+    'Set both COOLIFY_URL and COOLIFY_TOKEN, or unset both — partial env is not allowed.',
+    'Never mix an env URL with a registry token; use a named instance or complete env credentials.',
   ],
 };
 

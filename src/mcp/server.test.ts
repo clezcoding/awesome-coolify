@@ -48,13 +48,13 @@ describe('toolOutputSchema', () => {
 });
 
 describe('MCP server tool registration', () => {
-  it('registers system meta resource diagnose application deployment service database private_key server project environment and docs tools', () => {
+  it('registers system meta resource diagnose application deployment service database private_key instance server project environment and docs tools', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(14);
+    expect(matches.length).toBe(15);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
@@ -65,10 +65,43 @@ describe('MCP server tool registration', () => {
     expect(source).toContain("registerTool(\n    'service'");
     expect(source).toContain("registerTool(\n    'database'");
     expect(source).toContain("registerTool(\n    'private_key'");
+    expect(source).toContain("registerTool(\n    'instance'");
+    expect(source).toMatch(/handleInstanceAction\(args,\s*env\)/);
     expect(source).toContain("registerTool(\n    'server'");
     expect(source).toContain("registerTool(\n    'project'");
     expect(source).toContain("registerTool(\n    'environment'");
     expect(source).toContain("registerTool(\n    'docs'");
+  });
+
+  it('wraps 12 routed tool inputSchemas with withInstanceRoutingSchema (MCP boundary)', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/mcp/server.ts'),
+      'utf8',
+    );
+    expect(source).toContain(
+      "import { withInstanceRoutingSchema } from './tools/shared-read-params.js'",
+    );
+    const routed = [
+      'systemActionSchema',
+      'resourceActionSchema',
+      'diagnoseToolSchema',
+      'applicationActionSchema',
+      'emergencyToolSchema',
+      'deploymentToolSchema',
+      'serviceActionSchema',
+      'databaseActionSchema',
+      'privateKeyActionSchema',
+      'serverActionSchema',
+      'projectActionSchema',
+      'environmentActionSchema',
+    ];
+    for (const schema of routed) {
+      expect(source).toContain(`withInstanceRoutingSchema(${schema})`);
+    }
+    // meta/docs/instance intentionally unwrapped (no Coolify routing)
+    expect(source).toContain('inputSchema: metaActionSchema');
+    expect(source).toContain('inputSchema: docsActionSchema');
+    expect(source).toContain('inputSchema: instanceActionSchema');
   });
 
   it('uses discriminatedUnion schemas that reject unknown actions', () => {
@@ -137,17 +170,22 @@ describe('MCP server tool registration', () => {
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
-    for (const tool of [
-      'resource',
-      'application',
-      'service',
-      'database',
-      'docs',
-    ]) {
+    // Read-only tools: system/meta/resource/docs. Mutable domain tools must not match.
+    for (const tool of ['system', 'meta', 'resource', 'docs']) {
       expect(source).toContain(`registerTool(\n    '${tool}'`);
-      expect(source).toMatch(
-        new RegExp(`'${tool}'[\\s\\S]*readOnlyHint:\\s*true`),
-      );
+      const start = source.indexOf(`registerTool(\n    '${tool}'`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = source.indexOf('registerTool(', start + 1);
+      const toolBlock = next === -1 ? source.slice(start) : source.slice(start, next);
+      expect(toolBlock).toMatch(/readOnlyHint:\s*true/);
+    }
+    for (const tool of ['application', 'service', 'database']) {
+      expect(source).toContain(`registerTool(\n    '${tool}'`);
+      const start = source.indexOf(`registerTool(\n    '${tool}'`);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const next = source.indexOf('registerTool(', start + 1);
+      const toolBlock = next === -1 ? source.slice(start) : source.slice(start, next);
+      expect(toolBlock).not.toMatch(/readOnlyHint:\s*true/);
     }
   });
 

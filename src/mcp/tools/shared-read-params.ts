@@ -1,6 +1,123 @@
 import * as z from 'zod/v4';
+import type { EnvConfig } from '../../config/env.js';
 import { resolveProjection, type ProjectionMode } from '../../utils/projections.js';
-import { CoolifyApiError } from '../../utils/errors.js';
+import { CoolifyApiError, RECOVERY_HINTS } from '../../utils/errors.js';
+import { InstanceManager } from '../../utils/instance-registry.js';
+
+/** Optional multi-instance routing param (D-08) — shared across domain tools. */
+export const optionalInstanceParam = {
+  instance: z
+    .string()
+    .regex(/^[a-z][a-z0-9_-]{1,31}$/)
+    .optional()
+    .describe(
+      'Coolify instance name from registry (optional — uses env credentials or registry default)',
+    ),
+};
+
+export const instanceRoutingExtension = z.object(optionalInstanceParam);
+
+/**
+ * MCP `registerTool` inputSchema wrapper: extends every object option with
+ * `optionalInstanceParam` so SDK `validateToolInput` retains `instance`
+ * (does not strip/reject) and `tools/list` JSON Schema advertises the field.
+ *
+ * Handlers keep using `parseWithInstanceRouting` against unwrapped action
+ * schemas — both paths accept `instance`.
+ */
+export function withInstanceRoutingSchema(schema: z.ZodType): z.ZodType {
+  return extendSchemaWithInstance(schema);
+}
+
+function extendSchemaWithInstance(schema: z.ZodType): z.ZodType {
+  const ctor = schema.constructor.name;
+  const def = (
+    schema as {
+      def?: { type?: string; discriminator?: string };
+      options?: z.ZodType[];
+    }
+  ).def;
+  const options = (schema as { options?: z.ZodType[] }).options;
+
+  if (ctor === 'ZodObject') {
+    return (schema as z.ZodObject).extend(optionalInstanceParam);
+  }
+
+  if (def?.type === 'union' && Array.isArray(options)) {
+    const mapped = options.map(extendSchemaWithInstance);
+    if (mapped.length < 2) {
+      throw new Error('withInstanceRoutingSchema: union needs ≥2 options');
+    }
+    if (ctor === 'ZodDiscriminatedUnion' && def.discriminator) {
+      return z.discriminatedUnion(
+        def.discriminator,
+        mapped as [z.ZodObject, z.ZodObject, ...z.ZodObject[]],
+      );
+    }
+    return z.union(mapped as [z.ZodType, z.ZodType, ...z.ZodType[]]);
+  }
+
+  throw new Error(
+    `withInstanceRoutingSchema: unsupported schema type ${ctor}`,
+  );
+}
+
+/** Strip + validate instance param without weakening inner strict action schemas. */
+export function parseWithInstanceRouting<T extends Record<string, unknown>>(
+  schema: z.ZodType<T>,
+  args: unknown,
+): T & { instance?: string } {
+  const result = safeParseWithInstanceRouting(schema, args);
+  if (!result.success) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: result.error.issues.map((i) => i.message).join('; '),
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+  return result.data;
+}
+
+/** safeParse variant for handlers that map Zod failures to validation errors. */
+export function safeParseWithInstanceRouting<T extends Record<string, unknown>>(
+  schema: z.ZodType<T>,
+  args: unknown,
+): z.ZodSafeParseResult<T & { instance?: string }> {
+  const record =
+    typeof args === 'object' && args !== null
+      ? ({ ...(args as Record<string, unknown>) } as Record<string, unknown>)
+      : {};
+  const instanceResult = instanceRoutingExtension.safeParse({
+    instance: record.instance,
+  });
+  if (!instanceResult.success) {
+    return instanceResult as z.ZodSafeParseResult<T & { instance?: string }>;
+  }
+  delete record.instance;
+  const parsed = schema.safeParse(record);
+  if (!parsed.success) {
+    return parsed as z.ZodSafeParseResult<T & { instance?: string }>;
+  }
+  return {
+    success: true,
+    data: { ...parsed.data, ...instanceResult.data },
+  };
+}
+
+/** Resolve per-request credentials; returns EnvConfig with routed URL/token/verifySsl. */
+export function resolveRoutingEnv(env: EnvConfig, instance?: string): EnvConfig {
+  const creds = InstanceManager.resolveCredentials(instance, {
+    COOLIFY_URL: env.COOLIFY_URL,
+    COOLIFY_TOKEN: env.COOLIFY_TOKEN,
+    COOLIFY_VERIFY_SSL: env.COOLIFY_VERIFY_SSL === false ? 'false' : 'true',
+  });
+  return {
+    ...env,
+    COOLIFY_URL: creds.url,
+    COOLIFY_TOKEN: creds.token,
+    COOLIFY_VERIFY_SSL: creds.verifySsl,
+  };
+}
 
 export const sharedLogParamsSchema = {
   lines: z

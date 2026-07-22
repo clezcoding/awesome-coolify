@@ -19,6 +19,8 @@ import {
 } from '../../utils/errors.js';
 import {
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
+  safeParseWithInstanceRouting,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import {
@@ -159,8 +161,10 @@ function throwValidationError(error: z.ZodError): never {
   });
 }
 
-function parsePrivateKeyAction(args: unknown): PrivateKeyAction {
-  const parsed = privateKeyActionSchema.safeParse(args);
+function parsePrivateKeyAction(
+  args: unknown,
+): PrivateKeyAction & { instance?: string } {
+  const parsed = safeParseWithInstanceRouting(privateKeyActionSchema, args);
   if (!parsed.success) {
     throwValidationError(parsed.error);
   }
@@ -267,6 +271,7 @@ export async function handlePrivateKeyAction(
 ): Promise<PrivateKeyActionResult> {
   try {
     const parsed = parsePrivateKeyAction(args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'list': {
@@ -280,9 +285,9 @@ export async function handlePrivateKeyAction(
         }
 
         const rawKeys = await fetchPrivateKeys(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const summaries = rawKeys
@@ -311,10 +316,10 @@ export async function handlePrivateKeyAction(
         rejectTableFormatOnFullProjection(parsed.format, projection);
 
         const raw = await fetchPrivateKey(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const rawRecord = isRecord(raw) ? raw : {};
 
@@ -338,14 +343,14 @@ export async function handlePrivateKeyAction(
             : readFileSync(parsed.key_file!, 'utf8');
 
         const created = await createPrivateKey(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           {
             name: parsed.name,
             private_key: pem,
             ...(parsed.description ? { description: parsed.description } : {}),
           },
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const createdRecord = isRecord(created) ? created : {};
@@ -356,10 +361,10 @@ export async function handlePrivateKeyAction(
           typeof createdRecord.uuid === 'string'
         ) {
           const fetched = await fetchPrivateKey(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
             createdRecord.uuid,
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_VERIFY_SSL,
           );
           fetchedRecord = isRecord(fetched) ? fetched : undefined;
         }
@@ -385,11 +390,11 @@ export async function handlePrivateKeyAction(
         if (parsed.private_key !== undefined) payload.private_key = parsed.private_key;
 
         const updated = await updatePrivateKey(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
           payload,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const updatedRecord = isRecord(updated) ? updated : {};
@@ -414,7 +419,7 @@ export async function handlePrivateKeyAction(
       case 'delete': {
         validateDeleteConfirm(parsed.confirm, parsed.uuid);
 
-        const dependents = await findDependentServers(env, parsed.uuid);
+        const dependents = await findDependentServers(routingEnv, parsed.uuid);
         if (dependents.length > 0) {
           throw new CoolifyApiError({
             code: 'COOLIFY_409',
@@ -428,10 +433,10 @@ export async function handlePrivateKeyAction(
         }
 
         await deletePrivateKey(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         return buildReadResponse(
@@ -444,7 +449,7 @@ export async function handlePrivateKeyAction(
       }
 
       case 'delete_preview': {
-        const dependents = await findDependentServers(env, parsed.uuid);
+        const dependents = await findDependentServers(routingEnv, parsed.uuid);
 
         return buildReadResponse(
           {

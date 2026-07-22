@@ -60,6 +60,8 @@ import {
 } from '../../utils/log-helpers.js';
 import {
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
+  safeParseWithInstanceRouting,
   sharedLogParamsSchema,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
@@ -1139,8 +1141,10 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
   });
 }
 
-function parseApplicationAction(args: unknown): ApplicationAction {
-  const parsed = applicationActionSchema.safeParse(args);
+function parseApplicationAction(
+  args: unknown,
+): ApplicationAction & { instance?: string } {
+  const parsed = safeParseWithInstanceRouting(applicationActionSchema, args);
   if (!parsed.success) {
     throwValidationError(parsed.error, args);
   }
@@ -2738,38 +2742,39 @@ export async function handleApplicationAction(
 ): Promise<ApplicationActionResult> {
   try {
     const parsed = parseApplicationAction(args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'create':
-        return await handleApplicationCreate(parsed, env);
+        return await handleApplicationCreate(parsed, routingEnv);
       case 'update':
-        return await handleApplicationUpdate(parsed, env);
+        return await handleApplicationUpdate(parsed, routingEnv);
       case 'delete':
-        return await handleApplicationDelete(parsed, env);
+        return await handleApplicationDelete(parsed, routingEnv);
       case 'delete_preview':
-        return await handleApplicationDeletePreview(parsed, env);
+        return await handleApplicationDeletePreview(parsed, routingEnv);
       case 'start':
       case 'stop':
       case 'restart':
-        return await handleApplicationMutation(parsed, env);
+        return await handleApplicationMutation(parsed, routingEnv);
       case 'deploy':
-        return await handleApplicationDeploy(parsed, env);
+        return await handleApplicationDeploy(parsed, routingEnv);
       case 'logs':
-        return await handleApplicationLogs(parsed, env);
+        return await handleApplicationLogs(parsed, routingEnv);
       case 'envs:list':
-        return await handleApplicationEnvsList(parsed, env);
+        return await handleApplicationEnvsList(parsed, routingEnv);
       case 'envs:get':
-        return await handleApplicationEnvsGet(parsed, env);
+        return await handleApplicationEnvsGet(parsed, routingEnv);
       case 'envs:create':
-        return await handleApplicationEnvsCreate(parsed, env);
+        return await handleApplicationEnvsCreate(parsed, routingEnv);
       case 'envs:update':
-        return await handleApplicationEnvsUpdate(parsed, env);
+        return await handleApplicationEnvsUpdate(parsed, routingEnv);
       case 'envs:delete':
-        return await handleApplicationEnvsDelete(parsed, env);
+        return await handleApplicationEnvsDelete(parsed, routingEnv);
       case 'envs:bulk-update':
-        return await handleApplicationEnvsBulkUpdate(parsed, env);
+        return await handleApplicationEnvsBulkUpdate(parsed, routingEnv);
       case 'envs:sync':
-        return await handleApplicationEnvsSync(parsed, env);
+        return await handleApplicationEnvsSync(parsed, routingEnv);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
@@ -2779,10 +2784,10 @@ export async function handleApplicationAction(
         rejectTableFormatOnFullProjection(parsed.format, projection);
 
         const raw = await fetchApplication(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           parsed.uuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const rawRecord = isRecord(raw) ? raw : {};
@@ -2795,7 +2800,7 @@ export async function handleApplicationAction(
             : undefined,
         );
 
-        const lookup = await buildProjectEnvironmentIndex(env);
+        const lookup = await buildProjectEnvironmentIndex(routingEnv);
         const data =
           projection === 'full'
             ? {

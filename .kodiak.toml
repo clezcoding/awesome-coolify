@@ -1,15 +1,24 @@
-# Kodiak — auto-update + squash-merge when CI passes.
+# Kodiak — keep PRs updated; squash-merge only when `automerge` label is set.
 # Docs: https://kodiakhq.com/docs/config-reference
 # Install app (once): https://github.com/marketplace/kodiakhq
+#
+# Correct labeling:
+#   Ready to ship → `gh pr edit <n> --add-label automerge`
+#   Or: ./scripts/setup-kodiak.sh --pr <n>
+# Do NOT combine with blocking_labels below (e.g. status: needs-review).
 
 version = 1
 
 [merge]
 method = "squash"
 automerge_label = "automerge"
+# Only merge PRs that explicitly opt in via the automerge label.
 require_automerge_label = true
 delete_branch_on_merge = true
+# On conflict: comment + remove automerge label (needs require_automerge_label).
 notify_on_conflict = true
+# Merge immediately when green instead of waiting in queue.
+prioritize_ready_to_merge = true
 blocking_labels = [
   "status: blocked",
   "status: needs-review",
@@ -27,5 +36,7 @@ body_type = "markdown"
 strip_html_comments = true
 
 [update]
+# Keep every open PR branch current with main (avoids DIRTY/skipping until labeled).
 always = true
-require_automerge_label = true
+# Updates do NOT require automerge label — merge still does (see merge.require_automerge_label).
+require_automerge_label = false

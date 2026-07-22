@@ -18,6 +18,8 @@ import {
 } from '../../utils/errors.js';
 import {
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
+  safeParseWithInstanceRouting,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import {
@@ -192,8 +194,10 @@ function throwValidationError(error: z.ZodError): never {
   });
 }
 
-function parseEnvironmentAction(args: unknown): EnvironmentAction {
-  const parsed = environmentActionSchema.safeParse(args);
+function parseEnvironmentAction(
+  args: unknown,
+): EnvironmentAction & { instance?: string } {
+  const parsed = safeParseWithInstanceRouting(environmentActionSchema, args);
   if (!parsed.success) {
     throwValidationError(parsed.error);
   }
@@ -355,20 +359,21 @@ export async function handleEnvironmentAction(
 ): Promise<EnvironmentActionResult> {
   try {
     const parsed = parseEnvironmentAction(args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
     switch (parsed.action) {
       case 'list': {
         const { projectUuid, projectName } = await resolveProjectContext(
           parsed.project_uuid,
           parsed.project_name,
-          env,
+          routingEnv,
         );
 
         const rawEnvironments = await fetchEnvironments(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         const summaries = rawEnvironments
@@ -401,16 +406,16 @@ export async function handleEnvironmentAction(
         const { projectUuid } = await resolveProjectContext(
           parsed.project_uuid,
           parsed.project_name,
-          env,
+          routingEnv,
         );
 
         const nameOrUuid = parsed.uuid ?? parsed.name ?? '';
         const raw = await fetchEnvironment(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
           nameOrUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
         const rawRecord = isRecord(raw) ? raw : {};
 
@@ -429,16 +434,16 @@ export async function handleEnvironmentAction(
         const projectUuid = await resolveProjectUuid(
           parsed.project_uuid,
           parsed.project_name,
-          env,
+          routingEnv,
         );
 
         try {
           const created = await createEnvironment(
-            env.COOLIFY_URL,
-            env.COOLIFY_TOKEN,
+            routingEnv.COOLIFY_URL,
+            routingEnv.COOLIFY_TOKEN,
             projectUuid,
             { name: parsed.name },
-            env.COOLIFY_VERIFY_SSL,
+            routingEnv.COOLIFY_VERIFY_SSL,
           );
 
           const createdRecord = isRecord(created) ? created : {};
@@ -470,19 +475,19 @@ export async function handleEnvironmentAction(
         const { projectUuid } = await resolveProjectContext(
           parsed.project_uuid,
           parsed.project_name,
-          env,
+          routingEnv,
         );
 
         const { envUuid, envRecord } = await resolveEnvironmentRecord(
           projectUuid,
           parsed.uuid,
           parsed.name,
-          env,
+          routingEnv,
         );
 
         validateDeleteConfirm(parsed.confirm, envUuid);
 
-        const childResources = await findEnvironmentChildResources(env, envRecord);
+        const childResources = await findEnvironmentChildResources(routingEnv, envRecord);
 
         if (childResources.length > 0) {
           throw new CoolifyApiError({
@@ -497,11 +502,11 @@ export async function handleEnvironmentAction(
         }
 
         await deleteEnvironment(
-          env.COOLIFY_URL,
-          env.COOLIFY_TOKEN,
+          routingEnv.COOLIFY_URL,
+          routingEnv.COOLIFY_TOKEN,
           projectUuid,
           envUuid,
-          env.COOLIFY_VERIFY_SSL,
+          routingEnv.COOLIFY_VERIFY_SSL,
         );
 
         return buildReadResponse(
@@ -517,17 +522,17 @@ export async function handleEnvironmentAction(
         const { projectUuid } = await resolveProjectContext(
           parsed.project_uuid,
           parsed.project_name,
-          env,
+          routingEnv,
         );
 
         const { envUuid, envRecord } = await resolveEnvironmentRecord(
           projectUuid,
           parsed.uuid,
           parsed.name,
-          env,
+          routingEnv,
         );
 
-        const childResources = await findEnvironmentChildResources(env, envRecord);
+        const childResources = await findEnvironmentChildResources(routingEnv, envRecord);
 
         return buildReadResponse(
           {

@@ -38,8 +38,9 @@ yarn-error.log*
 .agents/
 skills-lock.json
 
-# GSD planning workflow (local only)
-.planning/
+# GSD planning — tracked when commit_docs: true (keep junk local)
+.planning/**/.DS_Store
+.planning/.DS_Store
 
 # Generated analysis
 graphify-out/

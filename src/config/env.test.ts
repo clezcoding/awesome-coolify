@@ -2,7 +2,6 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ZodError } from 'zod';
 import {
   formatEnvLoadHint,
   loadEnv,
@@ -11,16 +10,22 @@ import {
 } from './env.js';
 
 describe('loadEnv', () => {
-  it('throws when COOLIFY_URL is absent', () => {
-    expect(() =>
-      loadEnv({ COOLIFY_TOKEN: 'secret-token' }),
-    ).toThrow(ZodError);
+  it('throws COOLIFY_PARTIAL_ENV when COOLIFY_URL is absent', () => {
+    try {
+      loadEnv({ COOLIFY_TOKEN: 'secret-token' });
+      expect.fail('expected COOLIFY_PARTIAL_ENV');
+    } catch (error) {
+      expect(error).toMatchObject({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } });
+    }
   });
 
-  it('throws when COOLIFY_TOKEN is absent', () => {
-    expect(() =>
-      loadEnv({ COOLIFY_URL: 'https://coolify.example.com' }),
-    ).toThrow(ZodError);
+  it('throws COOLIFY_PARTIAL_ENV when COOLIFY_TOKEN is absent', () => {
+    try {
+      loadEnv({ COOLIFY_URL: 'https://coolify.example.com' });
+      expect.fail('expected COOLIFY_PARTIAL_ENV');
+    } catch (error) {
+      expect(error).toMatchObject({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } });
+    }
   });
 
   it('returns parsed config when required vars are set', () => {
@@ -53,6 +58,23 @@ describe('loadEnv', () => {
     });
 
     expect(env.COOLIFY_MCP_LOG).toBe('debug');
+  });
+
+  it('loadEnv with no COOLIFY_* keys returns soft-start config (D-18)', () => {
+    const env = loadEnv({});
+    expect(env.COOLIFY_URL).toBeUndefined();
+    expect(env.COOLIFY_TOKEN).toBeUndefined();
+    expect(env.COOLIFY_VERIFY_SSL).toBe(true);
+    expect(env.COOLIFY_MCP_LOG).toBe('info');
+  });
+
+  it('loadEnv with only COOLIFY_URL throws COOLIFY_PARTIAL_ENV (D-13)', () => {
+    try {
+      loadEnv({ COOLIFY_URL: 'https://only-url.example.com' });
+      expect.fail('expected COOLIFY_PARTIAL_ENV');
+    } catch (error) {
+      expect(error).toMatchObject({ envelope: { code: 'COOLIFY_PARTIAL_ENV' } });
+    }
   });
 });
 

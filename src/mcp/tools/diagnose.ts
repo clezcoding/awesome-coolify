@@ -30,7 +30,9 @@ import {
 } from '../../utils/formatters.js';
 import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
 import {
+  parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
+  resolveRoutingEnv,
   sharedReadParamsSchema,
 } from './shared-read-params.js';
 import {
@@ -474,19 +476,20 @@ async function handleDiagnoseScan(
 }
 
 export async function handleDiagnoseAction(
-  args: DiagnoseAction,
+  args: unknown,
   env: EnvConfig,
 ): Promise<DiagnoseActionResult> {
-  const parsed = diagnoseToolSchema.parse(args);
-
   try {
+    const parsed = parseWithInstanceRouting(diagnoseToolSchema, args);
+    const routingEnv = resolveRoutingEnv(env, parsed.instance);
+
     switch (parsed.action) {
       case 'app':
-        return await handleDiagnoseApp(parsed, env);
+        return await handleDiagnoseApp(parsed, routingEnv);
       case 'server':
-        return await handleDiagnoseServer(parsed, env);
+        return await handleDiagnoseServer(parsed, routingEnv);
       case 'scan':
-        return await handleDiagnoseScan(parsed, env);
+        return await handleDiagnoseScan(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown diagnose action: ${String(_exhaustive)}`);
