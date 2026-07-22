@@ -116,7 +116,7 @@ status: complete
 1. **Task 1: Create dedicated 192x192 MCP list icon asset + update docs/assets/README.md** - `115f4f5` (feat)
 2. **Task 2: Wire McpServer constructor with title/description/websiteUrl/icons** - `aa75bb7` (feat)
 
-**Plan metadata:** pending (docs: complete plan)
+**Plan metadata:** `fd0169e` (docs: complete plan)
 
 ## Files Created/Modified
 
