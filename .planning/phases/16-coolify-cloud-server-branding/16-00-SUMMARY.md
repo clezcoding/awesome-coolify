@@ -102,7 +102,7 @@ status: complete
 
 1. **Task 1: RED scaffold server.test.ts branding + errors.test.ts cloud mapping + instance.test.ts cloud-info** - `82b088b` (test)
 
-**Plan metadata:** pending (docs commit follows)
+**Plan metadata:** `3459a55` (docs: complete plan)
 
 ## Files Created/Modified
 
