@@ -456,6 +456,69 @@ describe('manifest tool', () => {
   );
 
   it(
+    'handleManifestAction sync maps service domains from urls[] when fqdn absent (WR-04)',
+    async () => {
+      const { handleInstanceAction } = await import('./instance.js');
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      const SERVICE_UUID = '00000000-0000-4000-8000-000000000006';
+
+      await handleInstanceAction(
+        {
+          action: 'add',
+          name: 'prod',
+          url: 'https://prod.coolify.example.com',
+          token: 'prod-token',
+          type: 'self-hosted',
+        },
+        testEnv,
+      );
+
+      vi.mocked(fetchResources).mockResolvedValue([
+        {
+          uuid: SERVICE_UUID,
+          name: 'multi-url-svc',
+          type: 'service',
+          urls: [
+            { name: 'web', url: 'https://a.example.com' },
+            { name: 'api', url: 'https://b.example.com' },
+          ],
+          environment: { uuid: ENV_UUID, name: 'e' },
+          project: { uuid: PROJECT_UUID, name: 'p' },
+        },
+      ] as never);
+      vi.mocked(fetchProjects).mockResolvedValue([{ uuid: PROJECT_UUID, name: 'p' }] as never);
+      vi.mocked(fetchProject).mockResolvedValue({
+        uuid: PROJECT_UUID,
+        environments: [{ uuid: ENV_UUID, name: 'e' }],
+      } as never);
+      vi.mocked(fetchServers).mockResolvedValue([] as never);
+
+      const result = await handleManifestAction(
+        { action: 'sync', instance: 'prod' },
+        testEnv,
+      );
+      expect(isManifestErrorResult(result)).toBe(false);
+      if (isManifestErrorResult(result)) return;
+
+      const manifest = await handleManifestAction({ action: 'get' }, testEnv);
+      expect(isManifestErrorResult(manifest)).toBe(false);
+      if (isManifestErrorResult(manifest)) return;
+
+      const resources =
+        (
+          manifest.data as {
+            projects: {
+              environments: { resources: { uuid: string; domains: string[] }[] }[];
+            }[];
+          }
+        ).projects[0]?.environments[0]?.resources ?? [];
+      expect(resources.find((entry) => entry.uuid === SERVICE_UUID)).toMatchObject({
+        domains: ['https://a.example.com', 'https://b.example.com'],
+      });
+    },
+  );
+
+  it(
     "handleManifestAction({action:'sync', instance:'prod', confirm:true, prune:true}) prunes orphans and returns sync report",
     async () => {
       const { handleInstanceAction } = await import('./instance.js');

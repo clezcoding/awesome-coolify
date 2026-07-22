@@ -101,6 +101,7 @@ type ApiResource = {
   name: string;
   type: string;
   fqdn?: string;
+  urls?: Array<{ name?: string; url?: string } | string>;
   environment?: { uuid: string; name: string };
   project?: { uuid: string; name: string };
 };
@@ -146,6 +147,16 @@ function mapResourceType(type: string): ManifestResource['type'] | null {
   return null;
 }
 
+function domainsFromApiResource(resource: ApiResource): string[] {
+  if (Array.isArray(resource.urls) && resource.urls.length > 0) {
+    const fromUrls = resource.urls
+      .map((entry) => (typeof entry === 'string' ? entry : entry?.url))
+      .filter((url): url is string => typeof url === 'string' && url.length > 0);
+    if (fromUrls.length > 0) return fromUrls;
+  }
+  return resource.fqdn ? [resource.fqdn] : [];
+}
+
 function resourceToManifestEntry(resource: ApiResource): ManifestResource | null {
   const type = mapResourceType(resource.type);
   if (!type) return null;
@@ -153,7 +164,7 @@ function resourceToManifestEntry(resource: ApiResource): ManifestResource | null
     uuid: resource.uuid,
     type,
     name: resource.name,
-    domains: resource.fqdn ? [resource.fqdn] : [],
+    domains: domainsFromApiResource(resource),
   };
 }
 
