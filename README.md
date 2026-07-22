@@ -610,10 +610,10 @@ Have a use case that isn't listed? Open an issue — the roadmap is shaped by wh
 ```bash
 git clone https://github.com/clezcoding/awesome-coolify.git
 cd awesome-coolify
-npm install
-npm run build    # tsup → dist/
-npm test         # vitest
-npm run dev      # watch mode
+pnpm install
+pnpm run build    # tsup → dist/
+pnpm test         # vitest
+pnpm run dev      # watch mode
 ```
 
 Logs go to **stderr** only — stdout is reserved exclusively for the MCP protocol.

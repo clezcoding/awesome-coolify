@@ -5,12 +5,12 @@ Thanks for your interest in this project! This repo follows the [GSD](https://gi
 ## Local Setup
 
 ```bash
-npm install
-npm run lint
-npm test
+pnpm install
+pnpm run lint
+pnpm test
 ```
 
-Git hooks (commitlint) are activated automatically via `husky` on `npm install`.
+Git hooks (commitlint) are activated automatically via `husky` on `pnpm install`.
 
 ## Commit Convention
 
