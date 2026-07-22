@@ -319,3 +319,79 @@ describe('wrapMcpError', () => {
     expect(envelope.message).not.toContain(secret);
   });
 });
+
+describe('Cloud hostname error mapping', () => {
+  it('maps app.coolify.io HTTP 403 to COOLIFY_CLOUD_FORBIDDEN (CLD-02)', () => {
+    const envelope = toStructuredError({
+      request: 'https://app.coolify.io/api/v1/servers',
+      response: { status: 403, _data: { message: 'Forbidden' } },
+    });
+    expect(envelope.code).toBe('COOLIFY_CLOUD_FORBIDDEN');
+  });
+
+  it(
+    'cloud 403 envelope recoveryHints mention team-scoped token (CLD-02)',
+    () => {
+      const envelope = toStructuredError({
+        request: 'https://app.coolify.io/api/v1/servers',
+        response: { status: 403, _data: { message: 'Forbidden' } },
+      });
+      expect(envelope.recoveryHints[0]).toMatch(/team-scoped token/i);
+    },
+  );
+
+  it(
+    'maps app.coolify.io HTTP 404 to COOLIFY_CLOUD_UNSUPPORTED (CLD-02)',
+    () => {
+      const envelope = toStructuredError({
+        request: 'https://app.coolify.io/api/v1/unsupported',
+        response: { status: 404, _data: { message: 'Not found' } },
+      });
+      expect(envelope.code).toBe('COOLIFY_CLOUD_UNSUPPORTED');
+    },
+  );
+
+  it(
+    'cloud 404 envelope recoveryHints mention endpoint not supported on Coolify Cloud (CLD-02)',
+    () => {
+      const envelope = toStructuredError({
+        request: 'https://app.coolify.io/api/v1/unsupported',
+        response: { status: 404, _data: { message: 'Not found' } },
+      });
+      expect(envelope.recoveryHints[0]).toMatch(
+        /Endpoint not supported|not available on Coolify Cloud/i,
+      );
+    },
+  );
+
+  it(
+    'self-hosted hostname 403 does not map to COOLIFY_CLOUD_* codes (D-03)',
+    () => {
+      const envelope = toStructuredError({
+        request: 'https://coolify.example.com/api/v1/servers',
+        response: { status: 403 },
+      });
+      expect(envelope.code.startsWith('COOLIFY_CLOUD_')).toBe(false);
+    },
+  );
+
+  it(
+    'RECOVERY_HINTS defines COOLIFY_CLOUD_FORBIDDEN and COOLIFY_CLOUD_UNSUPPORTED (CLD-02)',
+    () => {
+      const forbidden = 'COOLIFY_CLOUD_FORBIDDEN' as CoolifyErrorCode;
+      const unsupported = 'COOLIFY_CLOUD_UNSUPPORTED' as CoolifyErrorCode;
+      expect(RECOVERY_HINTS[forbidden]?.length).toBeGreaterThanOrEqual(1);
+      expect(RECOVERY_HINTS[unsupported]?.length).toBeGreaterThanOrEqual(1);
+    },
+  );
+
+  it(
+    'CoolifyErrorCode union includes COOLIFY_CLOUD_FORBIDDEN and COOLIFY_CLOUD_UNSUPPORTED (CLD-02)',
+    () => {
+      const forbidden = 'COOLIFY_CLOUD_FORBIDDEN' as CoolifyErrorCode;
+      const unsupported = 'COOLIFY_CLOUD_UNSUPPORTED' as CoolifyErrorCode;
+      expect(RECOVERY_HINTS[forbidden].length).toBeGreaterThanOrEqual(1);
+      expect(RECOVERY_HINTS[unsupported].length).toBeGreaterThanOrEqual(1);
+    },
+  );
+});

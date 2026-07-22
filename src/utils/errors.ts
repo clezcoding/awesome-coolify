@@ -15,7 +15,9 @@ export type CoolifyErrorCode =
   | 'COOLIFY_VALIDATION_ERROR'
   | 'COOLIFY_NO_INSTANCE'
   | 'COOLIFY_INSTANCE_NOT_FOUND'
-  | 'COOLIFY_PARTIAL_ENV';
+  | 'COOLIFY_PARTIAL_ENV'
+  | 'COOLIFY_CLOUD_FORBIDDEN'
+  | 'COOLIFY_CLOUD_UNSUPPORTED';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -98,7 +100,24 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
     'Set both COOLIFY_URL and COOLIFY_TOKEN, or unset both — partial env is not allowed.',
     'Never mix an env URL with a registry token; use a named instance or complete env credentials.',
   ],
+  COOLIFY_CLOUD_FORBIDDEN: [
+    'Regenerate the team-scoped token in app.coolify.io under Keys & Tokens and ensure it has the required abilities.',
+    'Cloud tokens are team-scoped — verify the token belongs to the team that owns the target resource.',
+  ],
+  COOLIFY_CLOUD_UNSUPPORTED: [
+    'Endpoint not supported or not available on Coolify Cloud — use the self-hosted alternative or the Cloud dashboard.',
+    'See docs/en/cloud.md for the list of known Cloud-unsupported endpoints.',
+  ],
 };
+
+export function isCloudUrl(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return hostname === 'coolify.io' || hostname.endsWith('.coolify.io');
+  } catch {
+    return false;
+  }
+}
 
 function sanitizeMessage(message: string): string {
   return redactSecrets(message);
@@ -147,8 +166,39 @@ export function mapApiError(
   error: unknown,
   httpStatus?: number,
   coolifyMessage?: string,
+  isCloud = false,
 ): CoolifyErrorEnvelope {
   if (httpStatus !== undefined) {
+    if (isCloud && httpStatus === 403) {
+      const trimmedCoolifyMessage =
+        typeof coolifyMessage === 'string' ? coolifyMessage.trim() : '';
+      return {
+        code: 'COOLIFY_CLOUD_FORBIDDEN',
+        message: sanitizeMessage(
+          trimmedCoolifyMessage.length > 0
+            ? trimmedCoolifyMessage
+            : 'Cloud API request forbidden. Check team-scoped token permissions.',
+        ),
+        recoveryHints: RECOVERY_HINTS.COOLIFY_CLOUD_FORBIDDEN,
+        httpStatus,
+      };
+    }
+
+    if (isCloud && httpStatus === 404) {
+      const trimmedCoolifyMessage =
+        typeof coolifyMessage === 'string' ? coolifyMessage.trim() : '';
+      return {
+        code: 'COOLIFY_CLOUD_UNSUPPORTED',
+        message: sanitizeMessage(
+          trimmedCoolifyMessage.length > 0
+            ? trimmedCoolifyMessage
+            : 'Endpoint not supported or not available on Coolify Cloud.',
+        ),
+        recoveryHints: RECOVERY_HINTS.COOLIFY_CLOUD_UNSUPPORTED,
+        httpStatus,
+      };
+    }
+
     const code = statusToCode(httpStatus);
     const trimmedCoolifyMessage =
       typeof coolifyMessage === 'string' ? coolifyMessage.trim() : '';
@@ -207,11 +257,16 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
   }
 
   const fetchError = error as {
+    request?: string;
     response?: { status?: number; _data?: unknown };
     status?: number;
     statusCode?: number;
     data?: unknown;
   };
+
+  const requestUrl =
+    typeof fetchError.request === 'string' ? fetchError.request : undefined;
+  const isCloud = requestUrl ? isCloudUrl(requestUrl) : false;
 
   const status =
     fetchError.response?.status ??
@@ -223,7 +278,7 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
     extractCoolifyMessage(fetchError.data);
 
   if (typeof status === 'number') {
-    const envelope = mapApiError(error, status, coolifyMessage);
+    const envelope = mapApiError(error, status, coolifyMessage, isCloud);
     const responseData = fetchError.response?._data ?? fetchError.data;
     const conflicts =
       status === 409 ? extractConflicts(responseData) : undefined;

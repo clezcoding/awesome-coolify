@@ -437,7 +437,7 @@ export function registerCoolifyTools(
     'instance',
     {
       description:
-        'Multi-instance registry CRUD (list, get, add, update, delete, set-default, import-env) for ~/.coolify-mcp/instances.json. Tokens masked as *** unless reveal:true — do not persist revealed secrets. delete requires confirm:true; deleting the default or last instance requires force:true. import-env opt-in copies COOLIFY_URL+COOLIFY_TOKEN from process env — never auto-run. No instance routing param — ops always target the local registry file (D-03).',
+        'Multi-instance registry CRUD (list, get, add, update, delete, set-default, import-env, cloud-info) for ~/.coolify-mcp/instances.json. Tokens masked as *** unless reveal:true — do not persist revealed secrets. delete requires confirm:true; deleting the default or last instance requires force:true. import-env opt-in copies COOLIFY_URL+COOLIFY_TOKEN from process env — never auto-run. cloud-info is local/static discovery (isCloud, resolved url, source, setupHints, knownLimits, docsLink) — no live API probe. No instance routing param on other actions — ops always target the local registry file (D-03).',
       inputSchema: instanceActionSchema,
       outputSchema: toolOutputSchema,
     },
@@ -581,7 +581,21 @@ export function registerCoolifyTools(
 export async function createAndConnectServer(
   env: EnvConfig,
 ): Promise<McpServer> {
-  const server = new McpServer({ name: 'awesome-coolify-mcp', version: '0.1.0' });
+  const server = new McpServer({
+    name: 'awesome-coolify-mcp',
+    version: '0.1.0',
+    title: 'Awesome Coolify',
+    description:
+      'MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools',
+    websiteUrl: 'https://github.com/clezcoding/awesome-coolify',
+    icons: [
+      {
+        src: 'https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png',
+        mimeType: 'image/png',
+        sizes: ['192x192'],
+      },
+    ],
+  });
   registerCoolifyTools(server, env);
 
   const transport = new StdioServerTransport();

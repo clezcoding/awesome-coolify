@@ -10,6 +10,7 @@ Official branding for **awesome-coolify-mcp**. Mascot **Hex Robot Helper** (winn
 | `logo-transparent.png` | Cutout mascot (transparent background) |
 | `favicon-512.png` | High-res icon source |
 | `favicon-192.png` | PWA / apple-touch size |
+| `mcp-icon-192.png` | MCP server list icon (serverInfo.icons) |
 | `favicon-32.png` | Small favicon |
 | `social-preview.png` | GitHub Settings → Social preview (16:9) |
 | `hero-banner.png` | README header banner — mascot + fleet/terminal/deploy/safety dashboard |
@@ -33,6 +34,12 @@ README images:
 
 ```
 https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/<file>
+```
+
+MCP server list icon (`serverInfo.icons`):
+
+```
+https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png
 ```
 
 GitHub Pages serves install assets from `docs/assets/` on the same origin.

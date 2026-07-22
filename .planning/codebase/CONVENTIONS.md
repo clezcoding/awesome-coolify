@@ -4,11 +4,11 @@
 
 ## Repository Model
 
-**Dual-repo layout:**
-- **Private dev repo** (`awesome-coolify` local checkout) — full GSD workflow, dev scripts, planning artifacts
-- **Public repo** (`clezcoding/awesome-coolify-mcp`) — npm package + GitHub Pages; synced via `scripts/sync-public-repo.sh`
+**Single public repo** ([`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify)) — npm package + GitHub Pages + source. No dual-repo sync; npm already points here.
 
-Keep prod-relevant changes in paths listed in `scripts/sync-public-repo.sh` `INCLUDE` array. Dev-only work stays under `.planning/`, `.cursor/`, `.agents/`, `graphify-out/`, `mcp_features.md`.
+Dev-only work stays under `.planning/`, `.cursor/`, `.agents/`, `graphify-out/`, `mcp_features.md` (gitignored where applicable).
+
+> **Retired (D-07):** The former dual-repo layout with a separate `awesome-coolify-mcp` git remote and `scripts/sync-public-repo.sh` is no longer used.
 
 ## Naming Patterns
 
