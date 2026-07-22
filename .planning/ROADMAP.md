@@ -175,10 +175,10 @@ Plans:
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
 | 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
 | 16 | v3.0 | 5/5 | Complete    | 2026-07-22 |
-| 17 | v3.0 | 0/4 | Not started | - |
+| 17 | v3.0 | 0/4 | Planned | - |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
-**Next:** `/gsd-plan-phase 16`
+**Next:** `/gsd-execute-phase 17`
 
 ---
 
