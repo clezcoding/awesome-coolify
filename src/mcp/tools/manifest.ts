@@ -352,6 +352,12 @@ function mergeManifests(
     }
   }
 
+  // Drop stale local copies before remote-wins upsert so a resource that
+  // moved between environments does not leave a duplicate UUID behind.
+  for (const uuid of remoteResourceUuids) {
+    removeResourceFromManifest(merged, uuid);
+  }
+
   for (const remoteProject of remote.projects) {
     for (const remoteEnvironment of remoteProject.environments) {
       for (const resource of remoteEnvironment.resources) {

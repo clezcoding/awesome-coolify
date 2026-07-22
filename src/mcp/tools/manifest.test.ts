@@ -38,6 +38,7 @@ const PROJECT_UUID = '00000000-0000-4000-8000-000000000001';
 const ENV_UUID = '00000000-0000-4000-8000-000000000002';
 const RESOURCE_UUID = '00000000-0000-4000-8000-000000000003';
 const ORPHAN_UUID = '00000000-0000-4000-8000-000000000004';
+const ENV_UUID_B = '00000000-0000-4000-8000-000000000005';
 
 beforeEach(() => {
   testWorkspaceRoot = mkdtempSync(join(tmpdir(), 'coolify-mcp-manifest-tool-'));
@@ -361,6 +362,95 @@ describe('manifest tool', () => {
       expect(resources.some((r) => r.uuid === ORPHAN_UUID)).toBe(true);
       expect(result.data).toMatchObject({
         orphans_retained: expect.arrayContaining([ORPHAN_UUID]),
+      });
+    },
+  );
+
+  it(
+    'handleManifestAction sync removes duplicate resource UUID when remote environment changes (WR-02)',
+    async () => {
+      const { handleInstanceAction } = await import('./instance.js');
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+
+      await handleInstanceAction(
+        {
+          action: 'add',
+          name: 'prod',
+          url: 'https://prod.coolify.example.com',
+          token: 'prod-token',
+          type: 'self-hosted',
+        },
+        testEnv,
+      );
+
+      await handleManifestAction(
+        {
+          action: 'upsert',
+          resource: {
+            uuid: RESOURCE_UUID,
+            type: 'application',
+            name: 'stale-placement',
+            domains: ['https://old.example.com'],
+          },
+          project_uuid: PROJECT_UUID,
+          project_name: 'p',
+          environment_uuid: ENV_UUID,
+          environment_name: 'e-old',
+        },
+        testEnv,
+      );
+
+      vi.mocked(fetchResources).mockResolvedValue([
+        {
+          uuid: RESOURCE_UUID,
+          name: 'moved-app',
+          type: 'application',
+          fqdn: 'https://remote.example.com',
+          environment: { uuid: ENV_UUID_B, name: 'e-new' },
+          project: { uuid: PROJECT_UUID, name: 'p' },
+        },
+      ] as never);
+      vi.mocked(fetchProjects).mockResolvedValue([{ uuid: PROJECT_UUID, name: 'p' }] as never);
+      vi.mocked(fetchProject).mockResolvedValue({
+        uuid: PROJECT_UUID,
+        environments: [
+          { uuid: ENV_UUID, name: 'e-old' },
+          { uuid: ENV_UUID_B, name: 'e-new' },
+        ],
+      } as never);
+      vi.mocked(fetchServers).mockResolvedValue([] as never);
+
+      const result = await handleManifestAction(
+        { action: 'sync', instance: 'prod' },
+        testEnv,
+      );
+      expect(isManifestErrorResult(result)).toBe(false);
+      if (isManifestErrorResult(result)) return;
+
+      const manifest = await handleManifestAction({ action: 'get' }, testEnv);
+      expect(isManifestErrorResult(manifest)).toBe(false);
+      if (isManifestErrorResult(manifest)) return;
+
+      const projects = (
+        manifest.data as {
+          projects: {
+            environments: { uuid: string; resources: { uuid: string; name: string }[] }[];
+          }[];
+        }
+      ).projects;
+      const allResources = projects.flatMap((project) =>
+        project.environments.flatMap((environment) =>
+          environment.resources.map((resource) => ({
+            env: environment.uuid,
+            ...resource,
+          })),
+        ),
+      );
+      const matches = allResources.filter((entry) => entry.uuid === RESOURCE_UUID);
+      expect(matches).toHaveLength(1);
+      expect(matches[0]).toMatchObject({
+        env: ENV_UUID_B,
+        name: 'moved-app',
       });
     },
   );
