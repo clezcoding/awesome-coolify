@@ -5,15 +5,15 @@ milestone_name: Platform Foundation
 current_phase: 17
 current_phase_name: local-manifest-sync
 status: executing
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-07-22T16:46:51.556Z"
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-07-22T16:51:58.240Z"
 last_activity: 2026-07-22
 last_activity_desc: Phase 17 execution started
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 50
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 17 (local-manifest-sync) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-22 — Phase 17 execution started
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
@@ -96,6 +96,7 @@ Progress: [█████████░] 86%
 | Phase 16-coolify-cloud-server-branding P04 | 8min | 3 tasks | 7 files |
 | Phase 17-local-manifest-sync P00 | 3min | 3 tasks | 3 files |
 | Phase 17-local-manifest-sync P01 | 2min | 2 tasks | 5 files |
+| Phase 17-local-manifest-sync P02 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -257,6 +258,8 @@ Progress: [█████████░] 86%
 - [Phase ?]: Manifest MCP sync/diff tests mocken api/client — keine Live-API-Calls in Wave 0
 - [Phase ?]: autoUpsert merged into Task 1 commit — husky pre-commit requires all it.fails resolved
 - [Phase ?]: chmodSync(0o555) on readonly-root in autoUpsert test — macOS tmp dirs writable without explicit deny
+- [Phase ?]: manifest sync awaits reconcileWithRemote — un-awaited promise bypassed try/catch
+- [Phase ?]: 404 hint injection via ManifestManager.hasUuid in toStructuredError — hints only per D-15
 
 ### Pending Todos
 
@@ -303,8 +306,8 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T16:46:51.548Z
-**Stopped at:** Completed 17-01-PLAN.md
+**Last session:** 2026-07-22T16:51:58.232Z
+**Stopped at:** Completed 17-02-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-22 — Quick 260722-85p path 3: marketing site live at https://awesome-coolify.higgsfield.app

@@ -31,8 +31,8 @@ Requirements for this milestone. Each maps to roadmap phases (15+).
 
 - [x] **MAN-01**: Agent can read and write `.coolify/manifest.json` storing project, environment, server, and resource UUIDs plus domains
 - [x] **MAN-02**: First manifest write auto-appends `.coolify/` to the workspace `.gitignore` if not already present
-- [ ] **MAN-03**: Agent can reconcile manifest against live API via a `manifest:sync` action (refresh stale entries)
-- [ ] **MAN-04**: Operations against stale manifest UUIDs surface refresh hints on API 404 (manifest is cache, not source of truth)
+- [x] **MAN-03**: Agent can reconcile manifest against live API via a `manifest:sync` action (refresh stale entries)
+- [x] **MAN-04**: Operations against stale manifest UUIDs surface refresh hints on API 404 (manifest is cache, not source of truth)
 
 ### Live UAT Harness (UAT)
 
@@ -87,8 +87,8 @@ Tracked but not in v3.0 roadmap.
 | BRND-03 | Phase 16 | Complete |
 | MAN-01 | Phase 17 | Complete |
 | MAN-02 | Phase 17 | Complete |
-| MAN-03 | Phase 17 | Pending |
-| MAN-04 | Phase 17 | Pending |
+| MAN-03 | Phase 17 | Complete |
+| MAN-04 | Phase 17 | Complete |
 | UAT-01 | Phase 18 | Pending |
 | UAT-02 | Phase 18 | Pending |
 | UAT-03 | Phase 18 | Pending |
