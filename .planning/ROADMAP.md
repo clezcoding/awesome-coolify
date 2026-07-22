@@ -46,7 +46,7 @@ Full phase details: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 
 - [x] **Phase 15: Multi-Instance Registry & Routing** - Secure `instances.json` CRUD with per-request routing and env override (completed 2026-07-21)
 - [x] **Phase 16: Coolify Cloud & Server Branding** - `app.coolify.io` support, cloud error hints, MCP list icon via `serverInfo.icons`, docs EN/DE (completed 2026-07-22)
-- [ ] **Phase 17: Local Manifest & Sync** - `.coolify/manifest.json` schema, gitignore injection, `manifest:sync` reconciliation
+- [x] **Phase 17: Local Manifest & Sync** - `.coolify/manifest.json` schema, gitignore injection, `manifest:sync` reconciliation (completed 2026-07-22)
 - [ ] **Phase 18: Live UAT Harness** - One CLI script testing all 14 tools against real Coolify data with JSON report
 
 ### 📋 v3.1 Setup & Skills (Planned)
@@ -175,7 +175,7 @@ Plans:
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
 | 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
 | 16 | v3.0 | 5/5 | Complete    | 2026-07-22 |
-| 17 | v3.0 | 4/4 | In Progress|  |
+| 17 | v3.0 | 4/4 | Complete    | 2026-07-22 |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
 **Next:** `/gsd-execute-phase 17`
