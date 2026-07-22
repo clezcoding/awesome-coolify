@@ -27,8 +27,10 @@ import {
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
+  resolveEnvironmentUuid,
   resolveProjectUuid,
 } from '../../utils/project-lookup.js';
+import { ManifestManager } from '../../utils/manifest.js';
 import {
   encodeCompose,
   projectServiceCompose,
@@ -1008,6 +1010,159 @@ function readBoundedComposeFile(composeFilePath: string): string {
   }
 }
 
+function parseDomainsInput(domains: string | undefined): string[] {
+  if (!domains) return [];
+  return domains.split(',').map((entry) => entry.trim()).filter(Boolean);
+}
+
+function extractDomainsFromRaw(raw: Record<string, unknown>): string[] {
+  const fqdn = raw.fqdn;
+  if (typeof fqdn === 'string' && fqdn.length > 0) {
+    return [fqdn];
+  }
+
+  const domains = raw.domains;
+  if (typeof domains === 'string' && domains.length > 0) {
+    return parseDomainsInput(domains);
+  }
+  if (Array.isArray(domains)) {
+    return domains.filter((entry): entry is string => typeof entry === 'string');
+  }
+
+  return [];
+}
+
+function extractServiceDomains(
+  parsed?: { urls?: { name: string; url: string }[] },
+  raw?: Record<string, unknown>,
+): string[] {
+  if (parsed?.urls?.length) {
+    return parsed.urls.map((entry) => entry.url).filter(Boolean);
+  }
+  return raw ? extractDomainsFromRaw(raw) : [];
+}
+
+function extractManifestContextFromRaw(raw: Record<string, unknown>): {
+  projectUuid?: string;
+  projectName?: string;
+  environmentUuid?: string;
+  environmentName?: string;
+} {
+  const project = raw.project;
+  const environment = raw.environment;
+
+  return {
+    projectUuid:
+      isRecord(project) && typeof project.uuid === 'string'
+        ? project.uuid
+        : undefined,
+    projectName:
+      isRecord(project) && typeof project.name === 'string'
+        ? project.name
+        : undefined,
+    environmentUuid:
+      isRecord(environment) && typeof environment.uuid === 'string'
+        ? environment.uuid
+        : undefined,
+    environmentName:
+      isRecord(environment) && typeof environment.name === 'string'
+        ? environment.name
+        : undefined,
+  };
+}
+
+async function withManifestUpsert<T>(
+  response: ReadResponse<T>,
+  entry: {
+    uuid: string;
+    type: 'application' | 'service' | 'database';
+    name: string;
+    domains?: string[];
+    projectUuid?: string;
+    projectName?: string;
+    environmentUuid?: string;
+    environmentName?: string;
+  },
+): Promise<ReadResponse<T>> {
+  try {
+    await ManifestManager.autoUpsert(entry);
+    return response;
+  } catch (manifestError) {
+    return {
+      ...response,
+      _meta: {
+        ...response._meta,
+        manifestWarning: `Failed to update local manifest cache: ${manifestError instanceof Error ? manifestError.message : String(manifestError)}`,
+      },
+    } as ReadResponse<T>;
+  }
+}
+
+async function withManifestRemove<T>(
+  response: ReadResponse<T>,
+  uuid: string,
+): Promise<ReadResponse<T>> {
+  try {
+    await ManifestManager.autoRemove(uuid);
+    return response;
+  } catch (manifestError) {
+    return {
+      ...response,
+      _meta: {
+        ...response._meta,
+        manifestWarning: `Failed to update local manifest cache: ${manifestError instanceof Error ? manifestError.message : String(manifestError)}`,
+      },
+    } as ReadResponse<T>;
+  }
+}
+
+async function buildServiceCreateManifestEntry(
+  parsed: CreateAction,
+  created: Record<string, unknown>,
+  projectUuid: string,
+  env: EnvConfig,
+): Promise<Parameters<typeof ManifestManager.autoUpsert>[0]> {
+  let environmentUuid = parsed.environment_uuid;
+  if (!environmentUuid && parsed.environment_name) {
+    environmentUuid = await resolveEnvironmentUuid(
+      undefined,
+      parsed.environment_name,
+      projectUuid,
+      env,
+    );
+  }
+
+  return {
+    uuid: String(created.uuid ?? ''),
+    type: 'service',
+    name: String(created.name ?? parsed.name ?? ''),
+    domains: extractServiceDomains(parsed, created),
+    projectUuid,
+    projectName: parsed.project_name,
+    environmentUuid,
+    environmentName: parsed.environment_name,
+  };
+}
+
+function buildServiceUpdateManifestEntry(
+  raw: Record<string, unknown>,
+  uuid: string,
+  parsed: UpdateAction,
+): Parameters<typeof ManifestManager.autoUpsert>[0] {
+  const ctx = extractManifestContextFromRaw(raw);
+
+  return {
+    uuid,
+    type: 'service',
+    name: String(raw.name ?? parsed.name ?? ''),
+    domains: extractServiceDomains(parsed, raw),
+    projectUuid: ctx.projectUuid ?? parsed.project_uuid,
+    projectName: ctx.projectName,
+    environmentUuid: ctx.environmentUuid ?? parsed.environment_uuid,
+    environmentName: ctx.environmentName ?? parsed.environment_name,
+  };
+}
+
 async function handleServiceCreate(
   parsed: CreateAction,
   env: EnvConfig,
@@ -1096,20 +1251,31 @@ async function handleServiceCreate(
     });
   }
 
+  const responseParams = {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  };
+  const manifestEntry = await buildServiceCreateManifestEntry(
+    parsed,
+    created,
+    project_uuid,
+    env,
+  );
+
   if (!parsed.instant_deploy) {
-    return buildReadResponse(
-      {
-        uuid: serviceUuid,
-        ...(typeof projected.compose === 'string'
-          ? { compose: projected.compose }
-          : {}),
-        deploy: { status: 'not_triggered' as const },
-        hints: ['Use service.start or service.deploy to start the service'],
-      },
-      {
-        format: parsed.format,
-        max_chars: parsed.max_chars,
-      },
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          uuid: serviceUuid,
+          ...(typeof projected.compose === 'string'
+            ? { compose: projected.compose }
+            : {}),
+          deploy: { status: 'not_triggered' as const },
+          hints: ['Use service.start or service.deploy to start the service'],
+        },
+        responseParams,
+      ),
+      manifestEntry,
     );
   }
 
@@ -1121,46 +1287,46 @@ async function handleServiceCreate(
       env.COOLIFY_VERIFY_SSL,
     );
 
-    return buildReadResponse(
-      {
-        uuid: serviceUuid,
-        ...(typeof projected.compose === 'string'
-          ? { compose: projected.compose }
-          : {}),
-        deploy: { status: 'queued' as const },
-        hints: [
-          'Use service.get with uuid to inspect deployed compose',
-          'Use service.deploy to re-deploy',
-          'Use service.stop or service.start for lifecycle',
-        ],
-      },
-      {
-        format: parsed.format,
-        max_chars: parsed.max_chars,
-      },
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          uuid: serviceUuid,
+          ...(typeof projected.compose === 'string'
+            ? { compose: projected.compose }
+            : {}),
+          deploy: { status: 'queued' as const },
+          hints: [
+            'Use service.get with uuid to inspect deployed compose',
+            'Use service.deploy to re-deploy',
+            'Use service.stop or service.start for lifecycle',
+          ],
+        },
+        responseParams,
+      ),
+      manifestEntry,
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return buildReadResponse(
-      {
-        ok: true as const,
-        uuid: serviceUuid,
-        ...(typeof projected.compose === 'string'
-          ? { compose: projected.compose }
-          : {}),
-        deploy: {
-          status: 'failed_to_queue' as const,
-          error: redactSecrets(message),
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          ok: true as const,
+          uuid: serviceUuid,
+          ...(typeof projected.compose === 'string'
+            ? { compose: projected.compose }
+            : {}),
+          deploy: {
+            status: 'failed_to_queue' as const,
+            error: redactSecrets(message),
+          },
+          recoveryHints: [
+            'Service was created successfully — retry start with service.start or service.deploy.',
+            'Check Coolify server logs if start queue failures persist.',
+          ],
         },
-        recoveryHints: [
-          'Service was created successfully — retry start with service.start or service.deploy.',
-          'Check Coolify server logs if start queue failures persist.',
-        ],
-      },
-      {
-        format: parsed.format,
-        max_chars: parsed.max_chars,
-      },
+        responseParams,
+      ),
+      manifestEntry,
     );
   }
 }
@@ -1298,10 +1464,15 @@ async function handleServiceUpdate(
     parsed.reveal,
   ) as Record<string, unknown>;
 
-  return buildReadResponse(data, {
+  const response = buildReadResponse(data, {
     format: parsed.format,
     max_chars: parsed.max_chars,
   });
+
+  return withManifestUpsert(
+    response,
+    buildServiceUpdateManifestEntry(rawRecord, uuid, parsed),
+  );
 }
 
 async function handleServiceDelete(
@@ -1328,7 +1499,7 @@ async function handleServiceDelete(
     env.COOLIFY_VERIFY_SSL,
   );
 
-  return buildReadResponse(
+  const response = buildReadResponse(
     {
       ok: true as const,
       uuid,
@@ -1341,6 +1512,8 @@ async function handleServiceDelete(
       max_chars: parsed.max_chars,
     },
   );
+
+  return withManifestRemove(response, uuid);
 }
 
 function mapNestedChildResources(

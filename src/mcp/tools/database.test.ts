@@ -11,6 +11,7 @@ vi.mock('../../api/client.js', () => ({
   fetchResources: vi.fn(),
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
+  fetchEnvironments: vi.fn(),
   triggerDatabaseStart: vi.fn(),
   triggerDatabaseStop: vi.fn(),
   triggerDatabaseRestart: vi.fn(),
@@ -36,11 +37,19 @@ vi.mock('../../api/client.js', () => ({
   fetchBackupExecutions: vi.fn(),
 }));
 
+vi.mock('../../utils/manifest.js', () => ({
+  ManifestManager: {
+    autoUpsert: vi.fn(),
+    autoRemove: vi.fn(),
+  },
+}));
+
 import {
   fetchDatabase,
   fetchResources,
   fetchProjects,
   fetchProject,
+  fetchEnvironments,
   triggerDatabaseRestart,
   triggerDatabaseStart,
   triggerDatabaseStop,
@@ -65,6 +74,7 @@ import {
   deleteDatabaseBackup,
   fetchBackupExecutions,
 } from '../../api/client.js';
+import { ManifestManager } from '../../utils/manifest.js';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -521,6 +531,14 @@ const engineClientMap = {
 
 describe('database create', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
+    vi.mocked(fetchEnvironments).mockReset();
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { uuid: 'env-uuid-1', name: 'production' },
+    ]);
     Object.values(engineClientMap).forEach((fn) => fn.mockReset());
     vi.mocked(triggerDatabaseStart).mockReset();
     vi.mocked(triggerDatabaseStart).mockResolvedValue({
@@ -717,10 +735,40 @@ describe('database create', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
     expect(createPostgresqlDatabase).not.toHaveBeenCalled();
   });
+
+  it('surfaces _meta.manifestWarning when autoUpsert fails without failing create', async () => {
+    vi.mocked(ManifestManager.autoUpsert).mockRejectedValue(
+      new Error('EACCES: permission denied'),
+    );
+
+    const result = await handleDatabaseAction(
+      {
+        action: 'create',
+        engine: 'postgresql',
+        ...baseDatabaseCreateFields,
+      },
+      testEnv,
+    );
+
+    expect(isDatabaseErrorResult(result)).toBe(false);
+    if (isDatabaseErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    expect(result.data).toMatchObject({ uuid: 'db-new-uuid' });
+    expect(result._meta).toMatchObject({
+      manifestWarning: expect.stringContaining(
+        'Failed to update local manifest cache: EACCES: permission denied',
+      ),
+    });
+  });
 });
 
 describe('database update', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
     vi.mocked(updateDatabase).mockReset();
     vi.mocked(fetchDatabase).mockReset();
     vi.mocked(fetchResources).mockReset();
@@ -857,6 +905,10 @@ describe('database update', () => {
 
 describe('database delete', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
     vi.mocked(deleteDatabase).mockReset();
     vi.mocked(fetchResources).mockReset();
     vi.mocked(deleteDatabase).mockResolvedValue({ message: 'Database deleted.' });

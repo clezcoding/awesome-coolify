@@ -31,8 +31,10 @@ import {
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
+  resolveEnvironmentUuid,
   resolveProjectUuid,
 } from '../../utils/project-lookup.js';
+import { ManifestManager } from '../../utils/manifest.js';
 import {
   isDatabaseRawType,
   projectDatabaseSummary,
@@ -1317,6 +1319,127 @@ async function handleDatabaseMutation(
   );
 }
 
+function extractManifestContextFromRaw(raw: Record<string, unknown>): {
+  projectUuid?: string;
+  projectName?: string;
+  environmentUuid?: string;
+  environmentName?: string;
+} {
+  const project = raw.project;
+  const environment = raw.environment;
+
+  return {
+    projectUuid:
+      isRecord(project) && typeof project.uuid === 'string'
+        ? project.uuid
+        : undefined,
+    projectName:
+      isRecord(project) && typeof project.name === 'string'
+        ? project.name
+        : undefined,
+    environmentUuid:
+      isRecord(environment) && typeof environment.uuid === 'string'
+        ? environment.uuid
+        : undefined,
+    environmentName:
+      isRecord(environment) && typeof environment.name === 'string'
+        ? environment.name
+        : undefined,
+  };
+}
+
+async function withManifestUpsert<T>(
+  response: ReadResponse<T>,
+  entry: {
+    uuid: string;
+    type: 'application' | 'service' | 'database';
+    name: string;
+    domains?: string[];
+    projectUuid?: string;
+    projectName?: string;
+    environmentUuid?: string;
+    environmentName?: string;
+  },
+): Promise<ReadResponse<T>> {
+  try {
+    await ManifestManager.autoUpsert(entry);
+    return response;
+  } catch (manifestError) {
+    return {
+      ...response,
+      _meta: {
+        ...response._meta,
+        manifestWarning: `Failed to update local manifest cache: ${manifestError instanceof Error ? manifestError.message : String(manifestError)}`,
+      },
+    } as ReadResponse<T>;
+  }
+}
+
+async function withManifestRemove<T>(
+  response: ReadResponse<T>,
+  uuid: string,
+): Promise<ReadResponse<T>> {
+  try {
+    await ManifestManager.autoRemove(uuid);
+    return response;
+  } catch (manifestError) {
+    return {
+      ...response,
+      _meta: {
+        ...response._meta,
+        manifestWarning: `Failed to update local manifest cache: ${manifestError instanceof Error ? manifestError.message : String(manifestError)}`,
+      },
+    } as ReadResponse<T>;
+  }
+}
+
+async function buildDatabaseCreateManifestEntry(
+  parsed: CreateAction,
+  created: Record<string, unknown>,
+  projectUuid: string,
+  env: EnvConfig,
+): Promise<Parameters<typeof ManifestManager.autoUpsert>[0]> {
+  let environmentUuid = parsed.environment_uuid;
+  if (!environmentUuid && parsed.environment_name) {
+    environmentUuid = await resolveEnvironmentUuid(
+      undefined,
+      parsed.environment_name,
+      projectUuid,
+      env,
+    );
+  }
+
+  return {
+    uuid: String(created.uuid ?? ''),
+    type: 'database',
+    name: String(created.name ?? parsed.name ?? ''),
+    domains: [],
+    projectUuid,
+    projectName: parsed.project_name,
+    environmentUuid,
+    environmentName: parsed.environment_name,
+  };
+}
+
+function buildDatabaseUpdateManifestEntry(
+  raw: Record<string, unknown>,
+  uuid: string,
+  parsed: UpdateAction,
+): Parameters<typeof ManifestManager.autoUpsert>[0] {
+  const ctx = extractManifestContextFromRaw(raw);
+
+  return {
+    uuid,
+    type: 'database',
+    name: String(raw.name ?? parsed.name ?? ''),
+    domains: [],
+    projectUuid: ctx.projectUuid ?? parsed.project_uuid,
+    projectName: ctx.projectName,
+    environmentUuid: ctx.environmentUuid ?? parsed.environment_uuid,
+    environmentName: ctx.environmentName ?? parsed.environment_name,
+  };
+}
+
 async function handleDatabaseCreate(
   parsed: CreateAction,
   env: EnvConfig,
@@ -1350,16 +1473,25 @@ async function handleDatabaseCreate(
     format: parsed.format,
     max_chars: parsed.max_chars,
   };
+  const manifestEntry = await buildDatabaseCreateManifestEntry(
+    parsed,
+    created,
+    project_uuid,
+    env,
+  );
 
   if (!parsed.instant_deploy) {
-    return buildReadResponse(
-      {
-        ...projected,
-        uuid: dbUuid,
-        deploy: { status: 'not_triggered' as const },
-        hints: ['Use database.start to start the database'],
-      },
-      responseParams,
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          ...projected,
+          uuid: dbUuid,
+          deploy: { status: 'not_triggered' as const },
+          hints: ['Use database.start to start the database'],
+        },
+        responseParams,
+      ),
+      manifestEntry,
     );
   }
 
@@ -1371,35 +1503,41 @@ async function handleDatabaseCreate(
       env.COOLIFY_VERIFY_SSL,
     );
 
-    return buildReadResponse(
-      {
-        ...projected,
-        uuid: dbUuid,
-        deploy: { status: 'queued' as const },
-        hints: [
-          'Use database.get with uuid to inspect connection details',
-          'Use database.start/stop/restart for lifecycle',
-        ],
-      },
-      responseParams,
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          ...projected,
+          uuid: dbUuid,
+          deploy: { status: 'queued' as const },
+          hints: [
+            'Use database.get with uuid to inspect connection details',
+            'Use database.start/stop/restart for lifecycle',
+          ],
+        },
+        responseParams,
+      ),
+      manifestEntry,
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return buildReadResponse(
-      {
-        ok: true as const,
-        ...projected,
-        uuid: dbUuid,
-        deploy: {
-          status: 'failed_to_queue' as const,
-          error: redactSecrets(message),
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          ok: true as const,
+          ...projected,
+          uuid: dbUuid,
+          deploy: {
+            status: 'failed_to_queue' as const,
+            error: redactSecrets(message),
+          },
+          recoveryHints: [
+            'Database was created successfully — retry start with database.start.',
+            'Check Coolify server logs if start queue failures persist.',
+          ],
         },
-        recoveryHints: [
-          'Database was created successfully — retry start with database.start.',
-          'Check Coolify server logs if start queue failures persist.',
-        ],
-      },
-      responseParams,
+        responseParams,
+      ),
+      manifestEntry,
     );
   }
 }
@@ -1467,10 +1605,15 @@ async function handleDatabaseUpdate(
     unknown
   >;
 
-  return buildReadResponse(data, {
+  const response = buildReadResponse(data, {
     format: parsed.format,
     max_chars: parsed.max_chars,
   });
+
+  return withManifestUpsert(
+    response,
+    buildDatabaseUpdateManifestEntry(isRecord(raw) ? raw : {}, uuid, parsed),
+  );
 }
 
 async function handleDatabaseDelete(
@@ -1497,7 +1640,7 @@ async function handleDatabaseDelete(
     env.COOLIFY_VERIFY_SSL,
   );
 
-  return buildReadResponse(
+  const response = buildReadResponse(
     {
       ok: true as const,
       uuid,
@@ -1510,6 +1653,8 @@ async function handleDatabaseDelete(
       max_chars: parsed.max_chars,
     },
   );
+
+  return withManifestRemove(response, uuid);
 }
 
 async function handleDatabaseDeletePreview(
