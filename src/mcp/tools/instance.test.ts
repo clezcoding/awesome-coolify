@@ -266,3 +266,141 @@ describe('instance tool', () => {
     expect(parsed.success).toBe(false);
   });
 });
+
+describe('instance cloud-info action', () => {
+  const savedCoolifyUrl = process.env.COOLIFY_URL;
+  const savedCoolifyToken = process.env.COOLIFY_TOKEN;
+
+  afterEach(() => {
+    if (savedCoolifyUrl === undefined) {
+      delete process.env.COOLIFY_URL;
+    } else {
+      process.env.COOLIFY_URL = savedCoolifyUrl;
+    }
+    if (savedCoolifyToken === undefined) {
+      delete process.env.COOLIFY_TOKEN;
+    } else {
+      process.env.COOLIFY_TOKEN = savedCoolifyToken;
+    }
+  });
+
+  it.fails(
+    'cloud-info with env credentials returns isCloud false and source env (D-16/D-17)',
+    async () => {
+      const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+      const result = await handleInstanceAction({ action: 'cloud-info' }, testEnv);
+      expect(isInstanceErrorResult(result)).toBe(false);
+      if (isInstanceErrorResult(result)) return;
+      expect(result.data).toMatchObject({
+        isCloud: false,
+        url: testEnv.COOLIFY_URL,
+        source: 'env',
+      });
+    },
+  );
+
+  it.fails(
+    'cloud-info on registered cloud instance returns isCloud true and source registry (D-16)',
+    async () => {
+      const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+      await handleInstanceAction(
+        {
+          action: 'add',
+          name: 'my-cloud',
+          url: 'https://app.coolify.io',
+          token: 't',
+          type: 'cloud',
+        },
+        testEnv,
+      );
+      const result = await handleInstanceAction(
+        { action: 'cloud-info', instance: 'my-cloud' },
+        testEnv,
+      );
+      expect(isInstanceErrorResult(result)).toBe(false);
+      if (isInstanceErrorResult(result)) return;
+      expect(result.data).toMatchObject({
+        isCloud: true,
+        url: 'https://app.coolify.io',
+        source: 'registry',
+      });
+    },
+  );
+
+  it.fails(
+    'cloud-info with no registry or env infers app.coolify.io (D-16)',
+    async () => {
+      delete process.env.COOLIFY_URL;
+      delete process.env.COOLIFY_TOKEN;
+      const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+      const result = await handleInstanceAction(
+        { action: 'cloud-info' },
+        {
+          COOLIFY_VERIFY_SSL: true,
+          COOLIFY_MCP_LOG: 'info',
+        },
+      );
+      expect(isInstanceErrorResult(result)).toBe(false);
+      if (isInstanceErrorResult(result)) return;
+      expect(result.data).toMatchObject({
+        isCloud: true,
+        url: 'https://app.coolify.io',
+        source: 'infer',
+      });
+    },
+  );
+
+  it.fails(
+    'cloud-info response includes setupHints, knownLimits, and docsLink (D-16)',
+    async () => {
+      const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+      const result = await handleInstanceAction({ action: 'cloud-info' }, testEnv);
+      expect(isInstanceErrorResult(result)).toBe(false);
+      if (isInstanceErrorResult(result)) return;
+      const data = result.data as Record<string, unknown>;
+      expect(Array.isArray(data.setupHints)).toBe(true);
+      expect((data.setupHints as unknown[]).length).toBeGreaterThanOrEqual(1);
+      expect(Array.isArray(data.knownLimits)).toBe(true);
+      expect((data.knownLimits as unknown[]).length).toBeGreaterThanOrEqual(1);
+      expect(typeof data.docsLink).toBe('string');
+      expect(data.docsLink).toMatch(/docs\//);
+    },
+  );
+
+  it.fails(
+    'cloud-info with unknown instance name returns COOLIFY_INSTANCE_NOT_FOUND (D-17)',
+    async () => {
+      const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
+      const result = await handleInstanceAction(
+        { action: 'cloud-info', instance: 'missing-instance' },
+        testEnv,
+      );
+      expect(isInstanceErrorResult(result)).toBe(true);
+      if (!isInstanceErrorResult(result)) return;
+      expect(result.structuredContent.error?.code).toBe('COOLIFY_INSTANCE_NOT_FOUND');
+    },
+  );
+
+  it.fails('instanceActionSchema accepts cloud-info action (CLD-01)', async () => {
+    const { instanceActionSchema } = await loadInstanceTool();
+    expect(instanceActionSchema.safeParse({ action: 'cloud-info' }).success).toBe(
+      true,
+    );
+  });
+
+  it.fails(
+    'instanceActionSchema rejects cloud-info with invalid instance slug (D-08)',
+    async () => {
+      const { instanceActionSchema } = await loadInstanceTool();
+      const result = instanceActionSchema.safeParse({
+        action: 'cloud-info',
+        instance: 'bad-name-with-uppercase-A',
+      });
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(
+        result.error.issues.some((issue) => issue.path.includes('instance')),
+      ).toBe(true);
+    },
+  );
+});

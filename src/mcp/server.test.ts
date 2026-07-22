@@ -216,3 +216,67 @@ describe('MCP server tool registration', () => {
     ).toBe(true);
   });
 });
+
+describe('McpServer branding metadata', () => {
+  const serverSourcePath = resolve(process.cwd(), 'src/mcp/server.ts');
+  const packageDescription = JSON.parse(
+    readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'),
+  ).description as string;
+
+  function readServerSource(): string {
+    return readFileSync(serverSourcePath, 'utf8');
+  }
+
+  function mcpServerConstructorBlock(source: string): string {
+    const start = source.indexOf('new McpServer({');
+    expect(start).toBeGreaterThanOrEqual(0);
+    const end = source.indexOf('});', start);
+    expect(end).toBeGreaterThan(start);
+    return source.slice(start, end + 3);
+  }
+
+  it.fails('source contains title: Awesome Coolify (BRND-01)', () => {
+    expect(readServerSource()).toContain("title: 'Awesome Coolify'");
+  });
+
+  it.fails(
+    'source contains websiteUrl https://github.com/clezcoding/awesome-coolify (BRND-01)',
+    () => {
+      expect(readServerSource()).toContain(
+        "websiteUrl: 'https://github.com/clezcoding/awesome-coolify'",
+      );
+    },
+  );
+
+  it.fails('McpServer constructor block contains description key (BRND-03)', () => {
+    const block = mcpServerConstructorBlock(readServerSource());
+    expect(block).toMatch(/\bdescription:/);
+  });
+
+  it.fails(
+    'McpServer constructor block contains icons with jsDelivr PNG URL (BRND-03)',
+    () => {
+      const block = mcpServerConstructorBlock(readServerSource());
+      expect(block).toMatch(/\bicons:/);
+      expect(block).toContain(
+        'https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png',
+      );
+    },
+  );
+
+  it.fails(
+    'McpServer constructor block contains mimeType image/png and sizes 192x192 (BRND-03)',
+    () => {
+      const block = mcpServerConstructorBlock(readServerSource());
+      expect(block).toContain("mimeType: 'image/png'");
+      expect(block).toContain("sizes: ['192x192']");
+    },
+  );
+
+  it.fails(
+    'package.json description appears verbatim in server.ts source (BRND-03)',
+    () => {
+      expect(readServerSource()).toContain(packageDescription);
+    },
+  );
+});
