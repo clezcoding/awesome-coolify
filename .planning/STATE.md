@@ -14,7 +14,7 @@ progress:
   total_plans: 10
   completed_plans: 10
   percent: 50
-last_activity_desc: "Completed quick task 260722-aal: npm→pnpm Mac migration script"
+last_activity_desc: "Removed npm→pnpm Mac utility (out of project scope)"
 ---
 
 # Project State
@@ -274,7 +274,6 @@ Progress: [██████████] 100%
 | 260719-8ol | Install GitHub repo tooling (Kodiak, Release Drafter, MCP/Comfy publish, publint, MegaLinter) | 2026-07-19 | a58f904 | [260719-8ol-install-github-repo-tooling-per-locked-d](./quick/260719-8ol-install-github-repo-tooling-per-locked-d/) |
 | 260719-fju | GitHub Actions/Bots/Workflows Audit — MCP publish gaps + verify script | 2026-07-19 | 75d61d3 | [260719-fju-berpr-fe-ob-alle-github-action-tools-bot](./quick/260719-fju-berpr-fe-ob-alle-github-action-tools-bot/) |
 | 260721-70k | CI/CD speed audit + Kodiak autodeploy activation | 2026-07-21 | 0d5fbb5 | [260721-70k-die-github-prs-dauern-teils-mehrere-minu](./quick/260721-70k-die-github-prs-dauern-teils-mehrere-minu/) |
-| 260722-aal | SH Script: MacBook-Projekte npm → pnpm (ANSI TUI) | 2026-07-22 | 905c948 | [260722-aal-schreibe-ein-sh-script-um-alle-meine-pro](./quick/260722-aal-schreibe-ein-sh-script-um-alle-meine-pro/) |
 
 ## Deferred Items
 
