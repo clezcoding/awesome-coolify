@@ -4,7 +4,7 @@
  * Does NOT touch Cursor extension-hosts or other coolify-mcp npm packages.
  *
  * Usage:
- *   npm run kill-mcp
+ *   pnpm run kill-mcp
  *   node scripts/kill-mcp.mjs
  *   node scripts/kill-mcp.mjs --dry-run
  *   node scripts/kill-mcp.mjs --inspect
@@ -46,7 +46,7 @@ const SKIPPED_RELATED = [
   {
     test: (cmd) =>
       cmd.includes(`${root}/`) &&
-      /vitest|tsup|graphify update|npm test|npm run test/i.test(cmd),
+      /vitest|tsup|graphify update|npm test|npm run test|pnpm test|pnpm run test/i.test(cmd),
     reason: 'Dev/test tooling in repo (not MCP server)',
   },
 ];

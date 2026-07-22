@@ -132,7 +132,7 @@ function assertPhase9(label, args) {
 
 async function main() {
   if (!existsSync(distEntry)) {
-    console.error('Run npm run build first');
+    console.error('Run pnpm run build first');
     process.exit(1);
   }
 

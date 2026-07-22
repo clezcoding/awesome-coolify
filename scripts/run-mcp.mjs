@@ -4,7 +4,7 @@
  * reads COOLIFY_* from project or user Cursor mcp.json `env`, then runs dist/index.js.
  * Never prints token values.
  *
- * Usage: npm start
+ * Usage: pnpm start
  *        node scripts/run-mcp.mjs
  */
 import { spawn } from 'node:child_process';
@@ -68,7 +68,7 @@ function resolveMcpEnv() {
 function main() {
   if (!existsSync(distEntry)) {
     console.error(
-      '[run-mcp] Missing dist/index.js — run `npm run build` first.',
+      '[run-mcp] Missing dist/index.js — run `pnpm run build` first.',
     );
     process.exit(1);
   }
@@ -83,7 +83,7 @@ function main() {
         `  ${resolve(homedir(), '.cursor/mcp.json')}`,
         '',
         'Add an mcpServers entry with env (same as Cursor), or create a `.env`.',
-        'Then: npm start',
+        'Then: pnpm start',
       ].join('\n'),
     );
     process.exit(1);
