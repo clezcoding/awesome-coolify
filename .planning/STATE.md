@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Platform Foundation
 current_phase: 16
-current_phase_name: Coolify Cloud & Server Branding
-status: "Ready to execute"
-stopped_at: Phase 16 planned
-last_updated: "2026-07-22T01:27:34.024Z"
+current_phase_name: coolify-cloud-server-branding
+status: executing
+stopped_at: Completed 16-00-PLAN.md
+last_updated: "2026-07-22T01:33:01.502Z"
 last_activity: 2026-07-22
-last_activity_desc: "Phase 16 planned — 5 plans ready"
+last_activity_desc: Phase 16 execution started
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 10
+  completed_plans: 6
   percent: 25
 ---
 
@@ -24,16 +24,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 16 — Coolify Cloud & Server Branding
+**Current focus:** Phase 16 — coolify-cloud-server-branding
 
 ## Current Position
 
-Phase: 16 — Coolify Cloud & Server Branding
-Plan: 0/5
+Phase: 16 (coolify-cloud-server-branding) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-07-22 — Phase 16 planned (5 plans)
+Last activity: 2026-07-22 — Phase 16 execution started
 
-Progress: [██░░░░░░░░] 25%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -88,6 +88,7 @@ Progress: [██░░░░░░░░] 25%
 | Phase 15-multi-instance-registry-routing P02 | 3min | 2 tasks | 7 files |
 | Phase 15-multi-instance-registry-routing P03 | 6min | 2 tasks | 7 files |
 | Phase 15-multi-instance-registry-routing P04 | 6min | 2 tasks | 8 files |
+| Phase 16-coolify-cloud-server-branding P00 | 4min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -234,6 +235,8 @@ Progress: [██░░░░░░░░] 25%
 - [Phase ?]: resolveRoutingEnv uses handler env param for unit-test seam — semantically equivalent to process.env in production (15-03)
 - [Phase ?]: Reused parseWithInstanceRouting strip-before-parse for 7 read/CRUD tools — strict schemas preserved (15-04)
 - [Phase ?]: CTX-06 error-path integration tests isolated from prod registry default — COOLIFY_NO_INSTANCE contract preserved (15-04)
+- [Phase ?]: Phase 16 Wave 0: it.fails RED scaffolds for husky-green pre-commit; flip to it in 16-01..16-03
+- [Phase ?]: cloud-info invalid-instance scaffold asserts instance-path Zod issue — fails until 16-02 ships cloud-info branch
 
 ### Pending Todos
 
@@ -280,9 +283,9 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T00:25:53.096Z
-**Stopped at:** Phase 16 context gathered
-**Resume file:** .planning/phases/16-coolify-cloud-server-branding/16-CONTEXT.md
+**Last session:** 2026-07-22T01:33:01.494Z
+**Stopped at:** Completed 16-00-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-22 — v3.0 milestone audit gaps_found; Phase 15 complete; continue Phases 16–18.
 

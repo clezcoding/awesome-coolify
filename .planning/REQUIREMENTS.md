@@ -17,15 +17,15 @@ Requirements for this milestone. Each maps to roadmap phases (15+).
 
 ### Coolify Cloud (CLD)
 
-- [ ] **CLD-01**: Agent can connect to `https://app.coolify.io` with a team-scoped Bearer token using the same tool surface as self-hosted
-- [ ] **CLD-02**: Cloud-only or permission-denied endpoint failures return structured recovery hints (not opaque 403/404 loops)
+- [x] **CLD-01**: Agent can connect to `https://app.coolify.io` with a team-scoped Bearer token using the same tool surface as self-hosted
+- [x] **CLD-02**: Cloud-only or permission-denied endpoint failures return structured recovery hints (not opaque 403/404 loops)
 - [ ] **CLD-03**: README EN/DE and install docs include a Coolify Cloud setup path with smoke-test instructions
 
 ### Server Branding (BRND)
 
-- [ ] **BRND-01**: MCP `initialize` response exposes `serverInfo.icons` so Cursor (and other MCP clients) can show a brand icon in the server list
+- [x] **BRND-01**: MCP `initialize` response exposes `serverInfo.icons` so Cursor (and other MCP clients) can show a brand icon in the server list
 - [ ] **BRND-02**: Icon asset is a circular/list-friendly PNG (192×192) served via public HTTPS (jsDelivr `docs/assets/`) — Hex Robot Helper mascot on brand violet background
-- [ ] **BRND-03**: `McpServer` metadata includes `title`, `description`, and `websiteUrl` as fallback when a client does not render icons
+- [x] **BRND-03**: `McpServer` metadata includes `title`, `description`, and `websiteUrl` as fallback when a client does not render icons
 
 ### Local Manifest (MAN)
 
@@ -79,12 +79,12 @@ Tracked but not in v3.0 roadmap.
 | CTX-06 | Phase 15 | Complete |
 | CTX-08 | Phase 15 | Complete |
 | CTX-09 | Phase 15 | Complete |
-| CLD-01 | Phase 16 | Pending |
-| CLD-02 | Phase 16 | Pending |
+| CLD-01 | Phase 16 | Complete |
+| CLD-02 | Phase 16 | Complete |
 | CLD-03 | Phase 16 | Pending |
-| BRND-01 | Phase 16 | Pending |
+| BRND-01 | Phase 16 | Complete |
 | BRND-02 | Phase 16 | Pending |
-| BRND-03 | Phase 16 | Pending |
+| BRND-03 | Phase 16 | Complete |
 | MAN-01 | Phase 17 | Pending |
 | MAN-02 | Phase 17 | Pending |
 | MAN-03 | Phase 17 | Pending |
