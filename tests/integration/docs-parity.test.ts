@@ -21,6 +21,7 @@ const CANONICAL_SECTIONS = [
   { en: '📦 Install', de: '📦 Installation' },
   { en: '🖥️ Supported clients', de: '🖥️ Unterstützte Clients' },
   { en: '🔐 Environment variables', de: '🔐 Umgebungsvariablen' },
+  { en: '☁️ Coolify Cloud', de: '☁️ Coolify Cloud' },
   { en: '🧰 Tools reference', de: '🧰 Tools-Referenz' },
   { en: '🛡️ Safety model', de: '🛡️ Sicherheitsmodell' },
   { en: '⚠️ Structured errors & retries', de: '⚠️ Strukturierte Fehler & Retries' },

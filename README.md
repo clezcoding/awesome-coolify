@@ -38,6 +38,7 @@
   <a href="#-how-it-works">Architecture</a> ·
   <a href="#-quick-start">Quick start</a> ·
   <a href="#-install">Install</a> ·
+  <a href="#%EF%B8%8F-coolify-cloud">Cloud</a> ·
   <a href="#-tools-reference">Tools</a> ·
   <a href="#-safety-model">Safety</a> ·
   <a href="#-coming-soon">Roadmap</a>
@@ -72,6 +73,7 @@
   - [1. One-click deeplink](#1-one-click-deeplink)
   - [2. Install configurator](#2-install-configurator-github-pages)
   - [3. Manual MCP config](#3-manual-mcp-config)
+- [Coolify Cloud](#%EF%B8%8F-coolify-cloud)
 - [Supported clients](#-supported-clients)
 - [Environment variables](#-environment-variables)
 - [Tools reference](#-tools-reference)
@@ -275,6 +277,14 @@ The **[install configurator](https://clezcoding.github.io/awesome-coolify/instal
 | `COOLIFY_MCP_LOG` | no | `info` | Log verbosity: `debug` · `info` · `error` |
 
 Credentials are read from the process environment (your IDE's MCP `env` block) or an optional local `.env` file when running the CLI directly. They are **never** echoed back inside tool responses.
+
+---
+
+## ☁️ Coolify Cloud
+
+**awesome-coolify-mcp** works with [Coolify Cloud](https://app.coolify.io) using the same 14 tools — team-scoped tokens, structured cloud error codes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`), and local `instance` action `cloud-info` for discovery.
+
+Full setup, smoke test, and known limits → **[docs/en/cloud.md](docs/en/cloud.md)**
 
 ---
 
