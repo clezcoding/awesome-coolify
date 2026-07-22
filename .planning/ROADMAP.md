@@ -133,7 +133,7 @@ Plans:
   3. Agent can run a `manifest:sync` action that reconciles manifest entries against the live API and refreshes stale UUIDs
   4. Operations against stale manifest UUIDs surface a refresh hint on API 404 (manifest is treated as cache, not source of truth)
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 
@@ -148,7 +148,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 17-02-PLAN.md — `manifest` MCP tool with 7 actions (get/upsert/set/remove/sync/diff/clear) + server.ts registration + stale-UUID 404 hint injection in errors.ts (MAN-03, MAN-04)
-- [ ] 17-03-PLAN.md — Auto-upsert/remove hooks wired into application/service/database mutation handlers with _meta.manifestWarning on best-effort failure (D-09, D-11)
+- [x] 17-03-PLAN.md — Auto-upsert/remove hooks wired into application/service/database mutation handlers with _meta.manifestWarning on best-effort failure (D-09, D-11)
 
 ### Phase 18: Live UAT Harness
 
@@ -175,7 +175,7 @@ Plans:
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
 | 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
 | 16 | v3.0 | 5/5 | Complete    | 2026-07-22 |
-| 17 | v3.0 | 3/4 | In Progress|  |
+| 17 | v3.0 | 4/4 | In Progress|  |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
 **Next:** `/gsd-execute-phase 17`
