@@ -4,6 +4,7 @@ import {
   buildProjectEnvironmentIndex,
   resolveProjectUuid,
   resolveEnvironmentUuid,
+  resolveEnvironmentUuidFromId,
 } from './project-lookup.js';
 
 vi.mock('../api/client.js', () => ({
@@ -172,5 +173,56 @@ describe('resolveEnvironmentUuid', () => {
       testEnv,
     );
     expect(uuid).toBe('env-2');
+  });
+});
+
+describe('resolveEnvironmentUuidFromId', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvironments).mockReset();
+    vi.mocked(fetchProjects).mockReset();
+    vi.mocked(fetchProject).mockReset();
+  });
+
+  it('resolves environment UUID via project-scoped environments list', async () => {
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { id: 22, uuid: 'env-uuid-22', name: 'production' },
+      { id: 23, uuid: 'env-uuid-23', name: 'staging' },
+    ]);
+
+    const resolved = await resolveEnvironmentUuidFromId(22, 'proj-1', testEnv);
+    expect(resolved).toEqual({
+      environmentUuid: 'env-uuid-22',
+      environmentName: 'production',
+      projectUuid: 'proj-1',
+      projectName: undefined,
+    });
+    expect(fetchProjects).not.toHaveBeenCalled();
+  });
+
+  it('builds project index when projectUuid is unknown', async () => {
+    vi.mocked(fetchProjects).mockResolvedValue([
+      {
+        uuid: 'proj-1',
+        name: 'demo',
+        environments: [{ id: 22, uuid: 'env-uuid-22', name: 'production' }],
+      },
+    ]);
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { id: 22, uuid: 'env-uuid-22', name: 'production' },
+    ]);
+
+    const resolved = await resolveEnvironmentUuidFromId(22, undefined, testEnv);
+    expect(resolved).toEqual({
+      environmentUuid: 'env-uuid-22',
+      environmentName: 'production',
+      projectUuid: 'proj-1',
+      projectName: 'demo',
+    });
+  });
+
+  it('returns undefined when environment_id cannot be resolved', async () => {
+    vi.mocked(fetchProjects).mockResolvedValue([]);
+    const resolved = await resolveEnvironmentUuidFromId(99, undefined, testEnv);
+    expect(resolved).toBeUndefined();
   });
 });

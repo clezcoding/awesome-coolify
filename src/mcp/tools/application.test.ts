@@ -38,6 +38,7 @@ vi.mock('../../utils/manifest.js', () => ({
   ManifestManager: {
     autoUpsert: vi.fn(),
     autoRemove: vi.fn(),
+    findResourceContext: vi.fn(),
   },
 }));
 
@@ -1731,11 +1732,14 @@ describe('application update', () => {
   beforeEach(() => {
     vi.mocked(ManifestManager.autoUpsert).mockReset();
     vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.findResourceContext).mockReset();
     vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
     vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.findResourceContext).mockReturnValue(undefined);
     vi.mocked(updateApplication).mockReset();
     vi.mocked(fetchResources).mockReset();
     vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchEnvironments).mockReset();
     const updatedApp = {
       ...mockApplication,
       domains: 'https://new.example.com',
@@ -1745,6 +1749,37 @@ describe('application update', () => {
     };
     vi.mocked(updateApplication).mockResolvedValue(updatedApp);
     vi.mocked(fetchApplication).mockResolvedValue(updatedApp);
+  });
+
+  it('resolves environment_id into autoUpsert environmentUuid (WR-01)', async () => {
+    const updatedApp = {
+      ...mockApplication,
+      environment_id: 22,
+      domains: 'https://new.example.com',
+    };
+    vi.mocked(updateApplication).mockResolvedValue(updatedApp);
+    vi.mocked(fetchApplication).mockResolvedValue(updatedApp);
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { id: 22, uuid: 'env-uuid-22', name: 'production' },
+    ]);
+
+    await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        domains: 'https://new.example.com',
+      },
+      testEnv,
+    );
+
+    expect(ManifestManager.autoUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uuid: 'app-uuid-1',
+        projectUuid: 'proj-uuid-1',
+        environmentUuid: 'env-uuid-22',
+        environmentName: 'production',
+      }),
+    );
   });
 
   it('patches curated fields via updateApplication per APP-17', async () => {

@@ -29,6 +29,7 @@ vi.mock('../../utils/manifest.js', () => ({
   ManifestManager: {
     autoUpsert: vi.fn(),
     autoRemove: vi.fn(),
+    findResourceContext: vi.fn(),
   },
 }));
 

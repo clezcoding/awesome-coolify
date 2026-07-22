@@ -39,6 +39,7 @@ import {
   resolveProjectUuid,
 } from '../../utils/project-lookup.js';
 import { ManifestManager } from '../../utils/manifest.js';
+import { resolveUpdateManifestContext } from '../../utils/manifest-auto-hook.js';
 import {
   projectApplicationSummary,
   projectDeploymentSummary,
@@ -1722,35 +1723,6 @@ function extractDomainsFromRaw(raw: Record<string, unknown>): string[] {
   return [];
 }
 
-function extractManifestContextFromRaw(raw: Record<string, unknown>): {
-  projectUuid?: string;
-  projectName?: string;
-  environmentUuid?: string;
-  environmentName?: string;
-} {
-  const project = raw.project;
-  const environment = raw.environment;
-
-  return {
-    projectUuid:
-      isRecord(project) && typeof project.uuid === 'string'
-        ? project.uuid
-        : undefined,
-    projectName:
-      isRecord(project) && typeof project.name === 'string'
-        ? project.name
-        : undefined,
-    environmentUuid:
-      isRecord(environment) && typeof environment.uuid === 'string'
-        ? environment.uuid
-        : undefined,
-    environmentName:
-      isRecord(environment) && typeof environment.name === 'string'
-        ? environment.name
-        : undefined,
-  };
-}
-
 async function withManifestUpsert<T>(
   response: ReadResponse<T>,
   entry: {
@@ -1831,12 +1803,17 @@ async function buildApplicationCreateManifestEntry(
   };
 }
 
-function buildApplicationUpdateManifestEntry(
+async function buildApplicationUpdateManifestEntry(
   raw: Record<string, unknown>,
   uuid: string,
   parsed: UpdateAction,
-): Parameters<typeof ManifestManager.autoUpsert>[0] {
-  const ctx = extractManifestContextFromRaw(raw);
+  env: EnvConfig,
+): Promise<Parameters<typeof ManifestManager.autoUpsert>[0]> {
+  const ctx = await resolveUpdateManifestContext({
+    raw,
+    resourceUuid: uuid,
+    env,
+  });
 
   return {
     uuid,
@@ -1904,7 +1881,12 @@ async function handleApplicationUpdate(
 
   return withManifestUpsert(
     response,
-    buildApplicationUpdateManifestEntry(isRecord(raw) ? raw : {}, uuid, parsed),
+    await buildApplicationUpdateManifestEntry(
+      isRecord(raw) ? raw : {},
+      uuid,
+      parsed,
+      env,
+    ),
   );
 }
 

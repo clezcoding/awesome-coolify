@@ -170,3 +170,54 @@ export async function resolveEnvironmentUuid(
 
   return String(matched[0].uuid);
 }
+
+export type ResolvedEnvironmentFromId = {
+  environmentUuid: string;
+  environmentName?: string;
+  projectUuid: string;
+  projectName?: string;
+};
+
+/**
+ * Resolve Coolify 4.1.x numeric `environment_id` to environment UUID.
+ * Uses project-scoped `/environments` when projectUuid is known; otherwise
+ * builds the project↔environment_id index first.
+ */
+export async function resolveEnvironmentUuidFromId(
+  environmentId: number,
+  projectUuid: string | undefined,
+  env: EnvConfig,
+): Promise<ResolvedEnvironmentFromId | undefined> {
+  let resolvedProjectUuid = projectUuid;
+  let resolvedProjectName: string | undefined;
+
+  if (!resolvedProjectUuid) {
+    const index = await buildProjectEnvironmentIndex(env);
+    const entry = index.get(environmentId);
+    if (!entry) return undefined;
+    resolvedProjectUuid = entry.project_uuid;
+    resolvedProjectName = entry.project_name;
+  }
+
+  const rawEnvironments = await fetchEnvironments(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    resolvedProjectUuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+
+  for (const raw of rawEnvironments) {
+    if (!isRecord(raw)) continue;
+    if (raw.id !== environmentId) continue;
+    if (typeof raw.uuid !== 'string' || raw.uuid.length === 0) continue;
+    return {
+      environmentUuid: raw.uuid,
+      environmentName:
+        typeof raw.name === 'string' ? raw.name : undefined,
+      projectUuid: resolvedProjectUuid,
+      projectName: resolvedProjectName,
+    };
+  }
+
+  return undefined;
+}

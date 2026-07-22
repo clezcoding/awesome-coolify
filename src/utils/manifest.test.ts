@@ -177,6 +177,24 @@ describe('ManifestManager', () => {
     expect(ManifestManager.hasUuid('00000000-0000-4000-8000-000000000099')).toBe(false);
   });
 
+  it('findResourceContext returns project/environment placement for a resource UUID', async () => {
+    const { ManifestManager } = await loadManifestManager();
+    expect(ManifestManager.findResourceContext(RESOURCE_UUID)).toBeUndefined();
+    await ManifestManager.upsert({
+      resource: sampleResource,
+      project_uuid: PROJECT_UUID,
+      project_name: 'my-project',
+      environment_uuid: ENV_UUID,
+      environment_name: 'production',
+    });
+    expect(ManifestManager.findResourceContext(RESOURCE_UUID)).toEqual({
+      projectUuid: PROJECT_UUID,
+      projectName: 'my-project',
+      environmentUuid: ENV_UUID,
+      environmentName: 'production',
+    });
+  });
+
   it('atomic write leaves no .tmp files behind on success', async () => {
     const { ManifestManager } = await loadManifestManager();
     await ManifestManager.upsert({

@@ -256,6 +256,37 @@ export class ManifestManager {
     return manifest.servers.some((entry) => entry.uuid === uuid);
   }
 
+  /**
+   * Locate an existing resource's project/environment placement in the local
+   * manifest cache — used as a fallback when Coolify payloads omit nested
+   * `environment.uuid` (typical for 4.1.x update responses).
+   */
+  static findResourceContext(uuid: string):
+    | {
+        projectUuid: string;
+        projectName: string;
+        environmentUuid: string;
+        environmentName: string;
+      }
+    | undefined {
+    const manifest = ManifestManager.load();
+
+    for (const project of manifest.projects) {
+      for (const environment of project.environments) {
+        if (environment.resources.some((entry) => entry.uuid === uuid)) {
+          return {
+            projectUuid: project.uuid,
+            projectName: project.name,
+            environmentUuid: environment.uuid,
+            environmentName: environment.name,
+          };
+        }
+      }
+    }
+
+    return undefined;
+  }
+
   static async clear(): Promise<void> {
     return ManifestManager.save(emptyManifest());
   }
