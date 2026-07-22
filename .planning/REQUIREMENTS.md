@@ -19,7 +19,7 @@ Requirements for this milestone. Each maps to roadmap phases (15+).
 
 - [x] **CLD-01**: Agent can connect to `https://app.coolify.io` with a team-scoped Bearer token using the same tool surface as self-hosted
 - [x] **CLD-02**: Cloud-only or permission-denied endpoint failures return structured recovery hints (not opaque 403/404 loops)
-- [ ] **CLD-03**: README EN/DE and install docs include a Coolify Cloud setup path with smoke-test instructions
+- [x] **CLD-03**: README EN/DE and install docs include a Coolify Cloud setup path with smoke-test instructions
 
 ### Server Branding (BRND)
 
@@ -81,7 +81,7 @@ Tracked but not in v3.0 roadmap.
 | CTX-09 | Phase 15 | Complete |
 | CLD-01 | Phase 16 | Complete |
 | CLD-02 | Phase 16 | Complete |
-| CLD-03 | Phase 16 | Pending |
+| CLD-03 | Phase 16 | Complete |
 | BRND-01 | Phase 16 | Complete |
 | BRND-02 | Phase 16 | Complete |
 | BRND-03 | Phase 16 | Complete |

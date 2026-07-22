@@ -8,16 +8,18 @@ Open-Source MCP-Server für self-hosted Coolify-Instanzen (API 4.1.x). v1.0 (**O
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.0 in progress — Phase 15 complete 2026-07-21)
+## Current State (v3.0 in progress — Phase 16 complete 2026-07-22)
 
 | Metric | Value |
 |--------|-------|
 | Package | `awesome-coolify-mcp` v0.1.2 |
-| Tools / Actions | 15 / ~80 (v1+v2 + `instance` tool) |
-| Tests | 876 green |
-| Milestone | v3.0 Platform Foundation — Phase 15 complete |
+| Tools / Actions | 15 / ~80 (v1+v2 + `instance` + `cloud-info`) |
+| Tests | 917 green |
+| Milestone | v3.0 Platform Foundation — Phase 16 complete |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | npm publish-ready; GitHub Pages `docs/install.html` |
+
+**Phase 16 complete:** Coolify Cloud error codes + `isCloudUrl`, `instance.cloud-info` local discovery, MCP `serverInfo` branding (`title`/`icons`/jsDelivr PNG), EN/DE cloud docs. D-09: Cursor list icon is a documented client limitation (server emits icons; UI shows generic fallback).
 
 **Phase 15 complete:** `InstanceManager` + `instances.json` CRUD, soft-start boot, optional `instance` routing on all 12 API tools, env override precedence, 0o700/0o600 + token redaction.
 
@@ -92,12 +94,11 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 ### Validated (v3.0)
 
 - ✓ Multi-Instance Registry & Routing — Phase 15 (CTX-04, CTX-05, CTX-06, CTX-08, CTX-09)
+- ✓ Coolify Cloud & Server Branding — Phase 16 (CLD-01, CLD-02, CLD-03, BRND-01, BRND-02, BRND-03)
 
 ### Active (v3.0)
 
-- [ ] Coolify Cloud MCP support — docs + smoke test + cloud quirks
 - [ ] Local manifest file — `.coolify/manifest.json` schema + agent sync
-- [ ] MCP server list icon via `serverInfo.icons` (BRND-01..03)
 - [ ] Live UAT CLI harness (UAT-01..06)
 
 ### Active (v3.1 — deferred)
@@ -155,4 +156,4 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-07-21 — Phase 15 complete (Multi-Instance Registry & Routing)*
+*Last updated: 2026-07-22 — Phase 16 complete (Coolify Cloud & Server Branding)*

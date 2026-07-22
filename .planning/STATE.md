@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Platform Foundation
-current_phase: 16
-current_phase_name: coolify-cloud-server-branding
-status: executing
-stopped_at: Completed 16-03-PLAN.md
-last_updated: "2026-07-22T01:46:30.302Z"
+current_phase: 17
+current_phase_name: Local Manifest & Sync
+status: Phase 16 shipped — PR #37
+stopped_at: Completed 16-04-PLAN.md
+last_updated: "2026-07-22T02:56:42.150Z"
 last_activity: 2026-07-22
-last_activity_desc: Phase 16 execution started
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 10
-  completed_plans: 9
-  percent: 25
+  completed_plans: 10
+  percent: 50
+last_activity_desc: Phase 16 shipped — PR #37
 ---
 
 # Project State
@@ -24,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 16 — coolify-cloud-server-branding
+**Current focus:** Phase 17 — Local Manifest & Sync
 
 ## Current Position
 
-Phase: 16 (coolify-cloud-server-branding) — EXECUTING
-Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-07-22 — Phase 16 execution started
+Phase: 17 — Local Manifest & Sync
+Plan: Not started
+Status: Phase 16 shipped — PR #37
+Last activity: 2026-07-22 — Phase 16 shipped — PR #37
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 70
+- Total plans completed: 75
 - Average duration: —
 - Total execution time: —
 
@@ -60,6 +60,7 @@ Progress: [█████████░] 90%
 | 12 | 7 | - | - |
 | 13 | 5 | - | - |
 | 15 | 5 | - | - |
+| 16 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -92,6 +93,7 @@ Progress: [█████████░] 90%
 | Phase 16-coolify-cloud-server-branding P01 | 3min | 1 tasks | 2 files |
 | Phase 16-coolify-cloud-server-branding P02 | 4min | 1 tasks | 3 files |
 | Phase 16-coolify-cloud-server-branding P03 | 2min | 2 tasks | 4 files |
+| Phase 16-coolify-cloud-server-branding P04 | 8min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -246,6 +248,8 @@ Progress: [█████████░] 90%
 - [Phase ?]: resolveEnv merges handler env param with process.env for source=env detection
 - [Phase ?]: McpServer serverInfo branding fields (title/description/websiteUrl/icons) are peer fields in one object — no second identity model (D-08)
 - [Phase ?]: Dedicated mcp-icon-192.png asset separate from favicon — jsDelivr @main CDN per D-05/D-06
+- [Phase ?]: D-09 closed as documented Cursor client limitation — serverInfo.icons correct; Cursor list shows A fallback
+- [Phase ?]: Cloud topic depth in docs/en|de/cloud.md; README quick overview + links only (D-11)
 
 ### Pending Todos
 
@@ -292,8 +296,8 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T01:46:30.294Z
-**Stopped at:** Completed 16-03-PLAN.md
+**Last session:** 2026-07-22T02:11:59.046Z
+**Stopped at:** Completed 16-04-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-22 — v3.0 milestone audit gaps_found; Phase 15 complete; continue Phases 16–18.
