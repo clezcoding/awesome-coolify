@@ -133,7 +133,7 @@ Plans:
   3. Agent can run a `manifest:sync` action that reconciles manifest entries against the live API and refreshes stale UUIDs
   4. Operations against stale manifest UUIDs surface a refresh hint on API 404 (manifest is treated as cache, not source of truth)
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 Plans:
 
@@ -143,7 +143,7 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0 completion)*
 
-- [ ] 17-01-PLAN.md — ManifestManager core (load/save/upsert/remove/hasUuid/clear, atomic writes, project-root resolution, .gitignore auto-append, autoUpsert/autoRemove hooks API) + committed example template (MAN-01, MAN-02)
+- [x] 17-01-PLAN.md — ManifestManager core (load/save/upsert/remove/hasUuid/clear, atomic writes, project-root resolution, .gitignore auto-append, autoUpsert/autoRemove hooks API) + committed example template (MAN-01, MAN-02)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -175,7 +175,7 @@ Plans:
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
 | 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
 | 16 | v3.0 | 5/5 | Complete    | 2026-07-22 |
-| 17 | v3.0 | 1/4 | In Progress|  |
+| 17 | v3.0 | 2/4 | In Progress|  |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
 **Next:** `/gsd-execute-phase 17`

@@ -5,15 +5,15 @@ milestone_name: Platform Foundation
 current_phase: 17
 current_phase_name: local-manifest-sync
 status: executing
-stopped_at: Completed 17-00-PLAN.md
-last_updated: "2026-07-22T16:42:49.142Z"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-07-22T16:46:51.556Z"
 last_activity: 2026-07-22
 last_activity_desc: Phase 17 execution started
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 12
   percent: 50
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 17 (local-manifest-sync) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-22 — Phase 17 execution started
 
-Progress: [████████░░] 79%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
@@ -95,6 +95,7 @@ Progress: [████████░░] 79%
 | Phase 16-coolify-cloud-server-branding P03 | 2min | 2 tasks | 4 files |
 | Phase 16-coolify-cloud-server-branding P04 | 8min | 3 tasks | 7 files |
 | Phase 17-local-manifest-sync P00 | 3min | 3 tasks | 3 files |
+| Phase 17-local-manifest-sync P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -254,6 +255,8 @@ Progress: [████████░░] 79%
 - [Phase ?]: Phase 17 Wave 0: it.fails + dynamic import RED scaffolds — husky pre-commit bleibt grün; flip zu it in 17-01..17-02
 - [Phase ?]: COOLIFY_MCP_TEST_WORKSPACE als Test-Hook für tmp workspace — Plan 17-01 verdrahtet Pfad
 - [Phase ?]: Manifest MCP sync/diff tests mocken api/client — keine Live-API-Calls in Wave 0
+- [Phase ?]: autoUpsert merged into Task 1 commit — husky pre-commit requires all it.fails resolved
+- [Phase ?]: chmodSync(0o555) on readonly-root in autoUpsert test — macOS tmp dirs writable without explicit deny
 
 ### Pending Todos
 
@@ -300,8 +303,8 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T16:42:49.134Z
-**Stopped at:** Completed 17-00-PLAN.md
+**Last session:** 2026-07-22T16:46:51.548Z
+**Stopped at:** Completed 17-01-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-22 — Quick 260722-85p path 3: marketing site live at https://awesome-coolify.higgsfield.app
