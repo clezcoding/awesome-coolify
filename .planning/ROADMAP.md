@@ -106,7 +106,20 @@ Plans:
   5. Cursor MCP server list displays the awesome-coolify icon after reconnect (or documents known client limitation with title/description fallback)
   6. `McpServer` exposes `title`, `description`, and `websiteUrl` alongside icons
 
-**Plans**: TBD
+**Plans**: 5/5 plans
+
+Plans:
+
+**Wave 0**
+
+- [ ] 16-00-PLAN.md — Wave 0 RED test scaffolds (server.test.ts branding, errors.test.ts cloud mapping, instance.test.ts cloud-info)
+- [ ] 16-01-PLAN.md — Cloud error codes (COOLIFY_CLOUD_FORBIDDEN / COOLIFY_CLOUD_UNSUPPORTED) + isCloudUrl hostname detection in errors.ts
+- [ ] 16-02-PLAN.md — instance.cloud-info local/static discovery action (registry|env|infer source paths)
+- [ ] 16-03-PLAN.md — MCP branding: dedicated 192x192 icon asset + McpServer icons/title/description/websiteUrl
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [ ] 16-04-PLAN.md — Docs EN/DE cloud topic + README links + CONVENTIONS dual-repo cleanup + D-09 Cursor icon screenshot verify gate
 
 ### Phase 17: Local Manifest & Sync
 
@@ -146,7 +159,7 @@ Plans:
 | 8–13 | v2.0 | 36/36 | Complete | 2026-07-21 |
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
 | 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
-| 16 | v3.0 | 0/TBD | Not started | - |
+| 16 | v3.0 | 0/5 | Planned | - |
 | 17 | v3.0 | 0/TBD | Not started | - |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
