@@ -24,7 +24,7 @@ Requirements for this milestone. Each maps to roadmap phases (15+).
 ### Server Branding (BRND)
 
 - [x] **BRND-01**: MCP `initialize` response exposes `serverInfo.icons` so Cursor (and other MCP clients) can show a brand icon in the server list
-- [ ] **BRND-02**: Icon asset is a circular/list-friendly PNG (192×192) served via public HTTPS (jsDelivr `docs/assets/`) — Hex Robot Helper mascot on brand violet background
+- [x] **BRND-02**: Icon asset is a circular/list-friendly PNG (192×192) served via public HTTPS (jsDelivr `docs/assets/`) — Hex Robot Helper mascot on brand violet background
 - [x] **BRND-03**: `McpServer` metadata includes `title`, `description`, and `websiteUrl` as fallback when a client does not render icons
 
 ### Local Manifest (MAN)
@@ -83,7 +83,7 @@ Tracked but not in v3.0 roadmap.
 | CLD-02 | Phase 16 | Complete |
 | CLD-03 | Phase 16 | Pending |
 | BRND-01 | Phase 16 | Complete |
-| BRND-02 | Phase 16 | Pending |
+| BRND-02 | Phase 16 | Complete |
 | BRND-03 | Phase 16 | Complete |
 | MAN-01 | Phase 17 | Pending |
 | MAN-02 | Phase 17 | Pending |

@@ -5,15 +5,15 @@ milestone_name: Platform Foundation
 current_phase: 16
 current_phase_name: coolify-cloud-server-branding
 status: executing
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-07-22T01:39:27.334Z"
+stopped_at: Completed 16-03-PLAN.md
+last_updated: "2026-07-22T01:46:30.302Z"
 last_activity: 2026-07-22
 last_activity_desc: Phase 16 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 25
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 16 (coolify-cloud-server-branding) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-22 — Phase 16 execution started
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -91,6 +91,7 @@ Progress: [████████░░] 80%
 | Phase 16-coolify-cloud-server-branding P00 | 4min | 1 tasks | 3 files |
 | Phase 16-coolify-cloud-server-branding P01 | 3min | 1 tasks | 2 files |
 | Phase 16-coolify-cloud-server-branding P02 | 4min | 1 tasks | 3 files |
+| Phase 16-coolify-cloud-server-branding P03 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -243,6 +244,8 @@ Progress: [████████░░] 80%
 - [Phase ?]: Per-error isCloud from fetchError.request — no module-level mutable cloud state (D-03)
 - [Phase ?]: cloud-info infer fallback catches COOLIFY_NO_INSTANCE only — unknown instance names still throw COOLIFY_INSTANCE_NOT_FOUND (D-17)
 - [Phase ?]: resolveEnv merges handler env param with process.env for source=env detection
+- [Phase ?]: McpServer serverInfo branding fields (title/description/websiteUrl/icons) are peer fields in one object — no second identity model (D-08)
+- [Phase ?]: Dedicated mcp-icon-192.png asset separate from favicon — jsDelivr @main CDN per D-05/D-06
 
 ### Pending Todos
 
@@ -289,8 +292,8 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T01:39:27.325Z
-**Stopped at:** Completed 16-02-PLAN.md
+**Last session:** 2026-07-22T01:46:30.294Z
+**Stopped at:** Completed 16-03-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-22 — v3.0 milestone audit gaps_found; Phase 15 complete; continue Phases 16–18.
