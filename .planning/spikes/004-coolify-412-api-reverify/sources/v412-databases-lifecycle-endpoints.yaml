@@ -1,0 +1,111 @@
+          description: 'Backup configuration not found.'
+      security:
+        -
+          bearerAuth: []
+  '/databases/{uuid}/start':
+    get:
+      tags:
+        - Databases
+      summary: Start
+      description: 'Start database. `Post` request is also accepted.'
+      operationId: start-database-by-uuid
+      parameters:
+        -
+          name: uuid
+          in: path
+          description: 'UUID of the database.'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Start database.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Database starting request queued.' }
+                type: object
+        '401':
+          $ref: '#/components/responses/401'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+      security:
+        -
+          bearerAuth: []
+  '/databases/{uuid}/stop':
+    get:
+      tags:
+        - Databases
+      summary: Stop
+      description: 'Stop database. `Post` request is also accepted.'
+      operationId: stop-database-by-uuid
+      parameters:
+        -
+          name: uuid
+          in: path
+          description: 'UUID of the database.'
+          required: true
+          schema:
+            type: string
+        -
+          name: docker_cleanup
+          in: query
+          description: 'Perform docker cleanup (prune networks, volumes, etc.).'
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: 'Stop database.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Database stopping request queued.' }
+                type: object
+        '401':
+          $ref: '#/components/responses/401'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+      security:
+        -
+          bearerAuth: []
+  '/databases/{uuid}/restart':
+    get:
+      tags:
+        - Databases
+      summary: Restart
+      description: 'Restart database. `Post` request is also accepted.'
+      operationId: restart-database-by-uuid
+      parameters:
+        -
+          name: uuid
+          in: path
+          description: 'UUID of the database.'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Restart database.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  message: { type: string, example: 'Database restaring request queued.' }
+                type: object
+        '401':
+          $ref: '#/components/responses/401'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+      security:
+        -
+          bearerAuth: []
+  '/databases/{uuid}/envs':

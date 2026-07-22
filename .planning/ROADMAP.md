@@ -44,7 +44,7 @@ Full phase details: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 
 ### 🚧 v3.0 Platform Foundation (In Progress)
 
-- [ ] **Phase 15: Multi-Instance Registry & Routing** - Secure `instances.json` CRUD with per-request routing and env override
+- [x] **Phase 15: Multi-Instance Registry & Routing** - Secure `instances.json` CRUD with per-request routing and env override (completed 2026-07-21)
 - [ ] **Phase 16: Coolify Cloud & Server Branding** - `app.coolify.io` support, cloud error hints, MCP list icon via `serverInfo.icons`, docs EN/DE
 - [ ] **Phase 17: Local Manifest & Sync** - `.coolify/manifest.json` schema, gitignore injection, `manifest:sync` reconciliation
 - [ ] **Phase 18: Live UAT Harness** - One CLI script testing all 14 tools against real Coolify data with JSON report
@@ -56,59 +56,86 @@ Full phase details: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 ## Phase Details
 
 ### Phase 15: Multi-Instance Registry & Routing
+
 **Goal**: Agent can manage named Coolify instances in a secure registry and route any tool call to a chosen instance without cross-instance leakage
 **Depends on**: Phase 13 (v2.0 shipped)
 **Requirements**: CTX-04, CTX-05, CTX-06, CTX-08, CTX-09
 **Success Criteria** (what must be TRUE):
+
   1. Agent can add, list, update, and delete named instances in `~/.coolify-mcp/instances.json` and the entries persist across sessions
   2. Agent can set a default instance, and `COOLIFY_URL`/`COOLIFY_TOKEN` env vars override the registry default when present
   3. Agent can call any of the 14 tools with an optional `instance` parameter and the call routes to that named instance's credentials
   4. Registry directory and file are created with `0o700`/`0o600` permissions, and list/get responses redact tokens unless `reveal: true`
   5. Concurrent registry writes do not corrupt the file (atomic temp-file + rename)
-**Plans**: 5 plans
+
+**Plans**: 5/5 plans executed
 
 Plans:
-- [ ] 15-00-PLAN.md — Wave 0 RED test scaffolds (instance-registry.test.ts, instance.test.ts, env.test.ts soft-start)
-- [ ] 15-01-PLAN.md — InstanceManager core (CRUD, atomic writes, 0o700/0o600 perms, resolveCredentials) + errors.ts extension
-- [ ] 15-02-PLAN.md — `instance` tool (list/get/add/update/delete/set-default/import-env) + softened env.ts + server soft-start
-- [ ] 15-03-PLAN.md — Route 5 lifecycle tools (application, service, database, deployment, emergency) via optional `instance` param
-- [ ] 15-04-PLAN.md — Route 7 read/CRUD tools (resource, system, diagnose, server, private_key, project, environment) via optional `instance` param
+**Wave 1**
+
+- [x] 15-00-PLAN.md — Wave 0 RED test scaffolds (instance-registry.test.ts, instance.test.ts, env.test.ts soft-start)
+- [x] 15-01-PLAN.md — InstanceManager core (CRUD, atomic writes, 0o700/0o600 perms, resolveCredentials) + errors.ts extension
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 15-02-PLAN.md — `instance` tool (list/get/add/update/delete/set-default/import-env) + softened env.ts + server soft-start
+- [x] 15-03-PLAN.md — Route 5 lifecycle tools (application, service, database, deployment, emergency) via optional `instance` param
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 15-04-PLAN.md — Route 7 read/CRUD tools (resource, system, diagnose, server, private_key, project, environment) via optional `instance` param
+
+**Cross-cutting constraints:**
+
+- Each handler resolves credentials per-request via InstanceManager.resolveCredentials(args.instance, process.env) before constructing the Coolify client (CTX-06, D-10)
+- Explicit `instance` param wins silently over env when both present (D-11)
+- No call mixes env URL with registry token — partial env throws COOLIFY_PARTIAL_ENV (D-13)
+- When no creds resolved, handler returns COOLIFY_NO_INSTANCE envelope (D-18/D-20)
 
 ### Phase 16: Coolify Cloud & Server Branding
+
 **Goal**: Agent can operate Coolify Cloud with the same tool surface, recover from cloud-only restrictions, and users see a branded icon in the MCP server list (like pg-aiguide)
 **Depends on**: Phase 15
 **Requirements**: CLD-01, CLD-02, CLD-03, BRND-01, BRND-02, BRND-03
 **Success Criteria** (what must be TRUE):
+
   1. Agent can connect to `https://app.coolify.io` with a team-scoped Bearer token using the same tools as self-hosted instances
   2. Cloud-only or permission-denied endpoint failures return structured recovery hints instead of opaque 403/404 loops
   3. README EN/DE and install docs include a Coolify Cloud setup path with smoke-test instructions
   4. MCP `initialize` response includes `serverInfo.icons` pointing at a public HTTPS PNG (192×192 Hex Robot Helper on brand violet)
   5. Cursor MCP server list displays the awesome-coolify icon after reconnect (or documents known client limitation with title/description fallback)
   6. `McpServer` exposes `title`, `description`, and `websiteUrl` alongside icons
+
 **Plans**: TBD
 
 ### Phase 17: Local Manifest & Sync
+
 **Goal**: Agent can persist project/environment/server/resource UUIDs and domains in a workspace-local manifest and keep it fresh against the live API
 **Depends on**: Phase 16
 **Requirements**: MAN-01, MAN-02, MAN-03, MAN-04
 **Success Criteria** (what must be TRUE):
+
   1. Agent can read and write `.coolify/manifest.json` storing project, environment, server, and resource UUIDs plus domains
   2. First manifest write auto-appends `.coolify/` to the workspace `.gitignore` if not already present
   3. Agent can run a `manifest:sync` action that reconciles manifest entries against the live API and refreshes stale UUIDs
   4. Operations against stale manifest UUIDs surface a refresh hint on API 404 (manifest is treated as cache, not source of truth)
+
 **Plans**: TBD
 
 ### Phase 18: Live UAT Harness
+
 **Goal**: Maintainer can prove all 14 MCP tools work against a live Coolify instance with one CLI script before v3.0 ships
 **Depends on**: Phase 17
 **Requirements**: UAT-01, UAT-02, UAT-03, UAT-04, UAT-05, UAT-06
 **Success Criteria** (what must be TRUE):
+
   1. Maintainer can run one CLI script that exercises all 14 MCP tools against a live Coolify instance with real data
   2. Script resolves credentials from `.cursor/mcp.json`, env vars, or `instances.json` without printing tokens in output
   3. Script emits a structured JSON pass/fail report per tool/action with duration, error code, and recovery-hint presence
   4. Script covers v3.0 additions: multi-instance routing, cloud instance profile, and manifest read/write/sync
   5. Script documents safe preconditions and never deletes production resources without explicit `--confirm-destructive`
   6. CONTRIBUTING.md documents how to run live UAT locally and interpret failures
+
 **Plans**: TBD
 
 ## Progress
@@ -118,12 +145,12 @@ Plans:
 | 1–7 | v1.0 | 37/37 | Complete | 2026-07-16 |
 | 8–13 | v2.0 | 36/36 | Complete | 2026-07-21 |
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
-| 15 | v3.0 | 0/5 | Planning complete — awaiting `/gsd-execute-phase 15` | - |
+| 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
 | 16 | v3.0 | 0/TBD | Not started | - |
 | 17 | v3.0 | 0/TBD | Not started | - |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
-**Next:** `/gsd-plan-phase 15`
+**Next:** `/gsd-plan-phase 16`
 
 ---
 
