@@ -321,7 +321,7 @@ describe('wrapMcpError', () => {
 });
 
 describe('Cloud hostname error mapping', () => {
-  it.fails('maps app.coolify.io HTTP 403 to COOLIFY_CLOUD_FORBIDDEN (CLD-02)', () => {
+  it('maps app.coolify.io HTTP 403 to COOLIFY_CLOUD_FORBIDDEN (CLD-02)', () => {
     const envelope = toStructuredError({
       request: 'https://app.coolify.io/api/v1/servers',
       response: { status: 403, _data: { message: 'Forbidden' } },
@@ -329,7 +329,7 @@ describe('Cloud hostname error mapping', () => {
     expect(envelope.code).toBe('COOLIFY_CLOUD_FORBIDDEN');
   });
 
-  it.fails(
+  it(
     'cloud 403 envelope recoveryHints mention team-scoped token (CLD-02)',
     () => {
       const envelope = toStructuredError({
@@ -340,7 +340,7 @@ describe('Cloud hostname error mapping', () => {
     },
   );
 
-  it.fails(
+  it(
     'maps app.coolify.io HTTP 404 to COOLIFY_CLOUD_UNSUPPORTED (CLD-02)',
     () => {
       const envelope = toStructuredError({
@@ -351,7 +351,7 @@ describe('Cloud hostname error mapping', () => {
     },
   );
 
-  it.fails(
+  it(
     'cloud 404 envelope recoveryHints mention endpoint not supported on Coolify Cloud (CLD-02)',
     () => {
       const envelope = toStructuredError({
@@ -375,7 +375,7 @@ describe('Cloud hostname error mapping', () => {
     },
   );
 
-  it.fails(
+  it(
     'RECOVERY_HINTS defines COOLIFY_CLOUD_FORBIDDEN and COOLIFY_CLOUD_UNSUPPORTED (CLD-02)',
     () => {
       const forbidden = 'COOLIFY_CLOUD_FORBIDDEN' as CoolifyErrorCode;
@@ -385,7 +385,7 @@ describe('Cloud hostname error mapping', () => {
     },
   );
 
-  it.fails(
+  it(
     'CoolifyErrorCode union includes COOLIFY_CLOUD_FORBIDDEN and COOLIFY_CLOUD_UNSUPPORTED (CLD-02)',
     () => {
       const forbidden = 'COOLIFY_CLOUD_FORBIDDEN' as CoolifyErrorCode;
