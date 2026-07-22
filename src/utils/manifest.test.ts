@@ -7,6 +7,7 @@ import {
   mkdirSync,
   writeFileSync,
   readdirSync,
+  chmodSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -41,7 +42,7 @@ const sampleResource = {
 };
 
 describe('ManifestManager', () => {
-  it.fails(
+  it(
     'load() on missing file returns empty manifest with version 1.0.0, projects [], servers []',
     async () => {
       const { ManifestManager } = await loadManifestManager();
@@ -54,7 +55,7 @@ describe('ManifestManager', () => {
     },
   );
 
-  it.fails(
+  it(
     'upsert() adds a resource under nested project/environment, creating project/environment when absent',
     async () => {
       const { ManifestManager } = await loadManifestManager();
@@ -87,7 +88,7 @@ describe('ManifestManager', () => {
     },
   );
 
-  it.fails(
+  it(
     'remove(uuid) deletes a resource by UUID and leaves siblings intact',
     async () => {
       const { ManifestManager } = await loadManifestManager();
@@ -118,7 +119,7 @@ describe('ManifestManager', () => {
     },
   );
 
-  it.fails(
+  it(
     'first successful write creates .coolify/manifest.json and appends .coolify/ to .gitignore (MAN-02)',
     async () => {
       const { ManifestManager } = await loadManifestManager();
@@ -136,7 +137,7 @@ describe('ManifestManager', () => {
     },
   );
 
-  it.fails('second write does NOT duplicate the .gitignore entry', async () => {
+  it('second write does NOT duplicate the .gitignore entry', async () => {
     const { ManifestManager } = await loadManifestManager();
     await ManifestManager.upsert({
       resource: sampleResource,
@@ -162,7 +163,7 @@ describe('ManifestManager', () => {
     expect(matches?.length ?? 0).toBe(1);
   });
 
-  it.fails('hasUuid(uuid) returns true when UUID is present, false otherwise', async () => {
+  it('hasUuid(uuid) returns true when UUID is present, false otherwise', async () => {
     const { ManifestManager } = await loadManifestManager();
     expect(ManifestManager.hasUuid(RESOURCE_UUID)).toBe(false);
     await ManifestManager.upsert({
@@ -176,7 +177,7 @@ describe('ManifestManager', () => {
     expect(ManifestManager.hasUuid('00000000-0000-4000-8000-000000000099')).toBe(false);
   });
 
-  it.fails('atomic write leaves no .tmp files behind on success', async () => {
+  it('atomic write leaves no .tmp files behind on success', async () => {
     const { ManifestManager } = await loadManifestManager();
     await ManifestManager.upsert({
       resource: sampleResource,
@@ -190,13 +191,14 @@ describe('ManifestManager', () => {
     expect(entries.some((name) => name.includes('.tmp'))).toBe(false);
   });
 
-  it.fails(
+  it(
     'autoUpsert() propagates disk/permission errors to the caller (does NOT swallow internally)',
     async () => {
       const { ManifestManager } = await loadManifestManager();
       const readOnlyRoot = join(testWorkspaceRoot, 'readonly-root');
       mkdirSync(readOnlyRoot, { recursive: true });
       writeFileSync(join(readOnlyRoot, '.gitignore'), '', 'utf-8');
+      chmodSync(readOnlyRoot, 0o555);
       process.env.COOLIFY_MCP_TEST_WORKSPACE = readOnlyRoot;
       try {
         await ManifestManager.autoUpsert({
@@ -210,6 +212,8 @@ describe('ManifestManager', () => {
         expect.fail('expected autoUpsert to propagate write error');
       } catch (error) {
         expect(error).toBeDefined();
+      } finally {
+        chmodSync(readOnlyRoot, 0o755);
       }
     },
   );

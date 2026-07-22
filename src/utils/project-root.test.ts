@@ -35,7 +35,7 @@ function buildNestedTree(marker: 'git' | 'package' | 'coolify' | 'none') {
 }
 
 describe('resolveProjectRoot', () => {
-  it.fails(
+  it(
     'walks up from nested subdir and returns the dir containing .git',
     async () => {
       const { resolveProjectRoot } = await loadProjectRoot();
@@ -44,7 +44,7 @@ describe('resolveProjectRoot', () => {
     },
   );
 
-  it.fails(
+  it(
     'walks up to a dir containing package.json when no .git exists',
     async () => {
       const { resolveProjectRoot } = await loadProjectRoot();
@@ -53,7 +53,7 @@ describe('resolveProjectRoot', () => {
     },
   );
 
-  it.fails(
+  it(
     'returns an existing .coolify/ parent when neither .git nor package.json found above',
     async () => {
       const { resolveProjectRoot } = await loadProjectRoot();
@@ -62,13 +62,13 @@ describe('resolveProjectRoot', () => {
     },
   );
 
-  it.fails('falls back to startDir when no marker found', async () => {
+  it('falls back to startDir when no marker found', async () => {
     const { resolveProjectRoot } = await loadProjectRoot();
     const { nested } = buildNestedTree('none');
     expect(resolveProjectRoot(nested)).toBe(nested);
   });
 
-  it.fails('COOLIFY_MCP_TEST_WORKSPACE env var overrides the start dir (test seam)', async () => {
+  it('COOLIFY_MCP_TEST_WORKSPACE env var overrides the start dir (test seam)', async () => {
     const { resolveProjectRoot } = await loadProjectRoot();
     const overrideRoot = join(testWorkspaceRoot, 'override-root');
     mkdirSync(overrideRoot, { recursive: true });
