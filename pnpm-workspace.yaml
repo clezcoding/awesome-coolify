@@ -1,0 +1,6 @@
+# Single-package repo — file also holds pnpm 11+ settings (allowBuilds).
+packages:
+  - "."
+
+allowBuilds:
+  esbuild: true
