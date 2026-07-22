@@ -4,9 +4,9 @@ milestone: v3.0
 milestone_name: Platform Foundation
 current_phase: 17
 current_phase_name: Local Manifest & Sync
-status: Phase 16 shipped — PR #37
+status: "Phase 16 shipped — PR #37"
 stopped_at: Completed 16-04-PLAN.md
-last_updated: "2026-07-22T02:56:42.150Z"
+last_updated: "2026-07-22T03:07:18.883Z"
 last_activity: 2026-07-22
 progress:
   total_phases: 4
@@ -14,7 +14,7 @@ progress:
   total_plans: 10
   completed_plans: 10
   percent: 50
-last_activity_desc: Phase 16 shipped — PR #37
+last_activity_desc: "Phase 16 shipped — PR #37"
 ---
 
 # Project State
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 Phase: 17 — Local Manifest & Sync
 Plan: Not started
 Status: Phase 16 shipped — PR #37
-Last activity: 2026-07-22 — Phase 16 shipped — PR #37
+Last activity: 2026-07-22
 
 Progress: [██████████] 100%
 
