@@ -1,0 +1,32 @@
+{
+  "_comment": "Example template only. Live .coolify/manifest.json is gitignored — never commit secrets or real UUIDs from production.",
+  "version": "1.0.0",
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "instance": "my-self-hosted",
+  "projects": [
+    {
+      "uuid": "00000000-4000-8000-000000000001",
+      "name": "example-project",
+      "environments": [
+        {
+          "uuid": "00000000-4000-8000-000000000002",
+          "name": "production",
+          "resources": [
+            {
+              "uuid": "00000000-4000-8000-000000000003",
+              "type": "application",
+              "name": "example-app",
+              "domains": ["https://app.example.com"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "servers": [
+    {
+      "uuid": "00000000-4000-8000-000000000004",
+      "name": "example-server"
+    }
+  ]
+}
