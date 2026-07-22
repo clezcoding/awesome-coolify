@@ -62,10 +62,20 @@ describe('resolveProjectRoot', () => {
     },
   );
 
-  it('falls back to startDir when no marker found', async () => {
+  it('throws COOLIFY_VALIDATION_ERROR when no marker found (fail closed)', async () => {
     const { resolveProjectRoot } = await loadProjectRoot();
     const { nested } = buildNestedTree('none');
-    expect(resolveProjectRoot(nested)).toBe(nested);
+    expect(() => resolveProjectRoot(nested)).toThrow(
+      /Could not resolve project root/,
+    );
+    try {
+      resolveProjectRoot(nested);
+      expect.fail('expected COOLIFY_VALIDATION_ERROR');
+    } catch (error) {
+      expect(error).toMatchObject({
+        envelope: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
   });
 
   it('COOLIFY_MCP_TEST_WORKSPACE env var overrides the start dir (test seam)', async () => {

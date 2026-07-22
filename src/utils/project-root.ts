@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { CoolifyApiError, RECOVERY_HINTS } from './errors.js';
 
 export function resolveProjectRoot(startDir?: string): string {
   const testWorkspace = process.env.COOLIFY_MCP_TEST_WORKSPACE;
@@ -7,7 +8,8 @@ export function resolveProjectRoot(startDir?: string): string {
     return resolve(testWorkspace);
   }
 
-  let dir = resolve(startDir ?? process.cwd());
+  const start = resolve(startDir ?? process.cwd());
+  let dir = start;
   const root = resolve('/');
 
   while (dir !== root) {
@@ -23,5 +25,13 @@ export function resolveProjectRoot(startDir?: string): string {
     dir = parent;
   }
 
-  return resolve(startDir ?? process.cwd());
+  throw new CoolifyApiError({
+    code: 'COOLIFY_VALIDATION_ERROR',
+    message: `Could not resolve project root from '${start}': no .git, package.json, or .coolify marker found. Run the MCP server from a project workspace root.`,
+    recoveryHints: [
+      'Run the MCP server with cwd set to the repository root (directory containing .git, package.json, or .coolify/).',
+      'For tests, set COOLIFY_MCP_TEST_WORKSPACE to an explicit workspace path.',
+      ...RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    ],
+  });
 }
