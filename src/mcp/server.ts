@@ -581,7 +581,21 @@ export function registerCoolifyTools(
 export async function createAndConnectServer(
   env: EnvConfig,
 ): Promise<McpServer> {
-  const server = new McpServer({ name: 'awesome-coolify-mcp', version: '0.1.0' });
+  const server = new McpServer({
+    name: 'awesome-coolify-mcp',
+    version: '0.1.0',
+    title: 'Awesome Coolify',
+    description:
+      'MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools',
+    websiteUrl: 'https://github.com/clezcoding/awesome-coolify',
+    icons: [
+      {
+        src: 'https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png',
+        mimeType: 'image/png',
+        sizes: ['192x192'],
+      },
+    ],
+  });
   registerCoolifyTools(server, env);
 
   const transport = new StdioServerTransport();

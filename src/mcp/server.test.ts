@@ -235,11 +235,11 @@ describe('McpServer branding metadata', () => {
     return source.slice(start, end + 3);
   }
 
-  it.fails('source contains title: Awesome Coolify (BRND-01)', () => {
+  it('source contains title: Awesome Coolify (BRND-01)', () => {
     expect(readServerSource()).toContain("title: 'Awesome Coolify'");
   });
 
-  it.fails(
+  it(
     'source contains websiteUrl https://github.com/clezcoding/awesome-coolify (BRND-01)',
     () => {
       expect(readServerSource()).toContain(
@@ -248,12 +248,12 @@ describe('McpServer branding metadata', () => {
     },
   );
 
-  it.fails('McpServer constructor block contains description key (BRND-03)', () => {
+  it('McpServer constructor block contains description key (BRND-03)', () => {
     const block = mcpServerConstructorBlock(readServerSource());
     expect(block).toMatch(/\bdescription:/);
   });
 
-  it.fails(
+  it(
     'McpServer constructor block contains icons with jsDelivr PNG URL (BRND-03)',
     () => {
       const block = mcpServerConstructorBlock(readServerSource());
@@ -264,7 +264,7 @@ describe('McpServer branding metadata', () => {
     },
   );
 
-  it.fails(
+  it(
     'McpServer constructor block contains mimeType image/png and sizes 192x192 (BRND-03)',
     () => {
       const block = mcpServerConstructorBlock(readServerSource());
@@ -273,7 +273,7 @@ describe('McpServer branding metadata', () => {
     },
   );
 
-  it.fails(
+  it(
     'package.json description appears verbatim in server.ts source (BRND-03)',
     () => {
       expect(readServerSource()).toContain(packageDescription);
