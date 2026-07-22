@@ -5,15 +5,15 @@ milestone_name: Platform Foundation
 current_phase: 16
 current_phase_name: coolify-cloud-server-branding
 status: executing
-stopped_at: Completed 16-00-PLAN.md
-last_updated: "2026-07-22T01:33:01.502Z"
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-07-22T01:36:23.208Z"
 last_activity: 2026-07-22
 last_activity_desc: Phase 16 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 16 (coolify-cloud-server-branding) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-22 — Phase 16 execution started
 
-Progress: [██████░░░░] 60%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -89,6 +89,7 @@ Progress: [██████░░░░] 60%
 | Phase 15-multi-instance-registry-routing P03 | 6min | 2 tasks | 7 files |
 | Phase 15-multi-instance-registry-routing P04 | 6min | 2 tasks | 8 files |
 | Phase 16-coolify-cloud-server-branding P00 | 4min | 1 tasks | 3 files |
+| Phase 16-coolify-cloud-server-branding P01 | 3min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -237,6 +238,8 @@ Progress: [██████░░░░] 60%
 - [Phase ?]: CTX-06 error-path integration tests isolated from prod registry default — COOLIFY_NO_INSTANCE contract preserved (15-04)
 - [Phase ?]: Phase 16 Wave 0: it.fails RED scaffolds for husky-green pre-commit; flip to it in 16-01..16-03
 - [Phase ?]: cloud-info invalid-instance scaffold asserts instance-path Zod issue — fails until 16-02 ships cloud-info branch
+- [Phase ?]: Cloud 403/404 mapped via isCloud flag on mapApiError — self-hosted 403 still falls through to COOLIFY_500
+- [Phase ?]: Per-error isCloud from fetchError.request — no module-level mutable cloud state (D-03)
 
 ### Pending Todos
 
@@ -283,8 +286,8 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T01:33:01.494Z
-**Stopped at:** Completed 16-00-PLAN.md
+**Last session:** 2026-07-22T01:36:23.199Z
+**Stopped at:** Completed 16-01-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-22 — v3.0 milestone audit gaps_found; Phase 15 complete; continue Phases 16–18.
