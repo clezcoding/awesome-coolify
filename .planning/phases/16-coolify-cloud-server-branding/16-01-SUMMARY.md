@@ -105,7 +105,7 @@ status: complete
 
 1. **Task 1: errors.ts — add cloud codes + isCloudUrl + cloud-aware toStructuredError/mapApiError** - `d2c6e2b` (feat)
 
-**Plan metadata:** pending (docs: complete plan)
+**Plan metadata:** `da330ee` (docs: complete plan)
 
 ## Files Created/Modified
 
