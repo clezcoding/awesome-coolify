@@ -284,7 +284,7 @@ describe('instance cloud-info action', () => {
     }
   });
 
-  it.fails(
+  it(
     'cloud-info with env credentials returns isCloud false and source env (D-16/D-17)',
     async () => {
       const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
@@ -299,7 +299,7 @@ describe('instance cloud-info action', () => {
     },
   );
 
-  it.fails(
+  it(
     'cloud-info on registered cloud instance returns isCloud true and source registry (D-16)',
     async () => {
       const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
@@ -327,7 +327,7 @@ describe('instance cloud-info action', () => {
     },
   );
 
-  it.fails(
+  it(
     'cloud-info with no registry or env infers app.coolify.io (D-16)',
     async () => {
       delete process.env.COOLIFY_URL;
@@ -350,7 +350,7 @@ describe('instance cloud-info action', () => {
     },
   );
 
-  it.fails(
+  it(
     'cloud-info response includes setupHints, knownLimits, and docsLink (D-16)',
     async () => {
       const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
@@ -367,7 +367,7 @@ describe('instance cloud-info action', () => {
     },
   );
 
-  it.fails(
+  it(
     'cloud-info with unknown instance name returns COOLIFY_INSTANCE_NOT_FOUND (D-17)',
     async () => {
       const { handleInstanceAction, isInstanceErrorResult } = await loadInstanceTool();
@@ -381,14 +381,14 @@ describe('instance cloud-info action', () => {
     },
   );
 
-  it.fails('instanceActionSchema accepts cloud-info action (CLD-01)', async () => {
+  it('instanceActionSchema accepts cloud-info action (CLD-01)', async () => {
     const { instanceActionSchema } = await loadInstanceTool();
     expect(instanceActionSchema.safeParse({ action: 'cloud-info' }).success).toBe(
       true,
     );
   });
 
-  it.fails(
+  it(
     'instanceActionSchema rejects cloud-info with invalid instance slug (D-08)',
     async () => {
       const { instanceActionSchema } = await loadInstanceTool();

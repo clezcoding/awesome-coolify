@@ -437,7 +437,7 @@ export function registerCoolifyTools(
     'instance',
     {
       description:
-        'Multi-instance registry CRUD (list, get, add, update, delete, set-default, import-env) for ~/.coolify-mcp/instances.json. Tokens masked as *** unless reveal:true — do not persist revealed secrets. delete requires confirm:true; deleting the default or last instance requires force:true. import-env opt-in copies COOLIFY_URL+COOLIFY_TOKEN from process env — never auto-run. No instance routing param — ops always target the local registry file (D-03).',
+        'Multi-instance registry CRUD (list, get, add, update, delete, set-default, import-env, cloud-info) for ~/.coolify-mcp/instances.json. Tokens masked as *** unless reveal:true — do not persist revealed secrets. delete requires confirm:true; deleting the default or last instance requires force:true. import-env opt-in copies COOLIFY_URL+COOLIFY_TOKEN from process env — never auto-run. cloud-info is local/static discovery (isCloud, resolved url, source, setupHints, knownLimits, docsLink) — no live API probe. No instance routing param on other actions — ops always target the local registry file (D-03).',
       inputSchema: instanceActionSchema,
       outputSchema: toolOutputSchema,
     },

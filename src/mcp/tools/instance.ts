@@ -104,6 +104,15 @@ const importEnvActionSchema = z
   })
   .strict();
 
+const cloudInfoActionSchema = z
+  .object({
+    action: z.literal('cloud-info'),
+    instance: instanceNameSchema
+      .optional()
+      .describe('Optional instance name to inspect; defaults to env/default resolution'),
+  })
+  .strict();
+
 export const instanceActionSchema = z.discriminatedUnion('action', [
   listActionSchema,
   getActionSchema,
@@ -112,6 +121,7 @@ export const instanceActionSchema = z.discriminatedUnion('action', [
   deleteActionSchema,
   setDefaultActionSchema,
   importEnvActionSchema,
+  cloudInfoActionSchema,
 ]);
 
 export type InstanceAction = z.infer<typeof instanceActionSchema>;
@@ -329,6 +339,58 @@ export async function handleInstanceAction(
           throw error;
         }
         return buildReadResponse(maskInstance(instance));
+      }
+
+      case 'cloud-info': {
+        const resolveEnv = {
+          COOLIFY_URL: env?.COOLIFY_URL ?? process.env.COOLIFY_URL,
+          COOLIFY_TOKEN: env?.COOLIFY_TOKEN ?? process.env.COOLIFY_TOKEN,
+          COOLIFY_VERIFY_SSL:
+            env?.COOLIFY_VERIFY_SSL !== undefined
+              ? String(env.COOLIFY_VERIFY_SSL)
+              : process.env.COOLIFY_VERIFY_SSL,
+        };
+
+        let resolvedUrl: string;
+        let source: 'registry' | 'env' | 'infer';
+
+        try {
+          const creds = InstanceManager.resolveCredentials(parsed.instance, resolveEnv);
+          resolvedUrl = creds.url;
+          if (parsed.instance) {
+            source = 'registry';
+          } else if (resolveEnv.COOLIFY_URL?.trim() && resolveEnv.COOLIFY_TOKEN?.trim()) {
+            source = 'env';
+          } else {
+            source = 'registry';
+          }
+        } catch (error) {
+          if (
+            error instanceof CoolifyApiError &&
+            error.envelope.code === 'COOLIFY_NO_INSTANCE'
+          ) {
+            resolvedUrl = 'https://app.coolify.io';
+            source = 'infer';
+          } else {
+            throw error;
+          }
+        }
+
+        return buildReadResponse({
+          isCloud: inferInstanceType(resolvedUrl) === 'cloud',
+          url: resolvedUrl,
+          source,
+          setupHints: [
+            'Generate a team-scoped token in app.coolify.io under Keys & Tokens.',
+            'Run instance.add or import-env to register it locally.',
+          ],
+          knownLimits: [
+            'Cloud does not support server creation/validation/deletion via API.',
+            'Some self-hosted endpoints may return 404 (COOLIFY_CLOUD_UNSUPPORTED).',
+            'German docs parity: docs/de/cloud.md (EN default is docs/en/cloud.md per D-16).',
+          ],
+          docsLink: 'docs/en/cloud.md',
+        });
       }
 
       default: {
