@@ -4,9 +4,9 @@ milestone: v3.0
 milestone_name: Platform Foundation
 current_phase: 17
 current_phase_name: Local Manifest & Sync
-status: "Phase 16 shipped — PR #37"
-stopped_at: Phase 17 context gathered
-last_updated: "2026-07-22T15:44:32.340Z"
+status: "Phase 17 researched"
+stopped_at: Phase 17 researched
+last_updated: "2026-07-22T18:20:00.000Z"
 last_activity: 2026-07-22
 progress:
   total_phases: 4
