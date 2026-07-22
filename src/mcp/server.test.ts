@@ -48,13 +48,13 @@ describe('toolOutputSchema', () => {
 });
 
 describe('MCP server tool registration', () => {
-  it('registers system meta resource diagnose application deployment service database private_key instance server project environment and docs tools', () => {
+  it('registers system meta resource diagnose application deployment service database private_key instance manifest server project environment and docs tools', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(15);
+    expect(matches.length).toBe(16);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
@@ -67,6 +67,8 @@ describe('MCP server tool registration', () => {
     expect(source).toContain("registerTool(\n    'private_key'");
     expect(source).toContain("registerTool(\n    'instance'");
     expect(source).toMatch(/handleInstanceAction\(args,\s*env\)/);
+    expect(source).toContain("registerTool(\n    'manifest'");
+    expect(source).toMatch(/handleManifestAction\(args,\s*env\)/);
     expect(source).toContain("registerTool(\n    'server'");
     expect(source).toContain("registerTool(\n    'project'");
     expect(source).toContain("registerTool(\n    'environment'");

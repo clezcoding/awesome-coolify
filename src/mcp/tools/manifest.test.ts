@@ -80,7 +80,7 @@ async function seedManifestViaUpsert() {
 }
 
 describe('manifest tool', () => {
-  it.fails(
+  it(
     "handleManifestAction({action:'get'}) returns buildReadResponse envelope with manifest data",
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -103,7 +103,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'upsert', resource:{...}}) upserts and returns the upserted entry",
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -134,7 +134,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'set', manifest:{...}}) replaces the whole manifest and validates via Zod",
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -173,7 +173,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'remove', uuid:'...'}) removes the entry and returns {removed:true}",
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -188,7 +188,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'clear', confirm:false}) throws COOLIFY_422; with confirm:true returns {cleared:true}",
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -205,7 +205,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'sync'}) without creds returns COOLIFY_NO_INSTANCE envelope (D-04)",
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -216,7 +216,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'sync', instance:'prod', dry_run:true}) returns planned diff without writing",
     async () => {
       const { handleInstanceAction } = await import('./instance.js');
@@ -273,7 +273,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction sync merges remote state into local — remote wins on conflict, orphans retained (MAN-03)",
     async () => {
       const { handleInstanceAction } = await import('./instance.js');
@@ -365,7 +365,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'sync', instance:'prod', confirm:true, prune:true}) prunes orphans and returns sync report",
     async () => {
       const { handleInstanceAction } = await import('./instance.js');
@@ -423,7 +423,7 @@ describe('manifest tool', () => {
     },
   );
 
-  it.fails(
+  it(
     "handleManifestAction({action:'diff', instance:'prod'}) returns always non-destructive report",
     async () => {
       const { handleInstanceAction } = await import('./instance.js');
