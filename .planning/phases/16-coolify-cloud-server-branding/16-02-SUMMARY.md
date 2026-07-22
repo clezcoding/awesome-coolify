@@ -116,7 +116,7 @@ status: complete
 
 1. **Task 1: instance.ts — add cloud-info action schema + handler branch** - `356edd1` (feat)
 
-**Plan metadata:** pending (docs: complete plan)
+**Plan metadata:** `507b84a` (docs: complete plan)
 
 ## Files Created/Modified
 
