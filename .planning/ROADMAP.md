@@ -133,13 +133,13 @@ Plans:
   3. Agent can run a `manifest:sync` action that reconciles manifest entries against the live API and refreshes stale UUIDs
   4. Operations against stale manifest UUIDs surface a refresh hint on API 404 (manifest is treated as cache, not source of truth)
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 
 **Wave 0**
 
-- [ ] 17-00-PLAN.md — Wave 0 RED test scaffolds (manifest utility, manifest MCP tool, project-root resolver) using it.fails + dynamic imports
+- [x] 17-00-PLAN.md — Wave 0 RED test scaffolds (manifest utility, manifest MCP tool, project-root resolver) using it.fails + dynamic imports
 
 **Wave 1** *(blocked on Wave 0 completion)*
 
@@ -175,7 +175,7 @@ Plans:
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
 | 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
 | 16 | v3.0 | 5/5 | Complete    | 2026-07-22 |
-| 17 | v3.0 | 0/4 | Planned | - |
+| 17 | v3.0 | 1/4 | In Progress|  |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
 **Next:** `/gsd-execute-phase 17`
