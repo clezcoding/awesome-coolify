@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.2.1
+
+### Patch Changes
+
+- cc68b3d: Live UAT harness (`npm run uat:live`): declarative matrix, hybrid stdio/in-process runners, token redaction, UAT scope gates, confirm-gate regression scoring, and pinned `tsx` for in-process TypeScript imports.
+
 ## 0.2.0
 
 ### Minor Changes
