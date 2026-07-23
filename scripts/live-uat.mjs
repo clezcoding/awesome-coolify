@@ -10,16 +10,21 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { argv, env, exit, stderr, stdout } from 'node:process';
 
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const matrixPath = resolve(root, 'scripts/live-uat.matrix.json');
+
 if (!env.TSX_ACTIVE) {
-  const result = spawnSync('npx', ['tsx', ...argv.slice(1)], {
+  // Prefer pinned repo-local tsx (devDependency). Fall back to npx only if absent.
+  const localTsxCli = resolve(root, 'node_modules/tsx/dist/cli.mjs');
+  const tsxCmd = existsSync(localTsxCli)
+    ? ['node', localTsxCli, ...argv.slice(1)]
+    : ['npx', '--no-install', 'tsx', ...argv.slice(1)];
+  const result = spawnSync(tsxCmd[0], tsxCmd.slice(1), {
     stdio: 'inherit',
     env: { ...env, TSX_ACTIVE: 'true' },
   });
   exit(result.status ?? 0);
 }
-
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const matrixPath = resolve(root, 'scripts/live-uat.matrix.json');
 
 const PREFERRED_NAMES = ['awesome-coolify-mcp', 'coolify-mcp', 'coolify'];
 
@@ -326,6 +331,8 @@ async function resolveResourceProjectUuid(row, routingEnv, dispatchMap) {
 async function guardUatScope(row, routingEnv, dispatchMap, uatProjectUuid) {
   const args = row.args ?? {};
 
+  // Manifest is workspace-local FS (.coolify/manifest.json), not Coolify-scoped.
+  // Documented in CONTRIBUTING — UAT_PROJECT_UUID does not apply.
   if (row.tool === 'manifest') {
     return true;
   }
@@ -677,6 +684,17 @@ function extractStructuredContent(res) {
   return res?.result?.structuredContent ?? null;
 }
 
+function isEmergencyConfirmPreviewRow(row) {
+  const action = row?.args?.action;
+  return (
+    row?.tool === 'emergency' &&
+    row?.args?.confirm !== true &&
+    (action === 'stop_all' ||
+      action === 'redeploy_project' ||
+      action === 'restart_project')
+  );
+}
+
 function evaluateStdioRowResult(row, res, redact) {
   const structuredContent = extractStructuredContent(res);
   const rpcError = res?.error;
@@ -709,6 +727,39 @@ function evaluateStdioRowResult(row, res, redact) {
       errorCode,
       recoveryHintsPresent: false,
       structuredContent: null,
+    });
+  }
+
+  // Confirm-gate preview rows must ONLY pass on COOLIFY_CONFIRM_REQUIRED.
+  // ok:true means the confirm gate regressed (mutation would have run).
+  if (isEmergencyConfirmPreviewRow(row)) {
+    const code = structuredContent?.error?.code;
+    const hints = structuredContent?.error?.recoveryHints;
+    recoveryHintsPresent = Array.isArray(hints) && hints.length > 0;
+    if (
+      structuredContent?.ok === false &&
+      code === 'COOLIFY_CONFIRM_REQUIRED'
+    ) {
+      status = 'pass';
+      errorCode = code;
+    } else {
+      status = 'fail';
+      errorCode =
+        structuredContent?.ok === true
+          ? 'UAT_CONFIRM_GATE_REGRESSION'
+          : (code ??
+            (rpcError?.code !== undefined
+              ? `RPC_${rpcError.code}`
+              : 'UAT_UNKNOWN'));
+    }
+    return redact({
+      id: row.id,
+      tool: row.tool,
+      status,
+      durationMs: 0,
+      errorCode,
+      recoveryHintsPresent,
+      structuredContent: structuredContent ?? null,
     });
   }
 
@@ -906,11 +957,17 @@ async function runStdioRows({
 }
 
 function buildReport(rows, v3Gaps) {
+  // blocked-outside-uat is a safety miss for mutating rows — count as fail so
+  // the suite cannot exit 0 while scope blocks are silently "green".
+  const failStatuses = new Set(['fail', 'blocked-outside-uat']);
   const summary = {
     pass: rows.filter((row) => row.status === 'pass').length,
-    fail: rows.filter((row) => row.status === 'fail').length,
+    fail: rows.filter((row) => failStatuses.has(row.status)).length,
     skip: rows.filter((row) => row.status === 'skip').length,
     planned: rows.filter((row) => row.status === 'planned').length,
+    blocked_outside_uat: rows.filter(
+      (row) => row.status === 'blocked-outside-uat',
+    ).length,
     v3_gaps: v3Gaps.length,
   };
   return { rows, summary, v3_gaps: v3Gaps };
@@ -922,9 +979,9 @@ function writeMarkdown(report, path, redact) {
     '',
     '## Summary',
     '',
-    '| pass | fail | skip | planned | v3_gaps |',
-    '| --- | --- | --- | --- | --- |',
-    `| ${report.summary.pass} | ${report.summary.fail} | ${report.summary.skip} | ${report.summary.planned} | ${report.summary.v3_gaps} |`,
+    '| pass | fail | skip | planned | blocked_outside_uat | v3_gaps |',
+    '| --- | --- | --- | --- | --- | --- |',
+    `| ${report.summary.pass} | ${report.summary.fail} | ${report.summary.skip} | ${report.summary.planned} | ${report.summary.blocked_outside_uat ?? 0} | ${report.summary.v3_gaps} |`,
     '',
     '## Rows',
     '',
@@ -950,6 +1007,13 @@ function writeMarkdown(report, path, redact) {
 }
 
 async function main() {
+  if (!existsSync(matrixPath)) {
+    abortSetup(
+      'UAT_HARNESS_NOT_PACKAGED — clone the git repo; npm pack omits scripts/',
+      createRedactor(''),
+    );
+  }
+
   const uatProjectUuid = env.UAT_PROJECT_UUID?.trim();
   if (!uatProjectUuid) {
     abortSetup('UAT_PROJECT_UUID_REQUIRED', createRedactor(''));

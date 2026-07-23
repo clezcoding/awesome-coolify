@@ -332,13 +332,11 @@ fi
 
 case "$MODE" in
   ship|ready)
-    # Ship and ready are Kodiak-opt-in: set automerge + strip blockers.
-    # Kodiak still waits for required checks (Lint/Test/Build, MegaLinter)
-    # and will not merge while blocking_labels are present (.kodiak.toml).
+    # Ship and ready are Kodiak-opt-in: set automerge + strip planning labels.
+    # Keep hard blockers (status: blocked / needs-review / needs-triage) unless
+    # this is an explicit --mode ready after human clearance.
+    # Kodiak still waits for required checks and blocking_labels (.kodiak.toml).
     for blocker in \
-      "status: blocked" \
-      "status: needs-review" \
-      "status: needs-triage" \
       "gsd: discuss" \
       "gsd: plan" \
       "gsd: execute" \
@@ -346,15 +344,26 @@ case "$MODE" in
     do
       has_label "$blocker" && remove_label "$blocker"
     done
+    if [[ "$MODE" == "ready" ]]; then
+      for blocker in \
+        "status: blocked" \
+        "status: needs-review" \
+        "status: needs-triage"
+      do
+        has_label "$blocker" && remove_label "$blocker"
+      done
+    fi
     if label_exists "status: ready-to-merge"; then
       DESIRED_STATUS+=("status: ready-to-merge")
     elif has_label "status: in-progress"; then
       remove_label "status: in-progress"
     fi
-    # Default: always set automerge on ship/ready (CI gate is the real brake).
-    # Pass --no-automerge to opt out (handled below via AUTOMERGE=-1).
+    # Default: set automerge on ship/ready, but NEVER when a changeset is still
+    # required (needs-changeset). Pass --no-automerge to force off.
     TOUCH_AUTOMERGE=1
     if [[ "$AUTOMERGE" -eq -1 ]]; then
+      ADD_AUTOMERGE=0
+    elif [[ "$NEEDS_CHANGESET" == "add" ]]; then
       ADD_AUTOMERGE=0
     else
       ADD_AUTOMERGE=1

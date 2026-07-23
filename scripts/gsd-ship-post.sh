@@ -6,8 +6,10 @@
 #
 # Called automatically by:
 #   - GSD ship.md create_pr step (when this script exists)
-#   - Cursor afterShellExecution hook on `gh pr create`
+#   - Cursor afterShellExecution hook on `gh pr create` (gsd/* branches only)
 #   - ./scripts/gsd-ship-labels.sh (delegates here)
+#
+# Fail-closed: changeset script errors abort before automerge labels are applied.
 
 set -euo pipefail
 
@@ -25,7 +27,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     -h|--help)
-      sed -n '2,12p' "$0"
+      sed -n '2,14p' "$0"
       exit 0
       ;;
     *)
@@ -61,9 +63,9 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   DRY_FLAG=(--dry-run)
 fi
 
-# 1) Ensure changeset (before labels so needs-changeset can clear)
+# 1) Ensure changeset — fail closed (no || true). Exit 0 = skip or wrote.
 CHANGESET_OUT="$(
-  bash "${ROOT}/scripts/gsd-ensure-changeset.sh" --pr "$PR" "${BUMP_ARGS[@]+"${BUMP_ARGS[@]}"}" "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}" || true
+  bash "${ROOT}/scripts/gsd-ensure-changeset.sh" --pr "$PR" "${BUMP_ARGS[@]+"${BUMP_ARGS[@]}"}" "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}"
 )"
 echo "$CHANGESET_OUT"
 
@@ -71,7 +73,6 @@ CREATED_FILE=""
 if echo "$CHANGESET_OUT" | grep -q '^changeset: wrote '; then
   CREATED_FILE="$(echo "$CHANGESET_OUT" | awk '/^changeset: wrote /{print $3}')"
 fi
-# Also capture bare path line
 if [[ -z "$CREATED_FILE" ]]; then
   CREATED_FILE="$(echo "$CHANGESET_OUT" | awk '/^\.changeset\//{print; exit}')"
 fi
@@ -95,7 +96,8 @@ elif [[ "$DRY_RUN" -eq 1 && -n "$CREATED_FILE" ]]; then
   echo "gsd-ship-post: dry-run would commit+push ${CREATED_FILE}"
 fi
 
-# 3) Ship labels + Kodiak automerge (merge still waits for green required checks)
+# 3) Ship labels + Kodiak automerge (merge still waits for green required checks).
+# gsd-pr-labels ship mode withholds automerge when needs-changeset is still required.
 bash "${ROOT}/scripts/gsd-pr-labels.sh" --pr "$PR" --mode ship "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}"
 
-echo "==> gsd-ship-post done for PR #${PR} (automerge set; Kodiak waits for CI)"
+echo "==> gsd-ship-post done for PR #${PR} (labels applied; Kodiak waits for CI + non-blocking labels)"

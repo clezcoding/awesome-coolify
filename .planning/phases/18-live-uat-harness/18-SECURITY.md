@@ -40,7 +40,7 @@ created: 2026-07-23
 | T-18-06 | Repudiation | v3_gaps + skip reasons | low | accept | Skip reasons recorded in report; sufficient at ASVS L1 | closed |
 | T-18-07 | Information Disclosure | CONTRIBUTING.md examples | medium | mitigate | Placeholders only (`<your-uat-project-uuid>`); no real token shape | closed |
 | T-18-08 | Tampering | npm `files` allowlist | high | mitigate | Allowlist `dist`, `.env.example`, `LICENSE`; pack dry-run excludes harness scripts | closed |
-| T-18-SC | Tampering | npx tsx / supply chain | low | accept | Existing repo tool; no new package install in phase plans | closed |
+| T-18-SC | Tampering | tsx respawn / supply chain | low | mitigate | `tsx` pinned in `devDependencies`; harness prefers `node_modules/tsx` over unpinned `npx` fetch | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low — only open threats at or above `workflow.security_block_on` count toward threats_open*
@@ -53,7 +53,7 @@ created: 2026-07-23
 | Risk ID | Threat Ref | Rationale | Accepted By | Date |
 |---------|------------|-----------|-------------|------|
 | AR-18-01 | T-18-06 | Skip reasons in report provide auditability; no extra logging required at ASVS L1 | plan author | 2026-07-23 |
-| AR-18-02 | T-18-SC | tsx already used in repo; [SUS] freshness accepted — no new npm install | plan author / maintainer | 2026-07-23 |
+| AR-18-02 | T-18-SC | Superseded — `tsx` now pinned in `devDependencies` (2026-07-23 review fix) | plan author / maintainer | 2026-07-23 |
 
 ---
 

@@ -38,6 +38,7 @@ the integrate/opt-out decisions for the Phase 18 harness surface.
 | JSON report stdout + optional `--out` + `.md` companion | INTEGRATE | |
 | exit codes 0 success / 1 row fail / 2 setup abort | INTEGRATE | |
 | npm run uat:live entry (D-02) | INTEGRATE | |
+| pinned tsx devDependency + local cli prefer | INTEGRATE | |
 | harness excluded from npm pack tarball (D-03) | INTEGRATE | |
 | CONTRIBUTING Live UAT runbook (placeholders only) | INTEGRATE | |
 | new Coolify REST endpoints | OPT-OUT | explicitly out of scope — harness exercises existing client surface only |
