@@ -12,6 +12,65 @@ pnpm test
 
 Git hooks (commitlint) are activated automatically via `husky` on `pnpm install`.
 
+## Live UAT Harness
+
+The live UAT harness is a **maintainer-local** CLI for proving all MCP tools against a real Coolify instance before release. It is tracked in git but **never published** in the npm tarball (`files` allowlist ships only `dist`, `.env.example`, and `LICENSE`).
+
+### Entry point
+
+```bash
+npm run uat:live
+```
+
+This runs `node scripts/live-uat.mjs`. Optional flags:
+
+| Flag | Effect |
+|------|--------|
+| `--write` | Unlocks create/update/restart/deploy inside the UAT project |
+| `--confirm-destructive` | Additionally unlocks deletes, emergency bulk ops, and manifest prune/clear |
+| `--full` | Runs the entire action matrix (default is representatives plus the fixed v3 mandatory set) |
+| `--out <path>` | Writes the JSON report to a file and emits a Markdown companion (`.md` alongside or derived from the path) |
+
+Without `--write`, the harness stays **read-only**: lists, gets, diff, and meta-style calls execute; write and destructive matrix rows are recorded as status `planned`, not executed.
+
+### Preconditions
+
+1. **Dedicated UAT project** — create a throwaway Coolify project manually; the harness never auto-creates or auto-cleans resources.
+2. **`UAT_PROJECT_UUID`** — set this env var to that project's UUID. The harness aborts with **exit 2** when the variable is missing, empty, or does not match a live project (`get` fails).
+3. **Credentials** — resolved in order from `.cursor/mcp.json`, then `COOLIFY_URL` / `COOLIFY_TOKEN` in the process environment, then `~/.coolify-mcp/instances.json`. Tokens are redacted in every output surface; never commit or paste real tokens into docs or issues.
+
+Example (placeholders only):
+
+```bash
+export UAT_PROJECT_UUID="<your-uat-project-uuid>"
+npm run uat:live -- --out /tmp/uat-report.json
+```
+
+### Reports and exit codes
+
+- **JSON on stdout** is the canonical machine report (`rows`, `summary`, `v3_gaps`).
+- With `--out`, the same JSON is written to disk plus a **Markdown companion** for human review.
+
+| Exit code | Meaning |
+|-----------|---------|
+| `0` | No failures (`skip` and `planned` are OK) |
+| `1` | At least one matrix row failed |
+| `2` | Setup abort (missing `UAT_PROJECT_UUID`, missing credentials, project mismatch, invalid flags) |
+
+### v3_gaps
+
+When a v3 mandatory row cannot run because a live precondition is missing (no secondary registry instance, no cloud profile, no local manifest file), the row is **skipped** and listed under `v3_gaps` in the report. The suite can still exit `0` if all executed rows pass — gaps are informational, not automatic failures.
+
+### Extending coverage
+
+Matrix rows live in `scripts/live-uat.matrix.json`. Add or adjust rows there; avoid hardcoding new cases in `scripts/live-uat.mjs`.
+
+### Maintainer stance
+
+- **No CI job** for live UAT — credentials stay on your machine only.
+- **No remote secrets** (GitHub Actions secrets, hosted runners, etc.).
+- **Never in npm** — consumers of `awesome-coolify-mcp` do not receive the harness.
+
 ## Commit Convention
 
 All commits follow [Conventional Commits](https://www.conventionalcommits.org/):
