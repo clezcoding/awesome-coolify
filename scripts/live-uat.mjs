@@ -4,7 +4,7 @@
  * Maintainer-local only; never prints COOLIFY_TOKEN.
  */
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -339,6 +339,49 @@ async function runStdioRows({ matrix, flags, routingEnv, redact }) {
   return { rows, v3Gaps };
 }
 
+function buildReport(rows, v3Gaps) {
+  const summary = {
+    pass: rows.filter((row) => row.status === 'pass').length,
+    fail: rows.filter((row) => row.status === 'fail').length,
+    skip: rows.filter((row) => row.status === 'skip').length,
+    planned: rows.filter((row) => row.status === 'planned').length,
+    v3_gaps: v3Gaps.length,
+  };
+  return { rows, summary, v3_gaps: v3Gaps };
+}
+
+function writeMarkdown(report, path, redact) {
+  const lines = [
+    '# Live UAT Report',
+    '',
+    '## Summary',
+    '',
+    '| pass | fail | skip | planned | v3_gaps |',
+    '| --- | --- | --- | --- | --- |',
+    `| ${report.summary.pass} | ${report.summary.fail} | ${report.summary.skip} | ${report.summary.planned} | ${report.summary.v3_gaps} |`,
+    '',
+    '## Rows',
+    '',
+    '| id | tool | status | durationMs | errorCode | recoveryHintsPresent |',
+    '| --- | --- | --- | --- | --- | --- |',
+  ];
+
+  for (const row of report.rows) {
+    lines.push(
+      `| ${row.id} | ${row.tool} | ${row.status} | ${row.durationMs} | ${row.errorCode ?? ''} | ${row.recoveryHintsPresent} |`,
+    );
+  }
+
+  if (report.v3_gaps.length > 0) {
+    lines.push('', '## v3_gaps', '');
+    for (const gap of report.v3_gaps) {
+      lines.push(`- **${gap.reason}**: ${gap.message}`);
+    }
+  }
+
+  writeFileSync(path, `${redact(lines.join('\n'))}\n`, 'utf8');
+}
+
 async function main() {
   const uatProjectUuid = env.UAT_PROJECT_UUID?.trim();
   if (!uatProjectUuid) {
@@ -464,15 +507,28 @@ async function main() {
   uatState.redact = redact;
   uatState.toolsCovered = toolsCovered;
 
-  writeJson(
-    stdout,
-    {
-      status: 'skeleton-ready',
-      rows: matrix.length,
-      toolsCovered,
-    },
+  const { rows, v3Gaps } = await runStdioRows({
+    matrix,
+    flags: cli,
+    routingEnv,
     redact,
-  );
+  });
+  const report = buildReport(rows, v3Gaps);
+  const reportJson = redact(JSON.stringify(report));
+  stdout.write(`${reportJson}\n`);
+
+  if (cli.out) {
+    writeFileSync(cli.out, `${reportJson}\n`, 'utf8');
+    const mdPath = cli.out.endsWith('.json')
+      ? cli.out.replace(/\.json$/, '.md')
+      : `${cli.out}.md`;
+    writeMarkdown(report, mdPath, redact);
+  }
+
+  if (report.summary.fail > 0) {
+    exit(1);
+  }
+  exit(0);
 }
 
 main().catch(async (error) => {
