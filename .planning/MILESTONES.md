@@ -1,5 +1,29 @@
 # Milestones
 
+## v3.0 Platform Foundation (Shipped: 2026-07-23)
+
+**Closeout:** `override_closeout` — 4 open todos acknowledged (see STATE.md Deferred Items). Stale pre-ship audit superseded by phase verification (15–18 passed).
+**Phases completed:** 4 phases, 18 plans, 35 tasks
+**Timeline:** 2026-07-21 → 2026-07-23 (~3 days)
+**Git range:** Phase 15 (#35) → Phase 18 (#42)
+**Code delta (src/scripts/docs):** ~81 files, +8.7k / −0.5k LOC
+
+**Key accomplishments:**
+
+- Multi-instance registry (`InstanceManager` + `instances.json`) with optional `instance` routing on all API tools, soft-start boot, 0o700/0o600 + token redaction
+- Coolify Cloud support (`isCloudUrl`, cloud error codes/hints, `instance.cloud-info`) plus MCP `serverInfo` branding (icons/title/description/websiteUrl)
+- Workspace-local `.coolify/manifest.json` with sync/diff, auto-gitignore, stale-404 hints, and mutation auto-hooks
+- Live UAT harness (`npm run uat:live`) — declarative matrix, stdio + in-process runners, JSON/Markdown reports, CONTRIBUTING runbook
+- 21/21 v3.0 requirements complete (CTX/CLD/BRND/MAN/UAT)
+
+### Known Gaps
+
+- Pending todos deferred: IDE skills (v3.1), setup wizard (v3.1), OpenAPI spec integration
+- Manifest todo file leftover (shipped Phase 17)
+- Phase 18: 4 `human_needed` live behaviors (full live matrix, timeout path, cross-project scope, v3_gaps skips)
+
+---
+
 ## v2.0 Creation & CRUD (Shipped: 2026-07-21)
 
 **Phases completed:** 13 phases, 39 plans, 141 tasks
