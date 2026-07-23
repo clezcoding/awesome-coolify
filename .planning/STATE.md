@@ -2,38 +2,36 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Platform Foundation
-current_phase: 18
-current_phase_name: live-uat-harness
-status: verifying
+status: Awaiting next milestone
 stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-07-23T18:27:06.929Z"
+last_updated: "2026-07-23T20:52:44.156Z"
 last_activity: 2026-07-23
-last_activity_desc: Phase 18 execution started
+last_activity_desc: Milestone v3.0 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
   total_plans: 18
   completed_plans: 18
   percent: 100
+current_phase: 18
+current_phase_name: live-uat-harness
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-22)
+See: .planning/PROJECT.md (updated 2026-07-23)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 18 — live-uat-harness
+**Current focus:** Planning next milestone (v3.1 Setup & Skills)
 
 ## Current Position
 
-Phase: 18 (live-uat-harness) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-07-23 — Phase 18 execution started
-
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0/4 plans ([██████████] 100%)
+Phase: Milestone v3.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
 
 ## Performance Metrics
 
@@ -323,17 +321,28 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 | todo | 2026-07-16-standard-setup-tool-f-r-neue-coolify-projekte.md | deferred to v3 backlog |
 | todo | 2026-07-18-integrate-official-coolify-openapi-specs.md | deferred to v3 backlog |
 
+Items acknowledged and deferred at v3.0 milestone close on 2026-07-23 (`closeout_type=override_closeout`):
+
+| Category | Item | Status |
+|----------|------|--------|
+| todo | 2026-07-16-custom-skills-pro-ide-f-r-coolify.md | deferred to v3.1 (SKILL-*) |
+| todo | 2026-07-16-lokale-projekt-manifest-datei-f-r-coolify-metadaten.md | shipped Phase 17 — pending file leftover |
+| todo | 2026-07-16-standard-setup-tool-f-r-neue-coolify-projekte.md | deferred to v3.1 (SETUP-*) |
+| todo | 2026-07-18-integrate-official-coolify-openapi-specs.md | deferred (OpenAPI coverage integration) |
+
+Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE-AUDIT.md (`gaps_found` from 2026-07-21) superseded by post-ship phase verification (15–18 passed).
+
 ## Session Continuity
 
-**Last session:** 2026-07-23T18:27:06.919Z
-**Stopped at:** Completed 18-03-PLAN.md
+**Last session:** 2026-07-23T20:52:44.156Z
+**Stopped at:** Milestone v3.0 archived
 **Resume file:** None
 
-Last activity: 2026-07-23 — Phase 18 planned (Live UAT Harness, 4 plans)
+Last activity: 2026-07-23 — Milestone v3.0 completed and archived
 
 ## Operator Next Steps
 
-- Run `/gsd-execute-phase 18` — Live UAT Harness
+- `/gsd-new-milestone` — define v3.1 requirements + roadmap
 
 ## Rebuild Log
 

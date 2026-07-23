@@ -103,6 +103,56 @@
 
 ---
 
+## Milestone: v3.0 — Platform Foundation
+
+**Shipped:** 2026-07-23
+**Phases:** 4 (15–18) | **Plans:** 18 | **Tasks:** 35
+**Closeout:** `override_closeout` (4 deferred todos)
+
+### What Was Built
+
+- Multi-instance registry + per-request `instance` routing on all API tools; soft-start without credentials
+- Coolify Cloud path (`isCloudUrl`, cloud error codes/hints, `instance.cloud-info`) + MCP list branding
+- Workspace `.coolify/manifest.json` with sync/diff, auto-gitignore, stale-404 hints, mutation auto-hooks
+- Live UAT harness (`npm run uat:live`) — matrix-driven stdio + in-process runners, JSON/Markdown reports
+
+### What Worked
+
+- Wave 0 `it.fails` RED scaffolds kept husky green across Phases 15–18
+- Reusing `resolveCredentials` / strip-before-parse kept strict Zod schemas intact under routing
+- Manifest as cache (404 hints only) avoided mid-call auto-sync complexity
+- Hybrid UAT (stdio + in-process) covers wire protocol and handler paths without shipping harness in npm tarball
+
+### What Was Inefficient
+
+- Milestone audit ran mid-milestone (2026-07-21) and went stale — close used override + phase verifications
+- Pending todo files for shipped work (manifest, cloud) left open until close acknowledgment
+- ROADMAP Phase 18 checkbox lagged until milestone close
+- Phase 18 verification left 4 `human_needed` live paths (credentials/fixtures required)
+
+### Patterns Established
+
+- Soft-start MCP boot + COOLIFY_NO_INSTANCE envelope when no creds
+- Per-request credential resolution; never mix env URL with registry token
+- Cloud classification from request URL (no module-level mutable flag)
+- Dedicated domain tools for platform concerns (`instance`, `manifest`)
+- Maintainer-only live UAT script outside npm `files` allowlist
+
+### Key Lessons
+
+1. Re-run `/gsd-audit-milestone` after final phase — mid-milestone audit is not close evidence
+2. Close or resolve pending todos when their phase ships (don't wait for milestone close)
+3. Document client limitations (D-09 Cursor icons) as verified outcomes, not open bugs
+4. Live UAT harness is the right home for `human_needed` truths — keep them out of unit gates
+
+### Cost Observations
+
+- Timeline: ~3 days (2026-07-21 → 2026-07-23)
+- 4 phases, 18 plans, ~35.6k LOC TypeScript in `src/`
+- yolo mode + phase branches; closeout deferred 4 backlog todos to v3.1 / OpenAPI work
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -111,6 +161,7 @@
 |-----------|------|--------|------------|
 | v1.0 | 5 | 7 | Vertical MVP slices + action-based tools |
 | v2.0 | 5 | 6 | CRUD + SAF canonical patterns + env/backup layers |
+| v3.0 | 3 | 4 | Multi-instance + cloud + manifest + live UAT harness |
 
 ### Cumulative Quality
 
@@ -118,6 +169,7 @@
 |-----------|-------|-------|----------|
 | v1.0 | 505 | green | 32/32 |
 | v2.0 | 835 | green | optional script passed |
+| v3.0 | ~955+ | green | `npm run uat:live` harness shipped |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -125,5 +177,7 @@
 2. Integration tests at handler level catch cross-phase wiring early
 3. Update traceability at phase verify, not milestone close
 4. Reuse SAF reference implementation across CRUD phases
+5. Mid-milestone audits go stale — re-audit before close or accept override
 
 ---
+
