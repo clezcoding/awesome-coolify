@@ -1,0 +1,218 @@
+[
+  {
+    "id": "tools-list-smoke",
+    "tool": "tools/list",
+    "args": {},
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "system-health-smoke",
+    "tool": "system",
+    "args": { "action": "health" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "system-health-v3-explicit-instance",
+    "tool": "system",
+    "args": { "action": "health", "instance": "uat-secondary" },
+    "type": "read",
+    "mode": "in-process",
+    "suite": "v3"
+  },
+  {
+    "id": "system-health-v3-no-instance",
+    "tool": "system",
+    "args": { "action": "health" },
+    "type": "read",
+    "mode": "in-process",
+    "suite": "v3"
+  },
+  {
+    "id": "meta-version-smoke",
+    "tool": "meta",
+    "args": { "action": "version" },
+    "type": "read",
+    "mode": "in-process",
+    "suite": "smoke"
+  },
+  {
+    "id": "resource-list-smoke",
+    "tool": "resource",
+    "args": { "action": "list", "type": "application" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "diagnose-scan-smoke",
+    "tool": "diagnose",
+    "args": { "action": "scan" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "application-get-smoke",
+    "tool": "application",
+    "args": { "action": "get", "name": "uat-smoke-app" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "application-restart-full",
+    "tool": "application",
+    "args": { "action": "restart", "name": "uat-smoke-app" },
+    "type": "write",
+    "mode": "in-process",
+    "suite": "full"
+  },
+  {
+    "id": "application-delete-full",
+    "tool": "application",
+    "args": { "action": "delete", "name": "uat-smoke-app", "confirm": true },
+    "type": "destructive",
+    "mode": "in-process",
+    "suite": "full"
+  },
+  {
+    "id": "emergency-stop-all-preview-smoke",
+    "tool": "emergency",
+    "args": { "action": "stop_all" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "deployment-list-smoke",
+    "tool": "deployment",
+    "args": { "action": "list", "application_uuid": "uat-smoke-app-uuid" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "service-get-smoke",
+    "tool": "service",
+    "args": { "action": "get", "name": "uat-smoke-service" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "database-get-smoke",
+    "tool": "database",
+    "args": { "action": "get", "name": "uat-smoke-database" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "private-key-list-smoke",
+    "tool": "private_key",
+    "args": { "action": "list" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "instance-list-smoke",
+    "tool": "instance",
+    "args": { "action": "list" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "instance-cloud-info-v3",
+    "tool": "instance",
+    "args": { "action": "cloud-info" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "v3"
+  },
+  {
+    "id": "manifest-get-smoke",
+    "tool": "manifest",
+    "args": { "action": "get" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "manifest-get-v3",
+    "tool": "manifest",
+    "args": { "action": "get" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "v3"
+  },
+  {
+    "id": "manifest-diff-smoke",
+    "tool": "manifest",
+    "args": { "action": "diff" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "manifest-diff-v3",
+    "tool": "manifest",
+    "args": { "action": "diff" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "v3"
+  },
+  {
+    "id": "manifest-sync-dry-run-v3",
+    "tool": "manifest",
+    "args": { "action": "sync", "dry_run": true },
+    "type": "read",
+    "mode": "in-process",
+    "suite": "v3"
+  },
+  {
+    "id": "manifest-clear-full",
+    "tool": "manifest",
+    "args": { "action": "clear", "confirm": true },
+    "type": "destructive",
+    "mode": "in-process",
+    "suite": "full"
+  },
+  {
+    "id": "server-get-smoke",
+    "tool": "server",
+    "args": { "action": "get", "name": "uat-smoke-server" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "project-get-smoke",
+    "tool": "project",
+    "args": { "action": "get", "uuid": "UAT_PROJECT_UUID_PLACEHOLDER" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "environment-list-smoke",
+    "tool": "environment",
+    "args": { "action": "list", "project_uuid": "UAT_PROJECT_UUID_PLACEHOLDER" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  },
+  {
+    "id": "docs-search-smoke",
+    "tool": "docs",
+    "args": { "action": "search", "query": "deploy" },
+    "type": "read",
+    "mode": "stdio",
+    "suite": "smoke"
+  }
+]
