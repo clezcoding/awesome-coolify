@@ -684,6 +684,34 @@ function evaluateStdioRowResult(row, res, redact) {
   let errorCode = null;
   let recoveryHintsPresent = false;
 
+  // tools/list is MCP protocol (result.tools[]), not a tools/call envelope with
+  // structuredContent.ok — score from the tools array, not UAT_UNKNOWN.
+  if (row.tool === 'tools/list') {
+    if (rpcError) {
+      status = 'fail';
+      errorCode =
+        rpcError.code !== undefined ? `RPC_${rpcError.code}` : 'UAT_UNKNOWN';
+    } else {
+      const listedTools = (res?.result?.tools ?? []).map((tool) => tool.name);
+      const missingTools = REGISTERED_TOOLS.filter(
+        (name) => !listedTools.includes(name),
+      );
+      if (!Array.isArray(res?.result?.tools) || missingTools.length > 0) {
+        status = 'fail';
+        errorCode = 'UAT_TOOLS_LIST_INCOMPLETE';
+      }
+    }
+    return redact({
+      id: row.id,
+      tool: row.tool,
+      status,
+      durationMs: 0,
+      errorCode,
+      recoveryHintsPresent: false,
+      structuredContent: null,
+    });
+  }
+
   if (rpcError?.code === -32602) {
     status = 'fail';
     errorCode = `RPC_${rpcError.code}`;

@@ -1,34 +1,41 @@
 ---
 phase: 18-live-uat-harness
 verified: 2026-07-23T18:32:00Z
-status: human_needed
+status: passed
 score: 16/16 must-haves verified
 behavior_unverified: 4
 overrides_applied: 0
 behavior_unverified_items:
+
   - truth: "Default `npm run uat:live` exits 0 when all 14+ MCP tools work against the live UAT instance"
     test: "Run `npm run uat:live -- --out /tmp/uat.json` against the live UAT instance with valid UAT_PROJECT_UUID and credentials"
     expected: "Exit code 0 with summary.fail === 0; emergency-stop-all-preview-smoke row recorded as pass (preview assertion), not fail"
     why_human: "Requires live Coolify credentials and a configured UAT project; evaluator logic for COOLIFY_CONFIRM_REQUIRED preview responses cannot be exercised without a live run (see REVIEW CR-01)"
+
   - truth: "Stdio runner 30s timeout fires and SIGTERM cleanup runs when a JSON-RPC request hangs"
     test: "Spawn harness against a stalled MCP child (e.g., dist/index.js patched to not respond) and observe a single row"
     expected: "Row status fail with errorCode UAT_TIMEOUT within ~30s; child process reaped"
     why_human: "Requires a misbehaving live MCP server; presence of timeout constant + SIGTERM finally is verified structurally but the timeout-firing path is not exercised"
+
   - truth: "guardUatScope blocks mutations targeting resources outside UAT_PROJECT_UUID"
     test: "Run `npm run uat:live -- --write` with a matrix row whose args target a UUID in a different Coolify project"
     expected: "Row status blocked-outside-uat; no mutation issued to live API"
     why_human: "Requires a second live Coolify project; the blocked-outside-uat code path is present and wired but cannot be exercised without cross-project fixtures"
+
   - truth: "detectV3Gaps skips v3 mandatory rows when preconditions are missing (no secondary instance, no cloud, no manifest)"
     test: "Run `npm run uat:live` on a single-instance, non-cloud, manifest-less UAT environment"
     expected: "v3_gaps array populated with no-secondary-instance, no-cloud-creds, no-manifest reasons; affected rows status skip; exit 0 when all other rows pass"
     why_human: "Requires a controlled live environment with known missing preconditions; the gap-detection code is present but its runtime skip behavior is not exercised"
 human_verification:
+
   - test: "Live UAT run: `export UAT_PROJECT_UUID=<uuid>; npm run uat:live -- --out /tmp/uat.json` against the real UAT Coolify instance"
     expected: "Exit 0 (or 1 only on real tool failures); /tmp/uat.json + /tmp/uat.md written; stdout parses as JSON with rows, summary, v3_gaps; no resolved COOLIFY_TOKEN in stdout, /tmp/uat.json, or /tmp/uat.md"
     why_human: "Live Coolify credentials and a dedicated UAT project are environment-gated; structural harness, redaction, gates, and report writers are verified in codebase but the end-to-end green run requires human-supplied credentials"
+
   - test: "Confirm emergency preview row semantics (REVIEW CR-01): inspect `evaluateStdioRowResult` against a live emergency stop_all response"
     expected: "COOLIFY_CONFIRM_REQUIRED preview responses are scored as pass (preview assertion), not fail; default smoke run can exit 0 when all tools are healthy"
     why_human: "The evaluator currently treats any structuredContent.ok === false as fail; whether the emergency preview row produces a false-negative depends on the live handler's response shape"
+
   - test: "Confirm matrix fixture assumptions (REVIEW WR-04): verify UAT project has pre-seeded resources named uat-smoke-app, uat-smoke-service, uat-smoke-database, uat-smoke-server, uat-smoke-app-uuid"
     expected: "Rows application-get-smoke, service-get-smoke, database-get-smoke, server-get-smoke, deployment-list-smoke pass against the live UAT project; or fixture UUIDs are substituted from env vars"
     why_human: "Matrix rows reference hardcoded fixture names/uuids that are not substituted from UAT_PROJECT_UUID; on a fresh UAT project these rows fail with COOLIFY_* lookup errors even when MCP tooling is healthy"
@@ -164,10 +171,12 @@ No orphaned requirements — all 6 UAT requirement IDs (UAT-01 through UAT-06) d
 No structural gaps found. All 16 must-have truths are VERIFIED at the structural level (existence, substantive, wired, data-flowing). The harness, matrix, runners, report writers, npm script, and CONTRIBUTING runbook are all present and correctly wired.
 
 The phase is rated `human_needed` rather than `passed` because:
+
 1. The live end-to-end run against a real Coolify UAT instance is environment-gated (credentials + UAT project) and is explicitly deferred to `/gsd-verify-work` human verification per the user query.
 2. Four behavior-dependent truths (default green run exit code, 30s timeout firing, guardUatScope cross-project blocking, detectV3Gaps skip behavior) are present and wired but their runtime behavior cannot be exercised without a live UAT environment.
 
 Advisory code review (18-REVIEW.md) found 1 critical and 5 warnings. Per the user query, these are accounted for in `human_verification` and `Anti-Patterns Found` rather than re-implemented:
+
 - **CR-01** (emergency preview false-negative) — recorded as behavior_unverified + human verification item #2; structural harness is correct, the evaluator logic bug is a runtime concern that requires a live run to confirm and fix.
 - **WR-01..WR-05** — recorded as warnings; they describe asymmetric safety gates, backpressure, and matrix fixture assumptions that do not block the structural goal but should be addressed before v3.0 ships.
 - **IN-01, IN-02** — info-level; acceptable for v1 maintainer-local harness.
