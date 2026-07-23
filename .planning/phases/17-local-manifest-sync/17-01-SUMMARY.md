@@ -110,7 +110,7 @@ status: complete
 1. **Task 1: Implement resolveProjectRoot + ManifestManager core** - `3f78d44` (feat)
 2. **Task 2: Add autoUpsert/autoRemove hooks + example template** - `1da295d` (feat)
 
-**Plan metadata:** pending (docs commit follows)
+**Plan metadata:** `e7308d8` (docs: complete plan)
 
 ## Files Created/Modified
 
