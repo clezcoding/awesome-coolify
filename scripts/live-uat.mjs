@@ -3,7 +3,7 @@
  * Live UAT harness — declarative matrix, credential resolution, identity gate.
  * Maintainer-local only; never prints COOLIFY_TOKEN.
  */
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
@@ -123,9 +123,221 @@ export const uatState = {
   toolsCovered: 0,
 };
 
-// TODO(18-02): stdio runner — McpStdioClient + tools/call dispatch
-// TODO(18-02): in-process runner — handler map + row execution
-// TODO(18-03): JSON/Markdown report writers + v3_gaps detection
+const REGISTERED_TOOLS = [
+  'system',
+  'meta',
+  'resource',
+  'diagnose',
+  'application',
+  'emergency',
+  'deployment',
+  'service',
+  'database',
+  'private_key',
+  'instance',
+  'manifest',
+  'server',
+  'project',
+  'environment',
+  'docs',
+];
+
+const STDIO_REQUEST_TIMEOUT_MS = 30_000;
+
+/** Shared suite filter — must match runInProcessRows in Plan 18-03 verbatim. */
+export function matchesSuiteFilter(row, flags) {
+  return (
+    row.suite === 'smoke' ||
+    row.suite === 'v3' ||
+    (row.suite === 'full' && flags.full)
+  );
+}
+
+class McpStdioClient {
+  constructor(child) {
+    this.child = child;
+    this.nextId = 1;
+    this.pending = new Map();
+    this.buffer = '';
+    child.stdout.on('data', (chunk) => {
+      this.buffer += chunk.toString();
+      this.drain();
+    });
+  }
+
+  drain() {
+    let i = this.buffer.indexOf('\n');
+    while (i !== -1) {
+      const line = this.buffer.slice(0, i).trim();
+      this.buffer = this.buffer.slice(i + 1);
+      if (line) {
+        try {
+          const msg = JSON.parse(line);
+          if (msg.id !== undefined && this.pending.has(msg.id)) {
+            const handler = this.pending.get(msg.id);
+            this.pending.delete(msg.id);
+            handler.resolve(msg);
+          }
+        } catch {
+          /* ignore malformed lines */
+        }
+      }
+      i = this.buffer.indexOf('\n');
+    }
+  }
+
+  request(method, params) {
+    const id = this.nextId++;
+    const payload = `${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`Timeout ${method}`));
+      }, STDIO_REQUEST_TIMEOUT_MS);
+      this.pending.set(id, {
+        resolve: (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+      });
+      this.child.stdin.write(payload);
+    });
+  }
+
+  notify(method, params) {
+    this.child.stdin.write(
+      `${JSON.stringify({ jsonrpc: '2.0', method, params })}\n`,
+    );
+  }
+}
+
+function spawnChild(routingEnv) {
+  const distEntry = resolve(root, 'dist/index.js');
+  if (!existsSync(distEntry)) {
+    throw new Error('dist/index.js missing — run pnpm run build first');
+  }
+  return spawn('node', [distEntry], {
+    env: {
+      ...env,
+      ...routingEnv,
+      COOLIFY_MCP_LOG: 'error',
+    },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+}
+
+function extractStructuredContent(res) {
+  return res?.result?.structuredContent ?? null;
+}
+
+function evaluateStdioRowResult(row, res, redact) {
+  const structuredContent = extractStructuredContent(res);
+  const rpcError = res?.error;
+  let status = 'pass';
+  let errorCode = null;
+  let recoveryHintsPresent = false;
+
+  if (rpcError?.code === -32602) {
+    status = 'fail';
+    errorCode = `RPC_${rpcError.code}`;
+  } else if (!structuredContent || structuredContent.ok === false) {
+    status = 'fail';
+    errorCode =
+      structuredContent?.error?.code ??
+      (rpcError?.code !== undefined ? `RPC_${rpcError.code}` : 'UAT_UNKNOWN');
+    const hints = structuredContent?.error?.recoveryHints;
+    recoveryHintsPresent = Array.isArray(hints) && hints.length > 0;
+  } else {
+    const hints = structuredContent?.error?.recoveryHints;
+    recoveryHintsPresent = Array.isArray(hints) && hints.length > 0;
+  }
+
+  return redact({
+    id: row.id,
+    tool: row.tool,
+    status,
+    durationMs: 0,
+    errorCode,
+    recoveryHintsPresent,
+    structuredContent: structuredContent ?? null,
+  });
+}
+
+async function runStdioRows({ matrix, flags, routingEnv, redact }) {
+  const filtered = matrix.filter(
+    (row) => row.mode === 'stdio' && matchesSuiteFilter(row, flags),
+  );
+  const v3Gaps = [];
+
+  if (filtered.length === 0) {
+    v3Gaps.push({
+      reason: 'no-stdio-rows',
+      message: 'No stdio matrix rows matched the active suite filter',
+    });
+    return { rows: [], v3Gaps };
+  }
+
+  const child = spawnChild(routingEnv);
+  const client = new McpStdioClient(child);
+  const rows = [];
+
+  try {
+    await client.request('initialize', {
+      protocolVersion: '2024-11-05',
+      capabilities: {},
+      clientInfo: { name: 'live-uat', version: '1.0' },
+    });
+    client.notify('notifications/initialized', {});
+
+    const listRes = await client.request('tools/list', {});
+    const listedTools = (listRes?.result?.tools ?? []).map((tool) => tool.name);
+    const missingTools = REGISTERED_TOOLS.filter(
+      (name) => !listedTools.includes(name),
+    );
+    if (missingTools.length > 0) {
+      throw new Error(
+        `tools/list missing registered tools: ${missingTools.join(', ')}`,
+      );
+    }
+
+    for (const row of filtered) {
+      const startTime = Date.now();
+      try {
+        const res =
+          row.tool === 'tools/list'
+            ? await client.request('tools/list', {})
+            : await client.request('tools/call', {
+                name: row.tool,
+                arguments: row.args ?? {},
+              });
+        const result = evaluateStdioRowResult(row, res, redact);
+        result.durationMs = Date.now() - startTime;
+        rows.push(result);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const errorCode = message.startsWith('Timeout')
+          ? 'UAT_TIMEOUT'
+          : 'UAT_CRASH';
+        rows.push(
+          redact({
+            id: row.id,
+            tool: row.tool,
+            status: 'fail',
+            durationMs: Date.now() - startTime,
+            errorCode,
+            recoveryHintsPresent: false,
+            structuredContent: null,
+          }),
+        );
+      }
+    }
+  } finally {
+    child.kill('SIGTERM');
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
+  }
+
+  return { rows, v3Gaps };
+}
 
 async function main() {
   const uatProjectUuid = env.UAT_PROJECT_UUID?.trim();
