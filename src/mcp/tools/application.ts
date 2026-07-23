@@ -35,8 +35,11 @@ import {
 } from '../../api/client.js';
 import {
   buildProjectEnvironmentIndex,
+  resolveEnvironmentUuid,
   resolveProjectUuid,
 } from '../../utils/project-lookup.js';
+import { ManifestManager } from '../../utils/manifest.js';
+import { resolveUpdateManifestContext } from '../../utils/manifest-auto-hook.js';
 import {
   projectApplicationSummary,
   projectDeploymentSummary,
@@ -1698,6 +1701,134 @@ async function buildCreateApiBody(
   return omitUndefined(body);
 }
 
+function parseDomainsInput(domains: string | undefined): string[] {
+  if (!domains) return [];
+  return domains.split(',').map((entry) => entry.trim()).filter(Boolean);
+}
+
+function extractDomainsFromRaw(raw: Record<string, unknown>): string[] {
+  const fqdn = raw.fqdn;
+  if (typeof fqdn === 'string' && fqdn.length > 0) {
+    return [fqdn];
+  }
+
+  const domains = raw.domains;
+  if (typeof domains === 'string' && domains.length > 0) {
+    return parseDomainsInput(domains);
+  }
+  if (Array.isArray(domains)) {
+    return domains.filter((entry): entry is string => typeof entry === 'string');
+  }
+
+  return [];
+}
+
+async function withManifestUpsert<T>(
+  response: ReadResponse<T>,
+  entry: {
+    uuid: string;
+    type: 'application' | 'service' | 'database';
+    name: string;
+    domains?: string[];
+    projectUuid?: string;
+    projectName?: string;
+    environmentUuid?: string;
+    environmentName?: string;
+  },
+): Promise<ReadResponse<T>> {
+  try {
+    await ManifestManager.autoUpsert(entry);
+    return response;
+  } catch (manifestError) {
+    return {
+      ...response,
+      _meta: {
+        ...response._meta,
+        manifestWarning: `Failed to update local manifest cache: ${manifestError instanceof Error ? manifestError.message : String(manifestError)}`,
+      },
+    } as ReadResponse<T>;
+  }
+}
+
+async function withManifestRemove<T>(
+  response: ReadResponse<T>,
+  uuid: string,
+): Promise<ReadResponse<T>> {
+  try {
+    await ManifestManager.autoRemove(uuid);
+    return response;
+  } catch (manifestError) {
+    return {
+      ...response,
+      _meta: {
+        ...response._meta,
+        manifestWarning: `Failed to update local manifest cache: ${manifestError instanceof Error ? manifestError.message : String(manifestError)}`,
+      },
+    } as ReadResponse<T>;
+  }
+}
+
+async function buildApplicationCreateManifestEntry(
+  parsed: CreateAction,
+  created: Record<string, unknown>,
+  body: Record<string, unknown>,
+  env: EnvConfig,
+): Promise<Parameters<typeof ManifestManager.autoUpsert>[0]> {
+  const projectUuid = String(body.project_uuid ?? parsed.project_uuid ?? '');
+  let environmentUuid =
+    (typeof body.environment_uuid === 'string'
+      ? body.environment_uuid
+      : undefined) ?? parsed.environment_uuid;
+
+  if (!environmentUuid && parsed.environment_name) {
+    environmentUuid = await resolveEnvironmentUuid(
+      undefined,
+      parsed.environment_name,
+      projectUuid,
+      env,
+    );
+  }
+
+  return {
+    uuid: String(created.uuid ?? ''),
+    type: 'application',
+    name: String(created.name ?? parsed.name ?? ''),
+    domains: parsed.domains
+      ? parseDomainsInput(parsed.domains)
+      : extractDomainsFromRaw(created),
+    projectUuid,
+    projectName: parsed.project_name,
+    environmentUuid,
+    environmentName: parsed.environment_name,
+  };
+}
+
+async function buildApplicationUpdateManifestEntry(
+  raw: Record<string, unknown>,
+  uuid: string,
+  parsed: UpdateAction,
+  env: EnvConfig,
+): Promise<Parameters<typeof ManifestManager.autoUpsert>[0]> {
+  const ctx = await resolveUpdateManifestContext({
+    raw,
+    resourceUuid: uuid,
+    env,
+  });
+
+  return {
+    uuid,
+    type: 'application',
+    name: String(raw.name ?? parsed.name ?? ''),
+    domains: parsed.domains
+      ? parseDomainsInput(parsed.domains)
+      : extractDomainsFromRaw(raw),
+    projectUuid: ctx.projectUuid,
+    projectName: ctx.projectName,
+    environmentUuid: ctx.environmentUuid,
+    environmentName: ctx.environmentName,
+  };
+}
+
 function buildUpdatePayload(parsed: UpdateAction): Record<string, unknown> {
   const payload: Record<string, unknown> = {};
 
@@ -1743,10 +1874,20 @@ async function handleApplicationUpdate(
 
   const data = sanitizeFullProjection(raw, parsed.reveal);
 
-  return buildReadResponse(data, {
+  const response = buildReadResponse(data, {
     format: parsed.format,
     max_chars: parsed.max_chars,
   });
+
+  return withManifestUpsert(
+    response,
+    await buildApplicationUpdateManifestEntry(
+      isRecord(raw) ? raw : {},
+      uuid,
+      parsed,
+      env,
+    ),
+  );
 }
 
 async function handleApplicationDelete(
@@ -1773,7 +1914,7 @@ async function handleApplicationDelete(
     env.COOLIFY_VERIFY_SSL,
   );
 
-  return buildReadResponse(
+  const response = buildReadResponse(
     {
       ok: true,
       uuid,
@@ -1786,6 +1927,8 @@ async function handleApplicationDelete(
       max_chars: parsed.max_chars,
     },
   );
+
+  return withManifestRemove(response, uuid);
 }
 
 async function handleApplicationDeletePreview(
@@ -1883,18 +2026,28 @@ async function handleApplicationCreate(
   const raw = await callCreate();
   const created = isRecord(raw) ? raw : {};
   const appUuid = String(created.uuid ?? '');
+  const responseParams = {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  };
+  const manifestEntry = await buildApplicationCreateManifestEntry(
+    parsed,
+    created,
+    body,
+    env,
+  );
 
   if (!parsed.instant_deploy) {
-    return buildReadResponse(
-      {
-        uuid: appUuid,
-        deploy: { status: 'not_triggered' as const },
-        hints: ['Use application.deploy to trigger a deployment'],
-      },
-      {
-        format: parsed.format,
-        max_chars: parsed.max_chars,
-      },
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          uuid: appUuid,
+          deploy: { status: 'not_triggered' as const },
+          hints: ['Use application.deploy to trigger a deployment'],
+        },
+        responseParams,
+      ),
+      manifestEntry,
     );
   }
 
@@ -1908,43 +2061,43 @@ async function handleApplicationCreate(
     );
     const deploymentUuid = extractDeploymentUuid(deployRaw);
 
-    return buildReadResponse(
-      {
-        uuid: appUuid,
-        deploy: {
-          status: 'queued' as const,
-          deployment_uuid: deploymentUuid,
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          uuid: appUuid,
+          deploy: {
+            status: 'queued' as const,
+            deployment_uuid: deploymentUuid,
+          },
+          logs_available: logsAvailableHint(deploymentUuid),
+          hints: [
+            'Use deployment.get with deployment_uuid to poll status',
+            'Use application.deploy with wait:true to block until terminal',
+          ],
         },
-        logs_available: logsAvailableHint(deploymentUuid),
-        hints: [
-          'Use deployment.get with deployment_uuid to poll status',
-          'Use application.deploy with wait:true to block until terminal',
-        ],
-      },
-      {
-        format: parsed.format,
-        max_chars: parsed.max_chars,
-      },
+        responseParams,
+      ),
+      manifestEntry,
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return buildReadResponse(
-      {
-        ok: true,
-        uuid: appUuid,
-        deploy: {
-          status: 'failed_to_queue' as const,
-          error: message,
+    return withManifestUpsert(
+      buildReadResponse(
+        {
+          ok: true,
+          uuid: appUuid,
+          deploy: {
+            status: 'failed_to_queue' as const,
+            error: message,
+          },
+          recoveryHints: [
+            'Application was created successfully — retry deployment with application.deploy.',
+            'Check Coolify server logs if deploy queue failures persist.',
+          ],
         },
-        recoveryHints: [
-          'Application was created successfully — retry deployment with application.deploy.',
-          'Check Coolify server logs if deploy queue failures persist.',
-        ],
-      },
-      {
-        format: parsed.format,
-        max_chars: parsed.max_chars,
-      },
+        responseParams,
+      ),
+      manifestEntry,
     );
   }
 }

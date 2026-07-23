@@ -2,44 +2,44 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Platform Foundation
-current_phase: 17
-current_phase_name: Local Manifest & Sync
-status: "Phase 16 shipped — PR #37"
-stopped_at: Completed 16-04-PLAN.md
-last_updated: "2026-07-22T03:07:18.883Z"
-last_activity: 2026-07-22
+current_phase: 18
+current_phase_name: Live UAT Harness
+status: shipping
+stopped_at: Completed 17-03-PLAN.md
+last_updated: "2026-07-23T13:52:04.470Z"
+last_activity: 2026-07-23
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 50
-last_activity_desc: "Phase 16 shipped — PR #37"
+  completed_phases: 3
+  total_plans: 14
+  completed_plans: 14
+  percent: 75
+last_activity_desc: Phase 17 complete, transitioned to Phase 18
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-21)
+See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 17 — Local Manifest & Sync
+**Current focus:** Phase 18 — Live UAT Harness
 
 ## Current Position
 
-Phase: 17 — Local Manifest & Sync
+Phase: 18 — Live UAT Harness
 Plan: Not started
-Status: Phase 16 shipped — PR #37
-Last activity: 2026-07-22
+Status: Phase 17 shipped — PR #39
+Last activity: 2026-07-23 — Phase 17 shipped (PR #39)
 
-Progress: [██████████] 100%
+Progress: [████████████████████] 14/14 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 75
+- Total plans completed: 79
 - Average duration: —
 - Total execution time: —
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100%
 | 13 | 5 | - | - |
 | 15 | 5 | - | - |
 | 16 | 5 | - | - |
+| 17 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -94,6 +95,10 @@ Progress: [██████████] 100%
 | Phase 16-coolify-cloud-server-branding P02 | 4min | 1 tasks | 3 files |
 | Phase 16-coolify-cloud-server-branding P03 | 2min | 2 tasks | 4 files |
 | Phase 16-coolify-cloud-server-branding P04 | 8min | 3 tasks | 7 files |
+| Phase 17-local-manifest-sync P00 | 3min | 3 tasks | 3 files |
+| Phase 17-local-manifest-sync P01 | 2min | 2 tasks | 5 files |
+| Phase 17-local-manifest-sync P02 | 3min | 2 tasks | 5 files |
+| Phase 17-local-manifest-sync P03 | 6min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -250,6 +255,16 @@ Progress: [██████████] 100%
 - [Phase ?]: Dedicated mcp-icon-192.png asset separate from favicon — jsDelivr @main CDN per D-05/D-06
 - [Phase ?]: D-09 closed as documented Cursor client limitation — serverInfo.icons correct; Cursor list shows A fallback
 - [Phase ?]: Cloud topic depth in docs/en|de/cloud.md; README quick overview + links only (D-11)
+- [Phase ?]: Phase 17 Wave 0: it.fails + dynamic import RED scaffolds — husky pre-commit bleibt grün; flip zu it in 17-01..17-02
+- [Phase ?]: COOLIFY_MCP_TEST_WORKSPACE als Test-Hook für tmp workspace — Plan 17-01 verdrahtet Pfad
+- [Phase ?]: Manifest MCP sync/diff tests mocken api/client — keine Live-API-Calls in Wave 0
+- [Phase ?]: autoUpsert merged into Task 1 commit — husky pre-commit requires all it.fails resolved
+- [Phase ?]: chmodSync(0o555) on readonly-root in autoUpsert test — macOS tmp dirs writable without explicit deny
+- [Phase ?]: manifest sync awaits reconcileWithRemote — un-awaited promise bypassed try/catch
+- [Phase ?]: 404 hint injection via ManifestManager.hasUuid in toStructuredError — hints only per D-15
+- [Phase ?]: Per-handler manifest hook helpers duplicated across application/service/database — plan scoped three tool files only
+- [Phase ?]: resolveEnvironmentUuid on create when environment_name-only — matches buildCreateApiBody semantics
+- [Phase ?]: Service domains from urls[].url; database domains always [] — no fqdn on DB resources
 
 ### Pending Todos
 
@@ -296,11 +311,11 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T02:11:59.046Z
-**Stopped at:** Completed 16-04-PLAN.md
+**Last session:** 2026-07-22T16:58:36.372Z
+**Stopped at:** Completed 17-03-PLAN.md
 **Resume file:** None
 
-Last activity: 2026-07-22 — v3.0 milestone audit gaps_found; Phase 15 complete; continue Phases 16–18.
+Last activity: 2026-07-22 — Quick 260722-85p path 3: marketing site live at https://awesome-coolify.higgsfield.app
 
 ## Operator Next Steps
 

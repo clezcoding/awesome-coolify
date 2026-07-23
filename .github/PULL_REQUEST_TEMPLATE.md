@@ -16,9 +16,9 @@ Closes #
 
 ## Checklist
 
-- [ ] Tested locally (`npm test`)
-- [ ] Lint passes (`npm run lint`)
-- [ ] Changeset added if release-relevant (`npx changeset`)
+- [ ] Tested locally (`pnpm test`)
+- [ ] Lint passes (`pnpm run lint`)
+- [ ] Changeset added if release-relevant (`pnpm exec changeset`)
 - [ ] Docs/README updated if needed
 - [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/)
 - [ ] Add label **`automerge`** when ready — [Kodiak](https://kodiakhq.com/) squash-merges after CI passes

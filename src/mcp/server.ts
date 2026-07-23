@@ -46,6 +46,11 @@ import {
   instanceActionSchema,
 } from './tools/instance.js';
 import {
+  handleManifestAction,
+  isManifestErrorResult,
+  manifestActionSchema,
+} from './tools/manifest.js';
+import {
   handleServerAction,
   isServerErrorResult,
   serverActionSchema,
@@ -444,6 +449,37 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleInstanceAction(args, env);
       if (isInstanceErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'manifest',
+    {
+      description:
+        'Local manifest cache CRUD + sync/diff for .coolify/manifest.json (get, upsert, set, remove, clear, sync, diff). The manifest is a workspace cache — not source of truth; sync/diff reconcile against the live Coolify API (remote wins on UUID conflict). Local actions (get/upsert/set/remove/clear) never accept an instance param (D-03). sync/diff accept optional instance for InstanceManager routing. sync without credentials returns COOLIFY_NO_INSTANCE (D-04 soft-start). sync dry_run:true returns a planned diff without writing (D-14). sync prune removes local orphans only when confirm:true AND prune:true (D-13). clear requires confirm:true (D-02). On stale UUID 404s elsewhere, recovery hints point to manifest.sync / manifest.diff — no auto-retry (D-15).',
+      inputSchema: manifestActionSchema,
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleManifestAction(args, env);
+      if (isManifestErrorResult(result)) {
         return {
           ...result,
           structuredContent: {

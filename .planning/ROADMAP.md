@@ -46,7 +46,7 @@ Full phase details: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
 
 - [x] **Phase 15: Multi-Instance Registry & Routing** - Secure `instances.json` CRUD with per-request routing and env override (completed 2026-07-21)
 - [x] **Phase 16: Coolify Cloud & Server Branding** - `app.coolify.io` support, cloud error hints, MCP list icon via `serverInfo.icons`, docs EN/DE (completed 2026-07-22)
-- [ ] **Phase 17: Local Manifest & Sync** - `.coolify/manifest.json` schema, gitignore injection, `manifest:sync` reconciliation
+- [x] **Phase 17: Local Manifest & Sync** - `.coolify/manifest.json` schema, gitignore injection, `manifest:sync` reconciliation (completed 2026-07-22)
 - [ ] **Phase 18: Live UAT Harness** - One CLI script testing all 14 tools against real Coolify data with JSON report
 
 ### 📋 v3.1 Setup & Skills (Planned)
@@ -133,7 +133,22 @@ Plans:
   3. Agent can run a `manifest:sync` action that reconciles manifest entries against the live API and refreshes stale UUIDs
   4. Operations against stale manifest UUIDs surface a refresh hint on API 404 (manifest is treated as cache, not source of truth)
 
-**Plans**: TBD
+**Plans**: 4/4 plans executed
+
+Plans:
+
+**Wave 0**
+
+- [x] 17-00-PLAN.md — Wave 0 RED test scaffolds (manifest utility, manifest MCP tool, project-root resolver) using it.fails + dynamic imports
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [x] 17-01-PLAN.md — ManifestManager core (load/save/upsert/remove/hasUuid/clear, atomic writes, project-root resolution, .gitignore auto-append, autoUpsert/autoRemove hooks API) + committed example template (MAN-01, MAN-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 17-02-PLAN.md — `manifest` MCP tool with 7 actions (get/upsert/set/remove/sync/diff/clear) + server.ts registration + stale-UUID 404 hint injection in errors.ts (MAN-03, MAN-04)
+- [x] 17-03-PLAN.md — Auto-upsert/remove hooks wired into application/service/database mutation handlers with _meta.manifestWarning on best-effort failure (D-09, D-11)
 
 ### Phase 18: Live UAT Harness
 
@@ -160,10 +175,10 @@ Plans:
 | 14 | v3.0 | 0/0 | Archived (feasibility audit) | 2026-07-21 |
 | 15 | v3.0 | 5/5 | Complete    | 2026-07-21 |
 | 16 | v3.0 | 5/5 | Complete    | 2026-07-22 |
-| 17 | v3.0 | 0/TBD | Not started | - |
+| 17 | v3.0 | 4/4 | Complete    | 2026-07-22 |
 | 18 | v3.0 | 0/TBD | Not started | - |
 
-**Next:** `/gsd-plan-phase 16`
+**Next:** `/gsd-execute-phase 17`
 
 ---
 

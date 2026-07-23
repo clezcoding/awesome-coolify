@@ -14,7 +14,7 @@
     "kill-mcp": "node scripts/kill-mcp.mjs",
     "lint": "tsup",
     "test": "vitest run",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "higgsfield:fix": "bash scripts/fix-higgsfield.sh",
     "gsd:fix-verification": "node scripts/gsd-ensure-verification-fresh.mjs",
     "prepare": "husky",
@@ -69,5 +69,6 @@
     "tsup": "^8.5.1",
     "typescript": "^5.3.3",
     "vitest": "^4.1.10"
-  }
+  },
+  "packageManager": "pnpm@11.15.1"
 }

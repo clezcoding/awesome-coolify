@@ -14,6 +14,7 @@ vi.mock('../../api/client.js', () => ({
   fetchResources: vi.fn(),
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
+  fetchEnvironments: vi.fn(),
   triggerAppStart: vi.fn(),
   triggerAppStop: vi.fn(),
   triggerAppRestart: vi.fn(),
@@ -33,6 +34,14 @@ vi.mock('../../api/client.js', () => ({
   deleteEnv: vi.fn(),
 }));
 
+vi.mock('../../utils/manifest.js', () => ({
+  ManifestManager: {
+    autoUpsert: vi.fn(),
+    autoRemove: vi.fn(),
+    findResourceContext: vi.fn(),
+  },
+}));
+
 vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
   realpathSync: vi.fn((p: string) => p),
@@ -48,6 +57,7 @@ import {
   fetchResources,
   fetchProjects,
   fetchProject,
+  fetchEnvironments,
   triggerAppRestart,
   triggerAppStart,
   triggerAppStop,
@@ -67,6 +77,7 @@ import {
   deleteEnv,
 } from '../../api/client.js';
 import { readFileSync, openSync, fstatSync, closeSync, statSync } from 'node:fs';
+import { ManifestManager } from '../../utils/manifest.js';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -1320,6 +1331,14 @@ const baseCreateFields = {
 
 describe('application create', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
+    vi.mocked(fetchEnvironments).mockReset();
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { uuid: 'env-uuid-1', name: 'production' },
+    ]);
     vi.mocked(createPublicApplication).mockReset();
     vi.mocked(createPrivateGithubAppApplication).mockReset();
     vi.mocked(createPrivateDeployKeyApplication).mockReset();
@@ -1678,13 +1697,49 @@ describe('application create', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
     expect(createPublicApplication).not.toHaveBeenCalled();
   });
+
+  it('surfaces _meta.manifestWarning when autoUpsert fails without failing create', async () => {
+    vi.mocked(ManifestManager.autoUpsert).mockRejectedValue(
+      new Error('EACCES: permission denied'),
+    );
+
+    const result = await handleApplicationAction(
+      {
+        action: 'create',
+        source_type: 'public_git',
+        ...baseCreateFields,
+        git_repository: 'https://github.com/example/repo',
+        git_branch: 'main',
+        build_pack: 'nixpacks',
+      },
+      testEnv,
+    );
+
+    expect(isApplicationErrorResult(result)).toBe(false);
+    if (isApplicationErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    expect(result.data).toMatchObject({ uuid: 'app-new-uuid' });
+    expect(result._meta).toMatchObject({
+      manifestWarning: expect.stringContaining(
+        'Failed to update local manifest cache: EACCES: permission denied',
+      ),
+    });
+  });
 });
 
 describe('application update', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.findResourceContext).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.findResourceContext).mockReturnValue(undefined);
     vi.mocked(updateApplication).mockReset();
     vi.mocked(fetchResources).mockReset();
     vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchEnvironments).mockReset();
     const updatedApp = {
       ...mockApplication,
       domains: 'https://new.example.com',
@@ -1694,6 +1749,37 @@ describe('application update', () => {
     };
     vi.mocked(updateApplication).mockResolvedValue(updatedApp);
     vi.mocked(fetchApplication).mockResolvedValue(updatedApp);
+  });
+
+  it('resolves environment_id into autoUpsert environmentUuid (WR-01)', async () => {
+    const updatedApp = {
+      ...mockApplication,
+      environment_id: 22,
+      domains: 'https://new.example.com',
+    };
+    vi.mocked(updateApplication).mockResolvedValue(updatedApp);
+    vi.mocked(fetchApplication).mockResolvedValue(updatedApp);
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { id: 22, uuid: 'env-uuid-22', name: 'production' },
+    ]);
+
+    await handleApplicationAction(
+      {
+        action: 'update',
+        uuid: 'app-uuid-1',
+        domains: 'https://new.example.com',
+      },
+      testEnv,
+    );
+
+    expect(ManifestManager.autoUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uuid: 'app-uuid-1',
+        projectUuid: 'proj-uuid-1',
+        environmentUuid: 'env-uuid-22',
+        environmentName: 'production',
+      }),
+    );
   });
 
   it('patches curated fields via updateApplication per APP-17', async () => {
@@ -1948,6 +2034,10 @@ describe('application update', () => {
 
 describe('application delete', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
     vi.mocked(deleteApplication).mockReset();
     vi.mocked(fetchResources).mockReset();
     vi.mocked(deleteApplication).mockResolvedValue({ message: 'Deleted.' });

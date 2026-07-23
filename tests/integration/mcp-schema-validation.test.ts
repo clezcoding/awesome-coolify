@@ -224,7 +224,7 @@ describe('MCP schema validation via child process', () => {
     const distPath = resolve(process.cwd(), 'dist/index.js');
     if (!existsSync(distPath)) {
       throw new Error(
-        `Missing ${distPath}. Run "npm run build" before this integration test (CI runs build before test).`,
+        `Missing ${distPath}. Run "pnpm run build" before this integration test (CI runs build before test).`,
       );
     }
     child = spawn('node', [distPath], {

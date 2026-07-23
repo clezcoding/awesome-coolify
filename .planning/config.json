@@ -112,5 +112,5 @@
   "resolve_model_ids": "omit",
   "mode": "yolo",
   "granularity": "standard",
-  "response_language": "de"
+  "response_language": "German"
 }

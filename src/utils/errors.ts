@@ -1,4 +1,5 @@
 import { redactSecrets } from './redact.js';
+import { ManifestManager } from './manifest.js';
 
 export type CoolifyErrorCode =
   | 'COOLIFY_401'
@@ -251,9 +252,46 @@ export function mapApiError(
   };
 }
 
+const STALE_MANIFEST_HINTS = [
+  'The resource UUID was found in the local manifest cache but returned 404 from the API. The cache may be stale.',
+  'Run manifest.sync or manifest.diff to reconcile the local manifest with the live Coolify instance.',
+] as const;
+
+const UUID_REGEX =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
+function injectStaleManifestHints(
+  envelope: CoolifyErrorEnvelope,
+): CoolifyErrorEnvelope {
+  if (envelope.code !== 'COOLIFY_404' && envelope.httpStatus !== 404) {
+    return envelope;
+  }
+
+  try {
+    const errorText = `${envelope.message} ${JSON.stringify(envelope.data ?? {})}`;
+    const matches = errorText.match(UUID_REGEX) ?? [];
+    const seen = new Set<string>();
+    for (const match of matches) {
+      const uuid = match.toLowerCase();
+      if (seen.has(uuid)) continue;
+      seen.add(uuid);
+      if (ManifestManager.hasUuid(uuid)) {
+        return {
+          ...envelope,
+          recoveryHints: [...envelope.recoveryHints, ...STALE_MANIFEST_HINTS],
+        };
+      }
+    }
+  } catch {
+    /* best-effort hint injection — never mask original error */
+  }
+
+  return envelope;
+}
+
 export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
   if (error instanceof CoolifyApiError) {
-    return error.envelope;
+    return injectStaleManifestHints(error.envelope);
   }
 
   const fetchError = error as {
@@ -284,20 +322,20 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
       status === 409 ? extractConflicts(responseData) : undefined;
 
     if (conflicts !== undefined) {
-      return {
+      return injectStaleManifestHints({
         ...envelope,
         data: { ...envelope.data, conflicts },
         recoveryHints: [
           ...envelope.recoveryHints,
           'Retry with force_domain_override: true on the same create call to override the domain conflict.',
         ],
-      };
+      });
     }
 
-    return envelope;
+    return injectStaleManifestHints(envelope);
   }
 
-  return mapApiError(error);
+  return injectStaleManifestHints(mapApiError(error));
 }
 
 export interface McpErrorResult {

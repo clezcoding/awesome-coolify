@@ -8,16 +8,18 @@ Open-Source MCP-Server für self-hosted Coolify-Instanzen (API 4.1.x). v1.0 (**O
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.0 in progress — Phase 16 complete 2026-07-22)
+## Current State (v3.0 in progress — Phase 17 complete 2026-07-22)
 
 | Metric | Value |
 |--------|-------|
 | Package | `awesome-coolify-mcp` v0.1.2 |
-| Tools / Actions | 15 / ~80 (v1+v2 + `instance` + `cloud-info`) |
-| Tests | 917 green |
-| Milestone | v3.0 Platform Foundation — Phase 16 complete |
+| Tools / Actions | 16 / ~87 (v1+v2 + `instance` + `manifest` + `cloud-info`) |
+| Tests | 955 green |
+| Milestone | v3.0 Platform Foundation — Phase 17 complete |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | npm publish-ready; GitHub Pages `docs/install.html` |
+
+**Phase 17 complete:** Workspace-local `.coolify/manifest.json` via `ManifestManager` + `manifest` MCP tool (get/upsert/set/remove/clear/sync/diff), auto-gitignore, stale-404 recovery hints, auto-upsert hooks on application/service/database mutations. Concurrency probes passed in UAT.
 
 **Phase 16 complete:** Coolify Cloud error codes + `isCloudUrl`, `instance.cloud-info` local discovery, MCP `serverInfo` branding (`title`/`icons`/jsDelivr PNG), EN/DE cloud docs. D-09: Cursor list icon is a documented client limitation (server emits icons; UI shows generic fallback).
 
@@ -95,10 +97,10 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 - ✓ Multi-Instance Registry & Routing — Phase 15 (CTX-04, CTX-05, CTX-06, CTX-08, CTX-09)
 - ✓ Coolify Cloud & Server Branding — Phase 16 (CLD-01, CLD-02, CLD-03, BRND-01, BRND-02, BRND-03)
+- ✓ Local Manifest & Sync — Phase 17 (MAN-01, MAN-02, MAN-03, MAN-04)
 
 ### Active (v3.0)
 
-- [ ] Local manifest file — `.coolify/manifest.json` schema + agent sync
 - [ ] Live UAT CLI harness (UAT-01..06)
 
 ### Active (v3.1 — deferred)
@@ -150,10 +152,13 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 | Transparent compose base64 | Agent sees YAML only (SVC-07) | ✓ Good — Phase 11 |
 | envs:sync app-only | D-09 scope control | ✓ Good — Phase 12 |
 | backup:* on database tool | Reuse existing tool surface | ✓ Good — Phase 13 |
+| Dedicated `manifest` domain tool | D-01 — not folded into meta/project | ✓ Good — Phase 17 |
+| Manifest is cache, not source of truth | D-15 — 404 hints only, no mid-call auto-sync | ✓ Good — Phase 17 UAT |
+| Auto-hooks on all app/service/DB mutations | D-09 — best-effort `_meta.manifestWarning` (D-11) | ✓ Good — Phase 17 |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-07-22 — Phase 16 complete (Coolify Cloud & Server Branding)*
+*Last updated: 2026-07-22 — Phase 17 complete (Local Manifest & Sync)*

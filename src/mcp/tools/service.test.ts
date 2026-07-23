@@ -11,6 +11,7 @@ vi.mock('../../api/client.js', () => ({
   fetchResources: vi.fn(),
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
+  fetchEnvironments: vi.fn(),
   triggerServiceStart: vi.fn(),
   triggerServiceStop: vi.fn(),
   triggerServiceRestart: vi.fn(),
@@ -22,6 +23,14 @@ vi.mock('../../api/client.js', () => ({
   updateEnvViaBulk: vi.fn(),
   bulkUpdateEnvs: vi.fn(),
   deleteEnv: vi.fn(),
+}));
+
+vi.mock('../../utils/manifest.js', () => ({
+  ManifestManager: {
+    autoUpsert: vi.fn(),
+    autoRemove: vi.fn(),
+    findResourceContext: vi.fn(),
+  },
 }));
 
 vi.mock('node:fs', () => ({
@@ -37,6 +46,7 @@ import {
   fetchResources,
   fetchProjects,
   fetchProject,
+  fetchEnvironments,
   triggerServiceRestart,
   triggerServiceStart,
   triggerServiceStop,
@@ -57,6 +67,7 @@ import {
   realpathSync,
 } from 'node:fs';
 import path from 'node:path';
+import { ManifestManager } from '../../utils/manifest.js';
 
 const testEnv: EnvConfig = {
   COOLIFY_URL: 'https://coolify.example.com',
@@ -563,6 +574,14 @@ describe('service get compose decode (D-06)', () => {
 
 describe('service create', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
+    vi.mocked(fetchEnvironments).mockReset();
+    vi.mocked(fetchEnvironments).mockResolvedValue([
+      { uuid: 'env-uuid-1', name: 'production' },
+    ]);
     vi.mocked(createService).mockReset();
     vi.mocked(readFileSync).mockReset();
     vi.mocked(realpathSync).mockReset();
@@ -945,10 +964,42 @@ describe('service create', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
     expect(createService).not.toHaveBeenCalled();
   });
+
+  it('surfaces _meta.manifestWarning when autoUpsert fails without failing create', async () => {
+    vi.mocked(ManifestManager.autoUpsert).mockRejectedValue(
+      new Error('EACCES: permission denied'),
+    );
+
+    const result = await handleServiceAction(
+      {
+        action: 'create',
+        type: 'actualbudget',
+        project_uuid: 'proj-uuid-1',
+        environment_name: 'production',
+        server_uuid: 'srv-uuid-1',
+      },
+      testEnv,
+    );
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    expect(result.data).toMatchObject({ uuid: 'svc-new-uuid' });
+    expect(result._meta).toMatchObject({
+      manifestWarning: expect.stringContaining(
+        'Failed to update local manifest cache: EACCES: permission denied',
+      ),
+    });
+  });
 });
 
 describe('service update', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
     vi.mocked(updateService).mockReset();
     vi.mocked(fetchResources).mockReset();
     vi.mocked(fetchService).mockReset();
@@ -1062,6 +1113,10 @@ describe('service update', () => {
 
 describe('service delete', () => {
   beforeEach(() => {
+    vi.mocked(ManifestManager.autoUpsert).mockReset();
+    vi.mocked(ManifestManager.autoRemove).mockReset();
+    vi.mocked(ManifestManager.autoUpsert).mockResolvedValue(undefined);
+    vi.mocked(ManifestManager.autoRemove).mockResolvedValue(undefined);
     vi.mocked(deleteService).mockReset();
     vi.mocked(fetchResources).mockReset();
     vi.mocked(deleteService).mockResolvedValue({ message: 'Service deleted.' });
