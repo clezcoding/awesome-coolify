@@ -623,6 +623,12 @@ function spawnChild(routingEnv) {
   });
 }
 
+function attachStderrDrain(child, redact) {
+  child.stderr.on('data', (chunk) => {
+    void redact(chunk.toString());
+  });
+}
+
 function extractStructuredContent(res) {
   return res?.result?.structuredContent ?? null;
 }
@@ -690,6 +696,7 @@ async function runStdioRows({
   }
 
   const child = spawnChild(routingEnv);
+  attachStderrDrain(child, redact);
   const client = new McpStdioClient(child);
   const rows = [];
 
