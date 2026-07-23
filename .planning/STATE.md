@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 status: planning
-last_updated: "2026-07-24T00:58:00.000Z"
+last_updated: "2026-07-24T01:21:00.000Z"
 last_activity: 2026-07-24
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-23)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Architecture research for v3.1 completed
+**Current focus:** v3.1 roadmap created — Phases 19–23 (DX schemas/prompts, recipes, deploy watch, setup wizard+skills, OpenAPI coverage+npm release)
 
 ## Current Position
 
-Phase: Phase 6 (Research)
-Plan: Researching integration points for v3.1 features
-Status: Completed features, architecture, and technology stack research for Setup wizard, IDE skills, richer descriptions, MCP prompts, list-types, deploy watch, and OpenAPI coverage.
-Last activity: 2026-07-24 — Technology stack research document created in .planning/research/STACK.md
+Phase: Phase 19 (DX Schemas & MCP Prompts) — planned, not started
+Plan: Roadmap draft complete; awaiting `/gsd-plan-phase 19`
+Status: ROADMAP.md written with 5 phases covering 21/21 v3.1 requirements. STATE.md and REQUIREMENTS.md traceability updated.
+Last activity: 2026-07-24 — v3.1 roadmap created (Phases 19–23)
 
 
 ## Performance Metrics
@@ -341,7 +341,7 @@ Last activity: 2026-07-23 — Milestone v3.0 completed and archived
 
 ## Operator Next Steps
 
-- `/gsd-new-milestone` — define v3.1 requirements + roadmap
+- `/gsd-plan-phase 19` — plan DX Schemas & MCP Prompts (first v3.1 phase)
 
 ## Rebuild Log
 

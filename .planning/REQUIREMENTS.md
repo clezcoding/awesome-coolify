@@ -82,32 +82,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DX-01 | — | Unmapped |
-| DX-02 | — | Unmapped |
-| PROMPT-01 | — | Unmapped |
-| PROMPT-02 | — | Unmapped |
-| PROMPT-03 | — | Unmapped |
-| PROMPT-04 | — | Unmapped |
-| RECIPE-01 | — | Unmapped |
-| RECIPE-02 | — | Unmapped |
-| RECIPE-03 | — | Unmapped |
-| RECIPE-04 | — | Unmapped |
-| SETUP-01 | — | Unmapped |
-| SETUP-02 | — | Unmapped |
-| SETUP-03 | — | Unmapped |
-| SKILL-01 | — | Unmapped |
-| SKILL-02 | — | Unmapped |
-| WATCH-01 | — | Unmapped |
-| WATCH-02 | — | Unmapped |
-| OAPI-01 | — | Unmapped |
-| OAPI-02 | — | Unmapped |
-| PUB-01 | — | Unmapped |
-| PUB-02 | — | Unmapped |
+| DX-01 | Phase 19 | Pending |
+| DX-02 | Phase 19 | Pending |
+| PROMPT-01 | Phase 19 | Pending |
+| PROMPT-02 | Phase 19 | Pending |
+| PROMPT-03 | Phase 19 | Pending |
+| PROMPT-04 | Phase 19 | Pending |
+| RECIPE-01 | Phase 20 | Pending |
+| RECIPE-02 | Phase 20 | Pending |
+| RECIPE-03 | Phase 20 | Pending |
+| RECIPE-04 | Phase 20 | Pending |
+| SETUP-01 | Phase 22 | Pending |
+| SETUP-02 | Phase 22 | Pending |
+| SETUP-03 | Phase 22 | Pending |
+| SKILL-01 | Phase 22 | Pending |
+| SKILL-02 | Phase 22 | Pending |
+| WATCH-01 | Phase 21 | Pending |
+| WATCH-02 | Phase 21 | Pending |
+| OAPI-01 | Phase 23 | Pending |
+| OAPI-02 | Phase 23 | Pending |
+| PUB-01 | Phase 23 | Pending |
+| PUB-02 | Phase 23 | Pending |
 
 **Coverage:**
 - v3.1 requirements: 21 total
-- Mapped to phases: 0
-- Unmapped: 21 ⚠️ (filled by roadmapper)
+- Mapped to phases: 21
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-24*
