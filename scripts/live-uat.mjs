@@ -88,9 +88,22 @@ function abortSetup(error, redact) {
   exit(2);
 }
 
+const FIXTURE_PLACEHOLDERS = {
+  UAT_SMOKE_APP_NAME_PLACEHOLDER: 'UAT_SMOKE_APP_NAME',
+  UAT_SMOKE_APP_UUID_PLACEHOLDER: 'UAT_SMOKE_APP_UUID',
+  UAT_SMOKE_SERVICE_NAME_PLACEHOLDER: 'UAT_SMOKE_SERVICE_NAME',
+  UAT_SMOKE_DATABASE_NAME_PLACEHOLDER: 'UAT_SMOKE_DATABASE_NAME',
+  UAT_SMOKE_SERVER_NAME_PLACEHOLDER: 'UAT_SMOKE_SERVER_NAME',
+};
+
 function substitutePlaceholders(value, uatProjectUuid) {
   if (value === 'UAT_PROJECT_UUID_PLACEHOLDER') {
     return uatProjectUuid;
+  }
+  if (typeof value === 'string' && FIXTURE_PLACEHOLDERS[value]) {
+    const envKey = FIXTURE_PLACEHOLDERS[value];
+    const resolved = env[envKey]?.trim();
+    return resolved || null;
   }
   if (Array.isArray(value)) {
     return value.map((entry) => substitutePlaceholders(entry, uatProjectUuid));
@@ -103,6 +116,21 @@ function substitutePlaceholders(value, uatProjectUuid) {
     return copy;
   }
   return value;
+}
+
+function rowMissingFixtures(row) {
+  function containsNull(value) {
+    if (value === null) return true;
+    if (Array.isArray(value)) {
+      return value.some(containsNull);
+    }
+    if (value && typeof value === 'object') {
+      return Object.values(value).some(containsNull);
+    }
+    return false;
+  }
+
+  return containsNull(row.args ?? {});
 }
 
 function loadMatrix(uatProjectUuid) {
@@ -383,6 +411,22 @@ export async function runInProcessRows({
           errorCode: null,
           recoveryHintsPresent: false,
           skipReason: gap.reason,
+          structuredContent: null,
+        }),
+      );
+      continue;
+    }
+
+    if (rowMissingFixtures(row)) {
+      rows.push(
+        redact({
+          id: row.id,
+          tool: row.tool,
+          status: 'skip',
+          durationMs: 0,
+          errorCode: null,
+          recoveryHintsPresent: false,
+          skipReason: 'missing-fixture',
           structuredContent: null,
         }),
       );
@@ -731,6 +775,22 @@ async function runStdioRows({
             errorCode: null,
             recoveryHintsPresent: false,
             skipReason: gap.reason,
+            structuredContent: null,
+          }),
+        );
+        continue;
+      }
+
+      if (rowMissingFixtures(row)) {
+        rows.push(
+          redact({
+            id: row.id,
+            tool: row.tool,
+            status: 'skip',
+            durationMs: 0,
+            errorCode: null,
+            recoveryHintsPresent: false,
+            skipReason: 'missing-fixture',
             structuredContent: null,
           }),
         );

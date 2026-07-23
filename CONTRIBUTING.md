@@ -38,6 +38,17 @@ Without `--write`, the harness stays **read-only**: lists, gets, diff, and meta-
 1. **Dedicated UAT project** — create a throwaway Coolify project manually; the harness never auto-creates or auto-cleans resources.
 2. **`UAT_PROJECT_UUID`** — set this env var to that project's UUID. The harness aborts with **exit 2** when the variable is missing, empty, or does not match a live project (`get` fails).
 3. **Credentials** — resolved in order from `.cursor/mcp.json`, then `COOLIFY_URL` / `COOLIFY_TOKEN` in the process environment, then `~/.coolify-mcp/instances.json`. Tokens are redacted in every output surface; never commit or paste real tokens into docs or issues.
+4. **Smoke fixtures (optional)** — several smoke rows look up named resources inside the UAT project. Set these env vars when you have seeded fixtures; rows are **skipped** (`missing-fixture`) when unset:
+
+| Env var | Matrix row(s) |
+|---------|----------------|
+| `UAT_SMOKE_APP_NAME` | `application-get-smoke`, full-suite application write/destructive rows |
+| `UAT_SMOKE_APP_UUID` | `deployment-list-smoke` |
+| `UAT_SMOKE_SERVICE_NAME` | `service-get-smoke` |
+| `UAT_SMOKE_DATABASE_NAME` | `database-get-smoke` |
+| `UAT_SMOKE_SERVER_NAME` | `server-get-smoke` |
+
+Create matching resources manually in the UAT project (e.g. an application named `uat-smoke-app`) or point the vars at existing names/UUIDs. A fresh UAT project with only `UAT_PROJECT_UUID` set still runs the non-fixture smoke rows and can exit `0`.
 
 Example (placeholders only):
 

@@ -58,7 +58,7 @@
   {
     "id": "application-get-smoke",
     "tool": "application",
-    "args": { "action": "get", "name": "uat-smoke-app" },
+    "args": { "action": "get", "name": "UAT_SMOKE_APP_NAME_PLACEHOLDER" },
     "type": "read",
     "mode": "stdio",
     "suite": "smoke"
@@ -90,7 +90,7 @@
   {
     "id": "deployment-list-smoke",
     "tool": "deployment",
-    "args": { "action": "list", "application_uuid": "uat-smoke-app-uuid" },
+    "args": { "action": "list", "application_uuid": "UAT_SMOKE_APP_UUID_PLACEHOLDER" },
     "type": "read",
     "mode": "stdio",
     "suite": "smoke"
@@ -98,7 +98,7 @@
   {
     "id": "service-get-smoke",
     "tool": "service",
-    "args": { "action": "get", "name": "uat-smoke-service" },
+    "args": { "action": "get", "name": "UAT_SMOKE_SERVICE_NAME_PLACEHOLDER" },
     "type": "read",
     "mode": "stdio",
     "suite": "smoke"
@@ -106,7 +106,7 @@
   {
     "id": "database-get-smoke",
     "tool": "database",
-    "args": { "action": "get", "name": "uat-smoke-database" },
+    "args": { "action": "get", "name": "UAT_SMOKE_DATABASE_NAME_PLACEHOLDER" },
     "type": "read",
     "mode": "stdio",
     "suite": "smoke"
@@ -186,7 +186,7 @@
   {
     "id": "server-get-smoke",
     "tool": "server",
-    "args": { "action": "get", "name": "uat-smoke-server" },
+    "args": { "action": "get", "name": "UAT_SMOKE_SERVER_NAME_PLACEHOLDER" },
     "type": "read",
     "mode": "stdio",
     "suite": "smoke"
