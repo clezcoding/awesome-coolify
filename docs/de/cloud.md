@@ -1,6 +1,6 @@
 # Coolify Cloud
 
-Nutze **awesome-coolify-mcp** mit [Coolify Cloud](https://app.coolify.io) — dieselben 14 Domänen-Tools und 55 Actions wie bei Self-Hosted, mit team-scoped Tokens und strukturierten Cloud-Fehlercodes.
+Nutze **awesome-coolify-mcp** mit [Coolify Cloud](https://app.coolify.io) — dieselben **16 Domänen-Tools** und **~87 Actions** wie bei Self-Hosted, mit team-scoped Tokens und strukturierten Cloud-Fehlercodes.
 
 > **Branding:** Das MCP-Serverlisten-Icon wird über jsDelivr ausgeliefert — siehe [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png) und [`docs/assets/README.md`](../assets/README.md).
 
@@ -18,11 +18,41 @@ Nutze die `instance`-Action **`cloud-info`** für lokale/statische Discovery —
 instance({ action: "cloud-info" })
 ```
 
+### `cloud-info`-Response-Felder
+
+| Feld | Bedeutung |
+|------|-----------|
+| `isCloud` | `true`, wenn der aufgelöste Hostname `*.coolify.io` ist oder Registry-`type: "cloud"` |
+| `url` | Aufgelöste Coolify-Basis-URL (ohne trailing slash) |
+| `source` | Credential-Quelle: `registry` · `env` · `infer` |
+| `knownLimits` | Statische Liste Cloud-API-Lücken (spiegelt [Bekannte Limits](#bekannte-limits) unten) |
+| `docs` | Link zurück zu dieser Seite |
+
 ---
 
 ## Setup
 
 Erzeuge ein **team-scoped** API-Token in [app.coolify.io](https://app.coolify.io) unter **Keys & Tokens**. Niemals echte Tokens committen — Platzhalter oder Umgebungsvariablen verwenden.
+
+### Multi-Instance-Registry
+
+Für Flotten mit Self-Hosted und Cloud jede Instanz in `~/.coolify-mcp/instances.json` registrieren:
+
+```js
+instance({
+  action: "add",
+  name: "cloud",
+  url: "https://app.coolify.io",
+  token: "<team-scoped-token>",
+  type: "cloud",
+})
+instance({ action: "list" })
+instance({ action: "set-default", name: "cloud" })
+```
+
+- Registry-Verzeichnis: `0o700`; `instances.json`: `0o600`
+- Credential-Auflösung pro Request — kein Cross-Instance-Token-Leak
+- `instance: "<name>"` auf Ops-Tools setzen, um eine Registry-Instanz zu adressieren
 
 ### Pfad 1 — `instance.add` (Registry)
 
@@ -68,6 +98,27 @@ Bei Erfolg JSON-Version erwarten; `401` bedeutet Token neu erzeugen.
 
 ---
 
+## Branding
+
+Das MCP-Client-Listen-Icon kommt aus **`serverInfo.icons`** — ausgeliefert über jsDelivr unter [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png). Das ist nur ein Cursor/MCP-Listen-Anzeigepfad; kein Coolify-API-Call.
+
+---
+
+## Lokaler Manifest-Cache
+
+Der Workspace-Cache unter **`.coolify/manifest.json`** beschleunigt Discovery und UUID-Hinweise:
+
+```js
+manifest({ action: "sync" })   // gegen live API abgleichen
+manifest({ action: "diff" })   // nicht-destruktiver Diff-Report
+```
+
+- Best-Effort-Auto-Hooks aktualisieren den Cache nach App/Service/DB-Mutationen
+- Veraltete Einträge liefern `_meta.manifestWarning` bei verwandten Ops — `sync` oder `diff` zum Abgleichen
+- Manifest ist **Cache, keine Source of Truth** — Remote-API gewinnt bei Konflikten; 404 nur als Hinweis (D-15)
+
+---
+
 ## Smoke-Test
 
 Nach dem Connect diesen agent-first Pfad ausführen:
@@ -104,7 +155,7 @@ Nach dem Connect diesen agent-first Pfad ausführen:
 | Server-CRUD via API | Cloud unterstützt **kein** Server-Create, -Validate oder -Delete über die REST-API — Server-Management über das Cloud-Dashboard. |
 | Self-Hosted-only Endpunkte | Manche Self-Hosted-Endpunkte liefern auf Cloud **404** → strukturierter Code `COOLIFY_CLOUD_UNSUPPORTED`. |
 | Team-scoped Tokens | Tokens sind team-gebunden — prüfen, ob das Token-Team die Ziel-Ressource besitzt. |
-| Gleiche Tool-Oberfläche | Alle 14 MCP-Domänen-Tools bleiben verfügbar; Fehler als strukturierte Codes, keine stillen Stubs. |
+| Gleiche Tool-Oberfläche | Alle 16 MCP-Domänen-Tools bleiben verfügbar; Fehler als strukturierte Codes, keine stillen Stubs. |
 
 `cloud-info` `knownLimits` spiegelt diese Liste lokal — kein Live-Capability-Probe.
 
