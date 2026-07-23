@@ -11,6 +11,7 @@ set -euo pipefail
 PR=""
 MODE="ci"
 DRY_RUN=0
+# 0 = default for mode; 1 = force on; -1 = force off (--no-automerge)
 AUTOMERGE=0
 
 while [[ $# -gt 0 ]]; do
@@ -29,6 +30,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --automerge)
       AUTOMERGE=1
+      shift
+      ;;
+    --no-automerge)
+      AUTOMERGE=-1
       shift
       ;;
     -h|--help)
@@ -326,24 +331,18 @@ if [[ "$release_relevant" -eq 1 ]]; then
 fi
 
 case "$MODE" in
-  ship)
-    DESIRED_STATUS+=("status: needs-review")
-    for blocker in "gsd: discuss" "gsd: plan" "gsd: execute" "gsd: verify"; do
-      has_label "$blocker" && remove_label "$blocker"
-    done
-    if [[ "$AUTOMERGE" -eq 1 ]]; then
-      TOUCH_AUTOMERGE=1
-      ADD_AUTOMERGE=1
-    fi
-    ;;
-  ready)
+  ship|ready)
+    # Ship and ready are Kodiak-opt-in: set automerge + strip blockers.
+    # Kodiak still waits for required checks (Lint/Test/Build, MegaLinter)
+    # and will not merge while blocking_labels are present (.kodiak.toml).
     for blocker in \
       "status: blocked" \
       "status: needs-review" \
       "status: needs-triage" \
       "gsd: discuss" \
       "gsd: plan" \
-      "gsd: execute"
+      "gsd: execute" \
+      "gsd: verify"
     do
       has_label "$blocker" && remove_label "$blocker"
     done
@@ -352,8 +351,12 @@ case "$MODE" in
     elif has_label "status: in-progress"; then
       remove_label "status: in-progress"
     fi
-    if [[ "$AUTOMERGE" -eq 1 ]]; then
-      TOUCH_AUTOMERGE=1
+    # Default: always set automerge on ship/ready (CI gate is the real brake).
+    # Pass --no-automerge to opt out (handled below via AUTOMERGE=-1).
+    TOUCH_AUTOMERGE=1
+    if [[ "$AUTOMERGE" -eq -1 ]]; then
+      ADD_AUTOMERGE=0
+    else
       ADD_AUTOMERGE=1
     fi
     ;;

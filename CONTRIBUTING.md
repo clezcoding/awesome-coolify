@@ -66,11 +66,11 @@ PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/work
 After `/gsd-ship` opens a phase PR, **`./scripts/gsd-ship-post.sh <pr>` runs automatically** (GSD `ship.md` step + Cursor `afterShellExecution` hook + always-on rule). It:
 1. Creates a Changeset under `.changeset/` when the PR is release-relevant and none exists
 2. Commits + pushes the changeset
-3. Applies ship labels (`gsd: ship`, `type:*`, `size:*`, `scope:*`) and clears `needs-changeset` when a changeset is present
+3. Applies ship labels (`gsd: ship`, `type:*`, `size:*`, `scope:*`, `status: ready-to-merge`) and clears `needs-changeset` when a changeset is present
+4. Sets the **`automerge`** label for Kodiak — merge still waits for required checks (`Lint, Test & Build`, `MegaLinter`) and will not proceed while blocking labels are present
 
-Manual / preview: `./scripts/gsd-ship-post.sh <n> --dry-run` (alias: `./scripts/gsd-ship-labels.sh`).
-
-When a PR is ready for Kodiak, `./scripts/setup-kodiak.sh --pr <n>` applies ready-mode labels and `automerge`.
+Manual / preview: `./scripts/gsd-ship-post.sh <n> --dry-run` (alias: `./scripts/gsd-ship-labels.sh`).  
+Opt out of automerge: `./scripts/gsd-pr-labels.sh --pr <n> --mode ship --no-automerge`.
 
 ## Project Planning (GSD)
 

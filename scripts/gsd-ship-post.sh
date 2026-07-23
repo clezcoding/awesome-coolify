@@ -95,8 +95,7 @@ elif [[ "$DRY_RUN" -eq 1 && -n "$CREATED_FILE" ]]; then
   echo "gsd-ship-post: dry-run would commit+push ${CREATED_FILE}"
 fi
 
-# 3) Apply ship labels (reconcile type/gsd/size/scope; clear needs-changeset when file present)
-LABEL_MODE="ship"
-bash "${ROOT}/scripts/gsd-pr-labels.sh" --pr "$PR" --mode "$LABEL_MODE" "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}"
+# 3) Ship labels + Kodiak automerge (merge still waits for green required checks)
+bash "${ROOT}/scripts/gsd-pr-labels.sh" --pr "$PR" --mode ship "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}"
 
-echo "==> gsd-ship-post done for PR #${PR}"
+echo "==> gsd-ship-post done for PR #${PR} (automerge set; Kodiak waits for CI)"
