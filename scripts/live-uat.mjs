@@ -638,10 +638,15 @@ function evaluateStdioRowResult(row, res, redact) {
     status = 'fail';
     errorCode = `RPC_${rpcError.code}`;
   } else if (!structuredContent || structuredContent.ok === false) {
-    status = 'fail';
-    errorCode =
-      structuredContent?.error?.code ??
-      (rpcError?.code !== undefined ? `RPC_${rpcError.code}` : 'UAT_UNKNOWN');
+    const code = structuredContent?.error?.code;
+    if (structuredContent?.ok === false && code === 'COOLIFY_CONFIRM_REQUIRED') {
+      status = 'pass';
+      errorCode = code;
+    } else {
+      status = 'fail';
+      errorCode =
+        code ?? (rpcError?.code !== undefined ? `RPC_${rpcError.code}` : 'UAT_UNKNOWN');
+    }
     const hints = structuredContent?.error?.recoveryHints;
     recoveryHintsPresent = Array.isArray(hints) && hints.length > 0;
   } else {
