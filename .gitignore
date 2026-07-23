@@ -29,7 +29,13 @@ yarn-error.log*
 .coolify-mcp/
 
 # Local IDE / MCP / agents / rules (tokens, personal settings, symlinks)
-.cursor/
+# Ignore .cursor contents, then re-include shared ship automation hooks/rule.
+.cursor/*
+!.cursor/hooks/
+!.cursor/hooks/**
+!.cursor/hooks.json
+!.cursor/rules/
+!.cursor/rules/gsd-ship-labels.mdc
 .claude/
 .idea/
 .vscode/

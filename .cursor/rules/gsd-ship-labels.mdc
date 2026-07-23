@@ -1,0 +1,32 @@
+---
+description: After /gsd-ship creates a PR, always run gsd-ship-post (changeset + labels)
+alwaysApply: true
+---
+# GSD Ship → Changeset + Labels (mandatory)
+
+When `/gsd-ship` (or any flow that runs `gh pr create` for a GSD phase) succeeds:
+
+1. **Immediately** run:
+
+```bash
+./scripts/gsd-ship-post.sh <pr-number>
+```
+
+This is non-optional. It:
+- Creates `.changeset/<slug>.md` when the PR is release-relevant and no changeset exists
+- Commits + pushes the changeset
+- Applies ship labels via `scripts/gsd-pr-labels.sh --mode ship`
+
+2. Do **not** add `automerge` during ship. When CI is green:
+
+```bash
+./scripts/setup-kodiak.sh --pr <n>
+```
+
+3. Preview:
+
+```bash
+./scripts/gsd-ship-post.sh <n> --dry-run
+```
+
+If the Cursor `afterShellExecution` hook already ran `gsd-ship-post`, verify labels/changeset are present and skip a duplicate run.
