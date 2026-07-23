@@ -164,7 +164,22 @@ Plans:
   5. Script documents safe preconditions and never deletes production resources without explicit `--confirm-destructive`
   6. CONTRIBUTING.md documents how to run live UAT locally and interpret failures
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 18-01-PLAN.md — Declarative coverage matrix + harness skeleton (tsx respawn, creds/redaction, UAT_PROJECT_UUID gate, matrix loader)
+- [ ] 18-02-PLAN.md — McpStdioClient + stdio runner + JSON/Markdown report writers + exit codes 0/1/2
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 18-04-PLAN.md — package.json `uat:live` script + npm pack exclude verify + CONTRIBUTING.md Live UAT Harness runbook
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 18-03-PLAN.md — In-process handler dispatch + two-tier flag gate + UAT identity scope + v3_gaps + --full + merged report
 
 ## Progress
 
