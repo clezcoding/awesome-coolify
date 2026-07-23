@@ -665,7 +665,17 @@ function evaluateStdioRowResult(row, res, redact) {
   });
 }
 
-async function runStdioRows({ matrix, flags, routingEnv, redact, v3Gaps = [] }) {
+const STDIO_SCOPE_GUARD_TOOLS = ['application', 'service', 'database', 'deployment'];
+
+async function runStdioRows({
+  matrix,
+  flags,
+  routingEnv,
+  redact,
+  v3Gaps = [],
+  uatProjectUuid,
+  dispatchMap,
+}) {
   const filtered = matrix.filter(
     (row) => row.mode === 'stdio' && matchesSuiteFilter(row, flags),
   );
@@ -733,6 +743,33 @@ async function runStdioRows({ matrix, flags, routingEnv, redact, v3Gaps = [] }) 
           }),
         );
         continue;
+      }
+
+      if (
+        STDIO_SCOPE_GUARD_TOOLS.includes(row.tool) &&
+        dispatchMap &&
+        uatProjectUuid
+      ) {
+        const inScope = await guardUatScope(
+          row,
+          routingEnv,
+          dispatchMap,
+          uatProjectUuid,
+        );
+        if (!inScope) {
+          rows.push(
+            redact({
+              id: row.id,
+              tool: row.tool,
+              status: 'blocked-outside-uat',
+              durationMs: 0,
+              errorCode: null,
+              recoveryHintsPresent: false,
+              structuredContent: null,
+            }),
+          );
+          continue;
+        }
       }
 
       const startTime = Date.now();
@@ -951,6 +988,8 @@ async function main() {
     routingEnv,
     redact,
     v3Gaps: preconditionGaps,
+    uatProjectUuid,
+    dispatchMap,
   });
   const inProcessRows = await runInProcessRows({
     matrix,
