@@ -61,6 +61,12 @@ Config lives in `.kodiak.toml`. One-time app install + verification: `./scripts/
 
 Labels are managed centrally in `.github/labels.yml` and synced automatically — please don't create labels manually in the UI, edit the file and push instead.
 
+PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/workflows/pr-labels.yml` (`scripts/gsd-pr-labels.sh --mode ci`). Labels cover type, GSD phase, diff size, scope (from changed paths), and release checks (`needs-changeset`).
+
+After `/gsd-ship` opens a phase PR, run `./scripts/gsd-ship-labels.sh <pr>` (or pass no arg on the PR branch) to apply ship labels: `gsd: ship`, `status: needs-review`, and scoped type/size labels. Preview with `--dry-run`.
+
+When a PR is ready for Kodiak, `./scripts/setup-kodiak.sh --pr <n>` applies ready-mode labels and `automerge`.
+
 ## Project Planning (GSD)
 
 This project uses [GSD](https://github.com/open-gsd/gsd-core) for planning, and keeps planning artifacts (`.planning/`) local-only — they are gitignored and never committed to this repo. If you're contributing via GSD's phase workflow, that's expected: only the shipped code and docs end up in git history, not the planning process behind them.

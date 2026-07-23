@@ -82,23 +82,7 @@ echo "Kodiak will keep the branch updated and squash-merge when CI is green."
 if [[ -n "${PR_NUMBER}" ]]; then
   echo
   echo "==> Preparing PR #${PR_NUMBER} for Kodiak automerge"
-  # Remove labels that .kodiak.toml lists under merge.blocking_labels
-  for blocking in \
-    "status: blocked" \
-    "status: needs-review" \
-    "status: needs-triage" \
-    "gsd: discuss" \
-    "gsd: plan" \
-    "gsd: execute"
-  do
-    if gh pr view "${PR_NUMBER}" --json labels -q '.labels[].name' | grep -qx "${blocking}"; then
-      echo "  removing blocking label: ${blocking}"
-      gh pr edit "${PR_NUMBER}" --remove-label "${blocking}" || true
-    fi
-  done
-  gh pr edit "${PR_NUMBER}" --add-label automerge
-  # Optional companion status label (not blocking)
-  gh pr edit "${PR_NUMBER}" --add-label "status: ready-to-merge" 2>/dev/null || true
+  bash "${ROOT}/scripts/gsd-pr-labels.sh" --pr "${PR_NUMBER}" --mode ready --automerge
   echo "✓ PR #${PR_NUMBER} labeled automerge — Kodiak squash-merges when required checks pass."
   echo "  Watch: gh pr checks ${PR_NUMBER} --watch"
 fi
