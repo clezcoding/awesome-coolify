@@ -36,11 +36,11 @@ Requirements for this milestone. Each maps to roadmap phases (15+).
 
 ### Live UAT Harness (UAT)
 
-- [ ] **UAT-01**: Maintainer can run one CLI script that exercises all 14 MCP tools against a live Coolify instance with real data
-- [ ] **UAT-02**: Script resolves credentials from `.cursor/mcp.json`, env vars, or `instances.json` without printing tokens in output
+- [x] **UAT-01**: Maintainer can run one CLI script that exercises all 14 MCP tools against a live Coolify instance with real data
+- [x] **UAT-02**: Script resolves credentials from `.cursor/mcp.json`, env vars, or `instances.json` without printing tokens in output
 - [ ] **UAT-03**: Script emits structured JSON pass/fail report per tool/action with duration, error code, and recovery-hint presence
-- [ ] **UAT-04**: Script covers v3.0 additions: multi-instance routing, cloud instance profile, manifest read/write/sync
-- [ ] **UAT-05**: Script documents safe preconditions (existing UAT project/resources or optional setup mode) and never deletes production resources without explicit `--confirm-destructive`
+- [x] **UAT-04**: Script covers v3.0 additions: multi-instance routing, cloud instance profile, manifest read/write/sync
+- [x] **UAT-05**: Script documents safe preconditions (existing UAT project/resources or optional setup mode) and never deletes production resources without explicit `--confirm-destructive`
 - [ ] **UAT-06**: CONTRIBUTING.md documents how to run live UAT locally and interpret failures
 
 ## v3.1 Requirements (Deferred)
@@ -89,11 +89,11 @@ Tracked but not in v3.0 roadmap.
 | MAN-02 | Phase 17 | Complete |
 | MAN-03 | Phase 17 | Complete |
 | MAN-04 | Phase 17 | Complete |
-| UAT-01 | Phase 18 | Pending |
-| UAT-02 | Phase 18 | Pending |
+| UAT-01 | Phase 18 | Complete |
+| UAT-02 | Phase 18 | Complete |
 | UAT-03 | Phase 18 | Pending |
-| UAT-04 | Phase 18 | Pending |
-| UAT-05 | Phase 18 | Pending |
+| UAT-04 | Phase 18 | Complete |
+| UAT-05 | Phase 18 | Complete |
 | UAT-06 | Phase 18 | Pending |
 
 **Coverage:**
