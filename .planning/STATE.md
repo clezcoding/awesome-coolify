@@ -5,15 +5,15 @@ milestone_name: Platform Foundation
 current_phase: 18
 current_phase_name: live-uat-harness
 status: executing
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-07-23T18:16:20.001Z"
+stopped_at: Completed 18-02-PLAN.md
+last_updated: "2026-07-23T18:20:27.257Z"
 last_activity: 2026-07-23
 last_activity_desc: Phase 18 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 75
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-22)
 ## Current Position
 
 Phase: 18 (live-uat-harness) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-23 — Phase 18 execution started
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0/4 plans ([████████░░] 83%)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0/4 plans ([█████████░] 89%)
 
 ## Performance Metrics
 
@@ -100,6 +100,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0/4 pla
 | Phase 17-local-manifest-sync P02 | 3min | 2 tasks | 5 files |
 | Phase 17-local-manifest-sync P03 | 6min | 2 tasks | 6 files |
 | Phase 18-live-uat-harness P01 | 3min | 2 tasks | 2 files |
+| Phase 18-live-uat-harness P02 | 1min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -268,6 +269,9 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0/4 pla
 - [Phase ?]: Service domains from urls[].url; database domains always [] — no fqdn on DB resources
 - [Phase ?]: UAT_PROJECT_UUID gate before dynamic .ts imports — node+TSX_ACTIVE verify exits 2 without tsx loader (18-01)
 - [Phase ?]: Matrix v3 rows use suite plain string v3 — not suite:v3 tag (18-01)
+- [Phase ?]: matchesSuiteFilter exported for verbatim reuse by Plan 18-03 runInProcessRows
+- [Phase ?]: tools/list validated against REGISTERED_TOOLS before matrix row iteration
+- [Phase ?]: Empty stdio filter emits v3_gaps no-stdio-rows entry instead of crashing
 
 ### Pending Todos
 
@@ -314,9 +318,9 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-23T18:16:19.993Z
-**Stopped at:** Completed 18-01-PLAN.md
-**Resume file:** .planning/phases/18-live-uat-harness/18-02-PLAN.md
+**Last session:** 2026-07-23T18:20:27.248Z
+**Stopped at:** Completed 18-02-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-23 — Phase 18 planned (Live UAT Harness, 4 plans)
 
