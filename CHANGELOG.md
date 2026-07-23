@@ -1,5 +1,15 @@
 # awesome-coolify-mcp
 
+## 0.2.0
+
+### Minor Changes
+
+- b8c1528: Local manifest & sync: workspace `.coolify/manifest.json`, `manifest` MCP tool (get/upsert/set/remove/clear/sync/diff), stale-404 recovery hints, and auto-upsert hooks on application/service/database mutations.
+
+### Patch Changes
+
+- b8c1528: Automate Changeset creation and PR labels after `/gsd-ship` via `scripts/gsd-ship-post.sh`, Cursor hooks, and GitHub Actions.
+
 ## 0.1.2
 
 ### Patch Changes
