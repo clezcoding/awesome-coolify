@@ -4,7 +4,7 @@ milestone: v3.0
 milestone_name: Platform Foundation
 status: Awaiting next milestone
 stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-07-23T20:52:44.156Z"
+last_updated: "2026-07-23T21:14:00.000Z"
 last_activity: 2026-07-23
 last_activity_desc: Milestone v3.0 completed and archived
 progress:
@@ -101,6 +101,7 @@ Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
 | Phase 18-live-uat-harness P02 | 1min | 2 tasks | 1 files |
 | Phase 18-live-uat-harness P04 | 2min | 2 tasks | 2 files |
 | Phase 18-live-uat-harness P03 | 3min | 2 tasks | 1 files |
+| Phase quick-260723-w1r P01 | 25min | 5 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -301,6 +302,7 @@ Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
 | 260719-8ol | Install GitHub repo tooling (Kodiak, Release Drafter, MCP/Comfy publish, publint, MegaLinter) | 2026-07-19 | a58f904 | [260719-8ol-install-github-repo-tooling-per-locked-d](./quick/260719-8ol-install-github-repo-tooling-per-locked-d/) |
 | 260719-fju | GitHub Actions/Bots/Workflows Audit — MCP publish gaps + verify script | 2026-07-19 | 75d61d3 | [260719-fju-berpr-fe-ob-alle-github-action-tools-bot](./quick/260719-fju-berpr-fe-ob-alle-github-action-tools-bot/) |
 | 260721-70k | CI/CD speed audit + Kodiak autodeploy activation | 2026-07-21 | 0d5fbb5 | [260721-70k-die-github-prs-dauern-teils-mehrere-minu](./quick/260721-70k-die-github-prs-dauern-teils-mehrere-minu/) |
+| 260723-w1r | v3.0 docs overhaul + repo metadata; npm via Release | 2026-07-23 | c5aa0cd | [260723-w1r-overhaul-all-public-docs-to-v3-0-platfor](./quick/260723-w1r-overhaul-all-public-docs-to-v3-0-platfor/) |
 
 ## Deferred Items
 
