@@ -467,6 +467,89 @@ export async function runInProcessRows({
   return rows;
 }
 
+export async function detectV3Gaps(matrix, routingEnv, dispatchMap) {
+  const gaps = [];
+  const v3Rows = matrix.filter((row) => row.suite === 'v3');
+  const { InstanceManager } = await import('../src/utils/instance-registry.ts');
+  const instanceHandler = dispatchMap.get('instance');
+
+  for (const row of v3Rows) {
+    const args = row.args ?? {};
+
+    if (args.instance) {
+      try {
+        const creds = InstanceManager.resolveCredentials(args.instance, routingEnv);
+        if (!creds?.url || !creds?.token) {
+          gaps.push({
+            id: row.id,
+            reason: 'no-secondary-instance',
+            message: `Instance '${args.instance}' is not registered or has no credentials`,
+          });
+        }
+      } catch {
+        gaps.push({
+          id: row.id,
+          reason: 'no-secondary-instance',
+          message: `Instance '${args.instance}' is not registered or has no credentials`,
+        });
+      }
+      continue;
+    }
+
+    if (row.tool === 'instance' && args.action === 'cloud-info') {
+      let hasCloud = isCloudHost(routingEnv.COOLIFY_URL ?? '');
+      if (!hasCloud && instanceHandler) {
+        try {
+          const result = await instanceHandler({ action: 'cloud-info' }, routingEnv);
+          const structured = normalizeHandlerResult(result);
+          hasCloud = structured.ok === true && structured.data?.isCloud === true;
+        } catch {
+          hasCloud = false;
+        }
+      }
+      if (!hasCloud) {
+        gaps.push({
+          id: row.id,
+          reason: 'no-cloud-creds',
+          message: 'No cloud profile detected for instance.cloud-info',
+        });
+      }
+      continue;
+    }
+
+    if (row.tool === 'manifest') {
+      if (!manifestExists()) {
+        gaps.push({
+          id: row.id,
+          reason: 'no-manifest',
+          message: `Manifest file missing at ${MANIFEST_PATH}`,
+        });
+      }
+    }
+  }
+
+  return gaps;
+}
+
+function mergeRowsInMatrixOrder(matrix, flags, stdioRows, inProcessRows) {
+  const stdioById = new Map(stdioRows.map((row) => [row.id, row]));
+  const inProcessById = new Map(inProcessRows.map((row) => [row.id, row]));
+  const merged = [];
+
+  for (const row of matrix) {
+    if (!matchesSuiteFilter(row, flags)) {
+      continue;
+    }
+    if (row.mode === 'stdio' && stdioById.has(row.id)) {
+      merged.push(stdioById.get(row.id));
+    } else if (row.mode === 'in-process' && inProcessById.has(row.id)) {
+      merged.push(inProcessById.get(row.id));
+    }
+  }
+
+  return merged;
+}
+
 class McpStdioClient {
   constructor(child) {
     this.child = child;
@@ -577,18 +660,18 @@ function evaluateStdioRowResult(row, res, redact) {
   });
 }
 
-async function runStdioRows({ matrix, flags, routingEnv, redact }) {
+async function runStdioRows({ matrix, flags, routingEnv, redact, v3Gaps = [] }) {
   const filtered = matrix.filter(
     (row) => row.mode === 'stdio' && matchesSuiteFilter(row, flags),
   );
-  const v3Gaps = [];
+  const extraGaps = [];
 
   if (filtered.length === 0) {
-    v3Gaps.push({
+    extraGaps.push({
       reason: 'no-stdio-rows',
       message: 'No stdio matrix rows matched the active suite filter',
     });
-    return { rows: [], v3Gaps };
+    return { rows: [], v3Gaps: extraGaps };
   }
 
   const child = spawnChild(routingEnv);
@@ -615,6 +698,23 @@ async function runStdioRows({ matrix, flags, routingEnv, redact }) {
     }
 
     for (const row of filtered) {
+      const gap = findV3GapForRow(row, v3Gaps);
+      if (gap) {
+        rows.push(
+          redact({
+            id: row.id,
+            tool: row.tool,
+            status: 'skip',
+            durationMs: 0,
+            errorCode: null,
+            recoveryHintsPresent: false,
+            skipReason: gap.reason,
+            structuredContent: null,
+          }),
+        );
+        continue;
+      }
+
       const startTime = Date.now();
       try {
         const res =
@@ -650,7 +750,7 @@ async function runStdioRows({ matrix, flags, routingEnv, redact }) {
     await new Promise((resolvePromise) => setTimeout(resolvePromise, 500));
   }
 
-  return { rows, v3Gaps };
+  return { rows, v3Gaps: extraGaps };
 }
 
 function buildReport(rows, v3Gaps) {
@@ -822,13 +922,34 @@ async function main() {
   uatState.redact = redact;
   uatState.toolsCovered = toolsCovered;
 
-  const { rows, v3Gaps } = await runStdioRows({
+  const dispatchMap = await buildDispatchMap();
+  const preconditionGaps = await detectV3Gaps(matrix, routingEnv, dispatchMap);
+
+  const stdioResult = await runStdioRows({
     matrix,
     flags: cli,
     routingEnv,
     redact,
+    v3Gaps: preconditionGaps,
   });
-  const report = buildReport(rows, v3Gaps);
+  const inProcessRows = await runInProcessRows({
+    matrix,
+    flags: cli,
+    routingEnv,
+    redact,
+    v3Gaps: preconditionGaps,
+    uatProjectUuid,
+    dispatchMap,
+  });
+
+  const mergedRows = mergeRowsInMatrixOrder(
+    matrix,
+    cli,
+    stdioResult.rows,
+    inProcessRows,
+  );
+  const allV3Gaps = [...preconditionGaps, ...stdioResult.v3Gaps];
+  const report = buildReport(mergedRows, allV3Gaps);
   const reportJson = redact(JSON.stringify(report));
   stdout.write(`${reportJson}\n`);
 
