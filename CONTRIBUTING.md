@@ -63,7 +63,12 @@ Labels are managed centrally in `.github/labels.yml` and synced automatically â€
 
 PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/workflows/pr-labels.yml` (`scripts/gsd-pr-labels.sh --mode ci`). Labels cover type, GSD phase, diff size, scope (from changed paths), and release checks (`needs-changeset`).
 
-After `/gsd-ship` opens a phase PR, run `./scripts/gsd-ship-labels.sh <pr>` (or pass no arg on the PR branch) to apply ship labels: `gsd: ship`, `status: needs-review`, and scoped type/size labels. Preview with `--dry-run`.
+After `/gsd-ship` opens a phase PR, **`./scripts/gsd-ship-post.sh <pr>` runs automatically** (GSD `ship.md` step + Cursor `afterShellExecution` hook + always-on rule). It:
+1. Creates a Changeset under `.changeset/` when the PR is release-relevant and none exists
+2. Commits + pushes the changeset
+3. Applies ship labels (`gsd: ship`, `type:*`, `size:*`, `scope:*`) and clears `needs-changeset` when a changeset is present
+
+Manual / preview: `./scripts/gsd-ship-post.sh <n> --dry-run` (alias: `./scripts/gsd-ship-labels.sh`).
 
 When a PR is ready for Kodiak, `./scripts/setup-kodiak.sh --pr <n>` applies ready-mode labels and `automerge`.
 

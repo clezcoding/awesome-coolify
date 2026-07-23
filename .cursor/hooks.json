@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterShellExecution": [
+      {
+        "command": ".cursor/hooks/gsd-ship-post-hook.sh",
+        "matcher": "gh(\\s+|.*)pr\\s+create",
+        "timeout": 180
+      }
+    ]
+  }
+}
