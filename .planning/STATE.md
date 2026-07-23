@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Platform Foundation
-status: Awaiting next milestone
-stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-07-23T21:14:00.000Z"
-last_activity: 2026-07-23
-last_activity_desc: Milestone v3.0 completed and archived
+milestone: v3.1
+milestone_name: Setup, Skills & DX
+status: planning
+last_updated: "2026-07-23T22:50:23.838Z"
+last_activity: 2026-07-24
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
-current_phase: 18
-current_phase_name: live-uat-harness
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-23)
 
 ## Current Position
 
-Phase: Milestone v3.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
+Status: Defining requirements
+Last activity: 2026-07-24 — Milestone v3.1 started
 
 ## Performance Metrics
 
