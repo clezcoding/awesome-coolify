@@ -2,6 +2,7 @@
 created: 2026-07-18T00:38:21.095Z
 title: Integrate official Coolify OpenAPI specs
 area: docs
+resolves_phase: 23
 files:
   - docs/coolify_openapi.json
   - docs/coolify_openapi.yaml
