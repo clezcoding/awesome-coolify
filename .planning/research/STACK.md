@@ -1,8 +1,8 @@
 # Stack Research
 
-**Domain:** Coolify MCP Server & Client (Platform Foundation)
-**Researched:** Tuesday Jul 21, 2026
-**Confidence:** MEDIUM
+**Domain:** MCP Server & DX Tools
+**Researched:** Friday Jul 24, 2026
+**Confidence:** HIGH
 
 ## Recommended Stack
 
@@ -10,89 +10,84 @@
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Node.js | >=22.14.0 | Runtime | Standard runtime for TypeScript MCP servers; features native ES Modules support, fast filesystem APIs (`node:fs`), and native fetch/http capabilities. |
-| TypeScript | ^5.3.3 | Language | Strongly typed language compiling to JavaScript, enabling type-safe development, IDE auto-completion, and static analysis. |
-| @modelcontextprotocol/server | ^2.0.0-beta.4 | Core Framework | Standard library from Anthropic for building Model Context Protocol servers in TypeScript/Node.js, handling stdio communications and client-server Handlers. |
-| Zod | ^4.4.3 | Schema Validation | Declarative validation library for runtime verification of environment variables, multi-instance configuration, and local manifest structures. |
-| ofetch | ^1.5.1 | HTTP Client | Intelligent, lightweight, and robust fetch wrapper by UnJS, providing automatic JSON parsing, built-in retries, and clean error hooks. |
-| yaml | ^2.9.0 | Yaml Parser | Parser for handling multi-line compose configurations and service blueprints cleanly without relying on regex. |
+| `@modelcontextprotocol/server` | `^2.0.0-beta.4` | MCP Server core framework | Provides the standard protocol implementation for tools, resources, and the new Prompts API. |
+| `@clack/prompts` | `^0.9.1` | Interactive CLI Setup Wizard | The modern, beautifully designed terminal prompt library used by Vite and Astro. Offers superior UX over older alternatives. |
+| `@scalar/openapi-parser` | `^0.25.3` | OpenAPI Specification Parsing | A modern, zero-dependency, TypeScript-native OpenAPI parser that supports OpenAPI 3.0/3.1/3.2. Perfect for mapping coverage. |
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| node:fs | Built-in | File System Operations | For reading, writing, and checking existence of global `~/.coolify-mcp/instances.json` and local `.coolify/manifest.json`. |
-| node:path | Built-in | Path Resolution | Crucial for cross-platform file paths, combining directory separators dynamically and resolving home directory paths. |
-| node:os | Built-in | OS Utils | For locating the user's home directory (`os.homedir()`) to write global configurations reliably. |
+| `ofetch` | `^1.5.1` | Dynamic recipe and template fetching | Used to fetch the official `service-templates.json` from Coolify's repository at runtime, avoiding static catalog bloat. (Already installed) |
+| `@scalar/openapi-types` | `^0.6.0` | Strict OpenAPI TypeScript types | Used alongside `@scalar/openapi-parser` for type-safe manipulation of the OpenAPI document. |
+| `zod` | `^4.4.3` | Schema validation & Prompt arguments | Used to define and validate action inputs, outputs, and Prompts API arguments. (Already installed) |
 
 ### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| tsup | Fast bundler | Zero-config TypeScript bundler powered by esbuild. Used to bundle the server into a single high-performance `dist/index.js` file. |
-| vitest | Testing framework | A blazing fast unit and integration testing framework fully compatible with ESM and Vite out of the box. Used for running our 800+ test suites. |
-| publint | Package linting | Lints npm packages to ensure ESM/CJS exports are valid and compatible. |
-| husky | Git Hooks | Git hooks manager used to ensure commits and PRs adhere to standard commits syntax. |
+| `@changesets/cli` | Versioning and release management | Automates version bumps and changelog generation. Integrated with GitHub Release workflow. (Already installed) |
+| `tsup` | Zero-config TypeScript bundler | Bundles the MCP server and CLI setup wizard into clean ESM output. (Already installed) |
 
 ## Installation
 
 ```bash
-# Core
-npm install @modelcontextprotocol/server@2.0.0-beta.4 ofetch@1.5.1 zod@4.4.3 yaml@2.9.0
+# Core & Supporting
+pnpm add @clack/prompts @scalar/openapi-parser @scalar/openapi-types
 
-# Supporting (all are Node.js built-ins)
-# No additional npm packages needed for configuration or filesystem!
-
-# Dev dependencies
-npm install -D typescript@5.3.3 tsup@8.5.1 vitest@4.1.10 publint@0.3.0 husky@9.1.7
+# Dev dependencies (if any new needed, otherwise none)
 ```
 
 ## Alternatives Considered
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| Native `node:fs` + `Zod` | `conf` or `configstore` | Use only if you require advanced capabilities like automatic file watching, locking, or encrypted storage. For a lightweight, standard MCP server, native `fs` combined with Zod offers zero-dependency, type-safe config management. |
-| Custom `parseDotEnv` | `dotenv` | Use only if you need multi-line env files or complex expansion. For this MCP server, the custom parser in `src/config/env.ts` is essential to prevent overriding host-provided environments. |
-| JSON File (`instances.json`) | SQLite / Local DB | Use only if managing thousands of instances with complex relational queries. A simple JSON file is portable, text-editable, and easily inspectable by users. |
+| `@clack/prompts` | `inquirer` / `prompts` | Use `inquirer` only if you need legacy Node support (<16) or highly customized custom-drawn terminal widgets not supported by Clack. |
+| `@scalar/openapi-parser` | `@apidevtools/swagger-parser` | Use `swagger-parser` if you are working with legacy Swagger 2.0 specs that require heavy JSON Schema validation or older CommonJS environments. |
+| Dynamic `ofetch` | Static YAML templates | Only use static templates if the MCP server must operate in a strictly air-gapped environment with zero outbound internet access to GitHub/CDNs. |
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `conf` / `configstore` | Adds bloated nested dependencies, can cause build issues with bundlers like `tsup`, and lacks seamless integration with Zod schemas. | Native `node:fs` with Zod-validated JSON payloads. |
-| `dotenv` | Blindly overrides existing process environment variables, which breaks MCP host configurations where the host-injected environment must take precedence. | Custom dotenv parser `parseDotEnv` already in `src/config/env.ts`. |
-| `fs-extra` | Deprecated and unnecessary since modern Node.js has native promised-based FS and recursive `mkdirSync` / `mkdir`. | Native `node:fs`. |
+| Static YAML Service Templates | Causes rapid drift from Coolify's 200+ catalog, bloats the repository, and creates a maintenance nightmare. | Dynamic fetching of `service-templates.json` via CDN/GitHub or linking to `coolify-examples`. |
+| Legacy `.cursorrules` | Deprecated by Cursor, causes conflicts with the modern multi-file `.cursor/rules/*.mdc` system. | Modern `.cursor/rules/*.mdc` files with YAML frontmatter. |
+| Custom Regex OpenAPI Parsing | Highly fragile, prone to failure on complex JSON reference (`$ref`) resolutions and multi-file specs. | `@scalar/openapi-parser` for robust dereferencing. |
+| `execa` | Adds unnecessary dependency weight when Node's built-in `child_process` (with `util.promisify`) is sufficient. | Built-in `child_process` for lightweight `gh` CLI preflight checks. |
 
 ## Stack Patterns by Variant
 
-**If using self-hosted:**
-- Use arbitrary custom Coolify URL (e.g. `https://coolify.mycompany.com`).
-- Enable toggling `verifySsl` to `false` in `instances.json` and client creator to support self-signed development/internal certs.
+**If running the Setup Wizard CLI:**
+- Use `@clack/prompts` for interactive terminal prompts.
+- Use Node's built-in `child_process` to execute `gh auth status` and other preflight checks without adding external dependency weight.
 
-**If using Coolify Cloud:**
-- Force URL to `https://app.coolify.io`.
-- Enforce `verifySsl` is strictly `true` (do not allow disabling SSL validation for production cloud endpoints).
-- Team-scoped tokens: Since Cloud is organized per team, ensure all multi-instance operations default to team contexts and redact authorization headers in all log outputs.
+**If deploying IDE Skills:**
+- For **Cursor**: Create `.cursor/rules/*.mdc` files with YAML frontmatter specifying `alwaysApply`, `globs`, and `description`.
+- For **Claude Code**: Create `.claude/skills/SKILL.md` files with YAML frontmatter specifying `name`, `description`, and `allowed-tools`.
+- For **Codex**: Create `.codex/skills/SKILL.md` files with YAML frontmatter and an accompanying `agents/openai.yaml` for UI metadata and tool dependencies.
 
-**If managing workspace-specific project context:**
-- Write and load from a local `.coolify/manifest.json` file in the current working directory (`process.cwd()`).
-- The directory `.coolify/` and `.coolify/manifest.json` must be added to `.gitignore` to prevent committing developer-specific state or credentials.
+**If implementing `service.list-types`:**
+- Use `ofetch` to dynamically fetch the official `service-templates.json` from `https://cdn.jsdelivr.net/gh/coollabsio/coolify@main/templates/service-templates.json` with a local static fallback for offline resiliency.
+
+**If implementing `deployment.watch`:**
+- Reuse the existing `pollDeploymentUntilTerminal` utility located in `src/utils/deploy-poll.ts` to poll the deployment status until terminal or timeout.
 
 ## Version Compatibility
 
 | Package A | Compatible With | Notes |
 |-----------|-----------------|-------|
-| awesome-coolify-mcp@0.1.2 | Node >=22.14.0 | Relies on modern Node.js ES Modules features and built-in Fetch. |
-| awesome-coolify-mcp@0.1.2 | Zod@^4.4.3 | Uses Zod's robust parsing and custom `superRefine` for XOR operations (e.g., in logs, applications). |
-| awesome-coolify-mcp@0.1.2 | ofetch@^1.5.1 | Integrates with UnJS fetch client for intelligent error mapping and automatic retries. |
+| `@clack/prompts@^0.9.1` | `node@>=22.14` | Requires modern Node.js environment. |
+| `@scalar/openapi-parser@^0.25.3` | `@scalar/openapi-types@^0.6.0` | Strict peer dependency match for type safety. |
+| `@modelcontextprotocol/server@^2.0.0-beta.4` | `@modelcontextprotocol/sdk` | Fully compatible with the standard MCP Prompts API. |
 
 ## Sources
 
-- `/unjs/ofetch` — Resolved via Context7. Verified ofetch client creation and retry config.
-- `https://app.coolify.io/api/v1` — Verified official Coolify Cloud API base URL, Bearer auth, and parity with self-hosted API endpoints.
-- `https://github.com/coollabsio/coolify` — Coolify open-source repository and OpenAPI specifications.
-- `MEDIUM` Confidence level — Cross-referenced and verified against live Coolify 4.1.x instances and codebase patterns.
+- `/modelcontextprotocol/typescript-sdk` — MCP Prompts API and autocompletion standard.
+- `https://code.claude.com/docs/en/skills` — Claude Code skills specification.
+- `https://developers.openai.com/codex/skills` — Codex skills and TOML configuration specification.
+- `https://cursor.com/docs/rules` — Cursor rules and `.mdc` frontmatter specification.
+- `https://github.com/scalar/scalar/tree/main/packages/openapi-parser` — Scalar OpenAPI parser capabilities.
 
 ---
-*Stack research for: Coolify MCP Platform Foundation (v3.0)*
-*Researched: Tuesday Jul 21, 2026*
+*Stack research for: Coolify MCP Server v3.1*
+*Researched: Friday Jul 24, 2026*

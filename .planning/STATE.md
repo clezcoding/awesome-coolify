@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 status: planning
-last_updated: "2026-07-23T22:50:23.838Z"
+last_updated: "2026-07-24T00:58:00.000Z"
 last_activity: 2026-07-24
 progress:
   total_phases: 0
@@ -20,14 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-23)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Planning next milestone (v3.1 Setup & Skills)
+**Current focus:** Architecture research for v3.1 completed
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-24 — Milestone v3.1 started
+Phase: Phase 6 (Research)
+Plan: Researching integration points for v3.1 features
+Status: Completed features, architecture, and technology stack research for Setup wizard, IDE skills, richer descriptions, MCP prompts, list-types, deploy watch, and OpenAPI coverage.
+Last activity: 2026-07-24 — Technology stack research document created in .planning/research/STACK.md
+
 
 ## Performance Metrics
 

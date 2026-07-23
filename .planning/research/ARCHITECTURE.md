@@ -1,7 +1,7 @@
 # Architecture Research
 
 **Domain:** Multi-Instance MCP Server & Local Git-to-Cloud Manifest Sync
-**Researched:** July 21, 2026
+**Researched:** July 24, 2026
 **Confidence:** HIGH
 
 ## Standard Architecture
@@ -13,23 +13,31 @@
 │                       MCP Server Layer                      │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │
-│  │ System  │  │ Resource│  │ App/Svc │  │Instance │  (New)  │
+│  │ System  │  │ Resource│  │ App/Svc │  │Instance │  (v3.0)  │
 │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘        │
 │       │            │            │            │              │
-├───────┴────────────┴────────────┴────────────┴──────────────┤
+│  ┌────▼────┐  ┌────▼────┐  ┌────▼────┐  ┌────▼────┐        │
+│  │Prompts  │  │Recipes  │  │DeployWch│  │  Setup  │  (v3.1)  │
+│  │ (New)   │  │ (New)   │  │ (New)   │  │  Wizard │        │
+│  └─────────┘  └─────────┘  └─────────┘  └────┬────┘        │
+├─────────┬──────────┬────────────┬────────────┼──────────────┤
+│         │          │            │            │              │
+├─────────▼──────────▼────────────▼────────────▼──────────────┤
 │                     Configuration & Core                    │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │                 InstanceManager (New)               │    │
+│  │                 InstanceManager (v3.0)              │    │
 │  ├─────────────────────────────────────────────────────┤    │
-│  │                 ManifestManager (New)               │    │
+│  │                 ManifestManager (v3.0)              │    │
+│  ├─────────────────────────────────────────────────────┤    │
+│  │                 OpenAPICoverage Tool (v3.1 New)     │    │
 │  └─────────────────────────────────────────────────────┘    │
 ├─────────────────────────────────────────────────────────────┤
 │                       Data & Client Layer                   │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                   │
-│  │  ofetch  │  │instances │  │ manifest │                   │
-│  │  Client  │  │  .json   │  │  .json   │                   │
-│  └──────────┘  └──────────┘  └──────────┘                   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │  ofetch  │  │instances │  │ manifest │  │ OpenAPI  │     │
+│  │  Client  │  │  .json   │  │  .json   │  │Specs(New)│     │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -39,7 +47,10 @@
 |-----------|----------------|------------------------|
 | `InstanceManager` | Manages global multi-instance configurations in `~/.coolify-mcp/instances.json`. Resolves active instance credentials dynamically. | File-backed JSON store with Zod validation, credential masking, and dynamic client configuration. |
 | `ManifestManager` | Manages workspace-level project metadata in `.coolify/manifest.json`. Automatically links local git repos with remote Coolify resources. | Local workspace file-backed JSON store with auto-updating hooks on resource mutations and `.gitignore` safety guards. |
-| `InstanceTool` | Exposes MCP tools for instance CRUD and dynamic switching (`instance.list`, `instance.add`, `instance.switch`, etc.). | Action-based domain tool registered in `src/mcp/server.ts` following existing v2.0 patterns. |
+| `SetupWizard` | CLI-based installer guiding users through workspace preflights and linking repositories directly to Coolify endpoints. | Interactive command utility in `src/cli/setup-wizard.ts` using `prompts` and Node `child_process` for `gh` CLI checks. |
+| `McpPrompts` | Registers LLM workflow prompt templates (`deploy`, `diagnose`, `new-project`, `incident`) on the MCP server layer. | Declared via `server.registerPrompt` inside `src/mcp/prompts.ts` using Zod arguments validation. |
+| `OpenAPICoverage` | Maps the official Coolify OpenAPI specification against the implemented API client and tool endpoints. | Code parser utility in `src/cli/openapi-coverage.ts` generating `OAPI-COVERAGE.md` dynamic reporting. |
+| `RecipesCatalog` | Catalogs Coolify’s 200+ native service templates and provides local fallback structures when the API catalog list is offline. | Local database index in `src/utils/service-recipes.ts` linking to `coolify-examples` Git templates. |
 | `CoolifyClient` | URL-agnostic, stateless API client executing requests against self-hosted or cloud endpoints. | `ofetch.create` factory with retry/error mapping layers (existing, fully reusable). |
 
 ## Recommended Project Structure
@@ -47,97 +58,121 @@
 ```
 src/
 ├── api/
-│   └── client.ts           # Existing stateless HTTP clients (reusable)
+│   └── client.ts             # Stateless HTTP client methods (extended for service list types)
+├── cli/                      # CLI executable scripts folder
+│   ├── openapi-coverage.ts   # New: OpenAPI parser & coverage mapping tool
+│   └── setup-wizard.ts       # New: Interactive CLI Wizard with git/gh preflight
 ├── config/
-│   └── env.ts              # Modified to support dynamic fallback to InstanceManager
+│   └── env.ts                # Configuration parsing and dynamic fallback resolution
 ├── mcp/
-│   ├── server.ts           # Registers new InstanceTool and injects active config
+│   ├── server.ts             # MCP server lifecycle; registers tools and prompt managers
+│   ├── prompts.ts            # New: Registry for deploy/diagnose/incident prompts
 │   └── tools/
-│       ├── instance.ts     # New: instance CRUD & switch actions
-│       ├── application.ts  # Modified: manifest auto-update hooks
-│       ├── service.ts      # Modified: manifest auto-update hooks
-│       └── database.ts     # Modified: manifest auto-update hooks
+│       ├── deployment.ts     # Extended: watch action with polling logs
+│       ├── instance.ts       # Instance registry CRUD actions
+│       ├── manifest.ts       # Manifest sync and diff actions
+│       └── service.ts        # Extended: list-types action for 200+ recipes
 └── utils/
-    ├── instance.ts         # New: InstanceManager core logic
-    └── manifest.ts         # New: ManifestManager core logic
+    ├── deploy-poll.ts        # Polling utilities (enhanced to support logs streaming)
+    ├── openapi-parser.ts     # New: AST parser checking API coverage
+    └── service-recipes.ts    # New: Curated database of Coolify service templates & buildpacks
 ```
 
 ### Structure Rationale
 
-- **`utils/instance.ts` & `utils/manifest.ts`:** Keeps file I/O and state management out of the tool handlers, ensuring clean separation of concerns and high testability.
-- **`mcp/tools/instance.ts`:** Follows the existing action-based domain tool pattern, keeping the overall tool lease small and avoiding tool pollution.
-- **Stateless `api/client.ts`:** The existing client functions are already URL-agnostic and accept credentials as arguments. Keeping them stateless allows the same client to target multiple instances concurrently without side-effects.
+- **`cli/`:** Segregates commands that run only in the terminal environment (Setup Wizard, OpenAPI Map generator) from the core MCP runtime process. Keeps build sizes slim and avoids loading terminal-interactive libraries inside MCP stdio pipes.
+- **`mcp/prompts.ts`:** Consolidated file for protocol prompt templates, keeping `server.ts` slim and maintaining clean abstraction boundaries.
+- **`utils/service-recipes.ts`:** Acts as a lightweight static metadata engine. Guarantees immediate responses for service catalog queries without executing slow external HTTP calls.
 
 ## Architectural Patterns
 
-### Pattern 1: Dynamic Config Resolution
+### Pattern 1: Dynamic Prompt Contextualization
 
-**What:** Instead of loading environment variables once at server startup, the configuration is resolved dynamically per-request. If `COOLIFY_URL` and `COOLIFY_TOKEN` are present in the environment, they act as an override (backward-compatible single-instance mode). Otherwise, the active instance is loaded from `~/.coolify-mcp/instances.json`.
+**What:** Exposing pre-formulated system messages (prompts) through the MCP SDK. These prompts guide LLMs through structured Coolify operations (deployment, debugging) by automatically wrapping workspace facts like git status, branch details, and current workspace manifest files.
 
-**When to use:** Crucial for multi-instance MCP servers where the agent or host can switch targets without restarting the server process.
+**When to use:** Whenever the AI client (e.g., Cursor, Claude Code) needs explicit workflows or multi-step advice to successfully interact with the server.
 
-**Trade-offs:** Adds minor file read overhead per tool execution (mitigated by caching or lightweight file-stats checks).
+**Trade-offs:** The client must actively query the server prompts, and prompts can consume model context if templates are too verbose.
 
 **Example:**
 ```typescript
-// src/utils/instance.ts
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
+// src/mcp/prompts.ts
+import { McpServer } from '@modelcontextprotocol/server';
+import { z } from 'zod';
+import { ManifestManager } from '../utils/manifest.js';
 
-export interface InstanceConfig {
-  id: string;
-  name: string;
-  url: string;
-  token: string;
-  verifySsl: boolean;
-  type: 'self-hosted' | 'cloud';
-}
+export function registerCoolifyPrompts(server: McpServer): void {
+  server.registerPrompt(
+    'diagnose-incident',
+    {
+      title: 'Diagnose Incident',
+      description: 'Collect logs and resource metrics to troubleshoot a failing service or database.',
+      argsSchema: z.object({
+        resource_uuid: z.string().optional().describe('Failing resource UUID (falls back to manifest context)'),
+      }),
+    },
+    async ({ resource_uuid }) => {
+      let uuid = resource_uuid;
+      if (!uuid) {
+        const manifest = ManifestManager.load();
+        uuid = manifest?.resources?.[0]?.uuid;
+      }
 
-export class InstanceManager {
-  private static filePath = join(homedir(), '.coolify-mcp', 'instances.json');
-
-  static getActiveConfig(): InstanceConfig | null {
-    if (!existsSync(this.filePath)) return null;
-    const data = JSON.parse(readFileSync(this.filePath, 'utf8'));
-    return data.instances.find((i: any) => i.id === data.active) || null;
-  }
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: {
+              type: 'text',
+              text: `Diagnose the resource with UUID "${uuid || 'unknown'}". Gather logs, check system health, and evaluate failure hints.`,
+            },
+          },
+        ],
+      };
+    }
+  );
 }
 ```
 
-### Pattern 2: Mutation-Triggered Manifest Sync
+### Pattern 2: Progressive Stateless Polling (`watch`)
 
-**What:** Workspace-level resource mappings (`.coolify/manifest.json`) are automatically updated whenever a resource is created, updated, or deleted by the agent.
+**What:** Non-blocking tool execution model where a long-running action (`deployment.watch`) monitors an ongoing operation, progressively sleeping and gathering incremented logs rather than choking the single-threaded stdio pipe.
 
-**When to use:** Essential for maintaining a local-to-remote mapping of app/service/db UUIDs without requiring the agent to perform slow, expensive global scans on every session startup.
+**When to use:** Essential for asynchronous tasks like deployments, preventing the LLM from entering manual wait loops or timing out.
 
-**Trade-offs:** Requires the MCP server to have write access to the local workspace (standard for stdio MCPs) and must strictly avoid committing secrets to git.
+**Trade-offs:** Blocks the calling agent's immediate turn until the watch finishes, but ensures correct completion tracking.
 
 **Example:**
 ```typescript
-// src/utils/manifest.ts
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+// src/utils/deploy-poll.ts
+export async function pollDeploymentWithLogs(
+  fetcher: () => Promise<Record<string, unknown>>,
+  logger: (lines: string[]) => void,
+  timeoutMs: number,
+  intervalMs = 3000
+): Promise<Record<string, unknown>> {
+  const startTime = Date.now();
+  let seenLinesCount = 0;
 
-export class ManifestManager {
-  private static filePath = join(process.cwd(), '.coolify', 'manifest.json');
-
-  static addResource(resource: { type: string; uuid: string; name: string; fqdn?: string }) {
-    const manifest = this.load() || { resources: [] };
-    manifest.resources = manifest.resources.filter((r: any) => r.uuid !== resource.uuid);
-    manifest.resources.push(resource);
-    this.save(manifest);
-    this.ensureGitignore();
-  }
-
-  private static ensureGitignore() {
-    const gitignorePath = join(process.cwd(), '.gitignore');
-    if (existsSync(gitignorePath)) {
-      const content = readFileSync(gitignorePath, 'utf8');
-      if (!content.includes('.coolify')) {
-        writeFileSync(gitignorePath, content + '\n.coolify/\n');
-      }
+  while (true) {
+    const deployment = await fetcher();
+    const rawLogs = String(deployment.logs || '');
+    const lines = rawLogs.split('\n').filter(Boolean);
+    
+    if (lines.length > seenLinesCount) {
+      logger(lines.slice(seenLinesCount));
+      seenLinesCount = lines.length;
     }
+
+    if (deployment.status === 'finished' || deployment.status === 'failed') {
+      return deployment;
+    }
+
+    if (Date.now() - startTime >= timeoutMs) {
+      return { ...deployment, status: 'timeout' };
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
 }
 ```
@@ -147,50 +182,68 @@ export class ManifestManager {
 ### Request Flow
 
 ```
-[Agent Action (e.g., application.deploy)]
-    ↓
-[McpServer Tool Handler]
-    ↓
-[Resolve Active Instance (Env Override ➔ InstanceManager)]
-    ↓
-[Instantiate Stateless CoolifyClient]
-    ↓
-[Execute API Request] ➔ [Update Local Manifest (if mutation)]
-    ↓
-[Format Response] ➔ [Agent / IDE UI]
+[User runs CLI Command (init / coverage)]
+       │
+       ▼
+ [cli/setup-wizard.ts] ──────► [gh preflight / git remote check]
+       │
+       ▼
+ [InstanceManager] ──────────► Save URL & Token to ~/.coolify-mcp/instances.json
+       │
+       ▼
+ [ManifestManager] ──────────► Save initial project mapping to .coolify/manifest.json
+       │
+       ▼
+  [IDE Skills] ──────────────► Copy .cursorrules / .claudecoderules files to local workspace
+```
+
+```
+[Agent runs deployment.watch Tool]
+       │
+       ▼
+  [McpServer Tool Handler]
+       │
+       ▼
+[pollDeploymentWithLogs Loop] ───► Call API periodically (e.g., fetchDeployment)
+       │
+       ├─────────────────────────► Extract new log lines on each tick
+       │
+       ▼
+ [Return formatted timeline] ───► Output terminal log stream back to the Agent
 ```
 
 ### Key Data Flows
 
-1. **Instance Switching:**
-   - Agent calls `instance.switch({ id: "staging" })`.
-   - `InstanceManager` updates the `active` pointer in `~/.coolify-mcp/instances.json`.
-   - Subsequent tool calls dynamically load the "staging" URL and token.
-2. **Resource Creation & Tracking:**
-   - Agent calls `application.create({ name: "my-app" })`.
-   - MCP server calls Coolify API, receives new application UUID.
-   - `ManifestManager` appends `{ type: "application", uuid: "...", name: "my-app" }` to `.coolify/manifest.json`.
-   - `ManifestManager` ensures `.coolify/` is added to `.gitignore`.
+1. **Setup Preflight & Automated Wiring:**
+   - Script runs `gh auth status` and `git remote -v` to ensure the project has a valid repository.
+   - Prompts for Coolify URL/Token, validating them with a quick ping via the stateless API client.
+   - Pushes workspace context up to Coolify (creates/routes server, project, and environment variables).
+   - Generates `.coolify/manifest.json` locally and adds `.coolify/` to the `.gitignore` automatically.
+
+2. **OpenAPI Compliance Scans:**
+   - Static analysis tool parses the `coolify_openapi.json` spec.
+   - Inspects `src/api/client.ts` to build an AST of all covered REST verbs and paths.
+   - Evaluates the difference, calculating coverage metrics and outputting compliance targets in `OAPI-COVERAGE.md`.
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| 1-5 Instances | Monolithic `instances.json` is perfectly sufficient. Read/write operations are instantaneous. |
-| 10-50 Resources per Project | Flat `.coolify/manifest.json` file works flawlessly. No indexing or database needed. |
-| 100+ Instances / Multi-tenant | If used in a team context, instances can be managed via environment variable overrides or shared configuration profiles. |
+| Development | Simple CLI files and standard static assets. Node 22+ is more than sufficient. |
+| Production CI | Coverage tools can be wired into Github Actions to block PRs if API test coverage degrades. |
+| Enterprise Fleet | Curated service recipes are stored locally in the package, avoiding high-concurrency rate limiting when parsing 200+ Coolify catalog services. |
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Hardcoding Active Client State
-**What people do:** Creating a single global client instance at server startup and mutating its base URL/token when switching instances.
-**Why it's wrong:** Causes race conditions and concurrency bugs if multiple requests are processed in parallel, or if the server is used in a multi-tenant environment.
-**Do this instead:** Keep the client layer (`src/api/client.ts`) completely stateless. Instantiate or pass the dynamic configuration to the client on every request.
+### Anti-Pattern 1: Blocking Single-Threaded Stdio Streams with Nested Shells
+**What people do:** Spawning interactive commands or infinite shell loops directly within the MCP tool callback.
+**Why it's wrong:** Cluttering stdin/stdout blocks standard communication between the server and the LLM, leading to socket hangs and crashed sessions.
+**Do this instead:** Package the Setup Wizard as an independent CLI binary that users run separately in their terminal (`npx awesome-coolify-setup`), and run watch loops using controlled, asynchronous JS intervals.
 
-### Anti-Pattern 2: Committing Manifest to Git
-**What people do:** Saving `.coolify/manifest.json` directly to the repository without gitignoring it.
-**Why it's wrong:** Exposes environment-specific UUIDs, private domain structures, and potentially sensitive metadata to public or shared repositories.
-**Do this instead:** Force-append `.coolify/` to `.gitignore` programmatically whenever the manifest is created or updated.
+### Anti-Pattern 2: Forking Outdated YAML Template Files
+**What people do:** Keeping custom clones of Coolify's Docker Compose stacks locally in the package directory.
+**Why it's wrong:** Coolify's templates evolve rapidly. Storing static YAML duplicates leads to broken deployments as base services change upstream.
+**Do this instead:** Query Coolify's native `service.list-types` directly or reference the official `coolify-examples` repo as hint-links, rather than maintaining long-term hardcoded compose strings.
 
 ## Integration Points
 
@@ -198,36 +251,54 @@ export class ManifestManager {
 
 | Service | Integration Pattern | Notes |
 |---------|---------------------|-------|
-| Coolify Cloud | Stateless REST API via `https://app.coolify.io/api/v1` | Uses identical endpoints as self-hosted. Authentication is team-scoped. |
-| Local Workspace | File-system reads/writes to `.coolify/manifest.json` | Must handle missing directories gracefully and enforce `.gitignore` safety. |
+| GitHub CLI (`gh`) | Subprocess execution via `execSync` | Checked during Setup Preflight; falls back to raw Git commands if `gh` is missing. |
+| npm Registry | OIDC/Trusted Publishing Github Action | Configured under `.github/workflows/publish.yml` to trigger automatically on new version releases. |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| Setup CLI ↔ Core Utils | Direct Imports | Setup Wizard reuses `InstanceManager` and `ManifestManager` APIs directly to avoid duplicate file-writing logic. |
+| MCP Server ↔ Prompts | Programmatic Registration | Modular registration function `registerCoolifyPrompts(server)` decouples prompts from server startup wiring. |
 
 ## Suggested Build Order
 
-1. **Phase 1: Multi-Instance Foundation (`instances.json`)**
-   - **Goal:** Enable storing and switching between multiple Coolify instances.
-   - **Tasks:**
-     - Build `InstanceManager` in `src/utils/instance.ts`.
-     - Update `src/config/env.ts` to fallback to `InstanceManager.getActiveConfig()`.
-     - Implement `src/mcp/tools/instance.ts` with CRUD and switch actions.
-     - Register `instance` tool in `src/mcp/server.ts`.
-   - **Dependencies:** None.
-
-2. **Phase 2: Coolify Cloud Support**
-   - **Goal:** Ensure seamless integration with Coolify Cloud.
-   - **Tasks:**
-     - Add `type: "cloud" | "self-hosted"` schema validation to instance configurations.
-     - Document Cloud setup steps and team-token scoping.
-     - Add mock/smoke tests verifying `createCoolifyClient` behavior against `https://app.coolify.io`.
-   - **Dependencies:** Phase 1.
-
-3. **Phase 3: Local Manifest System (`.coolify/manifest.json`)**
-   - **Goal:** Persist project-level resource mappings locally.
-   - **Tasks:**
-     - Build `ManifestManager` in `src/utils/manifest.ts` with `.gitignore` auto-injection.
-     - Add auto-update hooks to resource creation/deletion actions across `application.ts`, `service.ts`, and `database.ts`.
-     - Implement `manifest:sync` action to reconcile local manifest with remote resources.
-   - **Dependencies:** Phase 1 & Phase 2.
+```
+┌────────────────────────────────────────────────────────┐
+│  Phase 1: Prompts & Richer Tool Descriptions           │
+│  - Define deploy, diagnose, incident templates        │
+│  - Expand descriptions & fix Cursor parameter display  │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│  Phase 2: Recipes & list-types                         │
+│  - Implement service.list-types actions                │
+│  - Map 200+ native Coolify service configurations      │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│  Phase 3: Deploy Watch (`deployment.watch`)            │
+│  - Implement log-incremental polling in deploy-poll    │
+│  - Add action to src/mcp/tools/deployment.ts           │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│  Phase 4: Setup Wizard & CLI Engine                    │
+│  - Program gh checks and wizard prompt questions       │
+│  - Save local workspace manifest & auto-write gitignore │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│  Phase 5: OpenAPI Coverage Mapping                     │
+│  - Build script parsing json spec and matching AST     │
+│  - Generate reports & integrate into CI checks         │
+└────────────────────────────────────────────────────────┘
+```
 
 ---
-*Architecture research for: awesome-coolify v3.0 Platform Foundation*
-*Researched: July 21, 2026*
+*Architecture research for: awesome-coolify v3.1 Setup, Skills & DX*
+*Researched: July 24, 2026*
