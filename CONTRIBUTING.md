@@ -31,7 +31,9 @@ This runs `node scripts/live-uat.mjs`. Optional flags:
 | `--full` | Runs the entire action matrix (default is representatives plus the fixed v3 mandatory set) |
 | `--out <path>` | Writes the JSON report to a file and emits a Markdown companion (`.md` alongside or derived from the path) |
 
-Without `--write`, the harness stays **read-only**: lists, gets, diff, and meta-style calls execute; write and destructive matrix rows are recorded as status `planned`, not executed.
+Without `--write`, the harness stays **read-only** for normal matrix rows: lists, gets, diff, and meta-style calls execute; write and destructive matrix rows are recorded as status `planned`, not executed.
+
+One smoke exception: `emergency-stop-all-preview-smoke` intentionally calls `emergency` / `stop_all` without `confirm`. That performs a live `fetchResources` probe; the MCP handler rejects with `COOLIFY_CONFIRM_REQUIRED` (preview semantics). The harness scores that response as **pass** — it verifies the confirm gate, not a bulk stop. This row is typed `read` in the matrix because it never mutates when `confirm` is absent.
 
 ### Preconditions
 
