@@ -153,6 +153,320 @@ export function matchesSuiteFilter(row, flags) {
   );
 }
 
+const MANIFEST_PATH = resolve(root, '.coolify', 'manifest.json');
+
+const HANDLER_SPECS = [
+  ['system', '../src/mcp/tools/system.ts', 'handleSystemAction'],
+  ['meta', '../src/mcp/tools/meta.ts', 'handleMetaAction'],
+  ['resource', '../src/mcp/tools/resource.ts', 'handleResourceAction'],
+  ['diagnose', '../src/mcp/tools/diagnose.ts', 'handleDiagnoseAction'],
+  ['application', '../src/mcp/tools/application.ts', 'handleApplicationAction'],
+  ['emergency', '../src/mcp/tools/emergency.ts', 'handleEmergencyAction'],
+  ['deployment', '../src/mcp/tools/deployment.ts', 'handleDeploymentAction'],
+  ['service', '../src/mcp/tools/service.ts', 'handleServiceAction'],
+  ['database', '../src/mcp/tools/database.ts', 'handleDatabaseAction'],
+  ['private_key', '../src/mcp/tools/private_key.ts', 'handlePrivateKeyAction'],
+  ['instance', '../src/mcp/tools/instance.ts', 'handleInstanceAction'],
+  ['manifest', '../src/mcp/tools/manifest.ts', 'handleManifestAction'],
+  ['server', '../src/mcp/tools/server.ts', 'handleServerAction'],
+  ['project', '../src/mcp/tools/project.ts', 'handleProjectAction'],
+  ['environment', '../src/mcp/tools/environment.ts', 'handleEnvironmentAction'],
+  ['docs', '../src/mcp/tools/docs.ts', 'handleDocsAction'],
+];
+
+async function buildDispatchMap() {
+  const map = new Map();
+  for (const [tool, modulePath, exportName] of HANDLER_SPECS) {
+    try {
+      const mod = await import(modulePath);
+      if (typeof mod[exportName] === 'function') {
+        map.set(tool, mod[exportName]);
+      } else {
+        map.set(tool, null);
+      }
+    } catch {
+      map.set(tool, null);
+    }
+  }
+  return map;
+}
+
+function normalizeHandlerResult(result) {
+  if (result && result.isError === true && result.structuredContent) {
+    return result.structuredContent;
+  }
+  if (result && typeof result.ok === 'boolean') {
+    return result;
+  }
+  return { ok: true, data: result };
+}
+
+function isCloudHost(url) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return hostname === 'coolify.io' || hostname.endsWith('.coolify.io');
+  } catch {
+    return false;
+  }
+}
+
+function manifestExists() {
+  return existsSync(MANIFEST_PATH);
+}
+
+function rowAllowedByFlags(row, flags) {
+  return (
+    row.type === 'read' ||
+    (row.type === 'write' && flags.write) ||
+    (row.type === 'destructive' && flags.write && flags.confirmDestructive)
+  );
+}
+
+function findV3GapForRow(row, v3Gaps) {
+  return v3Gaps.find((gap) => gap.id === row.id);
+}
+
+async function resolveResourceProjectUuid(row, routingEnv, dispatchMap) {
+  const args = row.args ?? {};
+  const resourceHandler = dispatchMap.get('resource');
+  const applicationHandler = dispatchMap.get('application');
+  const serviceHandler = dispatchMap.get('service');
+  const databaseHandler = dispatchMap.get('database');
+
+  async function projectUuidFromGet(handler, uuid) {
+    if (!handler || !uuid) return null;
+    const result = await handler({ action: 'get', uuid }, routingEnv);
+    const structured = normalizeHandlerResult(result);
+    if (!structured.ok) return null;
+    return structured.data?.project_uuid ?? null;
+  }
+
+  if (args.project_uuid) {
+    return args.project_uuid;
+  }
+
+  if (row.tool === 'project' && args.uuid) {
+    return args.uuid;
+  }
+
+  if (args.uuid) {
+    if (row.tool === 'application') {
+      return projectUuidFromGet(applicationHandler, args.uuid);
+    }
+    if (row.tool === 'service') {
+      return projectUuidFromGet(serviceHandler, args.uuid);
+    }
+    if (row.tool === 'database') {
+      return projectUuidFromGet(databaseHandler, args.uuid);
+    }
+    if (row.tool === 'deployment' && args.application_uuid) {
+      return projectUuidFromGet(applicationHandler, args.application_uuid);
+    }
+  }
+
+  if ((args.name || args.uuid || args.fqdn) && resourceHandler) {
+    const findArgs = {
+      action: 'find',
+      ...(args.uuid ? { uuid: args.uuid } : {}),
+      ...(args.name ? { name: args.name } : {}),
+      ...(args.fqdn ? { domain: args.fqdn } : {}),
+    };
+    const findResult = await resourceHandler(findArgs, routingEnv);
+    const structured = normalizeHandlerResult(findResult);
+    if (!structured.ok || !Array.isArray(structured.data) || structured.data.length === 0) {
+      return null;
+    }
+    const match = structured.data[0];
+    if (match.type === 'application') {
+      return projectUuidFromGet(applicationHandler, match.uuid);
+    }
+    if (match.type === 'service') {
+      return projectUuidFromGet(serviceHandler, match.uuid);
+    }
+    if (match.type === 'database') {
+      return projectUuidFromGet(databaseHandler, match.uuid);
+    }
+  }
+
+  if (args.application_uuid && row.tool === 'deployment') {
+    return projectUuidFromGet(applicationHandler, args.application_uuid);
+  }
+
+  return null;
+}
+
+async function guardUatScope(row, routingEnv, dispatchMap, uatProjectUuid) {
+  const args = row.args ?? {};
+
+  if (row.tool === 'manifest') {
+    return true;
+  }
+
+  if (args.project_uuid) {
+    return args.project_uuid === uatProjectUuid;
+  }
+
+  if (row.tool === 'project' && args.uuid) {
+    return args.uuid === uatProjectUuid;
+  }
+
+  if (row.tool === 'environment' && args.project_uuid) {
+    return args.project_uuid === uatProjectUuid;
+  }
+
+  if (row.tool === 'emergency') {
+    if (args.project_uuid) {
+      return args.project_uuid === uatProjectUuid;
+    }
+    return false;
+  }
+
+  const scopedTools = ['application', 'service', 'database', 'deployment'];
+  if (scopedTools.includes(row.tool)) {
+    const projectUuid = await resolveResourceProjectUuid(row, routingEnv, dispatchMap);
+    if (!projectUuid) {
+      return false;
+    }
+    return projectUuid === uatProjectUuid;
+  }
+
+  return true;
+}
+
+function evaluateInProcessRowResult(row, handlerResult, redact) {
+  const structuredContent = normalizeHandlerResult(handlerResult);
+  let status = 'pass';
+  let errorCode = null;
+  let recoveryHintsPresent = false;
+
+  if (structuredContent.ok === false) {
+    status = 'fail';
+    errorCode = structuredContent.error?.code ?? 'UAT_UNKNOWN';
+    const hints = structuredContent.error?.recoveryHints;
+    recoveryHintsPresent = Array.isArray(hints) && hints.length > 0;
+  }
+
+  return redact({
+    id: row.id,
+    tool: row.tool,
+    status,
+    durationMs: 0,
+    errorCode,
+    recoveryHintsPresent,
+    structuredContent,
+  });
+}
+
+export async function runInProcessRows({
+  matrix,
+  flags,
+  routingEnv,
+  redact,
+  v3Gaps = [],
+  uatProjectUuid,
+  dispatchMap,
+}) {
+  const filtered = matrix.filter(
+    (row) => row.mode === 'in-process' && matchesSuiteFilter(row, flags),
+  );
+  const rows = [];
+
+  for (const row of filtered) {
+    const gap = findV3GapForRow(row, v3Gaps);
+    if (gap) {
+      rows.push(
+        redact({
+          id: row.id,
+          tool: row.tool,
+          status: 'skip',
+          durationMs: 0,
+          errorCode: null,
+          recoveryHintsPresent: false,
+          skipReason: gap.reason,
+          structuredContent: null,
+        }),
+      );
+      continue;
+    }
+
+    if (!rowAllowedByFlags(row, flags)) {
+      rows.push(
+        redact({
+          id: row.id,
+          tool: row.tool,
+          status: 'planned',
+          durationMs: 0,
+          errorCode: null,
+          recoveryHintsPresent: false,
+          structuredContent: null,
+        }),
+      );
+      continue;
+    }
+
+    const handler = dispatchMap.get(row.tool);
+    if (!handler) {
+      rows.push(
+        redact({
+          id: row.id,
+          tool: row.tool,
+          status: 'fail',
+          durationMs: 0,
+          errorCode: 'UAT_IMPORT_FAIL',
+          recoveryHintsPresent: false,
+          structuredContent: null,
+        }),
+      );
+      continue;
+    }
+
+    if (row.type !== 'read') {
+      const inScope = await guardUatScope(
+        row,
+        routingEnv,
+        dispatchMap,
+        uatProjectUuid,
+      );
+      if (!inScope) {
+        rows.push(
+          redact({
+            id: row.id,
+            tool: row.tool,
+            status: 'blocked-outside-uat',
+            durationMs: 0,
+            errorCode: null,
+            recoveryHintsPresent: false,
+            structuredContent: null,
+          }),
+        );
+        continue;
+      }
+    }
+
+    const startTime = Date.now();
+    try {
+      const handlerResult = await handler(row.args ?? {}, routingEnv);
+      const result = evaluateInProcessRowResult(row, handlerResult, redact);
+      result.durationMs = Date.now() - startTime;
+      rows.push(result);
+    } catch {
+      rows.push(
+        redact({
+          id: row.id,
+          tool: row.tool,
+          status: 'fail',
+          durationMs: Date.now() - startTime,
+          errorCode: 'UAT_CRASH',
+          recoveryHintsPresent: false,
+          structuredContent: null,
+        }),
+      );
+    }
+  }
+
+  return rows;
+}
+
 class McpStdioClient {
   constructor(child) {
     this.child = child;
@@ -375,7 +689,8 @@ function writeMarkdown(report, path, redact) {
   if (report.v3_gaps.length > 0) {
     lines.push('', '## v3_gaps', '');
     for (const gap of report.v3_gaps) {
-      lines.push(`- **${gap.reason}**: ${gap.message}`);
+      const label = gap.id ? `${gap.id} (${gap.reason})` : gap.reason;
+      lines.push(`- **${label}**: ${gap.message ?? gap.reason}`);
     }
   }
 
