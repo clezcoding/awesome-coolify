@@ -19,7 +19,8 @@
     "gsd:fix-verification": "node scripts/gsd-ensure-verification-fresh.mjs",
     "prepare": "husky",
     "version": "changeset version",
-    "publint": "publint"
+    "publint": "publint",
+    "uat:live": "node scripts/live-uat.mjs"
   },
   "files": [
     "dist",
