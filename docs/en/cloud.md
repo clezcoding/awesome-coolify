@@ -1,6 +1,6 @@
 # Coolify Cloud
 
-Use **awesome-coolify-mcp** with [Coolify Cloud](https://app.coolify.io) — the same 14 domain tools and 55 actions as self-hosted, with team-scoped tokens and structured cloud error codes.
+Use **awesome-coolify-mcp** with [Coolify Cloud](https://app.coolify.io) — the same **16 domain tools** and **~87 actions** as self-hosted, with team-scoped tokens and structured cloud error codes.
 
 > **Branding:** The MCP server list icon is served from jsDelivr — see [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png) and [`docs/assets/README.md`](../assets/README.md).
 
@@ -18,11 +18,41 @@ Use `instance` action **`cloud-info`** for local/static discovery — it reports
 instance({ action: "cloud-info" })
 ```
 
+### `cloud-info` response fields
+
+| Field | Meaning |
+|-------|---------|
+| `isCloud` | `true` when the resolved hostname is `*.coolify.io` or registry `type: "cloud"` |
+| `url` | Resolved Coolify base URL (no trailing slash) |
+| `source` | Where credentials came from: `registry` · `env` · `infer` |
+| `knownLimits` | Static list of Cloud API gaps (mirrors [Known limits](#known-limits) below) |
+| `docs` | Link back to this page |
+
 ---
 
 ## Setup
 
 Generate a **team-scoped** API token in [app.coolify.io](https://app.coolify.io) under **Keys & Tokens**. Never commit real tokens — use placeholders or environment variables.
+
+### Multi-instance registry
+
+For fleets that mix self-hosted and Cloud, register each instance in `~/.coolify-mcp/instances.json`:
+
+```js
+instance({
+  action: "add",
+  name: "cloud",
+  url: "https://app.coolify.io",
+  token: "<team-scoped-token>",
+  type: "cloud",
+})
+instance({ action: "list" })
+instance({ action: "set-default", name: "cloud" })
+```
+
+- Registry directory: `0o700`; `instances.json`: `0o600`
+- Per-request credential resolution — no cross-instance token leakage
+- Pass `instance: "<name>"` on ops tools to target a specific registry entry
 
 ### Path 1 — `instance.add` (registry)
 
@@ -68,6 +98,27 @@ Expect a JSON version payload on success; `401` means regenerate the token.
 
 ---
 
+## Branding
+
+The MCP client list icon comes from **`serverInfo.icons`** — served from jsDelivr at [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png). This is a Cursor/MCP-list display path only; it does not call the Coolify API.
+
+---
+
+## Local manifest
+
+The workspace cache at **`.coolify/manifest.json`** speeds up discovery and UUID hints:
+
+```js
+manifest({ action: "sync" })   // reconcile against live API
+manifest({ action: "diff" })   // non-destructive diff report
+```
+
+- Best-effort auto-hooks update the cache after app/service/DB mutations
+- Stale entries surface `_meta.manifestWarning` on related ops — run `sync` or `diff` to reconcile
+- The manifest is a **cache, not source of truth** — remote API wins on conflict; 404 hints only (D-15)
+
+---
+
 ## Smoke test
 
 After connect, run this agent-first path to confirm Cloud works:
@@ -104,7 +155,7 @@ After connect, run this agent-first path to confirm Cloud works:
 | Server CRUD via API | Cloud does **not** support server create, validate, or delete through the REST API — use the Cloud dashboard for server management. |
 | Self-hosted-only endpoints | Some endpoints available on self-hosted return **404** on Cloud → structured code `COOLIFY_CLOUD_UNSUPPORTED`. |
 | Team-scoped tokens | Tokens are scoped to a team — verify the token's team owns the target resource. |
-| Same tool surface | All 14 MCP domain tools remain available; failures surface as structured errors, not silent stubs. |
+| Same tool surface | All 16 MCP domain tools remain available; failures surface as structured errors, not silent stubs. |
 
 `cloud-info` `knownLimits` mirrors this list locally — no live capability probe.
 
