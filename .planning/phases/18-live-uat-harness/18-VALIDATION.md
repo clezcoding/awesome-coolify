@@ -4,7 +4,7 @@ slug: live-uat-harness
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-23
 ---
@@ -40,25 +40,27 @@ created: 2026-07-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 18-W0 | 00 | 0 | UAT-01…06 | — | N/A | scaffold | create harness/matrix stubs | ❌ W0 | ⬜ pending |
-| 18-* | * | * | UAT-01 | T-18-02 | No destructive without flags | integration | `node scripts/live-uat.mjs` | ❌ W0 | ⬜ pending |
-| 18-* | * | * | UAT-02 | T-18-01 | Tokens redacted as `***` | integration | `node scripts/live-uat.mjs` (redaction check) | ❌ W0 | ⬜ pending |
-| 18-* | * | * | UAT-03 | — | JSON report per tool | integration | `node scripts/live-uat.mjs --out report.json` | ❌ W0 | ⬜ pending |
-| 18-* | * | * | UAT-04 | — | v3 suite tags | integration | `node scripts/live-uat.mjs` (+ `--full` when needed) | ❌ W0 | ⬜ pending |
-| 18-* | * | * | UAT-05 | T-18-02 | Write/destructive gated | integration | default run shows `planned`/skip for mutations | ❌ W0 | ⬜ pending |
-| 18-* | * | * | UAT-06 | — | Docs present | docs | Inspect `CONTRIBUTING.md` for `uat:live` | ✅ | ⬜ pending |
+| 18-01-T1 | 01 | 1 | UAT-01, UAT-04 | — | Declarative matrix covers every registered tool + v3 rows | structural | matrix JSON parse + registerTool regex coverage check | ❌ created in plan | ⬜ pending |
+| 18-01-T2 | 01 | 1 | UAT-02, UAT-05 | T-18-01, T-18-02 | tsx respawn, creds, redact, UAT gate | integration | `node scripts/live-uat.mjs` (empty UUID exit 2, no token leak) | ❌ created in plan | ⬜ pending |
+| 18-02-T1 | 02 | 2 | UAT-01, UAT-03 | T-18-01, T-18-04 | McpStdioClient + stdio runner | structural | grep live-uat.mjs for McpStdioClient/runStdioRows/SIGTERM/30s | ❌ created in plan | ⬜ pending |
+| 18-02-T2 | 02 | 2 | UAT-03 | T-18-01 | JSON stdout + --out + Markdown + exit codes | structural | grep live-uat.mjs for buildReport/writeMarkdown/exit mapping | ❌ created in plan | ⬜ pending |
+| 18-03-T1 | 03 | 3 | UAT-01, UAT-05 | T-18-02 | In-process dispatch + two-tier flag gate + UAT scope | integration | `node scripts/live-uat.mjs` (planned rows for write/destructive without flags) | ❌ created in plan | ⬜ pending |
+| 18-03-T2 | 03 | 3 | UAT-04, UAT-05 | T-18-02 | v3_gaps skip + --full + merged report | integration | `node scripts/live-uat.mjs --full --out /tmp/uat-full.json` | ❌ created in plan | ⬜ pending |
+| 18-04-T1 | 04 | 2 | UAT-06 | T-18-08 | npm script + tarball exclusion | structural | `npm pack --dry-run --json` excludes scripts/live-uat | ❌ created in plan | ⬜ pending |
+| 18-04-T2 | 04 | 2 | UAT-06 | — | CONTRIBUTING runbook | docs | Inspect `CONTRIBUTING.md` for `uat:live` + flags + v3_gaps | ❌ created in plan | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
-## Wave 0 Requirements
+## Wave Gate (live run, before /gsd-verify-work)
 
-- [ ] `scripts/live-uat.mjs` — new CLI live UAT harness
-- [ ] `scripts/live-uat.matrix.json` — declarative coverage matrix
-- [ ] `CONTRIBUTING.md` — UAT run + interpret docs
+Per-task structural checks keep feedback latency < 60s during execution. The full live UAT run against the real Coolify instance is deferred to the **phase gate** (run once before `/gsd-verify-work`), not per task:
 
-*Existing Vitest/lint/build infrastructure covers unit regression; live harness is Wave 0 deliverable.*
+- [ ] `node scripts/live-uat.mjs --out /tmp/uat.json` against the live UAT instance exits 0 or 1 (or 2 on setup abort)
+- [ ] /tmp/uat.json and /tmp/uat.md both exist
+- [ ] stdout parses as JSON with rows, summary, and v3_gaps
+- [ ] None of stdout, /tmp/uat.json, /tmp/uat.md contains the resolved COOLIFY_TOKEN
 
 ---
 
@@ -72,11 +74,11 @@ created: 2026-07-23
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify (structural checks for harness-building tasks; live run deferred to wave gate)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Every plan (18-01..04) has at least one automated verify per task
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s (structural per-task checks; live run is phase gate only)
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
