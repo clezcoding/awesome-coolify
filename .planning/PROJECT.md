@@ -2,32 +2,25 @@
 
 ## What This Is
 
-Open-Source MCP-Server für self-hosted Coolify-Instanzen (API 4.1.x). v1.0 (**Ops MVP**) shipped 2026-07-16. v2.0 (**Creation & CRUD**) shipped 2026-07-21. Package `awesome-coolify-mcp` v0.1.2, single public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops — plus SSH keys, servers, projects, environments, application/service/database CRUD, env vars, smart sync, und backup schedules with confirm/safe-delete/masking.
+Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` (v0.2.0), public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, und Live-UAT gegen echte Coolify-Daten.
 
 ## Core Value
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.0 in progress — Phase 17 complete 2026-07-22)
+## Current State (v3.0 shipped 2026-07-23)
 
 | Metric | Value |
 |--------|-------|
-| Package | `awesome-coolify-mcp` v0.1.2 |
-| Tools / Actions | 16 / ~87 (v1+v2 + `instance` + `manifest` + `cloud-info`) |
-| Tests | 955 green |
-| Milestone | v3.0 Platform Foundation — Phase 17 complete |
+| Package | `awesome-coolify-mcp` v0.2.0 |
+| Tools / Actions | 16 / ~87 |
+| TypeScript LOC | ~35.6k (`src/`) |
+| Milestone | ✅ v3.0 Platform Foundation shipped |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | npm publish-ready; GitHub Pages `docs/install.html` |
+| Live UAT | `npm run uat:live` harness shipped (Phase 18) |
 
-**Phase 17 complete:** Workspace-local `.coolify/manifest.json` via `ManifestManager` + `manifest` MCP tool (get/upsert/set/remove/clear/sync/diff), auto-gitignore, stale-404 recovery hints, auto-upsert hooks on application/service/database mutations. Concurrency probes passed in UAT.
-
-**Phase 16 complete:** Coolify Cloud error codes + `isCloudUrl`, `instance.cloud-info` local discovery, MCP `serverInfo` branding (`title`/`icons`/jsDelivr PNG), EN/DE cloud docs. D-09: Cursor list icon is a documented client limitation (server emits icons; UI shows generic fallback).
-
-**Phase 15 complete:** `InstanceManager` + `instances.json` CRUD, soft-start boot, optional `instance` routing on all 12 API tools, env override precedence, 0o700/0o600 + token redaction.
-
-**v1.0 shipped (2026-07-16):** stdio MCP, structured errors, discovery/read, diagnose, deploy lifecycle, logs, service/DB ops, emergency + masking, README EN/DE + install configurator.
-
-**v2.0 shipped (2026-07-21):** `private_key` + `server` CRUD (Phase 8), `project` + `environment` CRUD (Phase 9), `application` create/update/delete with SAF-01..04 (Phase 10), `service` + `database` CRUD with transparent compose base64 + 8-engine DB provisioning (Phase 11), `envs:*` CRUD + bulk + app-only `envs:sync` (Phase 12), `backup:*` schedule management (Phase 13).
+**v3.0 shipped:** Multi-instance registry + routing, Coolify Cloud error/branding path, `.coolify/manifest.json` sync + auto-hooks, live UAT CLI harness.
 
 <details>
 <summary>v1.0 baseline metrics (archived)</summary>
@@ -52,23 +45,24 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 </details>
 
-## Current Milestone: v3.0 Platform Foundation
+<details>
+<summary>v3.0 milestone metrics (archived)</summary>
 
-**Goal:** Agent can manage multiple Coolify instances (self-hosted + Cloud), switch between them, and persist UUID/domain metadata locally across sessions.
+| Metric | Value |
+|--------|-------|
+| Timeline | 2026-07-21 → 2026-07-23 (~3 days) |
+| Phases | 4 (Phases 15–18) |
+| Plans / Tasks | 18 / 35 |
+| Requirements | 21/21 validated |
+| Closeout | `override_closeout` (4 deferred todos) |
 
-**Target features:**
-- Multi-instance CRUD via `~/.coolify-mcp/instances.json` (CTX-04–06)
-- Coolify Cloud MCP support (docs, smoke test, cloud-specific quirks)
-- Local manifest file (`.coolify/manifest.json`) for UUIDs, domains, project refs
-- MCP server list icon via `serverInfo.icons` (BRND-01..03)
-- Live UAT CLI harness for all 14 tools against real Coolify data (UAT-01..06)
-
-**Deferred to v3.1:** Standard setup tool (gh + Coolify wizard), custom IDE skills
+</details>
 
 ## Next Milestone Goals
 
-- **v3.1:** Setup wizard + IDE skills package (see deferred todos in `.planning/todos/pending/`)
+- **v3.1:** Setup wizard (`gh` preflight + Coolify wiring) + IDE skills package
 - **v1.1:** SVC-04 service/DB logs when Coolify API available (v4.1.3+)
+- **Backlog:** Official Coolify OpenAPI spec integration / coverage mapping
 - **Maintainer:** Live `npm publish` of `awesome-coolify-mcp`
 
 ## Requirements
@@ -98,37 +92,35 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Multi-Instance Registry & Routing — Phase 15 (CTX-04, CTX-05, CTX-06, CTX-08, CTX-09)
 - ✓ Coolify Cloud & Server Branding — Phase 16 (CLD-01, CLD-02, CLD-03, BRND-01, BRND-02, BRND-03)
 - ✓ Local Manifest & Sync — Phase 17 (MAN-01, MAN-02, MAN-03, MAN-04)
+- ✓ Live UAT CLI harness — Phase 18 (UAT-01..06)
 
-### Active (v3.0)
+### Active (v3.1 — next)
 
-- [ ] Live UAT CLI harness (UAT-01..06)
+- [ ] Standard setup tool — gh preflight + Coolify wizard (SETUP-01..03)
+- [ ] Custom IDE skills — Cursor, Claude Code, Codex (SKILL-01..02)
 
-### Active (v3.1 — deferred)
-
-- [ ] Standard setup tool — gh preflight + Coolify wizard
-- [ ] Custom IDE skills — Cursor, Claude Code, Codex, etc.
-
-### Out of Scope (this milestone)
+### Out of Scope
 
 - Service/DB bounded log tail — v1.1 (SVC-04, Coolify API gap)
 - Live npm publish — maintainer task
-- Standard setup tool + IDE skills — v3.1
-- ~~Create/Delete von Services/DBs~~ — shipped Phase 11
+- Cross-instance fan-out queries — rate limits / security
+- Shared manifest committed to git — leak/merge risk
 - Execute Command in Container — API broken/fehlt in Coolify 4.1.x
 
 ## Context
 
 - **Tech stack:** TypeScript, `@modelcontextprotocol/sdk`, ofetch, Zod, tsup, vitest
-- **Target API:** Coolify REST 4.1.x
-- **Repos:** Single public `clezcoding/awesome-coolify` (dev + distribution consolidated 2026-07-18)
+- **Target API:** Coolify REST 4.1.x (+ Coolify Cloud hostname path)
+- **Repos:** Single public `clezcoding/awesome-coolify`
+- **Known debt:** OpenAPI spec files not yet wired into coverage/planning; Cursor MCP list icon is documented client limitation (D-09); Phase 18 has 4 human_needed live paths
 - **Known API quirks:** Coolify 4.1.x omits nested `project` on resources (fixed via `environment_id` index); service stop defaults `docker_cleanup=true` (MCP sends `false`); deployment list `{count, deployments}` envelope; plain-YAML compose on 4.1.2 (projectServiceCompose fallback)
 
 ## Constraints
 
-- **API**: Coolify REST API 4.1.x — keine Abhängigkeit von Cloud-only Features
+- **API**: Coolify REST API 4.1.x — Cloud supported via same tool surface + cloud-specific error hints
 - **Tech**: TypeScript + `@modelcontextprotocol/sdk`
-- **Security**: API-Tokens in env/config, nie in Tool-Responses; Credentials maskieren; `reveal: true` opt-in
-- **Distribution**: npm + GitHub Pages + README EN/DE parity enforced by docs-parity test
+- **Security**: API-Tokens in env/config/registry, nie in Tool-Responses; Credentials maskieren; `reveal: true` opt-in; registry `0o700`/`0o600`
+- **Distribution**: npm + GitHub Pages + README EN/DE parity enforced by docs-parity test; live UAT harness excluded from npm tarball
 
 ## Key Decisions
 
@@ -136,9 +128,9 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 |----------|-----------|---------|
 | Ersetzt alle drei bestehenden Tools | Ein MCP, eine Wahrheit, Community-DX | ✓ Good — v1.0 ships unified surface |
 | v1 = Ops-MVP | Schneller nutzbarer Wert in Cursor | ✓ Good — 7 phases in 5 days |
-| Action-Schema ab v1 | Vermeidet 60+ Einzeltools | ✓ Good — 14 tools / ~75 actions |
-| Multi-Instance via `instances.json` | Zentral, portabel | ✓ Good — Phase 15 (InstanceManager + per-request routing) |
-| v3.0 split: setup + skills → v3.1 | Platform first, DX wizard second | 🔄 Active — 2026-07-21 scoping |
+| Action-Schema ab v1 | Vermeidet 60+ Einzeltools | ✓ Good — 16 tools / ~87 actions |
+| Multi-Instance via `instances.json` | Zentral, portabel | ✓ Good — Phase 15 shipped |
+| v3.0 split: setup + skills → v3.1 | Platform first, DX wizard second | ✓ Good — v3.0 closed; v3.1 next |
 | Create/Delete → v2 | Reduziert v1-Komplexität | ✓ Good — v2.0 shipped 2026-07-21 |
 | Structured errors in v1 | Bessere Agent-Recovery | ✓ Good — COOLIFY_* codes + hints |
 | TypeScript + MCP SDK | Community-Standard | ✓ Good |
@@ -152,13 +144,18 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 | Transparent compose base64 | Agent sees YAML only (SVC-07) | ✓ Good — Phase 11 |
 | envs:sync app-only | D-09 scope control | ✓ Good — Phase 12 |
 | backup:* on database tool | Reuse existing tool surface | ✓ Good — Phase 13 |
+| Soft-start without credentials | Boot `instance` tool first; env optional | ✓ Good — Phase 15 |
+| Per-request `resolveCredentials` | No cross-instance credential leakage | ✓ Good — Phase 15 |
+| Cloud errors via request URL | No module-level mutable cloud flag | ✓ Good — Phase 16 |
 | Dedicated `manifest` domain tool | D-01 — not folded into meta/project | ✓ Good — Phase 17 |
-| Manifest is cache, not source of truth | D-15 — 404 hints only, no mid-call auto-sync | ✓ Good — Phase 17 UAT |
-| Auto-hooks on all app/service/DB mutations | D-09 — best-effort `_meta.manifestWarning` (D-11) | ✓ Good — Phase 17 |
+| Manifest is cache, not source of truth | D-15 — 404 hints only, no mid-call auto-sync | ✓ Good — Phase 17 |
+| Auto-hooks on app/service/DB mutations | Best-effort `_meta.manifestWarning` | ✓ Good — Phase 17 |
+| Hybrid live UAT (stdio + in-process) | Cover MCP wire + handler paths | ✓ Good — Phase 18 |
+| UAT harness not in npm tarball | Maintainer-only; D-02/D-03 | ✓ Good — Phase 18 |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
 ---
-*Last updated: 2026-07-22 — Phase 17 complete (Local Manifest & Sync)*
+*Last updated: 2026-07-23 after v3.0 milestone*
