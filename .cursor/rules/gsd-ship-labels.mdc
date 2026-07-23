@@ -15,15 +15,12 @@ When `/gsd-ship` (or any flow that runs `gh pr create` for a GSD phase) succeeds
 This is non-optional. It:
 - Creates `.changeset/<slug>.md` when the PR is release-relevant and no changeset exists
 - Commits + pushes the changeset
-- Applies ship labels via `scripts/gsd-pr-labels.sh --mode ship`
+- Applies ship labels via `scripts/gsd-pr-labels.sh --mode ship` **including `automerge`**
+- Strips Kodiak blockers (`status: needs-review`, etc.)
 
-2. Do **not** add `automerge` during ship. When CI is green:
+Kodiak still only merges when required CI checks are green — `automerge` is the opt-in, not a force-merge.
 
-```bash
-./scripts/setup-kodiak.sh --pr <n>
-```
-
-3. Preview:
+2. Preview:
 
 ```bash
 ./scripts/gsd-ship-post.sh <n> --dry-run

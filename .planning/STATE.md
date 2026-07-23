@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Platform Foundation
 current_phase: 18
-current_phase_name: Live UAT Harness
-status: shipping
-stopped_at: Completed 17-03-PLAN.md
-last_updated: "2026-07-23T13:52:04.470Z"
+current_phase_name: live-uat-harness
+status: verifying
+stopped_at: Completed 18-03-PLAN.md
+last_updated: "2026-07-23T18:27:06.929Z"
 last_activity: 2026-07-23
+last_activity_desc: Phase 18 execution started
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 14
-  completed_plans: 14
-  percent: 75
-last_activity_desc: Phase 17 complete, transitioned to Phase 18
+  completed_phases: 4
+  total_plans: 18
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State
@@ -24,16 +24,16 @@ last_activity_desc: Phase 17 complete, transitioned to Phase 18
 See: .planning/PROJECT.md (updated 2026-07-22)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 18 — Live UAT Harness
+**Current focus:** Phase 18 — live-uat-harness
 
 ## Current Position
 
-Phase: 18 — Live UAT Harness
-Plan: Not started
-Status: Phase 17 shipped — PR #39
-Last activity: 2026-07-23 — Phase 17 shipped (PR #39)
+Phase: 18 (live-uat-harness) — EXECUTING
+Plan: 4 of 4
+Status: Phase complete — ready for verification
+Last activity: 2026-07-23 — Phase 18 execution started
 
-Progress: [████████████████████] 14/14 plans (100%)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0/4 plans ([██████████] 100%)
 
 ## Performance Metrics
 
@@ -99,6 +99,10 @@ Progress: [████████████████████] 14/14 p
 | Phase 17-local-manifest-sync P01 | 2min | 2 tasks | 5 files |
 | Phase 17-local-manifest-sync P02 | 3min | 2 tasks | 5 files |
 | Phase 17-local-manifest-sync P03 | 6min | 2 tasks | 6 files |
+| Phase 18-live-uat-harness P01 | 3min | 2 tasks | 2 files |
+| Phase 18-live-uat-harness P02 | 1min | 2 tasks | 1 files |
+| Phase 18-live-uat-harness P04 | 2min | 2 tasks | 2 files |
+| Phase 18-live-uat-harness P03 | 3min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -265,6 +269,16 @@ Progress: [████████████████████] 14/14 p
 - [Phase ?]: Per-handler manifest hook helpers duplicated across application/service/database — plan scoped three tool files only
 - [Phase ?]: resolveEnvironmentUuid on create when environment_name-only — matches buildCreateApiBody semantics
 - [Phase ?]: Service domains from urls[].url; database domains always [] — no fqdn on DB resources
+- [Phase ?]: UAT_PROJECT_UUID gate before dynamic .ts imports — node+TSX_ACTIVE verify exits 2 without tsx loader (18-01)
+- [Phase ?]: Matrix v3 rows use suite plain string v3 — not suite:v3 tag (18-01)
+- [Phase ?]: matchesSuiteFilter exported for verbatim reuse by Plan 18-03 runInProcessRows
+- [Phase ?]: tools/list validated against REGISTERED_TOOLS before matrix row iteration
+- [Phase ?]: Empty stdio filter emits v3_gaps no-stdio-rows entry instead of crashing
+- [Phase ?]: uat:live npm script is sole documented harness entry; files allowlist unchanged (D-02, D-03)
+- [Phase ?]: CONTRIBUTING Live UAT section uses placeholders only; matrix extension via scripts/live-uat.matrix.json (T-18-07, D-21)
+- [Phase ?]: manifest mutating rows skip Coolify project UUID check — workspace-local per D-07
+- [Phase ?]: v3_gaps keyed by row id; stdio and in-process runners share preconditionGaps array
+- [Phase ?]: Emergency mutations without project_uuid blocked as blocked-outside-uat
 
 ### Pending Todos
 
@@ -311,16 +325,15 @@ Items acknowledged and deferred at v2.0 milestone close on 2026-07-21:
 
 ## Session Continuity
 
-**Last session:** 2026-07-22T16:58:36.372Z
-**Stopped at:** Completed 17-03-PLAN.md
+**Last session:** 2026-07-23T18:27:06.919Z
+**Stopped at:** Completed 18-03-PLAN.md
 **Resume file:** None
 
-Last activity: 2026-07-22 — Quick 260722-85p path 3: marketing site live at https://awesome-coolify.higgsfield.app
+Last activity: 2026-07-23 — Phase 18 planned (Live UAT Harness, 4 plans)
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 16` (Coolify Cloud & Server Branding) — next after audit
-- Or close gaps per `.planning/v3.0-MILESTONE-AUDIT.md` (CLD/BRND → MAN → UAT)
+- Run `/gsd-execute-phase 18` — Live UAT Harness
 
 ## Rebuild Log
 
