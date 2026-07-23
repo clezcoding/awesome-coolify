@@ -47,9 +47,11 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   environment: ['list', 'get', 'create', 'delete', 'delete_preview'],
   docs: ['search'],
   emergency: ['stop_all', 'redeploy_project', 'restart_project'],
+  instance: ['list', 'get', 'add', 'update', 'delete', 'set-default', 'import-env', 'cloud-info'],
+  manifest: ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff'],
 };
 
-const STALE_COOLIFY_MCP = /(?<![\w-])coolify-mcp(?![\w-])/g;
+const STALE_COOLIFY_MCP = /(?<![\w.-])coolify-mcp(?![\w-])/g;
 
 function readReadme(path: string): string {
   return readFileSync(path, 'utf8');
@@ -97,7 +99,7 @@ describe('docs parity (Wave 0)', () => {
     }
   });
 
-  it('D-09: full action inventory — all 14 tools and 55 action literals in both READMEs', () => {
+  it('D-09: full action inventory — all 16 tools and action literals in both READMEs', () => {
     let enActionCount = 0;
     let deActionCount = 0;
 
@@ -112,8 +114,8 @@ describe('docs parity (Wave 0)', () => {
       }
     }
 
-    expect(enActionCount).toBeGreaterThanOrEqual(55);
-    expect(deActionCount).toBeGreaterThanOrEqual(55);
+    expect(enActionCount).toBeGreaterThanOrEqual(70);
+    expect(deActionCount).toBeGreaterThanOrEqual(70);
   });
 
   it('D-11: Safety/Sicherheit section contains confirm and reveal in both locales', () => {
