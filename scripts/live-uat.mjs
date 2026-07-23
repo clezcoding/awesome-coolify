@@ -720,6 +720,21 @@ async function runStdioRows({ matrix, flags, routingEnv, redact, v3Gaps = [] }) 
         continue;
       }
 
+      if (!rowAllowedByFlags(row, flags)) {
+        rows.push(
+          redact({
+            id: row.id,
+            tool: row.tool,
+            status: 'planned',
+            durationMs: 0,
+            errorCode: null,
+            recoveryHintsPresent: false,
+            structuredContent: null,
+          }),
+        );
+        continue;
+      }
+
       const startTime = Date.now();
       try {
         const res =
