@@ -73,13 +73,17 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   4. User/agent invokes MCP prompts `diagnose`, `new-project`, and `incident` and each returns workflow guidance with the right arguments
 
 **Plans**:
-2/2 plans executed
+3/3 plans (2 executed, 1 gap-closure planned)
 
 - [x] 19-01-PLAN.md — Flat schema helper + migrate all 17 domain tools to flat z.object + co-located actionsCatalog/safetyFooter constants
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 19-02-PLAN.md — Compose tool descriptions from catalogs + ship MCP prompts registry (deploy/diagnose/new-project/incident) + tests + docs
+
+**Wave 3** *(gap closure — fixes CR-01 BLOCKER + D-05 catalog completeness)*
+
+- [ ] 19-03-PLAN.md — Align actionsCatalog constants with schema field names (env_uuid/entries, no wildcards) + regression test
 
 **UI hint**: yes
 
