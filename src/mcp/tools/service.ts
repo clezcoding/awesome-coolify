@@ -46,6 +46,10 @@ import {
 } from '../../utils/projections.js';
 import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
 import {
+  fetchServiceTemplates,
+  mapTemplatesToSlimList,
+} from '../../utils/service-templates.js';
+import {
   CoolifyApiError,
   RECOVERY_HINTS,
   wrapMcpError,
@@ -256,7 +260,7 @@ const SERVICE_UPDATE_CURATED_FIELD_KEYS = [
 ] as const;
 
 export const serviceActionsCatalog =
-  'Actions: get(uuid, format?, projection?, reveal?) · create(server_uuid, type?, compose?) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm)';
+  'Actions: get(uuid, format?, projection?, reveal?) · list-types(format?, projection?) · create(server_uuid, type?, compose?) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm)';
 
 export const serviceSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
@@ -264,6 +268,7 @@ export const serviceSafetyFooter =
 export const serviceActionSchema = createFlatActionSchema(
   [
     'get',
+    'list-types',
     'create',
     'update',
     'delete',
@@ -344,6 +349,7 @@ export const serviceActionSchema = createFlatActionSchema(
   },
   {
     get: ['uuid', ...serviceReadParamKeys],
+    'list-types': [...serviceReadParamKeys],
     create: [
       'server_uuid',
       'project_uuid',
@@ -1659,6 +1665,18 @@ async function handleServiceEnvsBulkUpdate(
   );
 }
 
+async function handleServiceListTypes(
+  parsed: Extract<ServiceAction, { action: 'list-types' }>,
+  env: EnvConfig,
+): Promise<ReadResponse> {
+  const raw = await fetchServiceTemplates(env);
+  const slimList = mapTemplatesToSlimList(raw);
+  return buildReadResponse(slimList, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 export async function handleServiceAction(
   args: unknown,
   env: EnvConfig,
@@ -1694,6 +1712,8 @@ export async function handleServiceAction(
         return await handleServiceEnvsDelete(parsed, routingEnv);
       case 'envs:bulk-update':
         return await handleServiceEnvsBulkUpdate(parsed, routingEnv);
+      case 'list-types':
+        return await handleServiceListTypes(parsed, routingEnv);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
