@@ -116,6 +116,7 @@ import {
   emergencyActionsCatalog,
   emergencySafetyFooter,
 } from './tools/emergency.js';
+import { registerCoolifyPrompts } from './prompts.js';
 
 function isInfrastructureOverviewResult(
   result: unknown,
@@ -725,6 +726,7 @@ export async function createAndConnectServer(
     ],
   });
   registerCoolifyTools(server, env);
+  registerCoolifyPrompts(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
