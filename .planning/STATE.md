@@ -5,8 +5,8 @@ milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: Recipes & Service List-Types
 status: "Phase 19 shipped — PR #47"
-stopped_at: Completed 19-03-PLAN.md
-last_updated: "2026-07-24T02:35:56.638Z"
+stopped_at: Phase 20 context gathered
+last_updated: "2026-07-24T03:03:35.654Z"
 last_activity: 2026-07-24
 progress:
   total_phases: 5
@@ -346,9 +346,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-24T02:06:01.111Z
-**Stopped at:** Completed 19-03-PLAN.md
-**Resume file:** None
+**Last session:** 2026-07-24T03:03:35.646Z
+**Stopped at:** Phase 20 context gathered
+**Resume file:** .planning/phases/20-recipes-service-list-types/20-CONTEXT.md
 
 Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)
 
