@@ -102,9 +102,17 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 **Plans**: 4 plans across 4 waves
 
 Plans:
+**Wave 1**
+
 - [ ] 20-00-PLAN.md — Wave 0 RED scaffolds for recipe.test.ts (create-git-app, create-app-db, create-one-click) via dynamic import + it.fails husky pattern
 - [ ] 20-01-PLAN.md — Wave 1 service.list-types (RECIPE-01): fetchServiceTemplates helper (CDN + GitHub Raw fallback, version pin, hard error) + slim { id, label }[] response
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 20-02-PLAN.md — Wave 2 recipe tool foundation (RECIPE-02, RECIPE-04): create-git-app with build_pack detection + create-one-click with type validation against list-types; create-app-db stubs to COOLIFY_NOT_IMPLEMENTED
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 20-03-PLAN.md — Wave 3 create-app-db wiring (RECIPE-03) + recipe tool registration in server.ts + README docs
 
 **UI hint**: yes
