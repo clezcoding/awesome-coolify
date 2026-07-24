@@ -4,6 +4,113 @@ import { resolveProjection, type ProjectionMode } from '../../utils/projections.
 import { CoolifyApiError, RECOVERY_HINTS } from '../../utils/errors.js';
 import { InstanceManager } from '../../utils/instance-registry.js';
 
+/** Attached by createFlatActionSchema for action-aware parseWithInstanceRouting hints. */
+export const ACTION_REQUIRED_FIELDS = Symbol('actionRequiredFields');
+/** Attached by createFlatActionSchema for optional-field recovery hint lines. */
+export const ACTION_ALLOWED_FIELDS = Symbol('actionAllowedFields');
+
+type FlatActionSchemaMeta = {
+  [ACTION_REQUIRED_FIELDS]?: Partial<Record<string, string[]>>;
+  [ACTION_ALLOWED_FIELDS]?: Partial<Record<string, string[]>>;
+};
+
+/**
+ * Flat top-level z.object + superRefine for MCP JSON Schema DX (D-01/D-02).
+ * Replaces top-level z.discriminatedUnion at the MCP boundary while preserving
+ * { action, ...fields } call shape (D-03).
+ */
+export function createFlatActionSchema<
+  TAction extends string,
+  TShape extends z.ZodRawShape,
+>(
+  actions: [TAction, ...TAction[]],
+  shape: TShape,
+  actionAllowedFields: Record<TAction, (keyof TShape | 'action')[]>,
+  actionRequiredFields?: Partial<Record<TAction, (keyof TShape)[]>>,
+  extraRefine?: (data: z.infer<z.ZodObject<{ action: z.ZodEnum<{ [K in TAction]: K }> } & TShape>>, ctx: z.RefinementCtx) => void,
+) {
+  const schema = z
+    .object({
+      action: z.enum(actions).describe('The action to run'),
+      ...shape,
+    })
+    .strict()
+    .superRefine((data, ctx) => {
+      const action = data.action as TAction;
+      const allowed = new Set<string>([
+        'action',
+        ...((actionAllowedFields[action] ?? []) as string[]),
+      ]);
+      const required = actionRequiredFields?.[action] ?? [];
+
+      for (const reqField of required) {
+        if (data[reqField as keyof typeof data] === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Action '${action}' requires field '${String(reqField)}'`,
+            path: [reqField as string],
+          });
+        }
+      }
+
+      for (const key of Object.keys(data)) {
+        if (key === 'instance') continue;
+        if (!allowed.has(key)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Parameter '${key}' is not allowed for action '${action}'`,
+            path: [key],
+          });
+        }
+      }
+
+      extraRefine?.(data, ctx);
+    });
+
+  const meta = schema as typeof schema & FlatActionSchemaMeta;
+  meta[ACTION_REQUIRED_FIELDS] = actionRequiredFields as Partial<
+    Record<string, string[]>
+  >;
+  meta[ACTION_ALLOWED_FIELDS] = actionAllowedFields as Partial<
+    Record<string, string[]>
+  >;
+  return meta;
+}
+
+function readFlatActionMeta(schema: z.ZodType): FlatActionSchemaMeta {
+  return schema as z.ZodType & FlatActionSchemaMeta;
+}
+
+function buildActionAwareRecoveryHints(
+  action: unknown,
+  schema: z.ZodType,
+): string[] {
+  const actionName = typeof action === 'string' ? action : 'unknown';
+  const { [ACTION_REQUIRED_FIELDS]: requiredMap, [ACTION_ALLOWED_FIELDS]: allowedMap } =
+    readFlatActionMeta(schema);
+
+  if (!requiredMap && !allowedMap) {
+    return RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR;
+  }
+
+  const required = (requiredMap?.[actionName] ?? []).map(String);
+  const allowed = (allowedMap?.[actionName] ?? []).map(String);
+  const optional = allowed.filter((field) => !required.includes(field));
+
+  const hints: string[] = [];
+  if (required.length > 0) {
+    hints.push(`Action '${actionName}' requires: ${required.join(', ')}.`);
+  }
+  if (optional.length > 0) {
+    hints.push(`Optional: ${optional.join(', ')}.`);
+  }
+  if (hints.length === 0) {
+    return RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR;
+  }
+  hints.push(...RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR);
+  return hints;
+}
+
 /** Optional multi-instance routing param (D-08) — shared across domain tools. */
 export const optionalInstanceParam = {
   instance: z
@@ -26,39 +133,12 @@ export const instanceRoutingExtension = z.object(optionalInstanceParam);
  * schemas — both paths accept `instance`.
  */
 export function withInstanceRoutingSchema(schema: z.ZodType): z.ZodType {
-  return extendSchemaWithInstance(schema);
-}
-
-function extendSchemaWithInstance(schema: z.ZodType): z.ZodType {
   const ctor = schema.constructor.name;
-  const def = (
-    schema as {
-      def?: { type?: string; discriminator?: string };
-      options?: z.ZodType[];
-    }
-  ).def;
-  const options = (schema as { options?: z.ZodType[] }).options;
-
   if (ctor === 'ZodObject') {
     return (schema as z.ZodObject).extend(optionalInstanceParam);
   }
-
-  if (def?.type === 'union' && Array.isArray(options)) {
-    const mapped = options.map(extendSchemaWithInstance);
-    if (mapped.length < 2) {
-      throw new Error('withInstanceRoutingSchema: union needs ≥2 options');
-    }
-    if (ctor === 'ZodDiscriminatedUnion' && def.discriminator) {
-      return z.discriminatedUnion(
-        def.discriminator,
-        mapped as [z.ZodObject, z.ZodObject, ...z.ZodObject[]],
-      );
-    }
-    return z.union(mapped as [z.ZodType, z.ZodType, ...z.ZodType[]]);
-  }
-
   throw new Error(
-    `withInstanceRoutingSchema: unsupported schema type ${ctor}`,
+    `withInstanceRoutingSchema: unsupported schema type ${ctor} — flat z.object required post Phase 19 migration`,
   );
 }
 
@@ -69,10 +149,14 @@ export function parseWithInstanceRouting<T extends Record<string, unknown>>(
 ): T & { instance?: string } {
   const result = safeParseWithInstanceRouting(schema, args);
   if (!result.success) {
+    const rawAction =
+      typeof args === 'object' && args !== null
+        ? (args as Record<string, unknown>).action
+        : undefined;
     throw new CoolifyApiError({
       code: 'COOLIFY_VALIDATION_ERROR',
       message: result.error.issues.map((i) => i.message).join('; '),
-      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      recoveryHints: buildActionAwareRecoveryHints(rawAction, schema),
     });
   }
   return result.data;
@@ -196,6 +280,73 @@ export const sharedReadParamsSchema = {
       'Reveal sensitive/masked values in full projection (default false — secrets masked as ***)',
     ),
 };
+
+/** Flat MCP schema fields — optional without defaults; parseReadParams applies defaults in handlers. */
+export const sharedReadParamsFlatShape = {
+  format: z
+    .enum(['pretty', 'json', 'table'])
+    .optional()
+    .describe(sharedReadParamsSchema.format.description),
+  projection: z
+    .enum(['summary', 'full'])
+    .optional()
+    .describe(sharedReadParamsSchema.projection.description),
+  include_full: sharedReadParamsSchema.include_full,
+  page: z
+    .number()
+    .int()
+    .min(1)
+    .optional()
+    .describe(sharedReadParamsSchema.page.description),
+  per_page: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .optional()
+    .describe(sharedReadParamsSchema.per_page.description),
+  max_chars: z
+    .number()
+    .int()
+    .min(1000)
+    .max(100000)
+    .optional()
+    .describe(sharedReadParamsSchema.max_chars.description),
+  reveal: z
+    .boolean()
+    .optional()
+    .describe(sharedReadParamsSchema.reveal.description),
+} satisfies z.ZodRawShape;
+
+/** Flat MCP log-param fields — optional without defaults; handlers apply defaults. */
+export const sharedLogParamsFlatShape = {
+  lines: z
+    .number()
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .describe(sharedLogParamsSchema.lines.description),
+  max_chars: z
+    .number()
+    .int()
+    .min(1)
+    .max(100000)
+    .optional()
+    .describe(sharedLogParamsSchema.max_chars.description),
+  format: z
+    .enum(['pretty', 'json'])
+    .optional()
+    .describe(sharedLogParamsSchema.format.description),
+  include_hidden: z
+    .boolean()
+    .optional()
+    .describe(sharedLogParamsSchema.include_hidden.description),
+  type: z
+    .enum(['stdout', 'stderr', 'all'])
+    .optional()
+    .describe(sharedLogParamsSchema.type.description),
+} satisfies z.ZodRawShape;
 
 const readParamsObjectSchema = z.object(sharedReadParamsSchema);
 
