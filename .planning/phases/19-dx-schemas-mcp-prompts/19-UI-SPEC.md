@@ -1,10 +1,11 @@
 ---
 phase: 19
 slug: dx-schemas-mcp-prompts
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-24
+reviewed_at: 2026-07-24T00:33:00Z
 surface: cursor-mcp-agent-facing
 ---
 
@@ -206,13 +207,30 @@ Safety: confirm for destructive ops · optional instance · reveal opt-in only
 
 ## UI Considerations
 
-> Populated by ui-phase probe (orchestrator Step 9.5). Do not invent a full probe table here.
+> Populated by ui-phase UI-consideration probe (Step 9.5). Empty/error COPY lives in Copywriting Contract — this section covers state coverage and REFERENCES those rows.
 
-Applicable state considerations resolved: pending probe
+Applicable state considerations resolved: 30 covered, 4 backstop, 11 dismissed, 0 unresolved
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| — | — | — | Populated by ui-phase probe |
+| empty | E1 tool catalog | ✅ covered | Domain tools always ship a hand-maintained full Actions catalog (never an empty action list) |
+| empty | E2 param panel | ✅ covered | Flat schema always exposes top-level properties including `action`; empty `properties: {}` forbidden (Copywriting / DX-02) |
+| empty | E3–E6 prompts | ✅ covered | Soft empty uses Copywriting “Missing arguments” + Note line; prompt load never fails (D-10/D-14) |
+| empty | E7 validation error | ✅ covered | Invalid submit is this surface; recoveryHints list required fields for selected action |
+| loading | E1 catalog, E3–E6 prompts, E7, E8 | ⏭ dismissed | Synchronous static MCP strings — no in-flight content fetch we own; no skeleton/spinner contract |
+| loading | E2 param panel | 🧪 backstop | `{ statement: "Cursor host may show its own in-flight chrome while listing tools; Phase 19 adds no custom loading UI", verification: backstop }` |
+| error | E2, E7 | ✅ covered | `COOLIFY_VALIDATION_ERROR` + recoveryHints (problem + required fields + retry) per Copywriting |
+| error | E1 catalog | ⏭ dismissed | Catalog is static metadata; runtime failures route through E7, not description mutation |
+| error | E3–E6 prompts | ✅ covered | Prompts do not hard-fail; soft Note steers agent to manifest/ask-user (Copywriting empty rows) |
+| populated | E1 catalog | ✅ covered | Happy path = purpose sentence → `Actions:` catalog → `Safety:` footer |
+| partial | E2 schema, E3–E6 prompts, E7 | ✅ covered | Optional args marked `?`; missing required fields for selected `action` → strict refine + recoveryHints; prompts tolerate partial prefill |
+| partial | E1 catalog | ⏭ dismissed | Catalogs are complete hand-authored lists — no partial-catalog product state |
+| overflow | E1, E3–E6 | ✅ covered | Catalog wrap ≤120 chars continuing with `· `; prompt body prefer ≤600 words / 4–8 steps |
+| overflow | E2, E7, E8 | 🧪 backstop | `{ statement: "Host panel scroll/clip for long schema or error payloads is Cursor-owned; verify readable recoveryHints in live Cursor tool UI", verification: backstop }` |
+| zero-one-many | E1 catalog | ✅ covered | Catalog scales with ` · ` separators for many actions; single-action tools still use `Actions:` prefix |
+| long-text | E1–E8 | ✅ covered | Mono identifiers; catalog wrap rule; prompt depth cap; confirm copy stays one deliberate sentence |
+
+**Kind confirmation (yolo):** E1=`list-collection`+`static-content`; E2=`form`+`interactive-control`; E3–E6=`static-content`+`form`; E7=`form`+`static-content`; E8=`interactive-control`+`static-content`. No kinds added beyond authored overrides.
 
 ---
 
@@ -226,14 +244,14 @@ Applicable state considerations resolved: pending probe
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-07-24 (gsd-ui-checker)
 
 ---
 
