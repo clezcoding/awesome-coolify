@@ -4,15 +4,15 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 19
 current_phase_name: DX Schemas & MCP Prompts
-status: planning
-stopped_at: Phase 19 UI-SPEC approved
-last_updated: "2026-07-24T00:34:52.407Z"
+status: Ready to execute
+stopped_at: Phase 19 planning complete — 2 plans ready
+last_updated: "2026-07-24T01:04:00.000Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 19 UI design contract committed
+last_activity_desc: Phase 19 planning complete — 2 plans ready
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
   percent: 0
 ---
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-23)
 
 ## Current Position
 
-Phase: Phase 19 (DX Schemas & MCP Prompts) — UI-SPEC approved
-Plan: Next `/gsd-plan-phase 19` (planner consumes UI-SPEC as design context)
-Status: 19-UI-SPEC.md approved — Cursor MCP text surface (flat schemas, catalogs, 4 prompts, validation copy).
-Last activity: 2026-07-24 — Phase 19 UI-SPEC approved
+Phase: Phase 19 (DX Schemas & MCP Prompts) — planned
+Plan: 2 plans ready (19-01 Wave 1 → 19-02 Wave 2)
+Status: Ready to execute
+Last activity: 2026-07-24 — Phase 19 planning complete
 
 ## Performance Metrics
 

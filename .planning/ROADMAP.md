@@ -151,13 +151,13 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 | 16 | v3.0 | 5/5 | Complete | 2026-07-22 |
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
-| 19 | v3.1 | 0/? | Not started | - |
+| 19 | v3.1 | 0/2 | Planned | - |
 | 20 | v3.1 | 0/? | Not started | - |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
 
-**Next:** `/gsd-plan-phase 19` — plan DX Schemas & MCP Prompts
+**Next:** `/gsd-execute-phase 19` — execute DX Schemas & MCP Prompts
 
 ---
 
