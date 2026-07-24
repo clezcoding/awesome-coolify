@@ -199,7 +199,7 @@ describe('diagnoseToolSchema', () => {
     expect(result.data.action).toBe('app');
     if (result.data.action === 'app') {
       expect(result.data.uuid).toBe('app-1');
-      expect(result.data.limit).toBe(10);
+      expect(result.data.limit).toBeUndefined();
     }
   });
 
@@ -221,7 +221,7 @@ describe('diagnoseToolSchema', () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
     if (result.data.action === 'app') {
-      expect(result.data.limit).toBe(10);
+      expect(result.data.limit).toBeUndefined();
     }
   });
 
@@ -248,7 +248,7 @@ describe('diagnoseToolSchema', () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
     if (result.data.action === 'server') {
-      expect(result.data.trigger_validate).toBe(true);
+      expect(result.data.trigger_validate).toBeUndefined();
     }
   });
 

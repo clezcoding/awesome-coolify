@@ -1,11 +1,14 @@
 import * as z from 'zod/v4';
+import { createFlatActionSchema } from './shared-read-params.js';
 
 export const MCP_SERVER_NAME = 'awesome-coolify-mcp';
 export const MCP_VERSION = '0.1.0';
 
-export const metaActionSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('version') }),
-]);
+export const metaActionsCatalog = 'Actions: version()';
+
+export const metaSafetyFooter = 'Safety: read-only meta tool';
+
+export const metaActionSchema = createFlatActionSchema(['version'], {}, { version: [] });
 
 export type MetaAction = z.infer<typeof metaActionSchema>;
 

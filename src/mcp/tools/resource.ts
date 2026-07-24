@@ -6,27 +6,64 @@ import { projectResourceSummary, type ResourceSummary } from '../../utils/projec
 import { buildReadResponse, paginateArray, type ReadResponse } from '../../utils/formatters.js';
 import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
 import {
+  createFlatActionSchema,
   parseWithInstanceRouting,
   resolveRoutingEnv,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 
-export const resourceActionSchema = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('list'),
-    type: z.enum(['application', 'service', 'database', 'server', 'project', 'environment']).optional(),
-    ...sharedReadParamsSchema,
-  }),
-  z.object({
-    action: z.literal('find'),
+export const resourceActionsCatalog =
+  'Actions: list(type?, format?, page?, per_page?) · find(query?, uuid?, name?, domain?, ip?, format?, page?, per_page?)';
+
+export const resourceSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+const resourceReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
+
+export const resourceActionSchema = createFlatActionSchema(
+  ['list', 'find'],
+  {
+    type: z
+      .enum(['application', 'service', 'database', 'server', 'project', 'environment'])
+      .optional(),
     query: z.string().optional(),
     uuid: z.string().optional(),
     name: z.string().optional(),
     domain: z.string().optional(),
     ip: z.string().optional(),
-    ...sharedReadParamsSchema,
-  }),
-]);
+    ...sharedReadParamsFlatShape,
+  },
+  {
+    list: ['type', ...resourceReadParamKeys],
+    find: ['query', 'uuid', 'name', 'domain', 'ip', ...resourceReadParamKeys],
+  },
+  undefined,
+  (data, ctx) => {
+    if (data.action === 'find') {
+      if (
+        !data.query &&
+        !data.uuid &&
+        !data.name &&
+        !data.domain &&
+        !data.ip
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'At least one search field (query, uuid, name, domain, or ip) is required',
+        });
+      }
+    }
+  },
+);
 
 export type ResourceAction = z.infer<typeof resourceActionSchema>;
 

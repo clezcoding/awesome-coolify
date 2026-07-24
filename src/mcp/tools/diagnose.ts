@@ -30,10 +30,12 @@ import {
 } from '../../utils/formatters.js';
 import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
 import {
+  createFlatActionSchema,
+  parseReadParams,
   parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 import {
   FIND_MATCH_CAP,
@@ -65,70 +67,91 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-const appActionSchema = z
-  .object({
-    action: z.literal('app'),
-    query: z.string().optional().describe('Fuzzy query string (UUID, name, or FQDN)'),
-    uuid: z.string().optional().describe('Explicit application UUID'),
-    name: z.string().optional().describe('Explicit application name substring'),
-    domain: z.string().optional().describe('Explicit application FQDN substring'),
+export const diagnoseActionsCatalog =
+  'Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?)';
+
+export const diagnoseSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+const diagnoseReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
+
+export const diagnoseToolSchema = createFlatActionSchema(
+  ['app', 'server', 'scan'],
+  {
+    query: z
+      .string()
+      .optional()
+      .describe('Fuzzy query string (UUID, name, or FQDN/IP)'),
+    uuid: z.string().optional().describe('Explicit resource UUID'),
+    name: z.string().optional().describe('Explicit name substring'),
+    domain: z
+      .string()
+      .optional()
+      .describe('Explicit application FQDN substring'),
+    ip: z.string().optional().describe('Explicit server IP substring'),
     limit: z
       .number()
       .int()
       .min(1)
       .max(50)
-      .default(10)
       .optional()
       .describe('Max recent deployments to include (default 10, max 50)'),
-    ...sharedReadParamsSchema,
-  })
-  .superRefine((data, ctx) => {
-    if (!hasAtLeastOneIdentifier(data, APP_IDENTIFIER_FIELDS)) {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'At least one identifier (query|uuid|name|domain) required for action app',
-        params: { code: 'COOLIFY_422' },
-      });
-    }
-  });
-
-const serverActionSchema = z
-  .object({
-    action: z.literal('server'),
-    query: z.string().optional().describe('Fuzzy query string (UUID, name, or IP)'),
-    uuid: z.string().optional().describe('Explicit server UUID'),
-    name: z.string().optional().describe('Explicit server name substring'),
-    ip: z.string().optional().describe('Explicit server IP substring'),
     trigger_validate: z
       .boolean()
-      .default(true)
+      .optional()
       .describe('Triggers non-blocking server verification (D-10)'),
-    ...sharedReadParamsSchema,
-  })
-  .superRefine((data, ctx) => {
-    if (!hasAtLeastOneIdentifier(data, SERVER_IDENTIFIER_FIELDS)) {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'At least one identifier (query|uuid|name|ip) required for action server',
-        params: { code: 'COOLIFY_422' },
-      });
+    ...sharedReadParamsFlatShape,
+  },
+  {
+    app: ['query', 'uuid', 'name', 'domain', 'limit', ...diagnoseReadParamKeys],
+    server: [
+      'query',
+      'uuid',
+      'name',
+      'ip',
+      'trigger_validate',
+      ...diagnoseReadParamKeys,
+    ],
+    scan: [...diagnoseReadParamKeys],
+  },
+  undefined,
+  (data, ctx) => {
+    if (data.action === 'app') {
+      if (!hasAtLeastOneIdentifier(data, APP_IDENTIFIER_FIELDS)) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'At least one identifier (query|uuid|name|domain) required for action app',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
     }
-  });
-
-const scanActionSchema = z.object({
-  action: z.literal('scan'),
-  ...sharedReadParamsSchema,
-});
-
-export const diagnoseToolSchema = z.discriminatedUnion('action', [
-  appActionSchema,
-  serverActionSchema,
-  scanActionSchema,
-]);
+    if (data.action === 'server') {
+      if (!hasAtLeastOneIdentifier(data, SERVER_IDENTIFIER_FIELDS)) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'At least one identifier (query|uuid|name|ip) required for action server',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
+  },
+);
 
 export type DiagnoseAction = z.infer<typeof diagnoseToolSchema>;
+
+type DiagnoseAppAction = Extract<DiagnoseAction, { action: 'app' }>;
+type DiagnoseServerAction = Extract<DiagnoseAction, { action: 'server' }>;
+type DiagnoseScanAction = Extract<DiagnoseAction, { action: 'scan' }>;
 
 export type DiagnoseMatchResult = ReadResponse<{
   matches: FindableResource[];
@@ -157,7 +180,7 @@ export type DiagnoseActionResult =
   | McpErrorResult;
 
 async function resolveAppUuid(
-  parsed: z.infer<typeof appActionSchema>,
+  parsed: DiagnoseAppAction,
   env: EnvConfig,
 ): Promise<
   | { kind: 'single'; uuid: string }
@@ -211,7 +234,7 @@ async function resolveAppUuid(
 }
 
 async function resolveServerUuid(
-  parsed: z.infer<typeof serverActionSchema>,
+  parsed: DiagnoseServerAction,
   env: EnvConfig,
 ): Promise<
   | { kind: 'single'; uuid: string }
@@ -264,7 +287,7 @@ async function resolveServerUuid(
 }
 
 async function handleDiagnoseApp(
-  parsed: z.infer<typeof appActionSchema>,
+  parsed: DiagnoseAppAction,
   env: EnvConfig,
 ): Promise<DiagnoseMatchResult | DiagnoseAppResult> {
   const projection = resolveProjection(parsed.projection, parsed.include_full);
@@ -353,7 +376,7 @@ async function handleDiagnoseApp(
 }
 
 async function handleDiagnoseServer(
-  parsed: z.infer<typeof serverActionSchema>,
+  parsed: DiagnoseServerAction,
   env: EnvConfig,
 ): Promise<DiagnoseMatchResult | DiagnoseServerResult> {
   const projection = resolveProjection(parsed.projection, parsed.include_full);
@@ -397,7 +420,7 @@ async function handleDiagnoseServer(
         serverUuid,
         env.COOLIFY_VERIFY_SSL,
       ),
-      parsed.trigger_validate
+      parsed.trigger_validate !== false
         ? triggerServerValidate(
             env.COOLIFY_URL,
             env.COOLIFY_TOKEN,
@@ -423,7 +446,8 @@ async function handleDiagnoseServer(
       : [];
 
   const validationStarted =
-    parsed.trigger_validate && validateSettled.status === 'fulfilled';
+    parsed.trigger_validate !== false &&
+    validateSettled.status === 'fulfilled';
 
   const raw = isRecord(baseSettled.value) ? baseSettled.value : {};
   const data = projectServerDiagnose(raw, resources, domains, validationStarted);
@@ -441,9 +465,10 @@ async function handleDiagnoseServer(
 }
 
 async function handleDiagnoseScan(
-  parsed: z.infer<typeof scanActionSchema>,
+  parsed: DiagnoseScanAction,
   env: EnvConfig,
 ): Promise<DiagnoseScanResult> {
+  const readParams = parseReadParams(parsed);
   const [rawServers, rawResources] = await Promise.all([
     fetchServers(env.COOLIFY_URL, env.COOLIFY_TOKEN, env.COOLIFY_VERIFY_SSL),
     fetchResources(env.COOLIFY_URL, env.COOLIFY_TOKEN, env.COOLIFY_VERIFY_SSL),
@@ -461,15 +486,15 @@ async function handleDiagnoseScan(
 
   const flattened = [...critical, ...high, ...info];
   const total = flattened.length;
-  paginateArray(flattened, parsed.page, parsed.per_page);
+  paginateArray(flattened, readParams.page, readParams.per_page);
 
   return buildReadResponse(
     { critical, high, info },
     {
-      format: parsed.format,
-      max_chars: parsed.max_chars,
-      page: parsed.page,
-      per_page: parsed.per_page,
+      format: readParams.format,
+      max_chars: readParams.max_chars,
+      page: readParams.page,
+      per_page: readParams.per_page,
       total,
     },
   );

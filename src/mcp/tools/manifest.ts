@@ -21,74 +21,53 @@ import {
   type ManifestResource,
 } from '../../utils/manifest.js';
 import { InstanceManager } from '../../utils/instance-registry.js';
-import { optionalInstanceParam } from './shared-read-params.js';
+import { createFlatActionSchema, optionalInstanceParam } from './shared-read-params.js';
 
 const manifestResourceInputSchema = manifestResourceSchema;
 
-const getActionSchema = z
-  .object({
-    action: z.literal('get'),
-  })
-  .strict();
+export const manifestActionsCatalog =
+  'Actions: get() · upsert(resource, project_uuid, environment_uuid) · set(manifest) · remove(uuid) · clear(confirm) · sync(dry_run?, confirm?, prune?) · diff()';
 
-const upsertActionSchema = z
-  .object({
-    action: z.literal('upsert'),
-    resource: manifestResourceInputSchema,
-    project_uuid: z.string().uuid(),
+export const manifestSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance';
+
+export const manifestActionSchema = createFlatActionSchema(
+  ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff'],
+  {
+    resource: manifestResourceInputSchema.optional(),
+    project_uuid: z.string().uuid().optional(),
     project_name: z.string().optional(),
-    environment_uuid: z.string().uuid(),
+    environment_uuid: z.string().uuid().optional(),
     environment_name: z.string().optional(),
-  })
-  .strict();
-
-const setActionSchema = z
-  .object({
-    action: z.literal('set'),
-    manifest: manifestSchema,
-  })
-  .strict();
-
-const removeActionSchema = z
-  .object({
-    action: z.literal('remove'),
-    uuid: z.string().uuid(),
-  })
-  .strict();
-
-const clearActionSchema = z
-  .object({
-    action: z.literal('clear'),
-    confirm: z.boolean(),
-  })
-  .strict();
-
-const syncActionSchema = z
-  .object({
-    action: z.literal('sync'),
+    manifest: manifestSchema.optional(),
+    uuid: z.string().uuid().optional(),
+    confirm: z.boolean().optional(),
     instance: optionalInstanceParam.instance,
     dry_run: z.boolean().optional(),
-    confirm: z.boolean().optional(),
     prune: z.boolean().optional(),
-  })
-  .strict();
-
-const diffActionSchema = z
-  .object({
-    action: z.literal('diff'),
-    instance: optionalInstanceParam.instance,
-  })
-  .strict();
-
-export const manifestActionSchema = z.discriminatedUnion('action', [
-  getActionSchema,
-  upsertActionSchema,
-  setActionSchema,
-  removeActionSchema,
-  clearActionSchema,
-  syncActionSchema,
-  diffActionSchema,
-]);
+  },
+  {
+    get: [],
+    upsert: [
+      'resource',
+      'project_uuid',
+      'project_name',
+      'environment_uuid',
+      'environment_name',
+    ],
+    set: ['manifest'],
+    remove: ['uuid'],
+    clear: ['confirm'],
+    sync: ['instance', 'dry_run', 'confirm', 'prune'],
+    diff: ['instance'],
+  },
+  {
+    upsert: ['resource', 'project_uuid', 'environment_uuid'],
+    set: ['manifest'],
+    remove: ['uuid'],
+    clear: ['confirm'],
+  },
+);
 
 export type ManifestAction = z.infer<typeof manifestActionSchema>;
 

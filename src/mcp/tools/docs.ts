@@ -1,16 +1,38 @@
 import * as z from 'zod/v4';
 import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
-import { sharedReadParamsSchema } from './shared-read-params.js';
+import {
+  createFlatActionSchema,
+  sharedReadParamsFlatShape,
+} from './shared-read-params.js';
 
-export const docsActionSchema = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('search'),
+export const docsActionsCatalog =
+  'Actions: search(query, format?, max_chars?)';
+
+export const docsSafetyFooter = 'Safety: reveal opt-in only';
+
+const docsReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
+
+export const docsActionSchema = createFlatActionSchema(
+  ['search'],
+  {
     query: z.string().describe('Documentation search query'),
-    ...sharedReadParamsSchema,
-    // D-21 N/A: projection/include_full — docs are static text, not API resource projections
-    // D-21 N/A: page/per_page — results capped by query relevance; pagination not applicable
-  }),
-]);
+    ...sharedReadParamsFlatShape,
+  },
+  {
+    search: ['query', ...docsReadParamKeys],
+  },
+  {
+    search: ['query'],
+  },
+);
 
 export type DocsAction = z.infer<typeof docsActionSchema>;
 
