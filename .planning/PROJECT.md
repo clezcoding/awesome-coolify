@@ -106,12 +106,14 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Local Manifest & Sync — Phase 17 (MAN-01, MAN-02, MAN-03, MAN-04)
 - ✓ Live UAT CLI harness — Phase 18 (UAT-01..06)
 
+### Validated (v3.1)
+
+- ✓ Flat schemas + action catalogs + MCP prompts — Phase 19 (DX-01, DX-02, DX-DESC-*, PROMPT-01..04)
+
 ### Active (v3.1)
 
 - [ ] Setup wizard — gh preflight + Coolify recipes (SETUP-*)
 - [ ] IDE skills — Cursor, Claude Code, Codex (SKILL-*)
-- [ ] Richer tool descriptions / action catalogs (DX-DESC-*)
-- [ ] MCP Prompts for common workflows (PROMPT-*)
 - [ ] Recipes + service.list-types (RECIPE-*)
 - [ ] OpenAPI coverage map (OAPI-*)
 - [ ] Deploy watch action + skill/prompt (WATCH-*)
@@ -192,4 +194,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-24 — Milestone v3.1 started*
+*Last updated: 2026-07-24 after Phase 19*

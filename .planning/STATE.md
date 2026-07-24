@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 19
-current_phase_name: dx-schemas-mcp-prompts
-status: executing
+current_phase: 20
+current_phase_name: Recipes & Service List-Types
+status: planning
 stopped_at: Completed 19-03-PLAN.md
-last_updated: "2026-07-24T02:06:01.119Z"
+last_updated: "2026-07-24T02:33:10.062Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 19 execution started
+last_activity_desc: Phase 19 complete, transitioned to Phase 20
 progress:
   total_phases: 5
   completed_phases: 1
@@ -21,23 +21,23 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-23)
+See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 19 — dx-schemas-mcp-prompts
+**Current focus:** Phase 20 — Recipes & Service List-Types
 
 ## Current Position
 
-Phase: 19 (dx-schemas-mcp-prompts) — EXECUTING
-Plan: 3 of 3 (complete)
-Status: All plans executed — pending re-verification
-Last activity: 2026-07-24 — Completed 19-03 gap closure
+Phase: 20 — Recipes & Service List-Types
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-24 — Phase 19 complete, transitioned to Phase 20
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 79
+- Total plans completed: 82
 - Average duration: —
 - Total execution time: —
 
@@ -60,6 +60,7 @@ Last activity: 2026-07-24 — Completed 19-03 gap closure
 | 15 | 5 | - | - |
 | 16 | 5 | - | - |
 | 17 | 4 | - | - |
+| 19 | 3 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
