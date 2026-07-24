@@ -1,7 +1,7 @@
 ---
 phase: 19-dx-schemas-mcp-prompts
 verified: 2026-07-24T02:09:00Z
-status: human_needed
+status: passed
 score: 19/20 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
@@ -9,11 +9,13 @@ re_verification:
   previous_status: gaps_found
   previous_score: 17/20
   gaps_closed:
+
     - "Every actionsCatalog uses the `Actions:` prefix with `action(param, param?)` tokens separated by ` · ` (D-05)"
     - "Cursor tool panel shows action names plus CORRECT key parameters in every tool description (DX-01, DX-02)"
   gaps_remaining: []
   regressions: []
 human_verification:
+
   - test: "Open any Coolify MCP tool in Cursor and visually confirm the parameter panel renders top-level properties (no empty properties:{} UI) and that env-mutation tokens advertise env_uuid/entries (not key/envs)"
     expected: "Each tool shows its flat z.object fields (action, uuid, etc.) as visible, fillable parameters; application/service/database envs:delete advertises env_uuid; application envs:bulk-update advertises entries"
     why_human: "Cursor IDE rendering of MCP JSON Schema is a visual host behavior that cannot be verified programmatically"
