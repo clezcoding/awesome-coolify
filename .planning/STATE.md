@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: recipes-service-list-types
-status: executing
-stopped_at: Completed 20-recipes-service-list-types-02-PLAN.md
-last_updated: "2026-07-24T06:23:10.157Z"
+status: verifying
+stopped_at: Completed 20-recipes-service-list-types-03-PLAN.md
+last_updated: "2026-07-24T06:28:07.136Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 20
+  completed_plans: 7
+  percent: 40
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 Phase: 20 (recipes-service-list-types) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-24 — Phase 20 execution started
 
 ## Performance Metrics
@@ -109,6 +109,7 @@ Last activity: 2026-07-24 — Phase 20 execution started
 | Phase 20-recipes-service-list-types P00 | 2min | 1 tasks | 1 files |
 | Phase 20-recipes-service-list-types P01 | 3min | 2 tasks | 5 files |
 | Phase 20-recipes-service-list-types P02 | 3min | 1 tasks | 3 files |
+| Phase 20-recipes-service-list-types P03 | 4min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -296,6 +297,8 @@ Last activity: 2026-07-24 — Phase 20 execution started
 - [Phase ?]: fetchServiceTemplates exported from utils for Plan 20-02 create-one-click type validation reuse (20-01)
 - [Phase ?]: Added COOLIFY_NOT_IMPLEMENTED to CoolifyErrorCode union for create-app-db stub until Plan 20-03
 - [Phase ?]: build_pack enum includes dockercompose for superRefine reject with service.create/create-one-click hint (mirrors application.ts)
+- [Phase ?]: Added COOLIFY_RECIPE_PARTIAL_FAILURE to CoolifyErrorCode union for typed partial-failure envelope
+- [Phase ?]: Mask connection_string only — full-object sanitizeFullProjection incorrectly masked env_key
 
 ### Pending Todos
 
@@ -354,8 +357,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-24T06:23:10.150Z
-**Stopped at:** Completed 20-recipes-service-list-types-02-PLAN.md
+**Last session:** 2026-07-24T06:28:07.128Z
+**Stopped at:** Completed 20-recipes-service-list-types-03-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)

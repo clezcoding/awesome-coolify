@@ -99,7 +99,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   3. Agent runs recipe `app+db` end-to-end: creates application + database and wires `DATABASE_URL` (or equivalent) env between them
   4. Agent runs recipe `one-click`: creates a service from a type returned by `list-types` on the target instance
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -113,7 +113,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 20-03-PLAN.md — Wave 3 create-app-db wiring (RECIPE-03) + recipe tool registration in server.ts + README docs
+- [x] 20-03-PLAN.md — Wave 3 create-app-db wiring (RECIPE-03) + recipe tool registration in server.ts + README docs
 
 **UI hint**: yes
 
@@ -172,7 +172,7 @@ Plans:
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
-| 20 | v3.1 | 3/4 | In Progress|  |
+| 20 | v3.1 | 4/4 | In Progress|  |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
