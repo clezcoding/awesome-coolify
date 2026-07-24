@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { McpServer } from '@modelcontextprotocol/server';
+import type { EnvConfig } from '../config/env.js';
+import { registerCoolifyTools } from './server.js';
 import { metaActionSchema } from './tools/meta.js';
 import { systemActionSchema } from './tools/system.js';
 import { resourceActionSchema } from './tools/resource.js';
@@ -148,7 +151,7 @@ describe('MCP server tool registration', () => {
     );
     expect(deploymentBlock).toMatch(/openWorldHint:\s*true/);
     expect(deploymentBlock).not.toMatch(/readOnlyHint:\s*true/);
-    expect(deploymentBlock).toMatch(/already_finished/);
+    expect(deploymentBlock).toContain('deploymentActionsCatalog');
   });
 
   it('diagnose tool has openWorldHint without readOnlyHint per D-10', () => {
@@ -158,8 +161,7 @@ describe('MCP server tool registration', () => {
     );
     expect(source).toContain("registerTool(\n    'diagnose'");
     expect(source).toMatch(/'diagnose'[\s\S]*openWorldHint:\s*true/);
-    expect(source).toMatch(/'diagnose'[\s\S]*validate/);
-    expect(source).toMatch(/'diagnose'[\s\S]*side-effect/);
+    expect(source).toMatch(/'diagnose'[\s\S]*diagnoseActionsCatalog/);
     const diagnoseBlock = source.slice(
       source.indexOf("registerTool(\n    'diagnose'"),
       source.indexOf("registerTool(\n    'application'"),
@@ -216,6 +218,47 @@ describe('MCP server tool registration', () => {
     expect(
       resourceActionSchema.safeParse({ action: 'find', query: 'test' }).success,
     ).toBe(true);
+  });
+
+  it('every registered tool description contains Actions: and Safety: prefixes', () => {
+    const testEnv: EnvConfig = {
+      COOLIFY_URL: 'https://coolify.example.com',
+      COOLIFY_TOKEN: 'test-token',
+      COOLIFY_VERIFY_SSL: true,
+      COOLIFY_MCP_LOG: 'info',
+    };
+    const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+    registerCoolifyTools(server, testEnv);
+    type RegisteredTool = { description?: string };
+    const registered = (
+      server as McpServer & {
+        _registeredTools: Record<string, RegisteredTool>;
+      }
+    )._registeredTools;
+    const expectedTools = [
+      'system',
+      'meta',
+      'resource',
+      'diagnose',
+      'application',
+      'emergency',
+      'deployment',
+      'service',
+      'database',
+      'private_key',
+      'instance',
+      'manifest',
+      'server',
+      'project',
+      'environment',
+      'docs',
+    ];
+    expect(Object.keys(registered).sort()).toEqual(expectedTools.sort());
+    for (const name of expectedTools) {
+      const description = registered[name]?.description ?? '';
+      expect(description, `${name} missing Actions:`).toContain('Actions:');
+      expect(description, `${name} missing Safety:`).toContain('Safety:');
+    }
   });
 });
 

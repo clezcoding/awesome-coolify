@@ -620,7 +620,7 @@ describe('emergency tool server registration', () => {
     // exposed list — keep safety in confirm gate + description instead.
     expect(emergencyBlock).toMatch(/annotations:\s*\{\s*openWorldHint:\s*true\s*\}/);
     expect(emergencyBlock).not.toMatch(/annotations:\s*\{[^}]*destructiveHint:\s*true/);
-    expect(emergencyBlock).toMatch(/confirm:\s*true/);
-    expect(emergencyBlock).toMatch(/high-impact|destructive/i);
+    expect(emergencyBlock).toContain('emergencyActionsCatalog');
+    expect(emergencyBlock).toContain('emergencySafetyFooter');
   });
 });
