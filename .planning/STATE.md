@@ -354,7 +354,7 @@ Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)
 
 ## Operator Next Steps
 
-- UI-SPEC checker / continue `/gsd-ui-phase 19`, then `/gsd-plan-phase 19`
+- `/gsd-execute-phase 20` — Recipes & Service List-Types (4 plans)
 
 ## Rebuild Log
 
