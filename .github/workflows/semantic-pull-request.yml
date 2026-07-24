@@ -16,6 +16,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          types: feat,fix,docs,chore,refactor,test,style,perf,build,ci,revert
+          # Multiline list required — comma-separated is treated as one invalid type
+          types: |
+            feat
+            fix
+            docs
+            chore
+            refactor
+            test
+            style
+            perf
+            build
+            ci
+            revert
           requireScope: false
-          subjectCase: lower-case
