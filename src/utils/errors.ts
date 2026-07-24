@@ -18,7 +18,8 @@ export type CoolifyErrorCode =
   | 'COOLIFY_INSTANCE_NOT_FOUND'
   | 'COOLIFY_PARTIAL_ENV'
   | 'COOLIFY_CLOUD_FORBIDDEN'
-  | 'COOLIFY_CLOUD_UNSUPPORTED';
+  | 'COOLIFY_CLOUD_UNSUPPORTED'
+  | 'COOLIFY_FETCH_TEMPLATES_FAILED';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -108,6 +109,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_CLOUD_UNSUPPORTED: [
     'Endpoint not supported or not available on Coolify Cloud — use the self-hosted alternative or the Cloud dashboard.',
     'See docs/en/cloud.md for the list of known Cloud-unsupported endpoints.',
+  ],
+  COOLIFY_FETCH_TEMPLATES_FAILED: [
+    'Verify that your server has outbound internet access.',
+    'Verify that coollabsio/coolify GitHub repository is accessible.',
   ],
 };
 
