@@ -99,7 +99,15 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   3. Agent runs recipe `app+db` end-to-end: creates application + database and wires `DATABASE_URL` (or equivalent) env between them
   4. Agent runs recipe `one-click`: creates a service from a type returned by `list-types` on the target instance
 
-**Plans**: TBD
+**Plans**: 4 plans across 4 waves
+
+Plans:
+- [ ] 20-00-PLAN.md — Wave 0 RED scaffolds for recipe.test.ts (create-git-app, create-app-db, create-one-click) via dynamic import + it.fails husky pattern
+- [ ] 20-01-PLAN.md — Wave 1 service.list-types (RECIPE-01): fetchServiceTemplates helper (CDN + GitHub Raw fallback, version pin, hard error) + slim { id, label }[] response
+- [ ] 20-02-PLAN.md — Wave 2 recipe tool foundation (RECIPE-02, RECIPE-04): create-git-app with build_pack detection + create-one-click with type validation against list-types; create-app-db stubs to COOLIFY_NOT_IMPLEMENTED
+- [ ] 20-03-PLAN.md — Wave 3 create-app-db wiring (RECIPE-03) + recipe tool registration in server.ts + README docs
+
+**UI hint**: yes
 
 ### Phase 21: Deploy Watch
 
@@ -156,7 +164,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
-| 20 | v3.1 | 0/? | Not started | - |
+| 20 | v3.1 | 0/4 | Planned | - |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
