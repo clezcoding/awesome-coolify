@@ -19,6 +19,7 @@ import {
 } from '../../utils/errors.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
@@ -28,19 +29,6 @@ import {
   resolveProjection,
   sanitizeFullProjection,
 } from '../../utils/projections.js';
-
-const mutationResponseParamsFlatShape = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .positive()
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
 
 const privateKeyReadParamKeys = [
   'format',

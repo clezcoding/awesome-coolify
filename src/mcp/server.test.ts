@@ -288,6 +288,11 @@ describe('actionsCatalog schema-field-name regression (Phase 19 gap closure)', (
     );
   });
 
+  it('serviceActionsCatalog includes restart and delete_preview', () => {
+    expect(serviceActionsCatalog).toContain('restart(uuid)');
+    expect(serviceActionsCatalog).toContain('delete_preview(uuid)');
+  });
+
   it('databaseActionsCatalog uses schema field names for env mutations (WR-02)', () => {
     expect(databaseActionsCatalog).toContain(
       'envs:delete(uuid?, env_uuid, confirm)',

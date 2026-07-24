@@ -18,6 +18,7 @@ import {
 } from '../../utils/errors.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
@@ -31,19 +32,6 @@ import {
   resolveEnvironmentUuid,
   resolveProjectUuid,
 } from '../../utils/project-lookup.js';
-
-const mutationResponseParamsFlatShape = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .positive()
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
 
 const DUPLICATE_ENV_RECOVERY_HINTS = [
   'An environment with this name already exists in this project. Use the existing UUID or pick a new name.',

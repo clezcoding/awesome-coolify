@@ -55,6 +55,7 @@ import {
 import { redactSecrets } from '../../utils/redact.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
@@ -218,20 +219,6 @@ function requireEnvUuidOrKey(
   }
 }
 
-const mutationResponseParamsFlatShape = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .min(1000)
-    .max(100000)
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
-
 const serviceReadParamKeys = [
   'format',
   'projection',
@@ -269,7 +256,7 @@ const SERVICE_UPDATE_CURATED_FIELD_KEYS = [
 ] as const;
 
 export const serviceActionsCatalog =
-  'Actions: get(uuid, format?, projection?, reveal?) · create(server_uuid, type?, compose?) · update(uuid) · delete(uuid, confirm) · start(uuid) · stop(uuid) · deploy(uuid) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm)';
+  'Actions: get(uuid, format?, projection?, reveal?) · create(server_uuid, type?, compose?) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm)';
 
 export const serviceSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';

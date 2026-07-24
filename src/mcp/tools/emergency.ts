@@ -23,6 +23,7 @@ import { projectDeploymentSummary } from '../../utils/projections.js';
 import type { FollowUpHint } from '../../utils/diagnose-hints.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   parseWithInstanceRouting,
   resolveRoutingEnv,
 } from './shared-read-params.js';
@@ -106,10 +107,7 @@ export const emergencyActionsCatalog =
 export const emergencySafetyFooter =
   'Safety: confirm for destructive ops · optional instance';
 
-const emergencyResponseParamsFlatShape = {
-  format: z.enum(['pretty', 'json', 'table']).optional(),
-  max_chars: z.number().int().positive().optional(),
-};
+const emergencyResponseParamsFlatShape = mutationResponseParamsFlatShape;
 
 export const emergencyToolSchema = createFlatActionSchema(
   ['stop_all', 'redeploy_project', 'restart_project'],

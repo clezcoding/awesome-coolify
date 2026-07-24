@@ -20,6 +20,8 @@ This is non-optional. It:
 
 Kodiak still only merges when required CI checks are green — `automerge` is the opt-in, not a force-merge.
 
+**Never push `[ci skip]` / `[skip ci]` onto a PR tip.** Required checks (`Lint, Test & Build`, `MegaLinter`) are bound to HEAD; a skipped tip leaves them stuck at "Expected — Waiting for status to be reported" and Kodiak waits forever.
+
 2. Preview:
 
 ```bash

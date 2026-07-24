@@ -52,10 +52,9 @@ export function registerCoolifyPrompts(server: McpServer): void {
 
 3. Capture the returned \`deployment_uuid\` from the response.
 
-4. Monitor deployment progress using \`deployment.watch\` (Phase 21 — forward reference):
-   deployment({ action: "watch", deployment_uuid: "<deployment_uuid>"${instanceSuffix} })
-   Fallback until watch exists: poll \`deployment.get\` until status is terminal (\`finished\` or \`failed\`):
+4. Poll deployment progress with \`deployment.get\` until status is terminal (\`finished\` or \`failed\`):
    deployment({ action: "get", deployment_uuid: "<deployment_uuid>"${instanceSuffix} })
+   Future (Phase 21): \`deployment.watch\` will replace polling — do not call watch until it exists.
 
 5. Report the final deployment status and any relevant logs hint to the user.`,
           },
@@ -141,8 +140,9 @@ export function registerCoolifyPrompts(server: McpServer): void {
 4. Link a server if needed — verify server UUID via \`resource\` list/find or \`server\` get:
    server({ action: "get", uuid: "${server_uuid ?? '<server-uuid>'}"${instanceSuffix} })
 
-5. Soft manifest guidance — upsert discovered UUIDs to \`.coolify/manifest.json\` via \`manifest\`:
-   manifest({ action: "upsert", resources: [{ uuid: "<project-uuid>", type: "project" }] })
+5. Soft manifest guidance — after creating an app/service/database, upsert that resource (not the project) via \`manifest\`:
+   manifest({ action: "upsert", resource: { uuid: "<resource-uuid>", type: "application", name: "<name>" }, project_uuid: "<project-uuid>", environment_uuid: "<env-uuid>"${instanceSuffix} })
+   Or preview a full reconcile with \`manifest({ action: "sync", dry_run: true${instanceSuffix} })\`.
    Do not execute setup recipes in this prompt — CRUD only.
 
 6. Confirm project, environment, and server linkage with the user.`,

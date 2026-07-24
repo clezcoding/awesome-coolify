@@ -63,6 +63,7 @@ import {
 } from '../../utils/log-helpers.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
@@ -264,19 +265,6 @@ function requireEnvUuidOrKey(
   }
 }
 
-const mutationResponseParamsFlatShape = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .positive()
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
-
 const applicationReadParamKeys = [
   'format',
   'projection',
@@ -436,8 +424,10 @@ export const applicationActionSchema = createFlatActionSchema(
       .optional()
       .describe('How to resolve value conflicts on apply'),
     reveal: z.boolean().optional().describe('Reveal masked values for this call only'),
+    // Read bounds win for format/max_chars. Do NOT spread sharedLogParamsFlatShape —
+    // it would overwrite format with log-only enum then get clobbered by mutation shape;
+    // log-only fields (lines/include_hidden/type) are listed above individually.
     ...sharedReadParamsFlatShape,
-    ...sharedLogParamsFlatShape,
     ...mutationResponseParamsFlatShape,
   },
   {
@@ -685,6 +675,13 @@ export const applicationActionSchema = createFlatActionSchema(
           message:
             'Cannot provide both uuid and deployment_uuid — choose runtime OR build logs',
           params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (data.format === 'table') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'format table is not supported for logs — use pretty or json',
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
         });
       }
     }

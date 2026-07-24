@@ -55,6 +55,7 @@ import {
 import { redactSecrets } from '../../utils/redact.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
@@ -186,20 +187,6 @@ function requireEnvUuidOrKey(
     });
   }
 }
-
-const mutationResponseParamsFlatShape = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .min(1000)
-    .max(100000)
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
 
 const databaseReadParamKeys = [
   'format',

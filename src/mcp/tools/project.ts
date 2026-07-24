@@ -19,6 +19,7 @@ import {
 } from '../../utils/errors.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
@@ -29,19 +30,6 @@ import {
   sanitizeFullProjection,
 } from '../../utils/projections.js';
 import { resolveProjectUuid } from '../../utils/project-lookup.js';
-
-const mutationResponseParamsFlatShape = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .positive()
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
 
 const INITIAL_ENV_RECOVERY_HINTS = [
   'Ask the user whether to default to production or use a custom environment name.',

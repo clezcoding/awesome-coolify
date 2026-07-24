@@ -45,7 +45,7 @@ describe('MCP prompts registration', () => {
     }
   });
 
-  it('deploy prompt references application.deploy, deployment.watch, and deployment.get', async () => {
+  it('deploy prompt leads with application.deploy + deployment.get and notes watch as future', async () => {
     const server = new McpServer({ name: 'test-server', version: '1.0.0' });
     registerCoolifyPrompts(server);
     const result = await getRegisteredPrompts(server).deploy.handler({
@@ -54,8 +54,11 @@ describe('MCP prompts registration', () => {
     });
     const content = assistantContent(result);
     expect(content).toContain('application.deploy');
-    expect(content).toContain('deployment.watch');
     expect(content).toContain('deployment.get');
+    expect(content).toContain('deployment.watch');
+    expect(content.indexOf('deployment.get')).toBeLessThan(
+      content.indexOf('deployment.watch'),
+    );
   });
 
   it('diagnose prompt mentions app, server, and scan paths', async () => {
@@ -81,6 +84,11 @@ describe('MCP prompts registration', () => {
     expect(content).toContain('project({ action: "create"');
     expect(content).toContain('environment({ action: "create"');
     expect(content).toContain('manifest({ action: "upsert"');
+    expect(content).toContain('resource:');
+    expect(content).toContain('project_uuid:');
+    expect(content).toContain('environment_uuid:');
+    expect(content).not.toContain('resources:');
+    expect(content).not.toContain('type: "project"');
   });
 
   it('incident prompt mentions diagnose, logs, restart, and emergency redeploy', async () => {

@@ -330,7 +330,7 @@ export const sharedLogParamsFlatShape = {
   max_chars: z
     .number()
     .int()
-    .min(1)
+    .min(1000)
     .max(100000)
     .optional()
     .describe(sharedLogParamsSchema.max_chars.description),
@@ -346,6 +346,21 @@ export const sharedLogParamsFlatShape = {
     .enum(['stdout', 'stderr', 'all'])
     .optional()
     .describe(sharedLogParamsSchema.type.description),
+} satisfies z.ZodRawShape;
+
+/** Flat mutation response formatting — same bounds as sharedReadParamsFlatShape. */
+export const mutationResponseParamsFlatShape = {
+  format: z
+    .enum(['pretty', 'json', 'table'])
+    .optional()
+    .describe('Output format (default pretty)'),
+  max_chars: z
+    .number()
+    .int()
+    .min(1000)
+    .max(100000)
+    .optional()
+    .describe('Max formatted output characters (default 16000)'),
 } satisfies z.ZodRawShape;
 
 const readParamsObjectSchema = z.object(sharedReadParamsSchema);

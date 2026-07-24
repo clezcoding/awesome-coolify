@@ -19,6 +19,7 @@ import {
 } from '../../utils/errors.js';
 import {
   createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
@@ -31,19 +32,6 @@ import {
 
 const DEFAULT_VALIDATE_TIMEOUT_SEC = 30;
 const DEFAULT_VALIDATE_TIMEOUT_MS = DEFAULT_VALIDATE_TIMEOUT_SEC * 1000;
-
-const mutationResponseParamsFlatShape = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .positive()
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
 
 const serverReadParamKeys = [
   'format',
