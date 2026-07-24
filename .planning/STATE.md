@@ -4,16 +4,16 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: Recipes & Service List-Types
-status: "Phase 19 shipped — PR #47"
-stopped_at: Phase 20 research complete
-last_updated: "2026-07-24T03:41:37.785Z"
+status: "Ready to execute"
+stopped_at: Phase 20 planned — 4 plans ready
+last_updated: "2026-07-24T03:42:00.000Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 20 planning complete
+last_activity_desc: Phase 20 planning complete — 4 plans verified
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 4
+  completed_plans: 0
   percent: 20
 ---
 
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 20 — Recipes & Service List-Types
-Plan: Not started
-Status: Phase 19 shipped — PR #47
-Last activity: 2026-07-24 — Phase 20 planning complete
+Plan: 0/4
+Status: Ready to execute
+Last activity: 2026-07-24 — Phase 20 planning complete — 4 plans verified
 
 ## Performance Metrics
 
