@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.3.3
+
+### Patch Changes
+
+- 4187b39: fix(ci): emit new-tag line so changesets creates github releases
+
 ## 0.3.2
 
 ### Patch Changes
