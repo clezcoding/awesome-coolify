@@ -99,7 +99,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   3. Agent runs recipe `app+db` end-to-end: creates application + database and wires `DATABASE_URL` (or equivalent) env between them
   4. Agent runs recipe `one-click`: creates a service from a type returned by `list-types` on the target instance
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -109,7 +109,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 20-02-PLAN.md — Wave 2 recipe tool foundation (RECIPE-02, RECIPE-04): create-git-app with build_pack detection + create-one-click with type validation against list-types; create-app-db stubs to COOLIFY_NOT_IMPLEMENTED
+- [x] 20-02-PLAN.md — Wave 2 recipe tool foundation (RECIPE-02, RECIPE-04): create-git-app with build_pack detection + create-one-click with type validation against list-types; create-app-db stubs to COOLIFY_NOT_IMPLEMENTED
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -172,7 +172,7 @@ Plans:
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
-| 20 | v3.1 | 2/4 | In Progress|  |
+| 20 | v3.1 | 3/4 | In Progress|  |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
