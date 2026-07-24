@@ -1,5 +1,12 @@
 # awesome-coolify-mcp
 
+## 0.3.1
+
+### Patch Changes
+
+- ba9c58e: fix(security): avoid false literal for optional tls verify opt-out
+- 7cedd43: Bump transitive `fast-uri` / `esbuild` via pnpm overrides and document intentional SSL verify opt-out for CodeQL.
+
 ## 0.3.0
 
 ### Minor Changes
