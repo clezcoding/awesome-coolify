@@ -22,21 +22,21 @@ matrix records the integrate/opt-out decisions for the Phase 19 DX surface.
 
 | capability | decision | reason |
 |---|---|---|
-| createFlatActionSchema helper (flat z.object + per-action superRefine) | INTEGRATE | |
-| sharedReadParamsFlatShape / sharedLogParamsFlatShape (no Zod defaults at MCP boundary) | INTEGRATE | |
-| Migrate all 16 registered domain tools to flat top-level inputSchema | INTEGRATE | |
-| Co-located `<domain>ActionsCatalog` + `<domain>SafetyFooter` on every domain tool | INTEGRATE | |
-| Action-aware COOLIFY_VALIDATION_ERROR recoveryHints via parseWithInstanceRouting | INTEGRATE | |
-| composeToolDescription(purpose, catalog, footer) on every registerTool | INTEGRATE | |
-| Catalog tokens use schema field names (env_uuid, entries) — no key/envs aliases | INTEGRATE | |
-| Concrete action(param) catalog tokens — no envs:*/backup:* wildcards | INTEGRATE | |
-| MCP prompt `deploy` (optional args, deploy + watch guidance) | INTEGRATE | |
-| MCP prompt `diagnose` (app/server/scan guidance) | INTEGRATE | |
-| MCP prompt `new-project` (setup/recipe onboarding guidance) | INTEGRATE | |
-| MCP prompt `incident` (emergency/redeploy triage guidance) | INTEGRATE | |
-| registerCoolifyPrompts after registerCoolifyTools in createAndConnectServer | INTEGRATE | |
-| Prompt soft manifest Note (no hard-fail / no filesystem read) | INTEGRATE | |
-| Unit/regression tests for schema flatness, Actions:/Safety: prefixes, catalog field names | INTEGRATE | |
+| createFlatActionSchema (flat z.object + per-action superRefine) | INTEGRATE | |
+| sharedRead/LogParamsFlatShape (no Zod defaults at MCP boundary) | INTEGRATE | |
+| Migrate 16 domain tools to flat top-level inputSchema | INTEGRATE | |
+| Co-located ActionsCatalog + SafetyFooter on every domain tool | INTEGRATE | |
+| Action-aware COOLIFY_VALIDATION_ERROR recoveryHints | INTEGRATE | |
+| composeToolDescription on every registerTool | INTEGRATE | |
+| Catalog tokens use schema field names (env_uuid, entries) | INTEGRATE | |
+| Concrete action(param) tokens — no envs:*/backup:* wildcards | INTEGRATE | |
+| MCP prompt deploy (optional args, deploy + watch guidance) | INTEGRATE | |
+| MCP prompt diagnose (app/server/scan guidance) | INTEGRATE | |
+| MCP prompt new-project (setup/recipe onboarding guidance) | INTEGRATE | |
+| MCP prompt incident (emergency/redeploy triage guidance) | INTEGRATE | |
+| registerCoolifyPrompts after registerCoolifyTools | INTEGRATE | |
+| Prompt soft manifest Note (no hard-fail / no disk read) | INTEGRATE | |
+| Regression tests: flat schemas, Actions:/Safety:, catalog names | INTEGRATE | |
 | README EN/DE MCP Prompts documentation | INTEGRATE | |
 | New Coolify REST endpoints | OPT-OUT | explicitly out of scope — DX reshapes existing client surface only |
 | New MCP registerTool names | OPT-OUT | explicitly out of scope — same 16 tools; prompts are registerPrompt only |
