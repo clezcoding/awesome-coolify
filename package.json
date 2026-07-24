@@ -19,6 +19,7 @@
     "gsd:fix-verification": "node scripts/gsd-ensure-verification-fresh.mjs",
     "prepare": "husky",
     "version": "changeset version",
+    "changeset:emit-tag": "node scripts/changeset-emit-new-tag.mjs",
     "publint": "publint",
     "uat:live": "node scripts/live-uat.mjs"
   },

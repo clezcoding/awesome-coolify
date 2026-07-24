@@ -34,14 +34,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Automatically opens a "Version Packages" PR whenever changesets
-      # land on main. Merging that PR creates the GitHub Release + tag,
-      # which triggers publish.yml (npm Trusted Publishing) below.
+      # Opens a "Version Packages" PR when changesets land on main.
+      # After that PR merges: `publish` must be set or the action skips
+      # tag/release creation ("Not publishing because no publish script found").
+      # We only emit a New-tag line — action creates the GitHub Release/tag;
+      # publish.yml then npm-publishes via OIDC on `release: published`.
       - name: Changesets
         id: changesets
         uses: changesets/action@v1.9.0
         with:
-          version: pnpm run version # runs "changeset version" (add this script to package.json)
-          # camelCase required — kebab-case inputs are ignored (see action v1.9.0 schema)
+          version: pnpm run version
+          publish: pnpm run changeset:emit-tag
           createGithubReleases: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
