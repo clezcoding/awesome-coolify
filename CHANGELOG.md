@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.3.0
+
+### Minor Changes
+
+- 5c41713: Phase 19: DX Schemas & MCP Prompts
+
 ## 0.2.1
 
 ### Patch Changes
