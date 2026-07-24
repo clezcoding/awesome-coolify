@@ -1,0 +1,9 @@
+# Default owner for everything in the repo
+* @clezcoding
+
+# Sensitive paths — explicit review requests
+/.github/ @clezcoding
+/src/ @clezcoding
+/scripts/ @clezcoding
+/docs/ @clezcoding
+/dev-docs/ @clezcoding
