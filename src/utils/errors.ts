@@ -19,7 +19,8 @@ export type CoolifyErrorCode =
   | 'COOLIFY_PARTIAL_ENV'
   | 'COOLIFY_CLOUD_FORBIDDEN'
   | 'COOLIFY_CLOUD_UNSUPPORTED'
-  | 'COOLIFY_FETCH_TEMPLATES_FAILED';
+  | 'COOLIFY_FETCH_TEMPLATES_FAILED'
+  | 'COOLIFY_NOT_IMPLEMENTED';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -113,6 +114,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_FETCH_TEMPLATES_FAILED: [
     'Verify that your server has outbound internet access.',
     'Verify that coollabsio/coolify GitHub repository is accessible.',
+  ],
+  COOLIFY_NOT_IMPLEMENTED: [
+    'This recipe action is not yet available in this MCP version.',
+    'Check release notes or roadmap for upcoming recipe support.',
   ],
 };
 

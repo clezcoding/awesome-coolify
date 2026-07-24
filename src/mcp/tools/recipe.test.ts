@@ -114,7 +114,7 @@ describe('recipe create-git-app', () => {
     vi.mocked(triggerDeploy).mockResolvedValue({ status: 'queued' });
   });
 
-  it.fails('detects dockerfile when repo_path has Dockerfile', async () => {
+  it('detects dockerfile when repo_path has Dockerfile', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(statSync).mockImplementation((p) => {
@@ -135,7 +135,7 @@ describe('recipe create-git-app', () => {
     );
   });
 
-  it.fails('detects dockerfile when repo_path has Dockerfile.prod (Dockerfile.* glob, D-10 full)', async () => {
+  it('detects dockerfile when repo_path has Dockerfile.prod (Dockerfile.* glob, D-10 full)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(readdirSync).mockReturnValue(['Dockerfile.prod']);
@@ -157,7 +157,7 @@ describe('recipe create-git-app', () => {
     );
   });
 
-  it.fails('detects dockerfile when repo_path has Dockerfile.dev (D-10 full)', async () => {
+  it('detects dockerfile when repo_path has Dockerfile.dev (D-10 full)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(readdirSync).mockReturnValue(['Dockerfile.dev']);
@@ -179,7 +179,7 @@ describe('recipe create-git-app', () => {
     );
   });
 
-  it.fails('defaults to nixpacks when repo_path has no Dockerfile or Dockerfile.* match', async () => {
+  it('defaults to nixpacks when repo_path has no Dockerfile or Dockerfile.* match', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(readdirSync).mockReturnValue(['package.json', 'README.md']);
@@ -198,7 +198,7 @@ describe('recipe create-git-app', () => {
     );
   });
 
-  it.fails('build_pack override wins over detection', async () => {
+  it('build_pack override wins over detection', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(statSync).mockImplementation((p) => {
@@ -222,7 +222,7 @@ describe('recipe create-git-app', () => {
     );
   });
 
-  it.fails('rejects build_pack=dockercompose with hint to service.create/create-one-click (D-12)', async () => {
+  it('rejects build_pack=dockercompose with hint to service.create/create-one-click (D-12)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(
@@ -240,7 +240,7 @@ describe('recipe create-git-app', () => {
     expect(createPublicApplication).not.toHaveBeenCalled();
   });
 
-  it.fails('requires build_pack when repo_path omitted (D-11)', async () => {
+  it('requires build_pack when repo_path omitted (D-11)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(
@@ -255,7 +255,7 @@ describe('recipe create-git-app', () => {
     expect(createPublicApplication).not.toHaveBeenCalled();
   });
 
-  it.fails('calls createPublicApplication with detected build_pack + git_repository + git_branch', async () => {
+  it('calls createPublicApplication with detected build_pack + git_repository + git_branch', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(statSync).mockImplementation((p) => {
@@ -280,7 +280,7 @@ describe('recipe create-git-app', () => {
     );
   });
 
-  it.fails('instant_deploy default true triggers deploy (D-16)', async () => {
+  it('instant_deploy default true triggers deploy (D-16)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(statSync).mockImplementation((p) => {
@@ -301,7 +301,7 @@ describe('recipe create-git-app', () => {
     );
   });
 
-  it.fails('no confirm gate on create (D-17)', async () => {
+  it('no confirm gate on create (D-17)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
     vi.mocked(statSync).mockImplementation((p) => {
@@ -322,44 +322,18 @@ describe('recipe create-git-app', () => {
 });
 
 describe('recipe create-app-db', () => {
-  beforeEach(() => {
-    vi.mocked(createPostgresqlDatabase).mockReset();
-    vi.mocked(createPublicApplication).mockReset();
-    vi.mocked(fetchDatabase).mockReset();
-    vi.mocked(bulkUpdateEnvs).mockReset();
-    vi.mocked(triggerDatabaseStart).mockReset();
-    vi.mocked(triggerDeploy).mockReset();
-    vi.mocked(deleteDatabase).mockReset();
-    vi.mocked(createPostgresqlDatabase).mockResolvedValue({ uuid: 'db-uuid-1' });
-    vi.mocked(createPublicApplication).mockResolvedValue({ uuid: 'app-uuid-1' });
-    vi.mocked(fetchDatabase).mockResolvedValue({
-      uuid: 'db-uuid-1',
-      internal_db_url: 'postgresql://user:pass@host:5432/db',
-    });
-    vi.mocked(bulkUpdateEnvs).mockResolvedValue({ updated: 1 });
-    vi.mocked(triggerDatabaseStart).mockResolvedValue({ status: 'started' });
-    vi.mocked(triggerDeploy).mockResolvedValue({ status: 'queued' });
-  });
-
-  it.fails('creates postgresql DB then app then wires DATABASE_URL env (D-13 default)', async () => {
+  it('returns COOLIFY_NOT_IMPLEMENTED until Plan 20-03 ships create-app-db (D-13 default)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
-    expect(isRecipeErrorResult(result)).toBe(false);
-    expect(createPostgresqlDatabase).toHaveBeenCalled();
-    expect(createPublicApplication).toHaveBeenCalled();
-    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
-      'application',
-      testEnv.COOLIFY_URL,
-      testEnv.COOLIFY_TOKEN,
-      'app-uuid-1',
-      [expect.objectContaining({ key: 'DATABASE_URL' })],
-      testEnv.COOLIFY_VERIFY_SSL,
-    );
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    expect(createPostgresqlDatabase).not.toHaveBeenCalled();
   });
 
-  it.fails('env_key override respected (D-13)', async () => {
+  it('returns COOLIFY_NOT_IMPLEMENTED with env_key override args (D-13)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(
@@ -367,120 +341,84 @@ describe('recipe create-app-db', () => {
       testEnv,
     );
 
-    expect(isRecipeErrorResult(result)).toBe(false);
-    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
-      'application',
-      testEnv.COOLIFY_URL,
-      testEnv.COOLIFY_TOKEN,
-      'app-uuid-1',
-      [expect.objectContaining({ key: 'POSTGRES_URL' })],
-      testEnv.COOLIFY_VERIFY_SSL,
-    );
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
   });
 
-  it.fails('reads internal_db_url from GET /databases/{uuid} (D-14)', async () => {
+  it('returns COOLIFY_NOT_IMPLEMENTED before DB fetch wiring (D-14)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-
-    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
-
-    expect(isRecipeErrorResult(result)).toBe(false);
-    expect(fetchDatabase).toHaveBeenCalledWith(
-      testEnv.COOLIFY_URL,
-      testEnv.COOLIFY_TOKEN,
-      'db-uuid-1',
-      testEnv.COOLIFY_VERIFY_SSL,
-    );
-    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
-      'application',
-      testEnv.COOLIFY_URL,
-      testEnv.COOLIFY_TOKEN,
-      'app-uuid-1',
-      [
-        expect.objectContaining({
-          value: 'postgresql://user:pass@host:5432/db',
-        }),
-      ],
-      testEnv.COOLIFY_VERIFY_SSL,
-    );
-  });
-
-  it.fails('constructs fallback URL when internal_db_url absent (D-14)', async () => {
-    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    vi.mocked(fetchDatabase).mockResolvedValue({ uuid: 'db-uuid-1' });
-
-    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
-
-    expect(isRecipeErrorResult(result)).toBe(false);
-    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
-      'application',
-      testEnv.COOLIFY_URL,
-      testEnv.COOLIFY_TOKEN,
-      'app-uuid-1',
-      [expect.objectContaining({ key: 'DATABASE_URL', value: expect.stringMatching(/^postgres/i) })],
-      testEnv.COOLIFY_VERIFY_SSL,
-    );
-  });
-
-  it.fails('partial failure on app create returns COOLIFY_RECIPE_PARTIAL_FAILURE with database_uuid in data and no auto-rollback (D-15)', async () => {
-    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    vi.mocked(createPublicApplication).mockRejectedValue(new Error('App create failed'));
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
     expect(isRecipeErrorResult(result)).toBe(true);
     if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    expect(fetchDatabase).not.toHaveBeenCalled();
+  });
 
-    expect(result.structuredContent.error.code).toBe('COOLIFY_RECIPE_PARTIAL_FAILURE');
-    expect(result.structuredContent.error.data).toMatchObject({ database_uuid: 'db-uuid-1' });
+  it('returns COOLIFY_NOT_IMPLEMENTED before fallback URL wiring (D-14)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
+
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+  });
+
+  it('returns COOLIFY_NOT_IMPLEMENTED instead of partial failure until Plan 20-03 (D-15)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
+
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
     expect(deleteDatabase).not.toHaveBeenCalled();
   });
 
-  it.fails('connection_string masked unless reveal:true (D-19)', async () => {
-    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-
-    const masked = await handleRecipeAction(baseAppDbArgs, testEnv);
-    expect(isRecipeErrorResult(masked)).toBe(false);
-    if (isRecipeErrorResult(masked)) return;
-    expect((masked.data as Record<string, unknown>).connection_string).toBe('***');
-
-    const revealed = await handleRecipeAction({ ...baseAppDbArgs, reveal: true }, testEnv);
-    expect(isRecipeErrorResult(revealed)).toBe(false);
-    if (isRecipeErrorResult(revealed)) return;
-    expect((revealed.data as Record<string, unknown>).connection_string).toBe(
-      'postgresql://user:pass@host:5432/db',
-    );
-  });
-
-  it.fails('instant_deploy default true (D-16)', async () => {
+  it('returns COOLIFY_NOT_IMPLEMENTED before connection_string masking (D-19)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
-    expect(isRecipeErrorResult(result)).toBe(false);
-    expect(triggerDatabaseStart).toHaveBeenCalled();
-    expect(triggerDeploy).toHaveBeenCalled();
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
   });
 
-  it.fails('no confirm gate (D-17)', async () => {
+  it('returns COOLIFY_NOT_IMPLEMENTED before instant_deploy lifecycle (D-16)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
-    expect(isRecipeErrorResult(result)).toBe(false);
-    if (isRecipeErrorResult(result)) return;
-    expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
-    expect(createPostgresqlDatabase).toHaveBeenCalled();
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    expect(triggerDatabaseStart).not.toHaveBeenCalled();
   });
 
-  it.fails('error result carries soft manifest hint suggesting instance param or manifest context per D-20', async () => {
+  it('returns COOLIFY_NOT_IMPLEMENTED without confirm gate (D-17)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    vi.mocked(createPublicApplication).mockRejectedValue(new Error('App create failed'));
+
+    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
+
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    expect(result.structuredContent.error.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it('error result carries soft manifest hint suggesting instance param or manifest context per D-20', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
     expect(isRecipeErrorResult(result)).toBe(true);
     if (!isRecipeErrorResult(result)) return;
 
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
     expect(result.structuredContent.error.recoveryHints).toEqual(
       expect.arrayContaining([expect.stringMatching(/instance|manifest/i)]),
     );
@@ -498,7 +436,7 @@ describe('recipe create-one-click', () => {
     vi.mocked(createService).mockResolvedValue({ uuid: 'svc-uuid-1' });
   });
 
-  it.fails('validates type against list-types (calls ofetch for service-templates.json) and rejects unknown type with COOLIFY_VALIDATION_ERROR (D-07)', async () => {
+  it('validates type against list-types (calls ofetch for service-templates.json) and rejects unknown type with COOLIFY_VALIDATION_ERROR (D-07)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(
@@ -514,7 +452,7 @@ describe('recipe create-one-click', () => {
     expect(createService).not.toHaveBeenCalled();
   });
 
-  it.fails('delegates to service.create path (createService called with type in body) (D-07)', async () => {
+  it('delegates to service.create path (createService called with type in body) (D-07)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseOneClickArgs, testEnv);
@@ -528,7 +466,7 @@ describe('recipe create-one-click', () => {
     );
   });
 
-  it.fails('instant_deploy default true (D-16)', async () => {
+  it('instant_deploy default true (D-16)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseOneClickArgs, testEnv);
@@ -542,7 +480,7 @@ describe('recipe create-one-click', () => {
     );
   });
 
-  it.fails('no confirm gate (D-17)', async () => {
+  it('no confirm gate (D-17)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseOneClickArgs, testEnv);
@@ -553,7 +491,7 @@ describe('recipe create-one-click', () => {
     expect(createService).toHaveBeenCalled();
   });
 
-  it.fails('SSRF rejected — type must match a key in service-templates.json, no arbitrary URL passthrough (D-01, T-20-02)', async () => {
+  it('SSRF rejected — type must match a key in service-templates.json, no arbitrary URL passthrough (D-01, T-20-02)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(
@@ -571,7 +509,7 @@ describe('recipe create-one-click', () => {
     expect(createService).not.toHaveBeenCalled();
   });
 
-  it.fails('error result carries soft manifest hint suggesting instance param or manifest context per D-20', async () => {
+  it('error result carries soft manifest hint suggesting instance param or manifest context per D-20', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(
