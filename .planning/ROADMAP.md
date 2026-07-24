@@ -73,13 +73,13 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   4. User/agent invokes MCP prompts `diagnose`, `new-project`, and `incident` and each returns workflow guidance with the right arguments
 
 **Plans**:
-1/2 plans executed
+2/2 plans executed
 
 - [x] 19-01-PLAN.md — Flat schema helper + migrate all 17 domain tools to flat z.object + co-located actionsCatalog/safetyFooter constants
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 19-02-PLAN.md — Compose tool descriptions from catalogs + ship MCP prompts registry (deploy/diagnose/new-project/incident) + tests + docs
+- [x] 19-02-PLAN.md — Compose tool descriptions from catalogs + ship MCP prompts registry (deploy/diagnose/new-project/incident) + tests + docs
 
 **UI hint**: yes
 
@@ -151,7 +151,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 | 16 | v3.0 | 5/5 | Complete | 2026-07-22 |
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
-| 19 | v3.1 | 1/2 | In Progress|  |
+| 19 | v3.1 | 2/2 | In Progress|  |
 | 20 | v3.1 | 0/? | Not started | - |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |

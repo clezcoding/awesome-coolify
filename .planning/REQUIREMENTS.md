@@ -10,15 +10,15 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### DX / Schemas
 
-- [ ] **DX-01**: Agent sees action catalogs and key parameters in every tool description (Cursor-friendly; mitigates empty UI tooltips)
+- [x] **DX-01**: Agent sees action catalogs and key parameters in every tool description (Cursor-friendly; mitigates empty UI tooltips)
 - [x] **DX-02**: Tool input schemas remain agent-callable with visible parameters (flat/top-level shape or equivalent) so Cursor does not show empty `properties: {}` while preserving action routing
 
 ### MCP Prompts
 
-- [ ] **PROMPT-01**: User can invoke MCP prompt `deploy` with parameterized guidance for deploy + watch flow
-- [ ] **PROMPT-02**: User can invoke MCP prompt `diagnose` for app/server/scan troubleshooting
-- [ ] **PROMPT-03**: User can invoke MCP prompt `new-project` for setup/recipe onboarding
-- [ ] **PROMPT-04**: User can invoke MCP prompt `incident` for emergency/redeploy triage
+- [x] **PROMPT-01**: User can invoke MCP prompt `deploy` with parameterized guidance for deploy + watch flow
+- [x] **PROMPT-02**: User can invoke MCP prompt `diagnose` for app/server/scan troubleshooting
+- [x] **PROMPT-03**: User can invoke MCP prompt `new-project` for setup/recipe onboarding
+- [x] **PROMPT-04**: User can invoke MCP prompt `incident` for emergency/redeploy triage
 
 ### Recipes / Discovery
 
@@ -82,12 +82,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DX-01 | Phase 19 | Pending |
+| DX-01 | Phase 19 | Complete |
 | DX-02 | Phase 19 | Complete |
-| PROMPT-01 | Phase 19 | Pending |
-| PROMPT-02 | Phase 19 | Pending |
-| PROMPT-03 | Phase 19 | Pending |
-| PROMPT-04 | Phase 19 | Pending |
+| PROMPT-01 | Phase 19 | Complete |
+| PROMPT-02 | Phase 19 | Complete |
+| PROMPT-03 | Phase 19 | Complete |
+| PROMPT-04 | Phase 19 | Complete |
 | RECIPE-01 | Phase 20 | Pending |
 | RECIPE-02 | Phase 20 | Pending |
 | RECIPE-03 | Phase 20 | Pending |
