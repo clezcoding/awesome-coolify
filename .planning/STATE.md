@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 19
-current_phase_name: DX Schemas & MCP Prompts
-status: Ready to execute
-stopped_at: Phase 19 planning complete — 2 plans ready
-last_updated: "2026-07-24T01:04:00.000Z"
+current_phase_name: dx-schemas-mcp-prompts
+status: executing
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-07-24T01:25:34.841Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 19 planning complete — 2 plans ready
+last_activity_desc: Phase 19 execution started
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-23)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** v3.1 roadmap created — Phases 19–23 (DX schemas/prompts, recipes, deploy watch, setup wizard+skills, OpenAPI coverage+npm release)
+**Current focus:** Phase 19 — dx-schemas-mcp-prompts
 
 ## Current Position
 
-Phase: Phase 19 (DX Schemas & MCP Prompts) — planned
-Plan: 2 plans ready (19-01 Wave 1 → 19-02 Wave 2)
+Phase: 19 (dx-schemas-mcp-prompts) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-07-24 — Phase 19 planning complete
+Last activity: 2026-07-24 — Phase 19 execution started
 
 ## Performance Metrics
 
@@ -102,6 +102,7 @@ Last activity: 2026-07-24 — Phase 19 planning complete
 | Phase 18-live-uat-harness P04 | 2min | 2 tasks | 2 files |
 | Phase 18-live-uat-harness P03 | 3min | 2 tasks | 1 files |
 | Phase quick-260723-w1r P01 | 25min | 5 tasks | 8 files |
+| Phase 19-dx-schemas-mcp-prompts P01 | 18min | 3 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -278,6 +279,8 @@ Last activity: 2026-07-24 — Phase 19 planning complete
 - [Phase ?]: manifest mutating rows skip Coolify project UUID check — workspace-local per D-07
 - [Phase ?]: v3_gaps keyed by row id; stdio and in-process runners share preconditionGaps array
 - [Phase ?]: Emergency mutations without project_uuid blocked as blocked-outside-uat
+- [Phase ?]: Flat MCP shape fields omit Zod .default() — parseReadParams/?? in handlers restores defaults without superRefine false positives
+- [Phase ?]: createFlatActionSchema extraRefine composes per-action invariants (confirm gates, XOR, identifier checks) atop strict-key validation
 
 ### Pending Todos
 
@@ -336,9 +339,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-24T00:34:52.398Z
-**Stopped at:** Phase 19 UI-SPEC approved
-**Resume file:** .planning/phases/19-dx-schemas-mcp-prompts/19-UI-SPEC.md
+**Last session:** 2026-07-24T01:25:34.834Z
+**Stopped at:** Completed 19-01-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)
 

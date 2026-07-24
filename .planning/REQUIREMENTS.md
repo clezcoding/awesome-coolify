@@ -11,7 +11,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### DX / Schemas
 
 - [ ] **DX-01**: Agent sees action catalogs and key parameters in every tool description (Cursor-friendly; mitigates empty UI tooltips)
-- [ ] **DX-02**: Tool input schemas remain agent-callable with visible parameters (flat/top-level shape or equivalent) so Cursor does not show empty `properties: {}` while preserving action routing
+- [x] **DX-02**: Tool input schemas remain agent-callable with visible parameters (flat/top-level shape or equivalent) so Cursor does not show empty `properties: {}` while preserving action routing
 
 ### MCP Prompts
 
@@ -83,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DX-01 | Phase 19 | Pending |
-| DX-02 | Phase 19 | Pending |
+| DX-02 | Phase 19 | Complete |
 | PROMPT-01 | Phase 19 | Pending |
 | PROMPT-02 | Phase 19 | Pending |
 | PROMPT-03 | Phase 19 | Pending |
@@ -105,6 +105,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PUB-02 | Phase 23 | Pending |
 
 **Coverage:**
+
 - v3.1 requirements: 21 total
 - Mapped to phases: 21
 - Unmapped: 0 ✓
