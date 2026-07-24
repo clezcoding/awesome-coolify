@@ -27,7 +27,7 @@
 | `src/mcp/tools/emergency.ts` | route | batch | `src/mcp/tools/emergency.ts` (self) | exact |
 | `src/mcp/tools/meta.ts` | route | request-response | `src/mcp/tools/meta.ts` (self) | exact |
 | `src/mcp/tools/docs.ts` | route | request-response | `src/mcp/tools/docs.ts` (self) | exact |
-| `tests/mcp/prompts.test.ts` | test | request-response | `src/mcp/server.test.ts` | role-match |
+| `src/mcp/prompts.test.ts` | test | request-response | `src/mcp/server.test.ts` | role-match |
 
 ---
 
@@ -193,7 +193,7 @@ export const systemActionSchema = z
 
 ---
 
-### `tests/mcp/prompts.test.ts` (test, request-response)
+### `src/mcp/prompts.test.ts` (test, request-response)
 
 **Analog:** `src/mcp/server.test.ts` (for MCP client/server testing pattern)
 
