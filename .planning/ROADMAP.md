@@ -73,7 +73,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   4. User/agent invokes MCP prompts `diagnose`, `new-project`, and `incident` and each returns workflow guidance with the right arguments
 
 **Plans**:
-3/3 plans (2 executed, 1 gap-closure planned)
+3/3 plans executed
 
 - [x] 19-01-PLAN.md — Flat schema helper + migrate all 17 domain tools to flat z.object + co-located actionsCatalog/safetyFooter constants
 
@@ -83,7 +83,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 
 **Wave 3** *(gap closure — fixes CR-01 BLOCKER + D-05 catalog completeness)*
 
-- [ ] 19-03-PLAN.md — Align actionsCatalog constants with schema field names (env_uuid/entries, no wildcards) + regression test
+- [x] 19-03-PLAN.md — Align actionsCatalog constants with schema field names (env_uuid/entries, no wildcards) + regression test
 
 **UI hint**: yes
 
@@ -155,7 +155,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 | 16 | v3.0 | 5/5 | Complete | 2026-07-22 |
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
-| 19 | v3.1 | 2/2 | In Progress|  |
+| 19 | v3.1 | 3/3 | In Progress|  |
 | 20 | v3.1 | 0/? | Not started | - |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |
