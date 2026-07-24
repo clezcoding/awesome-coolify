@@ -52,6 +52,8 @@ import {
   fetchDatabase,
   triggerDatabaseStart,
   createPostgresqlDatabase,
+  createRedisDatabase,
+  createMongodbDatabase,
   createService,
   fetchResources,
   fetchVersion,
@@ -322,18 +324,52 @@ describe('recipe create-git-app', () => {
 });
 
 describe('recipe create-app-db', () => {
-  it('returns COOLIFY_NOT_IMPLEMENTED until Plan 20-03 ships create-app-db (D-13 default)', async () => {
+  beforeEach(() => {
+    vi.mocked(createPostgresqlDatabase).mockReset();
+    vi.mocked(createRedisDatabase).mockReset();
+    vi.mocked(createMongodbDatabase).mockReset();
+    vi.mocked(createPublicApplication).mockReset();
+    vi.mocked(fetchDatabase).mockReset();
+    vi.mocked(bulkUpdateEnvs).mockReset();
+    vi.mocked(triggerDatabaseStart).mockReset();
+    vi.mocked(triggerDeploy).mockReset();
+    vi.mocked(deleteDatabase).mockReset();
+
+    vi.mocked(createPostgresqlDatabase).mockResolvedValue({ uuid: 'db-new-uuid' });
+    vi.mocked(createPublicApplication).mockResolvedValue({ uuid: 'app-new-uuid' });
+    vi.mocked(fetchDatabase).mockResolvedValue({
+      internal_db_url: 'postgresql://user:pass@host:5432/db',
+    });
+    vi.mocked(bulkUpdateEnvs).mockResolvedValue([]);
+    vi.mocked(triggerDatabaseStart).mockResolvedValue({});
+    vi.mocked(triggerDeploy).mockResolvedValue({ status: 'queued' });
+  });
+
+  it('success path wires DATABASE_URL by default (D-13)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
-    expect(isRecipeErrorResult(result)).toBe(true);
-    if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
-    expect(createPostgresqlDatabase).not.toHaveBeenCalled();
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({
+      application_uuid: 'app-new-uuid',
+      database_uuid: 'db-new-uuid',
+      env_key: 'DATABASE_URL',
+      deploy: { status: 'queued' },
+    });
+    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-new-uuid',
+      [{ key: 'DATABASE_URL', value: 'postgresql://user:pass@host:5432/db' }],
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
   });
 
-  it('returns COOLIFY_NOT_IMPLEMENTED with env_key override args (D-13)', async () => {
+  it('respects env_key override (D-13)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(
@@ -341,87 +377,214 @@ describe('recipe create-app-db', () => {
       testEnv,
     );
 
-    expect(isRecipeErrorResult(result)).toBe(true);
-    if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(result.data).toMatchObject({ env_key: 'POSTGRES_URL' });
+    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-new-uuid',
+      [{ key: 'POSTGRES_URL', value: 'postgresql://user:pass@host:5432/db' }],
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
   });
 
-  it('returns COOLIFY_NOT_IMPLEMENTED before DB fetch wiring (D-14)', async () => {
+  it('reads internal_db_url from fetchDatabase (D-14)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(fetchDatabase).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-new-uuid',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-new-uuid',
+      [{ key: 'DATABASE_URL', value: 'postgresql://user:pass@host:5432/db' }],
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('constructs fallback URL when internal_db_url absent (D-14)', async () => {
+    vi.mocked(fetchDatabase).mockResolvedValue({
+      postgres_user: 'pguser',
+      postgres_password: 'pgpass',
+      postgres_db: 'pgdb',
+      internal_hostname: 'db.internal',
+      port: 5432,
+    });
+
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(bulkUpdateEnvs).toHaveBeenCalledWith(
+      'application',
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-new-uuid',
+      [
+        {
+          key: 'DATABASE_URL',
+          value: 'postgresql://pguser:pgpass@db.internal:5432/pgdb',
+        },
+      ],
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('returns COOLIFY_RECIPE_PARTIAL_FAILURE on app create failure with database_uuid (D-15)', async () => {
+    vi.mocked(createPublicApplication).mockRejectedValue(new Error('app create failed'));
+
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
     expect(isRecipeErrorResult(result)).toBe(true);
     if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
-    expect(fetchDatabase).not.toHaveBeenCalled();
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_RECIPE_PARTIAL_FAILURE');
+    expect(result.structuredContent.error.data).toMatchObject({
+      database_uuid: 'db-new-uuid',
+    });
+    expect(deleteDatabase).not.toHaveBeenCalled();
+    expect(bulkUpdateEnvs).not.toHaveBeenCalled();
   });
 
-  it('returns COOLIFY_NOT_IMPLEMENTED before fallback URL wiring (D-14)', async () => {
+  it('returns COOLIFY_RECIPE_PARTIAL_FAILURE on env wiring failure with both UUIDs (D-15)', async () => {
+    vi.mocked(bulkUpdateEnvs).mockRejectedValue(new Error('env wiring failed'));
+
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
     expect(isRecipeErrorResult(result)).toBe(true);
     if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
-  });
 
-  it('returns COOLIFY_NOT_IMPLEMENTED instead of partial failure until Plan 20-03 (D-15)', async () => {
-    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-
-    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
-
-    expect(isRecipeErrorResult(result)).toBe(true);
-    if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    expect(result.structuredContent.error.code).toBe('COOLIFY_RECIPE_PARTIAL_FAILURE');
+    expect(result.structuredContent.error.data).toMatchObject({
+      application_uuid: 'app-new-uuid',
+      database_uuid: 'db-new-uuid',
+    });
     expect(deleteDatabase).not.toHaveBeenCalled();
   });
 
-  it('returns COOLIFY_NOT_IMPLEMENTED before connection_string masking (D-19)', async () => {
+  it('masks connection_string unless reveal:true (D-19)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
-    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
+    const masked = await handleRecipeAction(baseAppDbArgs, testEnv);
+    expect(isRecipeErrorResult(masked)).toBe(false);
+    if (isRecipeErrorResult(masked)) return;
+    expect((masked.data as Record<string, unknown>).connection_string).toBe('***');
 
-    expect(isRecipeErrorResult(result)).toBe(true);
-    if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    const revealed = await handleRecipeAction(
+      { ...baseAppDbArgs, reveal: true },
+      testEnv,
+    );
+    expect(isRecipeErrorResult(revealed)).toBe(false);
+    if (isRecipeErrorResult(revealed)) return;
+    expect((revealed.data as Record<string, unknown>).connection_string).toBe(
+      'postgresql://user:pass@host:5432/db',
+    );
   });
 
-  it('returns COOLIFY_NOT_IMPLEMENTED before instant_deploy lifecycle (D-16)', async () => {
+  it('defaults instant_deploy true — triggers DB start and app deploy (D-16)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
-    expect(isRecipeErrorResult(result)).toBe(true);
-    if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(triggerDatabaseStart).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'db-new-uuid',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    expect(triggerDeploy).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-new-uuid',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+
+  it('skips lifecycle triggers when instant_deploy:false (D-16)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(
+      { ...baseAppDbArgs, instant_deploy: false },
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
     expect(triggerDatabaseStart).not.toHaveBeenCalled();
+    expect(triggerDeploy).not.toHaveBeenCalled();
   });
 
-  it('returns COOLIFY_NOT_IMPLEMENTED without confirm gate (D-17)', async () => {
+  it('has no confirm gate on create-app-db (D-17)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult, recipeActionSchema } =
+      await import('./recipe.js');
+
+    expect(
+      recipeActionSchema.safeParse({ ...baseAppDbArgs, confirm: true }).success,
+    ).toBe(false);
+
+    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+    expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
+  });
+
+  it('env-wiring failure recoveryHints contain manifest hint (D-20)', async () => {
+    vi.mocked(bulkUpdateEnvs).mockRejectedValue(new Error('env wiring failed'));
+
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
 
     const result = await handleRecipeAction(baseAppDbArgs, testEnv);
 
     expect(isRecipeErrorResult(result)).toBe(true);
     if (!isRecipeErrorResult(result)) return;
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
-    expect(result.structuredContent.error.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
-  });
 
-  it('error result carries soft manifest hint suggesting instance param or manifest context per D-20', async () => {
-    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-
-    const result = await handleRecipeAction(baseAppDbArgs, testEnv);
-
-    expect(isRecipeErrorResult(result)).toBe(true);
-    if (!isRecipeErrorResult(result)) return;
-
-    expect(result.structuredContent.error.code).toBe('COOLIFY_NOT_IMPLEMENTED');
     expect(result.structuredContent.error.recoveryHints).toEqual(
       expect.arrayContaining([expect.stringMatching(/instance|manifest/i)]),
     );
+  });
+
+  it('dispatches database create by engine (postgresql, redis, mongodb)', async () => {
+    const { handleRecipeAction } = await import('./recipe.js');
+
+    vi.mocked(createRedisDatabase).mockResolvedValue({ uuid: 'redis-db-uuid' });
+    await handleRecipeAction(
+      { ...baseAppDbArgs, db_engine: 'redis', db_name: 'redis-db' },
+      testEnv,
+    );
+    expect(createRedisDatabase).toHaveBeenCalled();
+    expect(createPostgresqlDatabase).not.toHaveBeenCalled();
+
+    vi.mocked(createMongodbDatabase).mockResolvedValue({ uuid: 'mongo-db-uuid' });
+    await handleRecipeAction(
+      { ...baseAppDbArgs, db_engine: 'mongodb', db_name: 'mongo-db' },
+      testEnv,
+    );
+    expect(createMongodbDatabase).toHaveBeenCalled();
   });
 });
 

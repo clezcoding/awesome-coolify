@@ -3,10 +3,22 @@ import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { EnvConfig } from '../config/env.js';
 import {
+  bulkUpdateEnvs,
+  createClickhouseDatabase,
+  createDragonflyDatabase,
+  createKeydbDatabase,
+  createMariadbDatabase,
+  createMongodbDatabase,
+  createMysqlDatabase,
+  createPostgresqlDatabase,
   createPublicApplication,
+  createRedisDatabase,
   createService,
+  fetchDatabase,
+  triggerDatabaseStart,
   triggerDeploy,
 } from '../../api/client.js';
+import { sanitizeFullProjection } from '../../utils/projections.js';
 import {
   resolveEnvironmentUuid,
   resolveProjectUuid,
@@ -356,18 +368,309 @@ async function handleCreateGitApp(
   );
 }
 
+type DbEngine = CreateAppDbAction['db_engine'];
+
+function readStringField(
+  record: Record<string, unknown>,
+  ...keys: string[]
+): string | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+async function dispatchCreateDatabase(
+  engine: DbEngine,
+  env: EnvConfig,
+  body: Record<string, unknown>,
+): Promise<unknown> {
+  switch (engine) {
+    case 'postgresql':
+      return createPostgresqlDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    case 'mysql':
+      return createMysqlDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    case 'mariadb':
+      return createMariadbDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    case 'mongodb':
+      return createMongodbDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    case 'redis':
+      return createRedisDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    case 'clickhouse':
+      return createClickhouseDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    case 'dragonfly':
+      return createDragonflyDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    case 'keydb':
+      return createKeydbDatabase(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        body,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    default: {
+      const _exhaustive: never = engine;
+      throw new Error(`Unsupported database engine: ${String(_exhaustive)}`);
+    }
+  }
+}
+
+export function constructFallbackUrl(
+  engine: DbEngine,
+  dbDetails: Record<string, unknown>,
+  dbName: string,
+): string {
+  const host =
+    readStringField(dbDetails, 'internal_hostname', 'hostname', 'host') ??
+    'localhost';
+  const encode = encodeURIComponent;
+
+  switch (engine) {
+    case 'postgresql': {
+      const user = readStringField(dbDetails, 'postgres_user') ?? 'postgres';
+      const password =
+        readStringField(dbDetails, 'postgres_password', 'password') ?? '';
+      const db = readStringField(dbDetails, 'postgres_db') ?? dbName;
+      const port = String(dbDetails.port ?? dbDetails.public_port ?? 5432);
+      return `postgresql://${encode(user)}:${encode(password)}@${host}:${port}/${db}`;
+    }
+    case 'mysql':
+    case 'mariadb': {
+      const prefix = engine === 'mysql' ? 'mysql' : 'mariadb';
+      const user = readStringField(dbDetails, `${prefix}_user`) ?? prefix;
+      const password =
+        readStringField(dbDetails, `${prefix}_password`, 'password') ?? '';
+      const db = readStringField(dbDetails, `${prefix}_database`) ?? dbName;
+      const port = String(dbDetails.port ?? dbDetails.public_port ?? 3306);
+      return `mysql://${encode(user)}:${encode(password)}@${host}:${port}/${db}`;
+    }
+    case 'mongodb': {
+      const user =
+        readStringField(
+          dbDetails,
+          'mongo_initdb_root_username',
+          'mongo_user',
+        ) ?? 'root';
+      const password =
+        readStringField(dbDetails, 'mongo_initdb_root_password', 'password') ??
+        '';
+      const db = readStringField(dbDetails, 'mongo_initdb_database') ?? dbName;
+      const port = String(dbDetails.port ?? dbDetails.public_port ?? 27017);
+      return `mongodb://${encode(user)}:${encode(password)}@${host}:${port}/${db}`;
+    }
+    case 'redis':
+    case 'dragonfly':
+    case 'keydb': {
+      const password =
+        readStringField(dbDetails, 'redis_password', 'password') ?? '';
+      const port = String(dbDetails.port ?? dbDetails.public_port ?? 6379);
+      return `redis://default:${encode(password)}@${host}:${port}`;
+    }
+    case 'clickhouse': {
+      const user =
+        readStringField(dbDetails, 'clickhouse_admin_user') ?? 'default';
+      const password =
+        readStringField(dbDetails, 'clickhouse_admin_password', 'password') ??
+        '';
+      const port = String(dbDetails.port ?? dbDetails.public_port ?? 8123);
+      return `clickhouse://${encode(user)}:${encode(password)}@${host}:${port}/default`;
+    }
+    default: {
+      const _exhaustive: never = engine;
+      return String(_exhaustive);
+    }
+  }
+}
+
 async function handleCreateAppDb(
-  _parsed: CreateAppDbAction,
-  _env: EnvConfig,
-): Promise<never> {
-  throw new CoolifyApiError({
-    code: 'COOLIFY_NOT_IMPLEMENTED',
-    message: 'create-app-db ships in Plan 20-03',
-    recoveryHints: [
-      'Plan 20-03 will implement app+db wiring with DATABASE_URL env.',
-      MANIFEST_HINT,
-    ],
+  parsed: CreateAppDbAction,
+  env: EnvConfig,
+): Promise<ReadResponse<Record<string, unknown>>> {
+  const project_uuid = parsed.project_uuid
+    ? parsed.project_uuid
+    : await resolveProjectUuid(undefined, parsed.project_name, env);
+
+  let environment_uuid = parsed.environment_uuid;
+  if (parsed.environment_name) {
+    environment_uuid = await resolveEnvironmentUuid(
+      undefined,
+      parsed.environment_name,
+      project_uuid,
+      env,
+    );
+  }
+
+  const dbBody = omitUndefined({
+    server_uuid: parsed.server_uuid,
+    project_uuid,
+    environment_uuid,
+    environment_name: parsed.environment_name,
+    name: parsed.db_name,
+    instant_deploy: parsed.instant_deploy !== false,
   });
+
+  const dbRaw = await dispatchCreateDatabase(parsed.db_engine, env, dbBody);
+  const dbCreated = isRecord(dbRaw) ? dbRaw : {};
+  const dbUuid = String(dbCreated.uuid ?? '');
+  if (!dbUuid) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_500',
+      message: 'Database create succeeded but response lacked uuid',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_500,
+    });
+  }
+
+  if (parsed.instant_deploy !== false) {
+    try {
+      await triggerDatabaseStart(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        dbUuid,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    } catch {
+      // Soft ignore DB start failure — continue wiring per D-16.
+    }
+  }
+
+  let appUuid: string;
+  try {
+    const appRaw = await createPublicApplication(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      omitUndefined({
+        server_uuid: parsed.server_uuid,
+        project_uuid,
+        environment_uuid,
+        environment_name: parsed.environment_name,
+        name: parsed.app_name,
+        build_pack: 'nixpacks',
+        instant_deploy: parsed.instant_deploy !== false,
+      }),
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const appCreated = isRecord(appRaw) ? appRaw : {};
+    appUuid = String(appCreated.uuid ?? '');
+    if (!appUuid) {
+      throw new Error('Application create succeeded but response lacked uuid');
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_RECIPE_PARTIAL_FAILURE',
+      message: `Database created successfully but application creation failed: ${message}`,
+      recoveryHints: [
+        'Do not delete the database; it is fully functional.',
+        'Manually create the application and link the connection string.',
+      ],
+      data: { database_uuid: dbUuid },
+    });
+  }
+
+  const dbDetailsRaw = await fetchDatabase(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    dbUuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const dbDetails = isRecord(dbDetailsRaw) ? dbDetailsRaw : dbCreated;
+  const internalUrl = readStringField(dbDetails, 'internal_db_url');
+  const connectionString =
+    internalUrl ??
+    constructFallbackUrl(parsed.db_engine, dbDetails, parsed.db_name);
+  const envKey = parsed.env_key ?? 'DATABASE_URL';
+
+  try {
+    await bulkUpdateEnvs(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      appUuid,
+      [{ key: envKey, value: connectionString }],
+      env.COOLIFY_VERIFY_SSL,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_RECIPE_PARTIAL_FAILURE',
+      message: `Application and database created but env wiring failed: ${message}`,
+      recoveryHints: [
+        'Both resources are created and running.',
+        'Manually set the env var on the application using the database connection string.',
+        MANIFEST_HINT,
+      ],
+      data: { application_uuid: appUuid, database_uuid: dbUuid },
+    });
+  }
+
+  if (parsed.instant_deploy !== false) {
+    try {
+      await triggerDeploy(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        appUuid,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    } catch {
+      // Soft ignore deploy queue failure per D-16.
+    }
+  }
+
+  const maskedConnection = sanitizeFullProjection(
+    { connection_string: connectionString },
+    parsed.reveal,
+  ) as { connection_string: string };
+
+  return buildReadResponse(
+    {
+      application_uuid: appUuid,
+      database_uuid: dbUuid,
+      connection_string: maskedConnection.connection_string,
+      env_key: envKey,
+      deploy: { status: 'queued' as const },
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
 }
 
 async function handleCreateOneClick(

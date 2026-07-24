@@ -20,7 +20,8 @@ export type CoolifyErrorCode =
   | 'COOLIFY_CLOUD_FORBIDDEN'
   | 'COOLIFY_CLOUD_UNSUPPORTED'
   | 'COOLIFY_FETCH_TEMPLATES_FAILED'
-  | 'COOLIFY_NOT_IMPLEMENTED';
+  | 'COOLIFY_NOT_IMPLEMENTED'
+  | 'COOLIFY_RECIPE_PARTIAL_FAILURE';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -118,6 +119,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_NOT_IMPLEMENTED: [
     'This recipe action is not yet available in this MCP version.',
     'Check release notes or roadmap for upcoming recipe support.',
+  ],
+  COOLIFY_RECIPE_PARTIAL_FAILURE: [
+    'Partial recipe failure — created resources remain; check error.data for UUIDs.',
+    'Follow recoveryHints to complete wiring manually; do not auto-delete created resources.',
   ],
 };
 
