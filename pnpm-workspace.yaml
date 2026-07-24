@@ -1,6 +1,11 @@
-# Single-package repo — file also holds pnpm 11+ settings (allowBuilds).
+# Single-package repo — file also holds pnpm 11+ settings (allowBuilds, overrides).
 packages:
   - "."
 
 allowBuilds:
   esbuild: true
+
+# Security: force patched transitive versions (Dependabot GHSA-v2hh-gcrm-f6hx / GHSA-g7r4-m6w7-qqqr)
+overrides:
+  fast-uri: ">=3.1.4"
+  esbuild: ">=0.28.1"

@@ -10,17 +10,22 @@ import { redactSecrets } from '../utils/redact.js';
 
 const MAX_RETRIES = 3;
 
+/**
+ * Optional TLS agent when COOLIFY_VERIFY_SSL=false (self-signed local Coolify).
+ * Default path keeps Node's certificate validation enabled (verifySsl=true).
+ */
+function createInsecureTlsAgent(): https.Agent {
+  // codeql[js/disabling-certificate-validation]: intentional opt-out for self-signed Coolify; gated by verifySsl=false, default true
+  return new https.Agent({ rejectUnauthorized: false });
+}
+
 function createFetchOptions(token: string, verifySsl: boolean) {
   return {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/json',
     },
-    ...(verifySsl
-      ? {}
-      : {
-          agent: new https.Agent({ rejectUnauthorized: false }),
-        }),
+    ...(verifySsl ? {} : { agent: createInsecureTlsAgent() }),
   };
 }
 
