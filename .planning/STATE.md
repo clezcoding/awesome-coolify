@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: Recipes & Service List-Types
-status: planning
+status: "Phase 19 shipped — PR #47"
 stopped_at: Completed 19-03-PLAN.md
-last_updated: "2026-07-24T02:33:10.062Z"
+last_updated: "2026-07-24T02:35:56.638Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 19 complete, transitioned to Phase 20
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 3
   completed_plans: 3
   percent: 20
+last_activity_desc: Phase 19 complete, transitioned to Phase 20
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 Phase: 20 — Recipes & Service List-Types
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-24 — Phase 19 complete, transitioned to Phase 20
+Status: Phase 19 shipped — PR #47
+Last activity: 2026-07-24
 
 ## Performance Metrics
 
