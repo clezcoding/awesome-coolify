@@ -7,9 +7,9 @@ import { registerCoolifyTools } from './server.js';
 import { metaActionSchema } from './tools/meta.js';
 import { systemActionSchema } from './tools/system.js';
 import { resourceActionSchema } from './tools/resource.js';
-import { applicationActionSchema } from './tools/application.js';
-import { serviceActionSchema } from './tools/service.js';
-import { databaseActionSchema } from './tools/database.js';
+import { applicationActionSchema, applicationActionsCatalog } from './tools/application.js';
+import { serviceActionSchema, serviceActionsCatalog } from './tools/service.js';
+import { databaseActionSchema, databaseActionsCatalog } from './tools/database.js';
 import { docsActionSchema } from './tools/docs.js';
 import { diagnoseToolSchema } from './tools/diagnose.js';
 import { deploymentToolSchema } from './tools/deployment.js';
@@ -259,6 +259,57 @@ describe('MCP server tool registration', () => {
       expect(description, `${name} missing Actions:`).toContain('Actions:');
       expect(description, `${name} missing Safety:`).toContain('Safety:');
     }
+  });
+});
+
+describe('actionsCatalog schema-field-name regression (Phase 19 gap closure)', () => {
+  it('applicationActionsCatalog uses env_uuid for envs:delete (CR-01)', () => {
+    expect(applicationActionsCatalog).toContain(
+      'envs:delete(uuid, env_uuid, confirm)',
+    );
+  });
+
+  it('applicationActionsCatalog uses entries for envs:bulk-update (CR-01)', () => {
+    expect(applicationActionsCatalog).toContain(
+      'envs:bulk-update(uuid, entries, confirm)',
+    );
+  });
+
+  it('applicationActionsCatalog includes CRUD lifecycle tokens (WR-01)', () => {
+    expect(applicationActionsCatalog).toContain('create(source_type, server_uuid)');
+    expect(applicationActionsCatalog).toContain('update(uuid)');
+    expect(applicationActionsCatalog).toContain('delete(uuid, confirm)');
+    expect(applicationActionsCatalog).toContain('delete_preview(uuid)');
+  });
+
+  it('serviceActionsCatalog uses env_uuid for envs:delete (CR-01)', () => {
+    expect(serviceActionsCatalog).toContain(
+      'envs:delete(uuid, env_uuid, confirm)',
+    );
+  });
+
+  it('databaseActionsCatalog uses schema field names for env mutations (WR-02)', () => {
+    expect(databaseActionsCatalog).toContain(
+      'envs:delete(uuid?, env_uuid, confirm)',
+    );
+    expect(databaseActionsCatalog).toContain(
+      'envs:bulk-update(uuid?, entries, confirm)',
+    );
+  });
+
+  it('no catalog advertises envs:delete with key alias (CR-01 negative)', () => {
+    expect(applicationActionsCatalog).not.toContain('envs:delete(uuid, key');
+    expect(serviceActionsCatalog).not.toContain('envs:delete(uuid, key');
+    expect(databaseActionsCatalog).not.toContain('envs:delete(uuid, key');
+  });
+
+  it('applicationActionsCatalog does not advertise envs alias for bulk-update (CR-01 negative)', () => {
+    expect(applicationActionsCatalog).not.toContain('envs:bulk-update(uuid, envs');
+  });
+
+  it('databaseActionsCatalog has no envs:* or backup:* wildcards (WR-02 negative)', () => {
+    expect(databaseActionsCatalog).not.toContain('envs:*');
+    expect(databaseActionsCatalog).not.toContain('backup:*');
   });
 });
 
