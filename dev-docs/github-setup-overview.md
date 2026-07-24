@@ -1,6 +1,6 @@
 # GitHub Setup — Übersicht
 
-Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding/awesome-coolify` (öffentliches Einzel-Repo).
+Stand: 2026-07-24. Übersicht aller Bausteine des GitHub-Setups für `clezcoding/awesome-coolify` (öffentliches Einzel-Repo).
 
 ## Repo-Modell
 
@@ -41,6 +41,14 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 
 - `.github/dependabot.yml` — wöchentliche Updates für npm-Pakete und GitHub-Actions-Versionen
 
+## Security & Hygiene (2026-07-24)
+
+- `.github/CODEOWNERS` — auto Review-Requests für `@clezcoding` auf sensible Pfade
+- `.github/workflows/codeql.yml` — CodeQL SAST (javascript-typescript), wöchentlicher Scan + PR/Push-Trigger, `github/codeql-action@v3`
+- `.github/workflows/dependency-review.yml` — Dependency Review Action auf PRs, blockt vulnerable Dep-Änderungen
+- `.github/workflows/stale.yml` — `actions/stale@v9`, 60/14-Tage-Cycle, exempt Labels `pinned,security,help wanted`
+- `.github/workflows/semantic-pull-request.yml` — `amannn/action-semantic-pull-request@v5`, erzwingt Conventional-Commit-PR-Titel (ergänzt lokales commitlint)
+
 ## Commit-Qualität
 
 - `commitlint.config.js` + `.husky/commit-msg` — erzwingt Conventional Commits lokal vor jedem Commit
@@ -62,7 +70,7 @@ Stand: 2026-07-19. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 
 Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/`, `.coolify-mcp/`, Secrets, Build-Artefakte, IDE-Dateien.
 
-## Audit-Status (2026-07-19)
+## Audit-Status (2026-07-24)
 
 | Baustein | Status | Evidenz / Aktion |
 |----------|--------|------------------|
@@ -78,9 +86,15 @@ Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/
 | MCP Registry Publish | ⏸️ zurückgestellt | Kein Workflow — später separat |
 | Kodiak | ✅ aktiv | App installiert; PR mit `automerge`-Label → squash-merge nach CI |
 | Bugbot | N/A | Cursor-Produkt, kein Repo-Bot |
+| CODEOWNERS | ✅ grün | `@clezcoding` für `*`, `.github/`, `src/`, `scripts/`, `docs/`, `dev-docs/` |
+| CodeQL (SAST) | ✅ aktiv | js-ts, wöchentlich + PR/Push, NICHT required (Follow-up nach erstem grünen Run) |
+| Dependency Review | ✅ aktiv | PR-Trigger, blockt vulnerable Deps |
+| actions/stale | ✅ aktiv | 60/14, exempt pinned/security/help wanted |
+| Semantic PR Title | ✅ aktiv | pull_request (nicht pull_request_target), lower-case subject |
 
 ### Manuelle Follow-ups
 
 1. **PRs für Auto-Merge** — Label `automerge` setzen wenn CI-ready: `gh pr edit <nr> --add-label automerge` oder `./scripts/setup-kodiak.sh --pr <nr>`
 2. **Wiederholbare Prüfung** — `./scripts/verify-github-setup.sh` (Exit 0 mit Warnungen für manuelle Items; Exit 1 nur bei kritischen Repo-Lücken).
 3. **Branch Protection aktualisieren** — nach CI-Änderung einmal `./scripts/setup-branch-protection.sh` ausführen (fügt `MegaLinter` als required check hinzu).
+4. **Branch Protection ggf. erweitern** — nach erstem grünen CodeQL-Run auf `main` optional `./scripts/setup-branch-protection.sh` erneut ausführen oder manuell `CodeQL` als required check hinzufügen. Vorher nicht required setzen (Constraint: kein Auto-Require bis erster grüner Run). Dependency Review und Semantic PR sind PR-Only-Checks und können optional als required gesetzt werden, wenn erste Runs grün waren.
