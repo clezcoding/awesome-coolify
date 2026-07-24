@@ -5,10 +5,10 @@ milestone_name: Setup, Skills & DX
 current_phase: 19
 current_phase_name: DX Schemas & MCP Prompts
 status: planning
-stopped_at: Phase 19 context gathered
-last_updated: "2026-07-24T00:25:45.508Z"
+stopped_at: Phase 19 UI-SPEC drafted
+last_updated: "2026-07-24T00:32:00.000Z"
 last_activity: 2026-07-24
-last_activity_desc: v3.1 roadmap created (Phases 19–23)
+last_activity_desc: Phase 19 UI design contract written (MCP text surface)
 progress:
   total_phases: 5
   completed_phases: 0
@@ -337,14 +337,14 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 ## Session Continuity
 
 **Last session:** 2026-07-24T00:25:45.498Z
-**Stopped at:** Phase 19 context gathered
-**Resume file:** .planning/phases/19-dx-schemas-mcp-prompts/19-CONTEXT.md
+**Stopped at:** Phase 19 UI-SPEC drafted
+**Resume file:** .planning/phases/19-dx-schemas-mcp-prompts/19-UI-SPEC.md
 
-Last activity: 2026-07-23 — Milestone v3.0 completed and archived
+Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 19` — plan DX Schemas & MCP Prompts (first v3.1 phase)
+- UI-SPEC checker / continue `/gsd-ui-phase 19`, then `/gsd-plan-phase 19`
 
 ## Rebuild Log
 
