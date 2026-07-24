@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 20
-current_phase_name: Recipes & Service List-Types
-status: "Ready to execute"
-stopped_at: Phase 20 planned — 4 plans ready
-last_updated: "2026-07-24T03:42:00.000Z"
+current_phase_name: recipes-service-list-types
+status: executing
+stopped_at: Completed 20-recipes-service-list-types-00-PLAN.md
+last_updated: "2026-07-24T06:15:23.855Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 20 planning complete — 4 plans verified
+last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 0
+  total_plans: 7
+  completed_plans: 4
   percent: 20
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 20 — Recipes & Service List-Types
+**Current focus:** Phase 20 — recipes-service-list-types
 
 ## Current Position
 
-Phase: 20 — Recipes & Service List-Types
-Plan: 0/4
+Phase: 20 (recipes-service-list-types) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-07-24 — Phase 20 planning complete — 4 plans verified
+Last activity: 2026-07-24 — Phase 20 execution started
 
 ## Performance Metrics
 
@@ -106,6 +106,7 @@ Last activity: 2026-07-24 — Phase 20 planning complete — 4 plans verified
 | Phase 19-dx-schemas-mcp-prompts P01 | 18min | 3 tasks | 19 files |
 | Phase 19-dx-schemas-mcp-prompts P02 | 6min | 3 tasks | 8 files |
 | Phase 19-dx-schemas-mcp-prompts P03 | 2min | 2 tasks | 4 files |
+| Phase 20-recipes-service-list-types P00 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -288,6 +289,7 @@ Last activity: 2026-07-24 — Phase 20 planning complete — 4 plans verified
 - [Phase ?]: Prompt tests use _registeredPrompts — no public McpServer listTools/getPrompt (19-02)
 - [Phase ?]: String-only catalog edits — no schema/handler/prompt changes per gap_closure scope
 - [Phase ?]: Eight separate it cases (A-H) for precise regression attribution
+- [Phase ?]: Phase 20 Wave 0: it.fails + dynamic import RED scaffolds — husky pre-commit bleibt grün; flip zu it in 20-02/20-03
 
 ### Pending Todos
 
@@ -346,9 +348,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-24T03:03:35.646Z
-**Stopped at:** Phase 20 context gathered
-**Resume file:** .planning/phases/20-recipes-service-list-types/20-CONTEXT.md
+**Last session:** 2026-07-24T06:15:23.847Z
+**Stopped at:** Completed 20-recipes-service-list-types-00-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)
 
