@@ -40,11 +40,12 @@ created: 2026-07-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 20-00-01 | 00 | 0 | RECIPE-02/03/04 | — | N/A | unit scaffold | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0 | ⬜ pending |
-| 20-01-01 | 01 | 1 | RECIPE-01 | T-20-02 | Templates only from hardcoded CDN/GitHub hosts | unit | `npx vitest run src/mcp/tools/service.test.ts` | ✅ extend | ⬜ pending |
-| 20-02-01 | 02 | 2 | RECIPE-02 | — | N/A | unit | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0 | ⬜ pending |
-| 20-02-02 | 02 | 2 | RECIPE-04 | — | Type validated against list-types before create | unit | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0 | ⬜ pending |
-| 20-03-01 | 03 | 3 | RECIPE-03 | T-20-01 | Connection strings masked unless reveal:true | unit | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0 | ⬜ pending |
+| 20-00-T1 | 00 | 0 | RECIPE-02/03/04 | T-20-02 (SSRF reject), T-20-01 (masking) | RED scaffolds assert SSRF reject, masking, partial-failure no-rollback, D-20 soft manifest hints | unit scaffold (RED) | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0 (new) | ⬜ pending |
+| 20-01-T1 | 01 | 1 | RECIPE-01 | T-20-02 | Templates only from hardcoded CDN/GitHub hosts; empty {} hard error; stable sort | unit | `npx vitest run src/utils/service-templates.test.ts` | ❌ new | ⬜ pending |
+| 20-01-T2 | 01 | 1 | RECIPE-01 | T-20-02 | list-types action dispatched; slim { id, label } response; no compose/template leak | unit | `npx vitest run src/mcp/tools/service.test.ts -t "service list-types"` | ✅ extend | ⬜ pending |
+| 20-02-T1 | 02 | 2 | RECIPE-02, RECIPE-04 | T-20-02 (SSRF), T-20-02-02 (path traversal accept v3.1) | create-git-app detects Dockerfile + Dockerfile.* (D-10 full); create-one-click validates type against list-types; D-20 soft manifest hints in error recoveryHints; dockercompose rejected | unit | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0→GREEN | ⬜ pending |
+| 20-03-T1 | 03 | 3 | RECIPE-03 | T-20-01 (masking), T-20-03-01 (partial failure no-rollback) | Engine-dispatched DB create; internal_db_url read; env wiring; partial failure returns UUIDs + D-20 soft manifest hint; connection_string masked unless reveal:true | unit | `npx vitest run src/mcp/tools/recipe.test.ts -t "create-app-db"` | ❌ W0→GREEN | ⬜ pending |
+| 20-03-T2 | 03 | 3 | RECIPE-03 | — | recipe tool registered in server.ts (16→17); recipeActionSchema wrapped with withInstanceRoutingSchema; openWorldHint: true; README documents three actions + safety posture | unit | `npx vitest run src/mcp/server.test.ts` | ✅ extend | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
