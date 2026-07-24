@@ -5,15 +5,15 @@ milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: recipes-service-list-types
 status: executing
-stopped_at: Completed 20-recipes-service-list-types-00-PLAN.md
-last_updated: "2026-07-24T06:15:23.855Z"
+stopped_at: Completed 20-recipes-service-list-types-01-PLAN.md
+last_updated: "2026-07-24T06:18:50.665Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
   percent: 20
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 20 (recipes-service-list-types) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-24 — Phase 20 execution started
 
@@ -107,6 +107,7 @@ Last activity: 2026-07-24 — Phase 20 execution started
 | Phase 19-dx-schemas-mcp-prompts P02 | 6min | 3 tasks | 8 files |
 | Phase 19-dx-schemas-mcp-prompts P03 | 2min | 2 tasks | 4 files |
 | Phase 20-recipes-service-list-types P00 | 2min | 1 tasks | 1 files |
+| Phase 20-recipes-service-list-types P01 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -290,6 +291,8 @@ Last activity: 2026-07-24 — Phase 20 execution started
 - [Phase ?]: String-only catalog edits — no schema/handler/prompt changes per gap_closure scope
 - [Phase ?]: Eight separate it cases (A-H) for precise regression attribution
 - [Phase ?]: Phase 20 Wave 0: it.fails + dynamic import RED scaffolds — husky pre-commit bleibt grün; flip zu it in 20-02/20-03
+- [Phase ?]: Added COOLIFY_FETCH_TEMPLATES_FAILED to CoolifyErrorCode union for typed template fetch failures (20-01)
+- [Phase ?]: fetchServiceTemplates exported from utils for Plan 20-02 create-one-click type validation reuse (20-01)
 
 ### Pending Todos
 
@@ -348,8 +351,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-24T06:15:23.847Z
-**Stopped at:** Completed 20-recipes-service-list-types-00-PLAN.md
+**Last session:** 2026-07-24T06:18:50.656Z
+**Stopped at:** Completed 20-recipes-service-list-types-01-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)

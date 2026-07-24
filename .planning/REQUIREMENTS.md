@@ -22,7 +22,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Recipes / Discovery
 
-- [ ] **RECIPE-01**: Agent can call `service.list-types` to discover Coolify one-click service types dynamically (no local YAML catalog)
+- [x] **RECIPE-01**: Agent can call `service.list-types` to discover Coolify one-click service types dynamically (no local YAML catalog)
 - [x] **RECIPE-02**: Agent can run recipe `git-app` — Git repo → build_pack detection → application create/wire
 - [x] **RECIPE-03**: Agent can run recipe `app+db` — application + database + `DATABASE_URL` (or equivalent) env wiring
 - [x] **RECIPE-04**: Agent can run recipe `one-click` — create service from a type returned by `list-types`
@@ -88,7 +88,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROMPT-02 | Phase 19 | Complete |
 | PROMPT-03 | Phase 19 | Complete |
 | PROMPT-04 | Phase 19 | Complete |
-| RECIPE-01 | Phase 20 | Pending |
+| RECIPE-01 | Phase 20 | Complete |
 | RECIPE-02 | Phase 20 | Complete |
 | RECIPE-03 | Phase 20 | Complete |
 | RECIPE-04 | Phase 20 | Complete |
