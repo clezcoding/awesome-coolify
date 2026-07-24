@@ -87,11 +87,11 @@ const mixedResourcesFixture = [
 ];
 
 describe('emergencyToolSchema', () => {
-  it('accepts stop_all with confirm defaulting to false', () => {
+  it('accepts stop_all without confirm (handler defaults to false)', () => {
     const parsed = emergencyToolSchema.safeParse({ action: 'stop_all' });
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
-    expect(parsed.data.confirm).toBe(false);
+    expect(parsed.data.confirm).toBeUndefined();
   });
 
   it('rejects redeploy_project without project identifier', () => {

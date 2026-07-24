@@ -22,6 +22,7 @@ import { pollDeploymentUntilTerminal } from '../../utils/deploy-poll.js';
 import { projectDeploymentSummary } from '../../utils/projections.js';
 import type { FollowUpHint } from '../../utils/diagnose-hints.js';
 import {
+  createFlatActionSchema,
   parseWithInstanceRouting,
   resolveRoutingEnv,
 } from './shared-read-params.js';
@@ -99,37 +100,33 @@ async function resolveProjectEnvironmentIds(
   return ids;
 }
 
-export const stopAllSchema = z
-  .object({
-    action: z.literal('stop_all'),
-    confirm: z
-      .boolean()
-      .default(false)
-      .describe('Explicit confirmation required'),
-    format: z.enum(['pretty', 'json', 'table']).default('pretty').optional(),
-    max_chars: z.number().int().positive().default(16000).optional(),
-  })
-  .strict();
+export const emergencyActionsCatalog =
+  'Actions: stop_all(confirm) · redeploy_project(project_uuid?, project_name?, confirm, force?, wait?) · restart_project(project_uuid?, project_name?, confirm)';
 
-export const redeployProjectSchema = z
-  .object({
-    action: z.literal('redeploy_project'),
+export const emergencySafetyFooter =
+  'Safety: confirm for destructive ops · optional instance';
+
+const emergencyResponseParamsFlatShape = {
+  format: z.enum(['pretty', 'json', 'table']).optional(),
+  max_chars: z.number().int().positive().optional(),
+};
+
+export const emergencyToolSchema = createFlatActionSchema(
+  ['stop_all', 'redeploy_project', 'restart_project'],
+  {
     project_uuid: z.string().optional().describe('Project UUID'),
     project_name: z
       .string()
       .optional()
       .describe('Project name substring (case-insensitive contains-match)'),
-    confirm: z
-      .boolean()
-      .default(false)
-      .describe('Explicit confirmation required'),
+    confirm: z.boolean().optional().describe('Explicit confirmation required'),
     force: z
       .boolean()
-      .default(false)
+      .optional()
       .describe('Force rebuild without cache (mirror P4 application.deploy)'),
     wait: z
       .boolean()
-      .default(false)
+      .optional()
       .describe(
         'Poll each deployment to terminal — ask the human before enabling',
       ),
@@ -138,55 +135,50 @@ export const redeployProjectSchema = z
       .int()
       .min(10)
       .max(1800)
-      .default(300)
-      .describe('Per-app wait timeout in seconds'),
-    format: z.enum(['pretty', 'json', 'table']).default('pretty').optional(),
-    max_chars: z.number().int().positive().default(16000).optional(),
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    if (!data.project_uuid && !data.project_name) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Either project_uuid or project_name must be provided',
-        params: { code: 'COOLIFY_422' },
-      });
-    }
-  });
-
-export const restartProjectSchema = z
-  .object({
-    action: z.literal('restart_project'),
-    project_uuid: z.string().optional().describe('Project UUID'),
-    project_name: z
-      .string()
       .optional()
-      .describe('Project name substring (case-insensitive contains-match)'),
-    confirm: z
-      .boolean()
-      .default(false)
-      .describe('Explicit confirmation required'),
-    format: z.enum(['pretty', 'json', 'table']).default('pretty').optional(),
-    max_chars: z.number().int().positive().default(16000).optional(),
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    if (!data.project_uuid && !data.project_name) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Either project_uuid or project_name must be provided',
-        params: { code: 'COOLIFY_422' },
-      });
+      .describe('Per-app wait timeout in seconds'),
+    ...emergencyResponseParamsFlatShape,
+  },
+  {
+    stop_all: ['confirm', 'format', 'max_chars'],
+    redeploy_project: [
+      'project_uuid',
+      'project_name',
+      'confirm',
+      'force',
+      'wait',
+      'timeout',
+      'format',
+      'max_chars',
+    ],
+    restart_project: [
+      'project_uuid',
+      'project_name',
+      'confirm',
+      'format',
+      'max_chars',
+    ],
+  },
+  undefined,
+  (data, ctx) => {
+    if (data.action === 'redeploy_project' || data.action === 'restart_project') {
+      if (!data.project_uuid && !data.project_name) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Either project_uuid or project_name must be provided',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
     }
-  });
-
-export const emergencyToolSchema = z.discriminatedUnion('action', [
-  stopAllSchema,
-  redeployProjectSchema,
-  restartProjectSchema,
-]);
+  },
+);
 
 export type EmergencyAction = z.infer<typeof emergencyToolSchema>;
+
+// Retained for tests that import individual action schemas
+export const stopAllSchema = emergencyToolSchema;
+export const redeployProjectSchema = emergencyToolSchema;
+export const restartProjectSchema = emergencyToolSchema;
 
 export async function validateConfirmGate(
   action: string,
@@ -298,7 +290,7 @@ export async function handleEmergencyAction(
           routingEnv.COOLIFY_VERIFY_SSL,
         );
         const runningApps = mapRunningApps(raw);
-        await validateConfirmGate('stop_all', parsed.confirm, runningApps);
+        await validateConfirmGate('stop_all', parsed.confirm ?? false, runningApps);
 
         const results: Array<{
           uuid: string;
@@ -356,7 +348,7 @@ export async function handleEmergencyAction(
         const projectApps = mapProjectApps(raw, projectUuid, environmentIds);
         await validateConfirmGate(
           'redeploy_project',
-          parsed.confirm,
+          parsed.confirm ?? false,
           projectApps,
         );
 
@@ -376,11 +368,14 @@ export async function handleEmergencyAction(
 
         for (const app of projectApps) {
           try {
+            const force = parsed.force ?? false;
+            const wait = parsed.wait ?? false;
+            const timeoutMs = (parsed.timeout ?? 300) * 1000;
             const deployRaw = await triggerDeploy(
               routingEnv.COOLIFY_URL,
               routingEnv.COOLIFY_TOKEN,
               app.uuid,
-              parsed.force,
+              force,
               routingEnv.COOLIFY_VERIFY_SSL,
             );
             const deploymentUuid = extractDeploymentUuid(deployRaw);
@@ -390,11 +385,11 @@ export async function handleEmergencyAction(
               name: app.name,
               deployment_uuid: deploymentUuid,
               status: 'queued',
-              force: parsed.force,
+              force,
               logs_available: logsAvailableHint(deploymentUuid),
             };
 
-            if (parsed.wait && deploymentUuid) {
+            if (wait && deploymentUuid) {
               const fetcher = async () => {
                 const dep = await fetchDeployment(
                   routingEnv.COOLIFY_URL,
@@ -406,7 +401,7 @@ export async function handleEmergencyAction(
               };
               const terminal = await pollDeploymentUntilTerminal(
                 fetcher,
-                parsed.timeout * 1000,
+                timeoutMs,
               );
               const summary = projectDeploymentSummary(terminal);
               entry = {
@@ -459,7 +454,7 @@ export async function handleEmergencyAction(
         const projectApps = mapProjectApps(raw, projectUuid, environmentIds);
         await validateConfirmGate(
           'restart_project',
-          parsed.confirm,
+          parsed.confirm ?? false,
           projectApps,
         );
 

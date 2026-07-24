@@ -18,10 +18,11 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  createFlatActionSchema,
   parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 import {
   resolveProjection,
@@ -31,118 +32,129 @@ import {
 const DEFAULT_VALIDATE_TIMEOUT_SEC = 30;
 const DEFAULT_VALIDATE_TIMEOUT_MS = DEFAULT_VALIDATE_TIMEOUT_SEC * 1000;
 
-const mutationResponseParamsSchema = {
+const mutationResponseParamsFlatShape = {
   format: z
     .enum(['pretty', 'json', 'table'])
-    .default('pretty')
     .optional()
     .describe('Output format (default pretty)'),
   max_chars: z
     .number()
     .int()
     .positive()
-    .default(16000)
     .optional()
     .describe('Max formatted output characters (default 16000)'),
 };
 
-const getActionSchema = z
-  .object({
-    action: z.literal('get'),
-    uuid: z.string().describe('Server UUID'),
-    ...sharedReadParamsSchema,
-  })
-  .strict();
+const serverReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
-const createActionSchema = z
-  .object({
-    action: z.literal('create'),
-    name: z.string().describe('Server display name'),
-    ip: z.string().describe('Server IP address or hostname'),
-    port: z.number().int().default(22).describe('SSH port (default 22)'),
-    user: z.string().default('root').describe('SSH user (default root)'),
-    private_key_uuid: z.string().describe('Private key UUID for SSH auth'),
+export const serverActionsCatalog =
+  'Actions: get(uuid, format?, projection?, reveal?) · create(name, ip, private_key_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · validate(uuid, timeout?)';
+
+export const serverSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+export const serverActionSchema = createFlatActionSchema(
+  ['get', 'create', 'update', 'delete', 'delete_preview', 'validate'],
+  {
+    uuid: z.string().optional().describe('Server UUID'),
+    name: z.string().optional().describe('Server display name'),
+    ip: z.string().optional().describe('Server IP address or hostname'),
+    port: z.number().int().optional().describe('SSH port (default 22)'),
+    user: z.string().optional().describe('SSH user (default root)'),
+    private_key_uuid: z
+      .string()
+      .optional()
+      .describe('Private key UUID for SSH auth'),
     is_build_server: z.boolean().optional().describe('Mark as build server'),
     validate: z
       .boolean()
-      .default(true)
+      .optional()
       .describe('Auto-run reachability validation after create (default true)'),
     proxy_type: z
       .enum(['traefik', 'caddy', 'none'])
       .optional()
       .describe('Proxy type on the server'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-const updateActionSchema = z
-  .object({
-    action: z.literal('update'),
-    uuid: z.string().describe('Server UUID'),
-    name: z.string().optional().describe('Updated display name'),
     description: z.string().optional().describe('Updated description'),
-    ip: z.string().optional().describe('Updated IP address'),
-    port: z.number().int().optional().describe('Updated SSH port'),
-    user: z.string().optional().describe('Updated SSH user'),
-    private_key_uuid: z.string().optional().describe('Updated private key UUID'),
-    is_build_server: z.boolean().optional().describe('Build server flag'),
-    proxy_type: z
-      .enum(['traefik', 'caddy', 'none'])
-      .optional()
-      .describe('Proxy type'),
     concurrent_builds: z.number().int().optional().describe('Concurrent build limit'),
     dynamic_timeout: z.number().int().optional().describe('Dynamic timeout seconds'),
-    deployment_queue_limit: z.number().int().optional().describe('Deployment queue limit'),
-    connection_timeout: z.number().int().optional().describe('Connection timeout seconds'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-const deleteActionSchema = z
-  .object({
-    action: z.literal('delete'),
-    uuid: z.string().describe('Server UUID'),
+    deployment_queue_limit: z
+      .number()
+      .int()
+      .optional()
+      .describe('Deployment queue limit'),
+    connection_timeout: z
+      .number()
+      .int()
+      .optional()
+      .describe('Connection timeout seconds'),
     confirm: z
       .boolean()
-      .default(false)
+      .optional()
       .describe('Explicit confirmation required for destructive delete'),
     delete_volumes: z
       .boolean()
-      .default(false)
+      .optional()
       .describe('Also delete attached volumes (default false)'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-const deletePreviewActionSchema = z
-  .object({
-    action: z.literal('delete_preview'),
-    uuid: z.string().describe('Server UUID'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-const validateActionSchema = z
-  .object({
-    action: z.literal('validate'),
-    uuid: z.string().describe('Server UUID'),
     timeout: z
       .number()
       .int()
-      .default(DEFAULT_VALIDATE_TIMEOUT_SEC)
+      .optional()
       .describe('Validation poll timeout in seconds (default 30)'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-export const serverActionSchema = z.discriminatedUnion('action', [
-  getActionSchema,
-  createActionSchema,
-  updateActionSchema,
-  deleteActionSchema,
-  deletePreviewActionSchema,
-  validateActionSchema,
-]);
+    ...sharedReadParamsFlatShape,
+    ...mutationResponseParamsFlatShape,
+  },
+  {
+    get: ['uuid', ...serverReadParamKeys],
+    create: [
+      'name',
+      'ip',
+      'port',
+      'user',
+      'private_key_uuid',
+      'is_build_server',
+      'validate',
+      'proxy_type',
+      'format',
+      'max_chars',
+    ],
+    update: [
+      'uuid',
+      'name',
+      'description',
+      'ip',
+      'port',
+      'user',
+      'private_key_uuid',
+      'is_build_server',
+      'proxy_type',
+      'concurrent_builds',
+      'dynamic_timeout',
+      'deployment_queue_limit',
+      'connection_timeout',
+      'format',
+      'max_chars',
+    ],
+    delete: ['uuid', 'confirm', 'delete_volumes', 'format', 'max_chars'],
+    delete_preview: ['uuid', 'format', 'max_chars'],
+    validate: ['uuid', 'timeout', 'format', 'max_chars'],
+  },
+  {
+    get: ['uuid'],
+    create: ['name', 'ip', 'private_key_uuid'],
+    update: ['uuid'],
+    delete: ['uuid'],
+    delete_preview: ['uuid'],
+    validate: ['uuid'],
+  },
+);
 
 export type ServerAction = z.infer<typeof serverActionSchema>;
 
