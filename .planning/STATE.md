@@ -4,11 +4,11 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: recipes-service-list-types
-status: verifying
-stopped_at: Phase 20 verification gaps_found (13/14) — D-20 create-git-app manifest hint
-last_updated: "2026-07-24T06:34:20Z"
+status: paused
+stopped_at: Phase 20 paused — gaps_found D-20; resume /gsd-resume-work
+last_updated: "2026-07-24T06:36:28.634Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 20 verification complete — gaps_found
+last_activity_desc: Paused — handoff written (.continue-here.md)
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 20 (recipes-service-list-types) — VERIFYING
-Plan: 4 of 4
-Status: Verification gaps_found (13/14) — see 20-VERIFICATION.md
-Last activity: 2026-07-24 — Phase 20 verification complete
+Phase: 20 (recipes-service-list-types) — PAUSED
+Plan: 4 of 4 (executed); verification gaps_found 13/14
+Status: Paused — see .continue-here.md + HANDOFF.json
+Last activity: 2026-07-24 — Pause handoff written
 
 ## Performance Metrics
 
