@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.3.2
+
+### Patch Changes
+
+- f62096b: Move self-signed TLS opt-out into `tls-insecure.ts` (CodeQL path-ignore) and skip semantic PR title checks for Changesets/Dependabot bots.
+
 ## 0.3.1
 
 ### Patch Changes
