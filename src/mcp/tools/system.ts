@@ -12,22 +12,40 @@ import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js'
 import { createLogger } from '../../utils/logger.js';
 import { isDatabaseRawType } from '../../utils/projections.js';
 import {
+  createFlatActionSchema,
   parseWithInstanceRouting,
   resolveRoutingEnv,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 
-export const systemActionSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('health') }),
-  z.object({ action: z.literal('version') }),
-  z.object({ action: z.literal('verify') }),
-  z.object({
-    action: z.literal('infrastructure_overview'),
-    ...sharedReadParamsSchema,
-    // D-21 N/A: projection/include_full — aggregate overview, not per-resource projection
-    // D-21 N/A: page/per_page — single aggregate object, not paginated
-  }),
-]);
+export const systemActionsCatalog =
+  'Actions: health() · version() · verify() · infrastructure_overview(format?, max_chars?)';
+
+export const systemSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+const systemReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
+
+export const systemActionSchema = createFlatActionSchema(
+  ['health', 'version', 'verify', 'infrastructure_overview'],
+  {
+    ...sharedReadParamsFlatShape,
+  },
+  {
+    health: [],
+    version: [],
+    verify: [],
+    infrastructure_overview: [...systemReadParamKeys],
+  },
+);
 
 export type SystemAction = z.infer<typeof systemActionSchema>;
 

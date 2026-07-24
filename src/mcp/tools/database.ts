@@ -54,10 +54,12 @@ import {
 } from '../../utils/errors.js';
 import { redactSecrets } from '../../utils/redact.js';
 import {
+  createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 import { generateHints } from '../../utils/diagnose-hints.js';
 import {
@@ -127,54 +129,6 @@ function requireDatabaseIdentifier<T extends z.ZodObject<z.ZodRawShape>>(
   });
 }
 
-const startActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('start'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z.string().optional().describe('Database name substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'start',
-);
-
-const stopActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('stop'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z.string().optional().describe('Database name substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'stop',
-);
-
-const restartActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('restart'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z.string().optional().describe('Database name substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'restart',
-);
-
-const getActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('get'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z.string().optional().describe('Database name substring'),
-      ...sharedReadParamsSchema,
-    })
-    .strict(),
-  'get',
-);
-
 function requireProjectAndEnvironment(
   data: {
     project_uuid?: string;
@@ -216,266 +170,6 @@ function requireConfirmForPublicAccess(
   }
 }
 
-const createSharedFields = {
-  action: z.literal('create'),
-  server_uuid: z.string().describe('Target server UUID'),
-  project_uuid: z.string().optional().describe('Project UUID'),
-  project_name: z.string().optional().describe('Project name'),
-  environment_name: z.string().optional().describe('Environment name'),
-  environment_uuid: z.string().optional().describe('Environment UUID'),
-  name: z.string().optional().describe('Database name'),
-  description: z.string().optional().describe('Database description'),
-  image: z.string().optional().describe('Custom database image'),
-  is_public: z
-    .boolean()
-    .default(false)
-    .describe('Expose database port publicly'),
-  public_port: z.number().int().optional().describe('Public port when is_public'),
-  public_port_timeout: z
-    .number()
-    .int()
-    .optional()
-    .describe('Public port mapping timeout'),
-  limits_memory: z.string().optional(),
-  limits_memory_swap: z.string().optional(),
-  limits_memory_swappiness: z.number().int().optional(),
-  limits_memory_reservation: z.string().optional(),
-  limits_cpus: z.string().optional(),
-  limits_cpuset: z.string().optional(),
-  limits_cpu_shares: z.number().int().optional(),
-  destination_uuid: z.string().optional(),
-  instant_deploy: z
-    .boolean()
-    .default(true)
-    .describe('Start database after create (default true)'),
-  confirm: z
-    .boolean()
-    .default(false)
-    .describe('Confirm public database exposure'),
-  reveal: z
-    .boolean()
-    .default(false)
-    .describe('Reveal masked credentials in response'),
-  ...mutationResponseParamsSchema,
-};
-
-function withCreateRefines<T extends z.ZodRawShape>(shape: T) {
-  return z
-    .object(shape)
-    .strict()
-    .superRefine((data, ctx) => {
-      requireProjectAndEnvironment(data, ctx);
-      requireConfirmForPublicAccess(data, ctx, 'create');
-    });
-}
-
-const createPostgresqlSchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('postgresql'),
-  postgres_user: z.string().optional(),
-  postgres_password: z.string().optional(),
-  postgres_db: z.string().optional(),
-  postgres_initdb_args: z.string().optional(),
-  postgres_host_auth_method: z.string().optional(),
-  postgres_conf: z.string().optional(),
-});
-
-const createMysqlSchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('mysql'),
-  mysql_user: z.string().optional(),
-  mysql_password: z.string().optional(),
-  mysql_root_password: z.string().optional(),
-  mysql_database: z.string().optional(),
-});
-
-const createMariadbSchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('mariadb'),
-  mariadb_user: z.string().optional(),
-  mariadb_password: z.string().optional(),
-  mariadb_root_password: z.string().optional(),
-  mariadb_database: z.string().optional(),
-});
-
-const createMongodbSchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('mongodb'),
-  mongo_initdb_root_password: z.string().optional(),
-  mongo_initdb_database: z.string().optional(),
-});
-
-const createRedisSchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('redis'),
-  redis_password: z.string().optional(),
-});
-
-const createClickhouseSchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('clickhouse'),
-  clickhouse_admin_user: z.string().optional(),
-  clickhouse_admin_password: z.string().optional(),
-});
-
-const createDragonflySchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('dragonfly'),
-  dragonfly_password: z.string().optional(),
-});
-
-const createKeydbSchema = withCreateRefines({
-  ...createSharedFields,
-  engine: z.literal('keydb'),
-  keydb_password: z.string().optional(),
-});
-
-const createDatabaseSchema = z.discriminatedUnion('engine', [
-  createPostgresqlSchema,
-  createMysqlSchema,
-  createMariadbSchema,
-  createMongodbSchema,
-  createRedisSchema,
-  createClickhouseSchema,
-  createDragonflySchema,
-  createKeydbSchema,
-]);
-
-const updateDatabaseSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('update'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z
-        .string()
-        .optional()
-        .describe('Database name substring or new name when uuid given'),
-      description: z.string().optional().describe('Database description'),
-      image: z.string().optional().describe('Custom database image'),
-      is_public: z
-        .boolean()
-        .optional()
-        .describe('Expose database port publicly'),
-      public_port: z.number().int().optional().describe('Public port when is_public'),
-      public_port_timeout: z
-        .number()
-        .int()
-        .optional()
-        .describe('Public port mapping timeout'),
-      limits_memory: z.string().optional(),
-      limits_memory_swap: z.string().optional(),
-      limits_memory_swappiness: z.number().int().optional(),
-      limits_memory_reservation: z.string().optional(),
-      limits_cpus: z.string().optional(),
-      limits_cpuset: z.string().optional(),
-      limits_cpu_shares: z.number().int().optional(),
-      postgres_user: z.string().optional(),
-      postgres_password: z.string().optional(),
-      postgres_db: z.string().optional(),
-      postgres_initdb_args: z.string().optional(),
-      postgres_host_auth_method: z.string().optional(),
-      postgres_conf: z.string().optional(),
-      mysql_user: z.string().optional(),
-      mysql_password: z.string().optional(),
-      mysql_root_password: z.string().optional(),
-      mysql_database: z.string().optional(),
-      mariadb_user: z.string().optional(),
-      mariadb_password: z.string().optional(),
-      mariadb_root_password: z.string().optional(),
-      mariadb_database: z.string().optional(),
-      mongo_initdb_root_password: z.string().optional(),
-      mongo_initdb_database: z.string().optional(),
-      redis_password: z.string().optional(),
-      clickhouse_admin_user: z.string().optional(),
-      clickhouse_admin_password: z.string().optional(),
-      dragonfly_password: z.string().optional(),
-      keydb_password: z.string().optional(),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Confirm public database exposure on update'),
-      reveal: z
-        .boolean()
-        .default(false)
-        .describe('Reveal masked credentials in response'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireConfirmForPublicAccess(data, ctx, 'update');
-    }),
-  'update',
-);
-
-const deleteActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('delete'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z.string().optional().describe('Database name substring'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for destructive delete'),
-      delete_volumes: z
-        .boolean()
-        .default(false)
-        .describe('Also delete attached volumes (default false)'),
-      delete_configurations: z
-        .boolean()
-        .default(false)
-        .describe('Also delete configurations (default false)'),
-      docker_cleanup: z
-        .boolean()
-        .default(false)
-        .describe('Run Docker cleanup (default false)'),
-      delete_connected_networks: z
-        .boolean()
-        .default(false)
-        .describe('Delete connected networks (default false)'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'delete',
-);
-
-const deletePreviewActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('delete_preview'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z.string().optional().describe('Database name substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'delete_preview',
-);
-
-const envParentFields = {
-  uuid: z.string().optional().describe('Database UUID'),
-  name: z.string().optional().describe('Database name substring'),
-  reveal: z
-    .boolean()
-    .default(false)
-    .describe('Reveal masked env values for this call only'),
-  ...mutationResponseParamsSchema,
-};
-
-const databaseEnvFlagFields = {
-  is_literal: z
-    .boolean()
-    .default(false)
-    .describe('Treat value as literal (no variable interpolation)'),
-  is_multiline: z
-    .boolean()
-    .default(false)
-    .describe('Multiline env value'),
-  is_shown_once: z
-    .boolean()
-    .default(false)
-    .describe('Show value once in Coolify UI'),
-};
-
 function requireEnvUuidOrKey(
   data: { env_uuid?: string; key?: string },
   ctx: z.RefinementCtx,
@@ -494,80 +188,15 @@ function requireEnvUuidOrKey(
   }
 }
 
-const envsListActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('envs:list'),
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:list',
-);
-
-const envsGetActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('envs:get'),
-      env_uuid: z.string().optional().describe('Environment variable UUID'),
-      key: z.string().optional().describe('Environment variable key'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireEnvUuidOrKey(data, ctx, 'envs:get');
-    }),
-  'envs:get',
-);
-
-const envsCreateActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('envs:create'),
-      key: z.string().describe('Environment variable key'),
-      value: z.string().describe('Environment variable value'),
-      ...databaseEnvFlagFields,
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:create',
-);
-
-const envsUpdateActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('envs:update'),
-      env_uuid: z.string().optional().describe('Environment variable UUID'),
-      key: z.string().optional().describe('Environment variable key'),
-      value: z.string().describe('New environment variable value'),
-      is_literal: z.boolean().optional().describe('Literal flag override'),
-      is_multiline: z.boolean().optional().describe('Multiline flag override'),
-      is_shown_once: z
-        .boolean()
-        .optional()
-        .describe('Show-once flag override'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireEnvUuidOrKey(data, ctx, 'envs:update');
-    }),
-  'envs:update',
-);
-
-const envsDeleteActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('envs:delete'),
-      env_uuid: z.string().describe('Environment variable UUID to delete'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for env delete'),
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:delete',
-);
+const databaseReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
 const envBulkEntrySchema = z
   .object({
@@ -579,66 +208,405 @@ const envBulkEntrySchema = z
   })
   .strict();
 
-const backupParentFields = {
-  uuid: z.string().optional().describe('Database UUID'),
-  name: z.string().optional().describe('Database name substring'),
-  reveal: z
-    .boolean()
-    .default(false)
-    .describe(
-      'Reveal masked S3 credentials for this call only (ask_human_reveal policy D-16)',
-    ),
-  confirm: z
-    .boolean()
-    .optional()
-    .describe('Ignored — backup:create/list/history do not require confirm (D-10)'),
-  ...mutationResponseParamsSchema,
-};
+export const databaseActionsCatalog =
+  'Actions: get(uuid?, name?) · start(uuid?) · stop(uuid?) · restart(uuid?) · create(engine, server_uuid) · update(uuid?) · ' +
+  'delete(uuid?, confirm) · delete_preview(uuid?, name?) · envs:list(uuid?) · envs:get(uuid?, env_uuid?, key?) · ' +
+  'envs:create(uuid?, key, value) · envs:update(uuid?, env_uuid?, key?, value) · envs:delete(uuid?, env_uuid, confirm) · ' +
+  'envs:bulk-update(uuid?, entries, confirm) · backup:create(uuid?, frequency) · backup:list(uuid?) · ' +
+  'backup:history(uuid?, scheduled_backup_uuid) · backup:update(uuid?, scheduled_backup_uuid) · ' +
+  'backup:delete(uuid?, scheduled_backup_uuid, confirm) · backup:now(uuid?, scheduled_backup_uuid)';
 
-const backupCreateActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('backup:create'),
-      frequency: backupFrequencyCreateSchema.describe(
-        'Backup frequency preset or cron expression',
-      ),
-      enabled: z
-        .boolean()
-        .default(true)
-        .describe('Enable schedule (default true)'),
-      save_s3: z
-        .boolean()
-        .default(false)
-        .describe('Upload backups to S3 (default false)'),
-      s3_storage_uuid: z
-        .string()
-        .optional()
-        .describe('S3 storage destination UUID (required when save_s3: true)'),
-      databases_to_backup: z
-        .string()
-        .optional()
-        .describe('Comma-separated database names to backup'),
-      dump_all: z
-        .boolean()
-        .optional()
-        .describe('Dump all databases on the server'),
-      backup_now: z
-        .boolean()
-        .optional()
-        .describe('Trigger immediate backup after create'),
-      database_backup_retention_amount_locally: z.number().int().optional(),
-      database_backup_retention_days_locally: z.number().int().optional(),
-      database_backup_retention_max_storage_locally: z
-        .string()
-        .optional(),
-      database_backup_retention_amount_s3: z.number().int().optional(),
-      database_backup_retention_days_s3: z.number().int().optional(),
-      database_backup_retention_max_storage_s3: z.string().optional(),
-      timeout: z.number().int().optional().describe('Backup timeout in seconds'),
-      ...backupParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
+export const databaseSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+export const databaseActionSchema = createFlatActionSchema(
+  [
+    'get',
+    'start',
+    'stop',
+    'restart',
+    'create',
+    'update',
+    'delete',
+    'delete_preview',
+    'envs:list',
+    'envs:get',
+    'envs:create',
+    'envs:update',
+    'envs:delete',
+    'envs:bulk-update',
+    'backup:create',
+    'backup:list',
+    'backup:history',
+    'backup:update',
+    'backup:delete',
+    'backup:now',
+  ],
+  {
+    uuid: z.string().optional().describe('Database UUID'),
+    name: z.string().optional().describe('Database name substring'),
+    server_uuid: z.string().optional().describe('Target server UUID'),
+    project_uuid: z.string().optional().describe('Project UUID'),
+    project_name: z.string().optional().describe('Project name'),
+    environment_name: z.string().optional().describe('Environment name'),
+    environment_uuid: z.string().optional().describe('Environment UUID'),
+    description: z.string().optional().describe('Database description'),
+    image: z.string().optional().describe('Custom database image'),
+    engine: z
+      .enum([
+        'postgresql',
+        'mysql',
+        'mariadb',
+        'mongodb',
+        'redis',
+        'clickhouse',
+        'dragonfly',
+        'keydb',
+      ])
+      .optional()
+      .describe('Database engine (required for create)'),
+    is_public: z.boolean().optional().describe('Expose database port publicly'),
+    public_port: z.number().int().optional().describe('Public port when is_public'),
+    public_port_timeout: z.number().int().optional().describe('Public port mapping timeout'),
+    limits_memory: z.string().optional(),
+    limits_memory_swap: z.string().optional(),
+    limits_memory_swappiness: z.number().int().optional(),
+    limits_memory_reservation: z.string().optional(),
+    limits_cpus: z.string().optional(),
+    limits_cpuset: z.string().optional(),
+    limits_cpu_shares: z.number().int().optional(),
+    destination_uuid: z.string().optional(),
+    instant_deploy: z.boolean().optional().describe('Start database after create'),
+    postgres_user: z.string().optional(),
+    postgres_password: z.string().optional(),
+    postgres_db: z.string().optional(),
+    postgres_initdb_args: z.string().optional(),
+    postgres_host_auth_method: z.string().optional(),
+    postgres_conf: z.string().optional(),
+    mysql_user: z.string().optional(),
+    mysql_password: z.string().optional(),
+    mysql_root_password: z.string().optional(),
+    mysql_database: z.string().optional(),
+    mariadb_user: z.string().optional(),
+    mariadb_password: z.string().optional(),
+    mariadb_root_password: z.string().optional(),
+    mariadb_database: z.string().optional(),
+    mongo_initdb_root_password: z.string().optional(),
+    mongo_initdb_database: z.string().optional(),
+    redis_password: z.string().optional(),
+    clickhouse_admin_user: z.string().optional(),
+    clickhouse_admin_password: z.string().optional(),
+    dragonfly_password: z.string().optional(),
+    keydb_password: z.string().optional(),
+    confirm: z.boolean().optional().describe('Confirm destructive or public exposure ops'),
+    delete_volumes: z.boolean().optional(),
+    delete_configurations: z.boolean().optional(),
+    docker_cleanup: z.boolean().optional(),
+    delete_connected_networks: z.boolean().optional(),
+    env_uuid: z.string().optional().describe('Environment variable UUID'),
+    key: z.string().optional().describe('Environment variable key'),
+    value: z.string().optional().describe('Environment variable value'),
+    is_literal: z.boolean().optional(),
+    is_multiline: z.boolean().optional(),
+    is_shown_once: z.boolean().optional(),
+    entries: z.array(envBulkEntrySchema).optional(),
+    frequency: backupFrequencyCreateSchema
+      .optional()
+      .describe('Backup frequency preset or cron expression'),
+    enabled: z.boolean().optional().describe('Enable schedule'),
+    save_s3: z.boolean().optional().describe('Upload backups to S3'),
+    s3_storage_uuid: z.string().optional().describe('S3 storage destination UUID'),
+    databases_to_backup: z.string().optional(),
+    dump_all: z.boolean().optional(),
+    backup_now: z.boolean().optional(),
+    database_backup_retention_amount_locally: z.number().int().optional(),
+    database_backup_retention_days_locally: z.number().int().optional(),
+    database_backup_retention_max_storage_locally: z.string().optional(),
+    database_backup_retention_amount_s3: z.number().int().optional(),
+    database_backup_retention_days_s3: z.number().int().optional(),
+    database_backup_retention_max_storage_s3: z.string().optional(),
+    timeout: z.number().int().optional().describe('Backup timeout in seconds'),
+    scheduled_backup_uuid: z.string().optional().describe('Backup schedule UUID'),
+    delete_s3: z.boolean().optional().describe('Also delete S3 backup artifacts'),
+    reveal: z.boolean().optional().describe('Reveal masked credentials for this call only'),
+    ...sharedReadParamsFlatShape,
+    ...mutationResponseParamsFlatShape,
+  },
+  {
+    get: ['uuid', 'name', ...databaseReadParamKeys],
+    start: ['uuid', 'name', 'format', 'max_chars'],
+    stop: ['uuid', 'name', 'format', 'max_chars'],
+    restart: ['uuid', 'name', 'format', 'max_chars'],
+    create: [
+      'engine',
+      'server_uuid',
+      'project_uuid',
+      'project_name',
+      'environment_name',
+      'environment_uuid',
+      'name',
+      'description',
+      'image',
+      'is_public',
+      'public_port',
+      'public_port_timeout',
+      'limits_memory',
+      'limits_memory_swap',
+      'limits_memory_swappiness',
+      'limits_memory_reservation',
+      'limits_cpus',
+      'limits_cpuset',
+      'limits_cpu_shares',
+      'destination_uuid',
+      'instant_deploy',
+      'confirm',
+      'reveal',
+      'postgres_user',
+      'postgres_password',
+      'postgres_db',
+      'postgres_initdb_args',
+      'postgres_host_auth_method',
+      'postgres_conf',
+      'mysql_user',
+      'mysql_password',
+      'mysql_root_password',
+      'mysql_database',
+      'mariadb_user',
+      'mariadb_password',
+      'mariadb_root_password',
+      'mariadb_database',
+      'mongo_initdb_root_password',
+      'mongo_initdb_database',
+      'redis_password',
+      'clickhouse_admin_user',
+      'clickhouse_admin_password',
+      'dragonfly_password',
+      'keydb_password',
+      'format',
+      'max_chars',
+    ],
+    update: [
+      'uuid',
+      'name',
+      'description',
+      'image',
+      'is_public',
+      'public_port',
+      'public_port_timeout',
+      'limits_memory',
+      'limits_memory_swap',
+      'limits_memory_swappiness',
+      'limits_memory_reservation',
+      'limits_cpus',
+      'limits_cpuset',
+      'limits_cpu_shares',
+      'postgres_user',
+      'postgres_password',
+      'postgres_db',
+      'postgres_initdb_args',
+      'postgres_host_auth_method',
+      'postgres_conf',
+      'mysql_user',
+      'mysql_password',
+      'mysql_root_password',
+      'mysql_database',
+      'mariadb_user',
+      'mariadb_password',
+      'mariadb_root_password',
+      'mariadb_database',
+      'mongo_initdb_root_password',
+      'mongo_initdb_database',
+      'redis_password',
+      'clickhouse_admin_user',
+      'clickhouse_admin_password',
+      'dragonfly_password',
+      'keydb_password',
+      'confirm',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    delete: [
+      'uuid',
+      'name',
+      'confirm',
+      'delete_volumes',
+      'delete_configurations',
+      'docker_cleanup',
+      'delete_connected_networks',
+      'format',
+      'max_chars',
+    ],
+    delete_preview: ['uuid', 'name', 'format', 'max_chars'],
+    'envs:list': ['uuid', 'name', 'reveal', 'format', 'max_chars'],
+    'envs:get': ['uuid', 'name', 'env_uuid', 'key', 'reveal', 'format', 'max_chars'],
+    'envs:create': [
+      'uuid',
+      'name',
+      'key',
+      'value',
+      'is_literal',
+      'is_multiline',
+      'is_shown_once',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:update': [
+      'uuid',
+      'name',
+      'env_uuid',
+      'key',
+      'value',
+      'is_literal',
+      'is_multiline',
+      'is_shown_once',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:delete': ['uuid', 'name', 'env_uuid', 'confirm', 'reveal', 'format', 'max_chars'],
+    'envs:bulk-update': ['uuid', 'name', 'entries', 'confirm', 'reveal', 'format', 'max_chars'],
+    'backup:create': [
+      'uuid',
+      'name',
+      'frequency',
+      'enabled',
+      'save_s3',
+      's3_storage_uuid',
+      'databases_to_backup',
+      'dump_all',
+      'backup_now',
+      'database_backup_retention_amount_locally',
+      'database_backup_retention_days_locally',
+      'database_backup_retention_max_storage_locally',
+      'database_backup_retention_amount_s3',
+      'database_backup_retention_days_s3',
+      'database_backup_retention_max_storage_s3',
+      'timeout',
+      'reveal',
+      'confirm',
+      'format',
+      'max_chars',
+    ],
+    'backup:list': ['uuid', 'name', 'reveal', 'confirm', 'format', 'max_chars'],
+    'backup:history': [
+      'uuid',
+      'name',
+      'scheduled_backup_uuid',
+      'reveal',
+      'confirm',
+      'format',
+      'max_chars',
+    ],
+    'backup:update': [
+      'uuid',
+      'name',
+      'scheduled_backup_uuid',
+      'frequency',
+      'enabled',
+      'save_s3',
+      's3_storage_uuid',
+      'databases_to_backup',
+      'dump_all',
+      'database_backup_retention_amount_locally',
+      'database_backup_retention_days_locally',
+      'database_backup_retention_max_storage_locally',
+      'database_backup_retention_amount_s3',
+      'database_backup_retention_days_s3',
+      'database_backup_retention_max_storage_s3',
+      'timeout',
+      'reveal',
+      'confirm',
+      'format',
+      'max_chars',
+    ],
+    'backup:delete': [
+      'uuid',
+      'name',
+      'scheduled_backup_uuid',
+      'confirm',
+      'delete_s3',
+      'format',
+      'max_chars',
+    ],
+    'backup:now': [
+      'uuid',
+      'name',
+      'scheduled_backup_uuid',
+      'reveal',
+      'confirm',
+      'format',
+      'max_chars',
+    ],
+  },
+  {
+    create: ['engine', 'server_uuid'],
+    'envs:create': ['key', 'value'],
+    'envs:update': ['value'],
+    'envs:delete': ['env_uuid'],
+    'envs:bulk-update': ['entries'],
+    'backup:create': ['frequency'],
+    'backup:history': ['scheduled_backup_uuid'],
+    'backup:update': ['scheduled_backup_uuid'],
+    'backup:delete': ['scheduled_backup_uuid'],
+    'backup:now': ['scheduled_backup_uuid'],
+  },
+  (data, ctx) => {
+    const idActions = [
+      'start',
+      'stop',
+      'restart',
+      'get',
+      'update',
+      'delete',
+      'delete_preview',
+      'envs:list',
+      'envs:get',
+      'envs:create',
+      'envs:update',
+      'envs:delete',
+      'envs:bulk-update',
+      'backup:create',
+      'backup:list',
+      'backup:history',
+      'backup:update',
+      'backup:delete',
+      'backup:now',
+    ] as const;
+    if (
+      (idActions as readonly string[]).includes(data.action) &&
+      !hasAtLeastOneIdentifier(data, DATABASE_IDENTIFIER_FIELDS)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `At least one identifier (uuid|name) required for action ${data.action}`,
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.action === 'create') {
+      requireProjectAndEnvironment(data, ctx);
+      requireConfirmForPublicAccess(data, ctx, 'create');
+    }
+    if (data.action === 'update') {
+      requireConfirmForPublicAccess(data, ctx, 'update');
+    }
+    if (data.action === 'envs:get') {
+      requireEnvUuidOrKey(data, ctx, 'envs:get');
+    }
+    if (data.action === 'envs:update') {
+      requireEnvUuidOrKey(data, ctx, 'envs:update');
+    }
+    if (data.action === 'envs:bulk-update' && data.entries && data.entries.length > 100) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
+        path: ['entries'],
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+    if (data.action === 'backup:create' || data.action === 'backup:update') {
       if (data.save_s3 === true && !data.s3_storage_uuid) {
         ctx.addIssue({
           code: 'custom',
@@ -648,147 +616,21 @@ const backupCreateActionSchema = requireDatabaseIdentifier(
           params: { code: 'COOLIFY_VALIDATION_ERROR' },
         });
       }
-    }),
-  'backup:create',
-);
-
-const backupListActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('backup:list'),
-      ...backupParentFields,
-    })
-    .strict(),
-  'backup:list',
-);
-
-const backupHistoryActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('backup:history'),
-      scheduled_backup_uuid: z
-        .string()
-        .describe('Backup schedule UUID for execution history'),
-      ...backupParentFields,
-    })
-    .strict(),
-  'backup:history',
-);
-
-const backupUpdateActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('backup:update'),
-      scheduled_backup_uuid: z
-        .string()
-        .describe('Backup schedule UUID to update'),
-      frequency: backupFrequencyUpdateSchema
-        .optional()
-        .describe('Backup frequency preset (cron not allowed on update)'),
-      enabled: z.boolean().optional().describe('Enable or disable schedule'),
-      save_s3: z.boolean().optional().describe('Upload backups to S3'),
-      s3_storage_uuid: z
-        .string()
-        .optional()
-        .describe('S3 storage destination UUID (required when save_s3: true)'),
-      databases_to_backup: z
-        .string()
-        .optional()
-        .describe('Comma-separated database names to backup'),
-      dump_all: z
-        .boolean()
-        .optional()
-        .describe('Dump all databases on the server'),
-      database_backup_retention_amount_locally: z.number().int().optional(),
-      database_backup_retention_days_locally: z.number().int().optional(),
-      database_backup_retention_max_storage_locally: z
-        .string()
-        .optional(),
-      database_backup_retention_amount_s3: z.number().int().optional(),
-      database_backup_retention_days_s3: z.number().int().optional(),
-      database_backup_retention_max_storage_s3: z.string().optional(),
-      timeout: z.number().int().optional().describe('Backup timeout in seconds'),
-      ...backupParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      if (data.save_s3 === true && !data.s3_storage_uuid) {
+    }
+    if (data.action === 'backup:update' && data.frequency !== undefined) {
+      if (!backupFrequencyUpdateSchema.safeParse(data.frequency).success) {
         ctx.addIssue({
           code: 'custom',
           message:
-            'save_s3: true requires s3_storage_uuid — COOLIFY_VALIDATION_ERROR',
-          path: ['s3_storage_uuid'],
+            'backup:update frequency must be a preset — cron expressions are not supported on update',
+          path: ['frequency'],
           params: { code: 'COOLIFY_VALIDATION_ERROR' },
         });
       }
-    }),
-  'backup:update',
+    }
+  },
 );
 
-const backupDeleteActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('backup:delete'),
-      uuid: z.string().optional().describe('Database UUID'),
-      name: z.string().optional().describe('Database name substring'),
-      scheduled_backup_uuid: z
-        .string()
-        .describe('Backup schedule UUID to delete'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for backup delete'),
-      delete_s3: z
-        .boolean()
-        .default(false)
-        .describe('Also delete S3 backup artifacts (default false)'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'backup:delete',
-);
-
-const backupNowActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('backup:now'),
-      scheduled_backup_uuid: z
-        .string()
-        .describe('Backup schedule UUID to trigger'),
-      ...backupParentFields,
-    })
-    .strict(),
-  'backup:now',
-);
-
-const envsBulkUpdateActionSchema = requireDatabaseIdentifier(
-  z
-    .object({
-      action: z.literal('envs:bulk-update'),
-      entries: z
-        .array(envBulkEntrySchema)
-        .min(1)
-        .describe('Bulk env entries (min 1, max 100 per call)'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for bulk env update'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      if (data.entries.length > 100) {
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
-          path: ['entries'],
-          params: { code: 'COOLIFY_VALIDATION_ERROR' },
-        });
-      }
-    }),
-  'envs:bulk-update',
-);
 
 const DATABASE_UPDATE_CURATED_FIELD_KEYS = [
   'name',
@@ -826,29 +668,6 @@ const DATABASE_UPDATE_CURATED_FIELD_KEYS = [
   'dragonfly_password',
   'keydb_password',
 ] as const;
-
-export const databaseActionSchema = z.discriminatedUnion('action', [
-  getActionSchema,
-  startActionSchema,
-  stopActionSchema,
-  restartActionSchema,
-  createDatabaseSchema,
-  updateDatabaseSchema,
-  deleteActionSchema,
-  deletePreviewActionSchema,
-  envsListActionSchema,
-  envsGetActionSchema,
-  envsCreateActionSchema,
-  envsUpdateActionSchema,
-  envsDeleteActionSchema,
-  envsBulkUpdateActionSchema,
-  backupCreateActionSchema,
-  backupListActionSchema,
-  backupHistoryActionSchema,
-  backupUpdateActionSchema,
-  backupDeleteActionSchema,
-  backupNowActionSchema,
-]);
 
 export type DatabaseAction = z.infer<typeof databaseActionSchema>;
 
@@ -996,23 +815,23 @@ type DatabaseIdentifierInput = {
   name?: string;
 };
 
-type MutationAction = z.infer<typeof startActionSchema>;
-type CreateAction = z.infer<typeof createDatabaseSchema>;
-type UpdateAction = z.infer<typeof updateDatabaseSchema>;
-type DeleteAction = z.infer<typeof deleteActionSchema>;
-type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
-type EnvsListAction = z.infer<typeof envsListActionSchema>;
-type EnvsGetAction = z.infer<typeof envsGetActionSchema>;
-type EnvsCreateAction = z.infer<typeof envsCreateActionSchema>;
-type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
-type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
-type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
-type BackupCreateAction = z.infer<typeof backupCreateActionSchema>;
-type BackupListAction = z.infer<typeof backupListActionSchema>;
-type BackupHistoryAction = z.infer<typeof backupHistoryActionSchema>;
-type BackupUpdateAction = z.infer<typeof backupUpdateActionSchema>;
-type BackupDeleteAction = z.infer<typeof backupDeleteActionSchema>;
-type BackupNowAction = z.infer<typeof backupNowActionSchema>;
+type MutationAction = Extract<DatabaseAction, { action: 'start' | 'stop' | 'restart' }>;
+type CreateAction = Extract<DatabaseAction, { action: 'create' }>;
+type UpdateAction = Extract<DatabaseAction, { action: 'update' }>;
+type DeleteAction = Extract<DatabaseAction, { action: 'delete' }>;
+type DeletePreviewAction = Extract<DatabaseAction, { action: 'delete_preview' }>;
+type EnvsListAction = Extract<DatabaseAction, { action: 'envs:list' }>;
+type EnvsGetAction = Extract<DatabaseAction, { action: 'envs:get' }>;
+type EnvsCreateAction = Extract<DatabaseAction, { action: 'envs:create' }>;
+type EnvsUpdateAction = Extract<DatabaseAction, { action: 'envs:update' }>;
+type EnvsDeleteAction = Extract<DatabaseAction, { action: 'envs:delete' }>;
+type EnvsBulkUpdateAction = Extract<DatabaseAction, { action: 'envs:bulk-update' }>;
+type BackupCreateAction = Extract<DatabaseAction, { action: 'backup:create' }>;
+type BackupListAction = Extract<DatabaseAction, { action: 'backup:list' }>;
+type BackupHistoryAction = Extract<DatabaseAction, { action: 'backup:history' }>;
+type BackupUpdateAction = Extract<DatabaseAction, { action: 'backup:update' }>;
+type BackupDeleteAction = Extract<DatabaseAction, { action: 'backup:delete' }>;
+type BackupNowAction = Extract<DatabaseAction, { action: 'backup:now' }>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -1087,7 +906,7 @@ function buildCreateSharedBody(
     limits_cpuset: parsed.limits_cpuset,
     limits_cpu_shares: parsed.limits_cpu_shares,
     destination_uuid: parsed.destination_uuid,
-    instant_deploy: parsed.instant_deploy,
+    instant_deploy: parsed.instant_deploy !== false,
   });
 }
 
@@ -1457,7 +1276,7 @@ async function handleDatabaseCreate(
     env,
   );
 
-  if (!parsed.instant_deploy) {
+  if (parsed.instant_deploy === false) {
     return withManifestUpsert(
       buildReadResponse(
         {
@@ -1609,15 +1428,20 @@ async function handleDatabaseDelete(
 
   validateDeleteConfirm(parsed.confirm, uuid);
 
+  const deleteVolumes = parsed.delete_volumes ?? false;
+  const deleteConfigurations = parsed.delete_configurations ?? false;
+  const dockerCleanup = parsed.docker_cleanup ?? false;
+  const deleteConnectedNetworks = parsed.delete_connected_networks ?? false;
+
   await deleteDatabase(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
     uuid,
     {
-      delete_volumes: parsed.delete_volumes,
-      delete_configurations: parsed.delete_configurations,
-      docker_cleanup: parsed.docker_cleanup,
-      delete_connected_networks: parsed.delete_connected_networks,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
+      docker_cleanup: dockerCleanup,
+      delete_connected_networks: deleteConnectedNetworks,
     },
     env.COOLIFY_VERIFY_SSL,
   );
@@ -1627,8 +1451,8 @@ async function handleDatabaseDelete(
       ok: true as const,
       uuid,
       deleted: true as const,
-      delete_volumes: parsed.delete_volumes,
-      delete_configurations: parsed.delete_configurations,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
     },
     {
       format: parsed.format,
@@ -2081,9 +1905,11 @@ async function handleDatabaseBackupDelete(
 ): Promise<DatabaseBackupDeleteResult> {
   const dbUuid = await resolveDatabaseUuid(parsed, env);
 
+  const deleteS3 = parsed.delete_s3 ?? false;
+
   validateBackupDeleteConfirm(
     parsed.confirm,
-    parsed.delete_s3,
+    deleteS3,
     dbUuid,
     parsed.scheduled_backup_uuid,
   );
@@ -2093,7 +1919,7 @@ async function handleDatabaseBackupDelete(
     env.COOLIFY_TOKEN,
     dbUuid,
     parsed.scheduled_backup_uuid,
-    parsed.delete_s3,
+    deleteS3,
     env.COOLIFY_VERIFY_SSL,
   );
 
@@ -2102,7 +1928,7 @@ async function handleDatabaseBackupDelete(
       ok: true as const,
       scheduled_backup_uuid: parsed.scheduled_backup_uuid,
       deleted: true as const,
-      delete_s3: parsed.delete_s3,
+      delete_s3: deleteS3,
     },
     {
       format: parsed.format,

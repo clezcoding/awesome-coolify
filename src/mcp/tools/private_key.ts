@@ -18,115 +18,82 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 import {
   resolveProjection,
   sanitizeFullProjection,
 } from '../../utils/projections.js';
 
-// D-11: list schema accepts reveal (MCP JSON Schema layer); handler rejects reveal:true.
-const listReadParamsSchema = sharedReadParamsSchema;
+const privateKeyReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
-const mutationResponseParamsSchema = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .default('pretty')
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .positive()
-    .default(16000)
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
+export const privateKeyActionsCatalog =
+  'Actions: list(format?, page?, per_page?) · get(uuid, format?, projection?, reveal?) · create(name, private_key?, key_file?) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid)';
 
-const listActionSchema = z
-  .object({
-    action: z.literal('list'),
-    ...listReadParamsSchema,
-  })
-  .strict();
+export const privateKeySafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
 
-const getActionSchema = z
-  .object({
-    action: z.literal('get'),
-    uuid: z.string().describe('Private key UUID'),
-    ...sharedReadParamsSchema,
-  })
-  .strict();
-
-const createActionSchema = z
-  .object({
-    action: z.literal('create'),
-    name: z.string().describe('Private key name'),
+export const privateKeyActionSchema = createFlatActionSchema(
+  ['list', 'get', 'create', 'update', 'delete', 'delete_preview'],
+  {
+    uuid: z.string().optional().describe('Private key UUID'),
+    name: z.string().optional().describe('Private key name'),
     description: z.string().optional().describe('Optional description'),
     private_key: z.string().optional().describe('Inline PEM material'),
     key_file: z.string().optional().describe('Local filesystem path to PEM file'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    const hasInline = typeof data.private_key === 'string' && data.private_key.length > 0;
-    const hasFile = typeof data.key_file === 'string' && data.key_file.length > 0;
-
-    if (hasInline === hasFile) {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'Exactly one of private_key (inline PEM) or key_file (local path) is required',
-        params: { code: 'COOLIFY_422' },
-      });
-    }
-  });
-
-const updateActionSchema = z
-  .object({
-    action: z.literal('update'),
-    uuid: z.string().describe('Private key UUID'),
-    name: z.string().optional().describe('Updated name'),
-    description: z.string().optional().describe('Updated description'),
-    private_key: z
-      .string()
-      .optional()
-      .describe('Write-only PEM rotation (never returned in responses)'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-const deleteActionSchema = z
-  .object({
-    action: z.literal('delete'),
-    uuid: z.string().describe('Private key UUID'),
     confirm: z
       .boolean()
-      .default(false)
+      .optional()
       .describe('Explicit confirmation required for destructive delete'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
+    ...sharedReadParamsFlatShape,
+    ...mutationResponseParamsFlatShape,
+  },
+  {
+    list: [...privateKeyReadParamKeys],
+    get: ['uuid', ...privateKeyReadParamKeys],
+    create: ['name', 'description', 'private_key', 'key_file', 'format', 'max_chars'],
+    update: ['uuid', 'name', 'description', 'private_key', 'format', 'max_chars'],
+    delete: ['uuid', 'confirm', 'format', 'max_chars'],
+    delete_preview: ['uuid', 'format', 'max_chars'],
+  },
+  {
+    get: ['uuid'],
+    create: ['name'],
+    update: ['uuid'],
+    delete: ['uuid'],
+    delete_preview: ['uuid'],
+  },
+  (data, ctx) => {
+    if (data.action === 'create') {
+      const hasInline =
+        typeof data.private_key === 'string' && data.private_key.length > 0;
+      const hasFile =
+        typeof data.key_file === 'string' && data.key_file.length > 0;
 
-const deletePreviewActionSchema = z
-  .object({
-    action: z.literal('delete_preview'),
-    uuid: z.string().describe('Private key UUID'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-export const privateKeyActionSchema = z.discriminatedUnion('action', [
-  listActionSchema,
-  getActionSchema,
-  createActionSchema,
-  updateActionSchema,
-  deleteActionSchema,
-  deletePreviewActionSchema,
-]);
+      if (hasInline === hasFile) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Exactly one of private_key (inline PEM) or key_file (local path) is required',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
+  },
+);
 
 export type PrivateKeyAction = z.infer<typeof privateKeyActionSchema>;
 

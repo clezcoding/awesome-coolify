@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { McpServer } from '@modelcontextprotocol/server';
+import type { EnvConfig } from '../config/env.js';
+import { registerCoolifyTools } from './server.js';
 import { metaActionSchema } from './tools/meta.js';
 import { systemActionSchema } from './tools/system.js';
 import { resourceActionSchema } from './tools/resource.js';
-import { applicationActionSchema } from './tools/application.js';
-import { serviceActionSchema } from './tools/service.js';
-import { databaseActionSchema } from './tools/database.js';
+import { applicationActionSchema, applicationActionsCatalog } from './tools/application.js';
+import { serviceActionSchema, serviceActionsCatalog } from './tools/service.js';
+import { databaseActionSchema, databaseActionsCatalog } from './tools/database.js';
 import { docsActionSchema } from './tools/docs.js';
 import { diagnoseToolSchema } from './tools/diagnose.js';
 import { deploymentToolSchema } from './tools/deployment.js';
@@ -148,7 +151,7 @@ describe('MCP server tool registration', () => {
     );
     expect(deploymentBlock).toMatch(/openWorldHint:\s*true/);
     expect(deploymentBlock).not.toMatch(/readOnlyHint:\s*true/);
-    expect(deploymentBlock).toMatch(/already_finished/);
+    expect(deploymentBlock).toContain('deploymentActionsCatalog');
   });
 
   it('diagnose tool has openWorldHint without readOnlyHint per D-10', () => {
@@ -158,8 +161,7 @@ describe('MCP server tool registration', () => {
     );
     expect(source).toContain("registerTool(\n    'diagnose'");
     expect(source).toMatch(/'diagnose'[\s\S]*openWorldHint:\s*true/);
-    expect(source).toMatch(/'diagnose'[\s\S]*validate/);
-    expect(source).toMatch(/'diagnose'[\s\S]*side-effect/);
+    expect(source).toMatch(/'diagnose'[\s\S]*diagnoseActionsCatalog/);
     const diagnoseBlock = source.slice(
       source.indexOf("registerTool(\n    'diagnose'"),
       source.indexOf("registerTool(\n    'application'"),
@@ -216,6 +218,103 @@ describe('MCP server tool registration', () => {
     expect(
       resourceActionSchema.safeParse({ action: 'find', query: 'test' }).success,
     ).toBe(true);
+  });
+
+  it('every registered tool description contains Actions: and Safety: prefixes', () => {
+    const testEnv: EnvConfig = {
+      COOLIFY_URL: 'https://coolify.example.com',
+      COOLIFY_TOKEN: 'test-token',
+      COOLIFY_VERIFY_SSL: true,
+      COOLIFY_MCP_LOG: 'info',
+    };
+    const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+    registerCoolifyTools(server, testEnv);
+    type RegisteredTool = { description?: string };
+    const registered = (
+      server as McpServer & {
+        _registeredTools: Record<string, RegisteredTool>;
+      }
+    )._registeredTools;
+    const expectedTools = [
+      'system',
+      'meta',
+      'resource',
+      'diagnose',
+      'application',
+      'emergency',
+      'deployment',
+      'service',
+      'database',
+      'private_key',
+      'instance',
+      'manifest',
+      'server',
+      'project',
+      'environment',
+      'docs',
+    ];
+    expect(Object.keys(registered).sort()).toEqual(expectedTools.sort());
+    for (const name of expectedTools) {
+      const description = registered[name]?.description ?? '';
+      expect(description, `${name} missing Actions:`).toContain('Actions:');
+      expect(description, `${name} missing Safety:`).toContain('Safety:');
+    }
+  });
+});
+
+describe('actionsCatalog schema-field-name regression (Phase 19 gap closure)', () => {
+  it('applicationActionsCatalog uses env_uuid for envs:delete (CR-01)', () => {
+    expect(applicationActionsCatalog).toContain(
+      'envs:delete(uuid, env_uuid, confirm)',
+    );
+  });
+
+  it('applicationActionsCatalog uses entries for envs:bulk-update (CR-01)', () => {
+    expect(applicationActionsCatalog).toContain(
+      'envs:bulk-update(uuid, entries, confirm)',
+    );
+  });
+
+  it('applicationActionsCatalog includes CRUD lifecycle tokens (WR-01)', () => {
+    expect(applicationActionsCatalog).toContain('create(source_type, server_uuid)');
+    expect(applicationActionsCatalog).toContain('update(uuid)');
+    expect(applicationActionsCatalog).toContain('delete(uuid, confirm)');
+    expect(applicationActionsCatalog).toContain('delete_preview(uuid)');
+  });
+
+  it('serviceActionsCatalog uses env_uuid for envs:delete (CR-01)', () => {
+    expect(serviceActionsCatalog).toContain(
+      'envs:delete(uuid, env_uuid, confirm)',
+    );
+  });
+
+  it('serviceActionsCatalog includes restart and delete_preview', () => {
+    expect(serviceActionsCatalog).toContain('restart(uuid)');
+    expect(serviceActionsCatalog).toContain('delete_preview(uuid)');
+  });
+
+  it('databaseActionsCatalog uses schema field names for env mutations (WR-02)', () => {
+    expect(databaseActionsCatalog).toContain(
+      'envs:delete(uuid?, env_uuid, confirm)',
+    );
+    expect(databaseActionsCatalog).toContain(
+      'envs:bulk-update(uuid?, entries, confirm)',
+    );
+  });
+
+  it('no catalog advertises envs:delete with key alias (CR-01 negative)', () => {
+    expect(applicationActionsCatalog).not.toContain('envs:delete(uuid, key');
+    expect(serviceActionsCatalog).not.toContain('envs:delete(uuid, key');
+    expect(databaseActionsCatalog).not.toContain('envs:delete(uuid, key');
+  });
+
+  it('applicationActionsCatalog does not advertise envs alias for bulk-update (CR-01 negative)', () => {
+    expect(applicationActionsCatalog).not.toContain('envs:bulk-update(uuid, envs');
+  });
+
+  it('databaseActionsCatalog has no envs:* or backup:* wildcards (WR-02 negative)', () => {
+    expect(databaseActionsCatalog).not.toContain('envs:*');
+    expect(databaseActionsCatalog).not.toContain('backup:*');
   });
 });
 

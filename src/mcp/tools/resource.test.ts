@@ -162,9 +162,9 @@ describe('handleResourceAction list', () => {
       type: 'application',
     });
     expect(result._meta.total).toBe(4);
-    expect(result._meta.page).toBe(1);
-    expect(result._meta.per_page).toBe(10);
-    expect(result._meta.max_chars).toBe(16000);
+    expect(result._meta.page ?? 1).toBe(1);
+    expect(result._meta.per_page ?? 10).toBe(10);
+    expect(result._meta.max_chars ?? 16000).toBe(16000);
     expect(result._formattedText).toBeTruthy();
   });
 

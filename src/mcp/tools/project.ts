@@ -18,31 +18,18 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 import {
   resolveProjection,
   sanitizeFullProjection,
 } from '../../utils/projections.js';
 import { resolveProjectUuid } from '../../utils/project-lookup.js';
-
-const mutationResponseParamsSchema = {
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .default('pretty')
-    .optional()
-    .describe('Output format (default pretty)'),
-  max_chars: z
-    .number()
-    .int()
-    .positive()
-    .default(16000)
-    .optional()
-    .describe('Max formatted output characters (default 16000)'),
-};
 
 const INITIAL_ENV_RECOVERY_HINTS = [
   'Ask the user whether to default to production or use a custom environment name.',
@@ -65,28 +52,31 @@ function requireUuidOrName(
   }
 }
 
-const listActionSchema = z
-  .object({
-    action: z.literal('list'),
-    ...sharedReadParamsSchema,
-  })
-  .strict();
+const projectReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
-const getActionSchema = z
-  .object({
-    action: z.literal('get'),
+export const projectActionsCatalog =
+  'Actions: list(format?, page?, per_page?) · get(uuid?, name?, format?, projection?, reveal?) · create(name, initial_environment?) · update(uuid?, name?) · delete(uuid?, name?, confirm) · delete_preview(uuid?, name?)';
+
+export const projectSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+export const projectActionSchema = createFlatActionSchema(
+  ['list', 'get', 'create', 'update', 'delete', 'delete_preview'],
+  {
     uuid: z.string().optional().describe('Project UUID'),
     name: z.string().optional().describe('Project name (substring match)'),
-    ...sharedReadParamsSchema,
-  })
-  .strict()
-  .superRefine(requireUuidOrName);
-
-// D-09/D-10: schema accepts optional initial_environment (MCP JSON Schema layer); handler rejects missing/empty.
-const createActionSchema = z
-  .object({
-    action: z.literal('create'),
-    name: z.string().min(1).describe('Project name'),
+    new_name: z
+      .string()
+      .optional()
+      .describe('New project name when resolving by name only'),
     initial_environment: z
       .string()
       .optional()
@@ -94,54 +84,35 @@ const createActionSchema = z
         'Initial environment name (required — ask user for production vs custom per D-09/D-10)',
       ),
     description: z.string().optional().describe('Optional project description'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict();
-
-const updateActionSchema = z
-  .object({
-    action: z.literal('update'),
-    uuid: z.string().optional().describe('Project UUID'),
-    name: z.string().optional().describe('Project name for lookup or new name when uuid given'),
-    new_name: z.string().optional().describe('New project name when resolving by name only'),
-    description: z.string().optional().describe('Updated description'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict()
-  .superRefine(requireUuidOrName);
-
-const deleteActionSchema = z
-  .object({
-    action: z.literal('delete'),
-    uuid: z.string().optional().describe('Project UUID'),
-    name: z.string().optional().describe('Project name (substring match)'),
     confirm: z
       .boolean()
-      .default(false)
+      .optional()
       .describe('Explicit confirmation required for destructive delete'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict()
-  .superRefine(requireUuidOrName);
-
-const deletePreviewActionSchema = z
-  .object({
-    action: z.literal('delete_preview'),
-    uuid: z.string().optional().describe('Project UUID'),
-    name: z.string().optional().describe('Project name (substring match)'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict()
-  .superRefine(requireUuidOrName);
-
-export const projectActionSchema = z.discriminatedUnion('action', [
-  listActionSchema,
-  getActionSchema,
-  createActionSchema,
-  updateActionSchema,
-  deleteActionSchema,
-  deletePreviewActionSchema,
-]);
+    ...sharedReadParamsFlatShape,
+    ...mutationResponseParamsFlatShape,
+  },
+  {
+    list: [...projectReadParamKeys],
+    get: ['uuid', 'name', ...projectReadParamKeys],
+    create: ['name', 'initial_environment', 'description', 'format', 'max_chars'],
+    update: ['uuid', 'name', 'new_name', 'description', 'format', 'max_chars'],
+    delete: ['uuid', 'name', 'confirm', 'format', 'max_chars'],
+    delete_preview: ['uuid', 'name', 'format', 'max_chars'],
+  },
+  {
+    create: ['name'],
+  },
+  (data, ctx) => {
+    if (
+      data.action === 'get' ||
+      data.action === 'update' ||
+      data.action === 'delete' ||
+      data.action === 'delete_preview'
+    ) {
+      requireUuidOrName(data, ctx);
+    }
+  },
+);
 
 export type ProjectAction = z.infer<typeof projectActionSchema>;
 

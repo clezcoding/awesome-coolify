@@ -87,11 +87,11 @@ const mixedResourcesFixture = [
 ];
 
 describe('emergencyToolSchema', () => {
-  it('accepts stop_all with confirm defaulting to false', () => {
+  it('accepts stop_all without confirm (handler defaults to false)', () => {
     const parsed = emergencyToolSchema.safeParse({ action: 'stop_all' });
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
-    expect(parsed.data.confirm).toBe(false);
+    expect(parsed.data.confirm).toBeUndefined();
   });
 
   it('rejects redeploy_project without project identifier', () => {
@@ -620,7 +620,7 @@ describe('emergency tool server registration', () => {
     // exposed list — keep safety in confirm gate + description instead.
     expect(emergencyBlock).toMatch(/annotations:\s*\{\s*openWorldHint:\s*true\s*\}/);
     expect(emergencyBlock).not.toMatch(/annotations:\s*\{[^}]*destructiveHint:\s*true/);
-    expect(emergencyBlock).toMatch(/confirm:\s*true/);
-    expect(emergencyBlock).toMatch(/high-impact|destructive/i);
+    expect(emergencyBlock).toContain('emergencyActionsCatalog');
+    expect(emergencyBlock).toContain('emergencySafetyFooter');
   });
 });

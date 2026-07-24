@@ -1,43 +1,43 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Platform Foundation
-status: Awaiting next milestone
-stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-07-23T21:14:00.000Z"
-last_activity: 2026-07-23
-last_activity_desc: Milestone v3.0 completed and archived
+milestone: v3.1
+milestone_name: Setup, Skills & DX
+current_phase: 20
+current_phase_name: Recipes & Service List-Types
+status: "Phase 19 shipped — PR #47"
+stopped_at: Completed 19-03-PLAN.md
+last_updated: "2026-07-24T02:35:56.638Z"
+last_activity: 2026-07-24
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
-current_phase: 18
-current_phase_name: live-uat-harness
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+  percent: 20
+last_activity_desc: Phase 19 complete, transitioned to Phase 20
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-23)
+See: .planning/PROJECT.md (updated 2026-07-24)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Planning next milestone (v3.1 Setup & Skills)
+**Current focus:** Phase 20 — Recipes & Service List-Types
 
 ## Current Position
 
-Phase: Milestone v3.0 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
+Phase: 20 — Recipes & Service List-Types
+Plan: Not started
+Status: Phase 19 shipped — PR #47
+Last activity: 2026-07-24
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 79
+- Total plans completed: 82
 - Average duration: —
 - Total execution time: —
 
@@ -60,6 +60,7 @@ Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
 | 15 | 5 | - | - |
 | 16 | 5 | - | - |
 | 17 | 4 | - | - |
+| 19 | 3 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -102,6 +103,9 @@ Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
 | Phase 18-live-uat-harness P04 | 2min | 2 tasks | 2 files |
 | Phase 18-live-uat-harness P03 | 3min | 2 tasks | 1 files |
 | Phase quick-260723-w1r P01 | 25min | 5 tasks | 8 files |
+| Phase 19-dx-schemas-mcp-prompts P01 | 18min | 3 tasks | 19 files |
+| Phase 19-dx-schemas-mcp-prompts P02 | 6min | 3 tasks | 8 files |
+| Phase 19-dx-schemas-mcp-prompts P03 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -278,6 +282,12 @@ Last activity: 2026-07-23 — Milestone v3.0 archived (`override_closeout`)
 - [Phase ?]: manifest mutating rows skip Coolify project UUID check — workspace-local per D-07
 - [Phase ?]: v3_gaps keyed by row id; stdio and in-process runners share preconditionGaps array
 - [Phase ?]: Emergency mutations without project_uuid blocked as blocked-outside-uat
+- [Phase ?]: Flat MCP shape fields omit Zod .default() — parseReadParams/?? in handlers restores defaults without superRefine false positives
+- [Phase ?]: createFlatActionSchema extraRefine composes per-action invariants (confirm gates, XOR, identifier checks) atop strict-key validation
+- [Phase ?]: Tool purpose sentences shortened — action detail in co-located catalog constants (19-02)
+- [Phase ?]: Prompt tests use _registeredPrompts — no public McpServer listTools/getPrompt (19-02)
+- [Phase ?]: String-only catalog edits — no schema/handler/prompt changes per gap_closure scope
+- [Phase ?]: Eight separate it cases (A-H) for precise regression attribution
 
 ### Pending Todos
 
@@ -336,15 +346,15 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-23T20:52:44.156Z
-**Stopped at:** Milestone v3.0 archived
+**Last session:** 2026-07-24T02:06:01.111Z
+**Stopped at:** Completed 19-03-PLAN.md
 **Resume file:** None
 
-Last activity: 2026-07-23 — Milestone v3.0 completed and archived
+Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)
 
 ## Operator Next Steps
 
-- `/gsd-new-milestone` — define v3.1 requirements + roadmap
+- UI-SPEC checker / continue `/gsd-ui-phase 19`, then `/gsd-plan-phase 19`
 
 ## Rebuild Log
 

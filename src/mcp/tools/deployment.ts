@@ -23,60 +23,78 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  createFlatActionSchema,
   parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 
-const listReadParams = {
-  ...sharedReadParamsSchema,
-  per_page: z
-    .number()
-    .int()
-    .min(1)
-    .max(50)
-    .default(10)
-    .describe('Items per page (default 10, max 50)'),
-};
+export const deploymentActionsCatalog =
+  'Actions: list(application_uuid, format?, page?, per_page?) · get(deployment_uuid, format?, projection?, reveal?) · cancel(deployment_uuid, format?, max_chars?)';
 
-const listActionSchema = z.object({
-  action: z.literal('list'),
-  application_uuid: z
-    .string()
-    .describe('Application UUID to list deployments for'),
-  ...listReadParams,
-});
+export const deploymentSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
 
-const getActionSchema = z.object({
-  action: z.literal('get'),
-  deployment_uuid: z.string().describe('Deployment UUID'),
-  ...sharedReadParamsSchema,
-});
+const deploymentReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
-const cancelActionSchema = z.object({
-  action: z.literal('cancel'),
-  deployment_uuid: z.string().describe('Deployment UUID to cancel'),
-  format: z
-    .enum(['pretty', 'json', 'table'])
-    .default('pretty')
-    .describe('Output format style'),
-  max_chars: z
-    .number()
-    .int()
-    .min(1000)
-    .max(100000)
-    .default(16000)
-    .describe('Maximum characters in text response before truncation'),
-});
+const deploymentListReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
-export const deploymentToolSchema = z.discriminatedUnion('action', [
-  listActionSchema,
-  getActionSchema,
-  cancelActionSchema,
-]);
+export const deploymentToolSchema = createFlatActionSchema(
+  ['list', 'get', 'cancel'],
+  {
+    application_uuid: z
+      .string()
+      .optional()
+      .describe('Application UUID to list deployments for'),
+    deployment_uuid: z
+      .string()
+      .optional()
+      .describe('Deployment UUID'),
+    ...sharedReadParamsFlatShape,
+  },
+  {
+    list: ['application_uuid', ...deploymentListReadParamKeys],
+    get: ['deployment_uuid', ...deploymentReadParamKeys],
+    cancel: ['deployment_uuid', 'format', 'max_chars'],
+  },
+  {
+    list: ['application_uuid'],
+    get: ['deployment_uuid'],
+    cancel: ['deployment_uuid'],
+  },
+  (data, ctx) => {
+    if (data.action === 'list' && data.per_page !== undefined && data.per_page > 50) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'per_page must be at most 50 for deployment list',
+        path: ['per_page'],
+      });
+    }
+  },
+);
 
 export type DeploymentAction = z.infer<typeof deploymentToolSchema>;
+
+type DeploymentListAction = Extract<DeploymentAction, { action: 'list' }>;
+type DeploymentGetAction = Extract<DeploymentAction, { action: 'get' }>;
+type DeploymentCancelAction = Extract<DeploymentAction, { action: 'cancel' }>;
 
 export type DeploymentListResult = ReadResponse<DeploymentSummary[]>;
 
@@ -102,7 +120,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 async function handleDeploymentList(
-  parsed: z.infer<typeof listActionSchema>,
+  parsed: DeploymentListAction,
   env: EnvConfig,
 ): Promise<DeploymentListResult> {
   const raw = await fetchAppDeployments(
@@ -115,19 +133,21 @@ async function handleDeploymentList(
   const items = Array.isArray(raw)
     ? raw.filter(isRecord).map(projectDeploymentSummary)
     : [];
-  const paginated = paginateArray(items, parsed.page, parsed.per_page);
+  const page = parsed.page ?? 1;
+  const perPage = parsed.per_page ?? 10;
+  const paginated = paginateArray(items, page, perPage);
 
   return buildReadResponse(paginated, {
     format: parsed.format,
     max_chars: parsed.max_chars,
-    page: parsed.page,
-    per_page: parsed.per_page,
+    page,
+    per_page: perPage,
     total: items.length,
   });
 }
 
 async function handleDeploymentGet(
-  parsed: z.infer<typeof getActionSchema>,
+  parsed: DeploymentGetAction,
   env: EnvConfig,
 ): Promise<DeploymentGetResult> {
   const projection = resolveProjection(parsed.projection, parsed.include_full);
@@ -153,7 +173,7 @@ async function handleDeploymentGet(
 }
 
 async function handleDeploymentCancel(
-  parsed: z.infer<typeof cancelActionSchema>,
+  parsed: DeploymentCancelAction,
   env: EnvConfig,
 ): Promise<DeploymentCancelResult> {
   try {

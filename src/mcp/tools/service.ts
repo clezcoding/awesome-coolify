@@ -54,10 +54,12 @@ import {
 } from '../../utils/errors.js';
 import { redactSecrets } from '../../utils/redact.js';
 import {
+  createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 import { generateHints } from '../../utils/diagnose-hints.js';
 import {
@@ -118,66 +120,6 @@ function requireServiceMutationIdentifier<T extends z.ZodObject<z.ZodRawShape>>(
     }
   });
 }
-
-const startActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('start'),
-      uuid: z.string().optional().describe('Service UUID'),
-      name: z.string().optional().describe('Service name substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'start',
-);
-
-const stopActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('stop'),
-      uuid: z.string().optional().describe('Service UUID'),
-      name: z.string().optional().describe('Service name substring'),
-      docker_cleanup: z
-        .boolean()
-        .default(false)
-        .describe(
-          'Run Docker cleanup on stop — default false for reliable compose service stop on Coolify 4.1.x',
-        ),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'stop',
-);
-
-const restartActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('restart'),
-      uuid: z.string().optional().describe('Service UUID'),
-      name: z.string().optional().describe('Service name substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'restart',
-);
-
-const deployActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('deploy'),
-      uuid: z.string().optional().describe('Service UUID'),
-      name: z.string().optional().describe('Service name substring'),
-      pull_latest: z
-        .boolean()
-        .default(false)
-        .describe(
-          'Pull latest Docker images before restart (maps to ?latest=true query param)',
-        ),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'deploy',
-);
 
 function requireProjectAndEnvironment(
   data: {
@@ -259,213 +201,6 @@ function requireComposeXor(
   }
 }
 
-const SERVICE_UPDATE_CURATED_FIELD_KEYS = [
-  'name',
-  'description',
-  'project_uuid',
-  'environment_name',
-  'environment_uuid',
-  'server_uuid',
-  'destination_uuid',
-  'instant_deploy',
-  'connect_to_docker_network',
-  'urls',
-  'force_domain_override',
-  'is_container_label_escape_enabled',
-] as const;
-
-const createActionSchema = z
-  .object({
-    action: z.literal('create'),
-    server_uuid: z.string().describe('Target server UUID'),
-    project_uuid: z.string().optional().describe('Project UUID'),
-    project_name: z.string().optional().describe('Project name'),
-    environment_name: z.string().optional().describe('Environment name'),
-    environment_uuid: z.string().optional().describe('Environment UUID'),
-    name: z.string().optional().describe('Service name'),
-    description: z.string().optional().describe('Service description'),
-    type: z
-      .string()
-      .optional()
-      .describe(
-        'One-click service type, e.g. actualbudget, calibre-web, gitea-with-mysql',
-      ),
-    compose: z
-      .string()
-      .optional()
-      .describe(
-        'Inline Docker Compose YAML — MCP base64-encodes for the API',
-      ),
-    compose_file: z
-      .string()
-      .optional()
-      .describe(
-        'Local path to a docker-compose.yml file (max 1 MiB) — MCP reads and base64-encodes for the API',
-      ),
-    urls: z
-      .array(
-        z.object({
-          name: z.string(),
-          url: z.string(),
-        }),
-      )
-      .optional()
-      .describe('Optional domain URLs'),
-    instant_deploy: z
-      .boolean()
-      .default(true)
-      .describe(
-        'Start/deploy immediately after create (default true for services)',
-      ),
-    force_domain_override: z
-      .boolean()
-      .default(false)
-      .describe('Override domain conflict on create'),
-    reveal: z
-      .boolean()
-      .default(false)
-      .describe('Reveal masked secrets (including compose YAML) in response'),
-    ...mutationResponseParamsSchema,
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    requireServiceCreateSource(data, ctx);
-    requireProjectAndEnvironment(data, ctx);
-  });
-
-const updateActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('update'),
-      uuid: z.string().optional().describe('Service UUID'),
-      name: z
-        .string()
-        .optional()
-        .describe('Service name substring or new name when uuid given'),
-      description: z.string().optional().describe('Service description'),
-      project_uuid: z.string().optional().describe('Project UUID'),
-      environment_name: z.string().optional().describe('Environment name'),
-      environment_uuid: z.string().optional().describe('Environment UUID'),
-      server_uuid: z.string().optional().describe('Server UUID'),
-      destination_uuid: z.string().optional().describe('Destination UUID'),
-      instant_deploy: z.boolean().optional().describe('Instant deploy flag'),
-      connect_to_docker_network: z
-        .boolean()
-        .optional()
-        .describe('Connect to Docker network'),
-      compose: z
-        .string()
-        .optional()
-        .describe(
-          'Inline Docker Compose YAML — MCP base64-encodes for the API',
-        ),
-      compose_file: z
-        .string()
-        .optional()
-        .describe('Local path to docker-compose.yml (max 1 MiB)'),
-      urls: z
-        .array(
-          z.object({
-            name: z.string(),
-            url: z.string(),
-          }),
-        )
-        .optional()
-        .describe('Domain URLs'),
-      force_domain_override: z
-        .boolean()
-        .default(false)
-        .describe('Override domain conflict on update'),
-      is_container_label_escape_enabled: z
-        .boolean()
-        .optional()
-        .describe('Container label escape enabled'),
-      reveal: z
-        .boolean()
-        .default(false)
-        .describe('Reveal masked secrets in full projection response'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireComposeXor(data, ctx);
-    }),
-  'update',
-);
-
-const deleteActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('delete'),
-      uuid: z.string().optional().describe('Service UUID'),
-      name: z.string().optional().describe('Service name substring'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for destructive delete'),
-      delete_volumes: z
-        .boolean()
-        .default(false)
-        .describe('Also delete attached volumes (default false)'),
-      delete_configurations: z
-        .boolean()
-        .default(false)
-        .describe('Also delete configurations (default false)'),
-      docker_cleanup: z
-        .boolean()
-        .default(false)
-        .describe('Run Docker cleanup (default false)'),
-      delete_connected_networks: z
-        .boolean()
-        .default(false)
-        .describe('Delete connected networks (default false)'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'delete',
-);
-
-const deletePreviewActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('delete_preview'),
-      uuid: z.string().optional().describe('Service UUID'),
-      name: z.string().optional().describe('Service name substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'delete_preview',
-);
-
-const envParentFields = {
-  uuid: z.string().optional().describe('Service UUID'),
-  name: z.string().optional().describe('Service name substring'),
-  reveal: z
-    .boolean()
-    .default(false)
-    .describe('Reveal masked env values for this call only'),
-  ...mutationResponseParamsSchema,
-};
-
-const envFlagFields = {
-  is_preview: z
-    .boolean()
-    .default(false)
-    .describe('Preview variable (build-time only)'),
-  is_literal: z
-    .boolean()
-    .default(false)
-    .describe('Treat value as literal (no variable interpolation)'),
-  is_multiline: z
-    .boolean()
-    .default(false)
-    .describe('Multiline env value'),
-  is_shown_once: z
-    .boolean()
-    .default(false)
-    .describe('Show value once in Coolify UI'),
-};
-
 function requireEnvUuidOrKey(
   data: { env_uuid?: string; key?: string },
   ctx: z.RefinementCtx,
@@ -484,81 +219,15 @@ function requireEnvUuidOrKey(
   }
 }
 
-const envsListActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:list'),
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:list',
-);
-
-const envsGetActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:get'),
-      env_uuid: z.string().optional().describe('Environment variable UUID'),
-      key: z.string().optional().describe('Environment variable key'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireEnvUuidOrKey(data, ctx, 'envs:get');
-    }),
-  'envs:get',
-);
-
-const envsCreateActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:create'),
-      key: z.string().describe('Environment variable key'),
-      value: z.string().describe('Environment variable value'),
-      ...envFlagFields,
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:create',
-);
-
-const envsUpdateActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:update'),
-      env_uuid: z.string().optional().describe('Environment variable UUID'),
-      key: z.string().optional().describe('Environment variable key'),
-      value: z.string().describe('New environment variable value'),
-      is_preview: z.boolean().optional().describe('Preview variable override'),
-      is_literal: z.boolean().optional().describe('Literal flag override'),
-      is_multiline: z.boolean().optional().describe('Multiline flag override'),
-      is_shown_once: z
-        .boolean()
-        .optional()
-        .describe('Show-once flag override'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireEnvUuidOrKey(data, ctx, 'envs:update');
-    }),
-  'envs:update',
-);
-
-const envsDeleteActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:delete'),
-      env_uuid: z.string().describe('Environment variable UUID to delete'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for env delete'),
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:delete',
-);
+const serviceReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
 const envBulkEntrySchema = z
   .object({
@@ -571,56 +240,253 @@ const envBulkEntrySchema = z
   })
   .strict();
 
-const envsBulkUpdateActionSchema = requireServiceMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:bulk-update'),
-      entries: z
-        .array(envBulkEntrySchema)
-        .min(1)
-        .describe('Bulk env entries (min 1, max 100 per call)'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for bulk env update'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      if (data.entries.length > 100) {
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
-          path: ['entries'],
-          params: { code: 'COOLIFY_VALIDATION_ERROR' },
-        });
-      }
-    }),
-  'envs:bulk-update',
-);
+const SERVICE_UPDATE_CURATED_FIELD_KEYS = [
+  'name',
+  'description',
+  'project_uuid',
+  'environment_name',
+  'environment_uuid',
+  'server_uuid',
+  'destination_uuid',
+  'instant_deploy',
+  'connect_to_docker_network',
+  'urls',
+  'force_domain_override',
+  'is_container_label_escape_enabled',
+] as const;
 
-export const serviceActionSchema = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('get'),
-    uuid: z.string().describe('Service UUID'),
-    ...sharedReadParamsSchema,
-  }),
-  createActionSchema,
-  updateActionSchema,
-  deleteActionSchema,
-  deletePreviewActionSchema,
-  startActionSchema,
-  stopActionSchema,
-  restartActionSchema,
-  deployActionSchema,
-  envsListActionSchema,
-  envsGetActionSchema,
-  envsCreateActionSchema,
-  envsUpdateActionSchema,
-  envsDeleteActionSchema,
-  envsBulkUpdateActionSchema,
-]);
+export const serviceActionsCatalog =
+  'Actions: get(uuid, format?, projection?, reveal?) · create(server_uuid, type?, compose?) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm)';
+
+export const serviceSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+export const serviceActionSchema = createFlatActionSchema(
+  [
+    'get',
+    'create',
+    'update',
+    'delete',
+    'delete_preview',
+    'start',
+    'stop',
+    'restart',
+    'deploy',
+    'envs:list',
+    'envs:get',
+    'envs:create',
+    'envs:update',
+    'envs:delete',
+    'envs:bulk-update',
+  ],
+  {
+    uuid: z.string().optional().describe('Service UUID'),
+    name: z.string().optional().describe('Service name substring'),
+    server_uuid: z.string().optional().describe('Target server UUID'),
+    project_uuid: z.string().optional().describe('Project UUID'),
+    project_name: z.string().optional().describe('Project name'),
+    environment_name: z.string().optional().describe('Environment name'),
+    environment_uuid: z.string().optional().describe('Environment UUID'),
+    description: z.string().optional().describe('Service description'),
+    type: z
+      .string()
+      .optional()
+      .describe(
+        'One-click service type, e.g. actualbudget, calibre-web, gitea-with-mysql',
+      ),
+    compose: z.string().optional().describe('Inline Docker Compose YAML'),
+    compose_file: z
+      .string()
+      .optional()
+      .describe('Local path to a docker-compose.yml file (max 1 MiB)'),
+    urls: z
+      .array(z.object({ name: z.string(), url: z.string() }))
+      .optional()
+      .describe('Optional domain URLs'),
+    instant_deploy: z.boolean().optional().describe('Start/deploy immediately after create'),
+    force_domain_override: z.boolean().optional().describe('Override domain conflict'),
+    connect_to_docker_network: z
+      .boolean()
+      .optional()
+      .describe('Connect to Docker network'),
+    destination_uuid: z.string().optional().describe('Destination UUID'),
+    is_container_label_escape_enabled: z
+      .boolean()
+      .optional()
+      .describe('Container label escape enabled'),
+    docker_cleanup: z.boolean().optional().describe('Run Docker cleanup on stop'),
+    pull_latest: z.boolean().optional().describe('Pull latest Docker images before restart'),
+    confirm: z.boolean().optional().describe('Explicit confirmation for destructive ops'),
+    delete_volumes: z.boolean().optional().describe('Also delete attached volumes'),
+    delete_configurations: z
+      .boolean()
+      .optional()
+      .describe('Also delete configurations'),
+    delete_connected_networks: z
+      .boolean()
+      .optional()
+      .describe('Delete connected networks'),
+    env_uuid: z.string().optional().describe('Environment variable UUID'),
+    key: z.string().optional().describe('Environment variable key'),
+    value: z.string().optional().describe('Environment variable value'),
+    is_preview: z.boolean().optional().describe('Preview variable'),
+    is_literal: z.boolean().optional().describe('Literal flag'),
+    is_multiline: z.boolean().optional().describe('Multiline flag'),
+    is_shown_once: z.boolean().optional().describe('Show-once flag'),
+    entries: z
+      .array(envBulkEntrySchema)
+      .optional()
+      .describe('Bulk env entries (min 1, max 100 per call)'),
+    fqdn: z.string().optional().describe('Application FQDN substring'),
+    reveal: z.boolean().optional().describe('Reveal masked values for this call only'),
+    ...sharedReadParamsFlatShape,
+    ...mutationResponseParamsFlatShape,
+  },
+  {
+    get: ['uuid', ...serviceReadParamKeys],
+    create: [
+      'server_uuid',
+      'project_uuid',
+      'project_name',
+      'environment_name',
+      'environment_uuid',
+      'name',
+      'description',
+      'type',
+      'compose',
+      'compose_file',
+      'urls',
+      'instant_deploy',
+      'force_domain_override',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    update: [
+      'uuid',
+      'name',
+      'description',
+      'project_uuid',
+      'environment_name',
+      'environment_uuid',
+      'server_uuid',
+      'destination_uuid',
+      'instant_deploy',
+      'connect_to_docker_network',
+      'compose',
+      'compose_file',
+      'urls',
+      'force_domain_override',
+      'is_container_label_escape_enabled',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    delete: [
+      'uuid',
+      'name',
+      'confirm',
+      'delete_volumes',
+      'delete_configurations',
+      'docker_cleanup',
+      'delete_connected_networks',
+      'format',
+      'max_chars',
+    ],
+    delete_preview: ['uuid', 'name', 'format', 'max_chars'],
+    start: ['uuid', 'name', 'format', 'max_chars'],
+    stop: ['uuid', 'name', 'docker_cleanup', 'format', 'max_chars'],
+    restart: ['uuid', 'name', 'format', 'max_chars'],
+    deploy: ['uuid', 'name', 'pull_latest', 'format', 'max_chars'],
+    'envs:list': ['uuid', 'name', 'reveal', 'format', 'max_chars'],
+    'envs:get': ['uuid', 'name', 'env_uuid', 'key', 'reveal', 'format', 'max_chars'],
+    'envs:create': [
+      'uuid',
+      'name',
+      'key',
+      'value',
+      'is_preview',
+      'is_literal',
+      'is_multiline',
+      'is_shown_once',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:update': [
+      'uuid',
+      'name',
+      'env_uuid',
+      'key',
+      'value',
+      'is_preview',
+      'is_literal',
+      'is_multiline',
+      'is_shown_once',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:delete': ['uuid', 'name', 'env_uuid', 'confirm', 'reveal', 'format', 'max_chars'],
+    'envs:bulk-update': ['uuid', 'name', 'entries', 'confirm', 'reveal', 'format', 'max_chars'],
+  },
+  {
+    get: ['uuid'],
+    create: ['server_uuid'],
+    'envs:create': ['key', 'value'],
+    'envs:update': ['value'],
+    'envs:delete': ['env_uuid'],
+    'envs:bulk-update': ['entries'],
+  },
+  (data, ctx) => {
+    const mutationActions = [
+      'start',
+      'stop',
+      'restart',
+      'deploy',
+      'delete',
+      'delete_preview',
+      'envs:list',
+      'envs:get',
+      'envs:create',
+      'envs:update',
+      'envs:delete',
+      'envs:bulk-update',
+    ] as const;
+    if (
+      (mutationActions as readonly string[]).includes(data.action) &&
+      !hasAtLeastOneIdentifier(data, SERVICE_IDENTIFIER_FIELDS)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `At least one identifier (uuid|name) required for action ${data.action}`,
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.action === 'create') {
+      requireServiceCreateSource(data, ctx);
+      requireProjectAndEnvironment(data, ctx);
+    }
+    if (data.action === 'update') {
+      requireComposeXor(data, ctx);
+    }
+    if (data.action === 'envs:get') {
+      requireEnvUuidOrKey(data, ctx, 'envs:get');
+    }
+    if (data.action === 'envs:update') {
+      requireEnvUuidOrKey(data, ctx, 'envs:update');
+    }
+    if (data.action === 'envs:bulk-update' && data.entries && data.entries.length > 100) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
+        path: ['entries'],
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+  },
+);
 
 export type ServiceAction = z.infer<typeof serviceActionSchema>;
 
@@ -730,21 +596,21 @@ type ServiceIdentifierInput = {
   name?: string;
 };
 
-type MutationAction =
-  | z.infer<typeof startActionSchema>
-  | z.infer<typeof stopActionSchema>
-  | z.infer<typeof restartActionSchema>;
-type DeployAction = z.infer<typeof deployActionSchema>;
-type CreateAction = z.infer<typeof createActionSchema>;
-type UpdateAction = z.infer<typeof updateActionSchema>;
-type DeleteAction = z.infer<typeof deleteActionSchema>;
-type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
-type EnvsListAction = z.infer<typeof envsListActionSchema>;
-type EnvsGetAction = z.infer<typeof envsGetActionSchema>;
-type EnvsCreateAction = z.infer<typeof envsCreateActionSchema>;
-type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
-type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
-type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
+type MutationAction = Extract<
+  ServiceAction,
+  { action: 'start' | 'stop' | 'restart' }
+>;
+type DeployAction = Extract<ServiceAction, { action: 'deploy' }>;
+type CreateAction = Extract<ServiceAction, { action: 'create' }>;
+type UpdateAction = Extract<ServiceAction, { action: 'update' }>;
+type DeleteAction = Extract<ServiceAction, { action: 'delete' }>;
+type DeletePreviewAction = Extract<ServiceAction, { action: 'delete_preview' }>;
+type EnvsListAction = Extract<ServiceAction, { action: 'envs:list' }>;
+type EnvsGetAction = Extract<ServiceAction, { action: 'envs:get' }>;
+type EnvsCreateAction = Extract<ServiceAction, { action: 'envs:create' }>;
+type EnvsUpdateAction = Extract<ServiceAction, { action: 'envs:update' }>;
+type EnvsDeleteAction = Extract<ServiceAction, { action: 'envs:delete' }>;
+type EnvsBulkUpdateAction = Extract<ServiceAction, { action: 'envs:bulk-update' }>;
 
 function throwValidationError(error: z.ZodError, args: unknown): never {
   const customIssue = error.issues.find(
@@ -887,7 +753,7 @@ async function handleServiceMutation(
         env.COOLIFY_URL,
         env.COOLIFY_TOKEN,
         uuid,
-        parsed.docker_cleanup,
+        parsed.docker_cleanup ?? false,
         env.COOLIFY_VERIFY_SSL,
       );
       break;
@@ -917,11 +783,13 @@ async function handleServiceDeploy(
 ): Promise<ServiceDeployResult> {
   const uuid = await resolveServiceMutationUuid(parsed, env);
 
+  const pullLatest = parsed.pull_latest ?? false;
+
   await triggerServiceRestart(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
     uuid,
-    parsed.pull_latest,
+    pullLatest,
     env.COOLIFY_VERIFY_SSL,
   );
 
@@ -930,7 +798,7 @@ async function handleServiceDeploy(
       uuid,
       action: 'deploy' as const,
       status: 'requested' as const,
-      pull_latest: parsed.pull_latest,
+      pull_latest: pullLatest,
     },
     {
       format: parsed.format,
@@ -1175,7 +1043,7 @@ async function handleServiceCreate(
     name: parsed.name,
     description: parsed.description,
     urls: parsed.urls,
-    instant_deploy: parsed.instant_deploy,
+    instant_deploy: parsed.instant_deploy !== false,
     force_domain_override: parsed.force_domain_override,
   };
 
@@ -1242,7 +1110,7 @@ async function handleServiceCreate(
     env,
   );
 
-  if (!parsed.instant_deploy) {
+  if (parsed.instant_deploy === false) {
     return withManifestUpsert(
       buildReadResponse(
         {
@@ -1466,15 +1334,20 @@ async function handleServiceDelete(
 
   validateDeleteConfirm(parsed.confirm, uuid);
 
+  const deleteVolumes = parsed.delete_volumes ?? false;
+  const deleteConfigurations = parsed.delete_configurations ?? false;
+  const dockerCleanup = parsed.docker_cleanup ?? false;
+  const deleteConnectedNetworks = parsed.delete_connected_networks ?? false;
+
   await deleteService(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
     uuid,
     {
-      delete_volumes: parsed.delete_volumes,
-      delete_configurations: parsed.delete_configurations,
-      docker_cleanup: parsed.docker_cleanup,
-      delete_connected_networks: parsed.delete_connected_networks,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
+      docker_cleanup: dockerCleanup,
+      delete_connected_networks: deleteConnectedNetworks,
     },
     env.COOLIFY_VERIFY_SSL,
   );
@@ -1484,8 +1357,8 @@ async function handleServiceDelete(
       ok: true as const,
       uuid,
       deleted: true as const,
-      delete_volumes: parsed.delete_volumes,
-      delete_configurations: parsed.delete_configurations,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
     },
     {
       format: parsed.format,

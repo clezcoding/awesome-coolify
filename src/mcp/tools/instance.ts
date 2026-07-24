@@ -13,116 +13,96 @@ import {
   type Instance,
   type Registry,
 } from '../../utils/instance-registry.js';
+import { createFlatActionSchema } from './shared-read-params.js';
 
 const instanceNameSchema = z
   .string()
   .regex(/^[a-z][a-z0-9_-]{1,31}$/)
   .describe('Instance name (lowercase, 2–32 chars)');
 
-const listActionSchema = z
-  .object({
-    action: z.literal('list'),
-    reveal: z.boolean().optional().describe('Reveal token values (default masked)'),
-  })
-  .strict();
+export const instanceActionsCatalog =
+  'Actions: list(reveal?) · get(name, reveal?) · add(name, url, token, type) · update(name) · delete(name, confirm) · set-default(name) · import-env(name?) · cloud-info(instance?)';
 
-const getActionSchema = z
-  .object({
-    action: z.literal('get'),
-    name: instanceNameSchema,
-    reveal: z.boolean().optional().describe('Reveal token value (default masked)'),
-  })
-  .strict();
+export const instanceSafetyFooter =
+  'Safety: confirm for destructive ops · reveal opt-in only';
 
-const addActionSchema = z
-  .object({
-    action: z.literal('add'),
-    name: instanceNameSchema,
-    url: z.string().url(),
-    token: z.string().min(1),
-    type: z.enum(['self-hosted', 'cloud']),
-    verifySsl: z.boolean().default(true),
-  })
-  .strict();
-
-const updateActionSchema = z
-  .object({
-    action: z.literal('update'),
-    name: instanceNameSchema,
+export const instanceActionSchema = createFlatActionSchema(
+  [
+    'list',
+    'get',
+    'add',
+    'update',
+    'delete',
+    'set-default',
+    'import-env',
+    'cloud-info',
+  ],
+  {
+    name: instanceNameSchema.optional(),
     url: z.string().url().optional(),
     token: z.string().min(1).optional(),
     type: z.enum(['self-hosted', 'cloud']).optional(),
     verifySsl: z.boolean().optional(),
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    const hasPatch =
-      data.url !== undefined ||
-      data.token !== undefined ||
-      data.type !== undefined ||
-      data.verifySsl !== undefined;
-    if (!hasPatch) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'At least one of url, token, type, or verifySsl is required for update',
-        params: { code: 'COOLIFY_422' },
-      });
-    }
-  });
-
-const deleteActionSchema = z
-  .object({
-    action: z.literal('delete'),
-    name: instanceNameSchema,
+    reveal: z
+      .boolean()
+      .optional()
+      .describe('Reveal token values (default masked)'),
     confirm: z
       .boolean()
-      .default(false)
+      .optional()
       .describe('Explicit confirmation required for destructive delete'),
     force: z
       .boolean()
       .optional()
       .describe('Required when deleting the default or last remaining instance'),
-  })
-  .strict();
-
-const setDefaultActionSchema = z
-  .object({
-    action: z.literal('set-default'),
-    name: instanceNameSchema,
-  })
-  .strict();
-
-const importEnvActionSchema = z
-  .object({
-    action: z.literal('import-env'),
-    name: instanceNameSchema.optional().describe('Name for the imported entry (auto-derived from URL when omitted)'),
-    type: z
-      .enum(['self-hosted', 'cloud'])
-      .optional()
-      .describe('Instance type (default: cloud when hostname is *.coolify.io, else self-hosted)'),
-    verifySsl: z.boolean().optional(),
-  })
-  .strict();
-
-const cloudInfoActionSchema = z
-  .object({
-    action: z.literal('cloud-info'),
     instance: instanceNameSchema
       .optional()
-      .describe('Optional instance name to inspect; defaults to env/default resolution'),
-  })
-  .strict();
-
-export const instanceActionSchema = z.discriminatedUnion('action', [
-  listActionSchema,
-  getActionSchema,
-  addActionSchema,
-  updateActionSchema,
-  deleteActionSchema,
-  setDefaultActionSchema,
-  importEnvActionSchema,
-  cloudInfoActionSchema,
-]);
+      .describe(
+        'Optional instance name to inspect; defaults to env/default resolution',
+      ),
+  },
+  {
+    list: ['reveal'],
+    get: ['name', 'reveal'],
+    add: ['name', 'url', 'token', 'type', 'verifySsl'],
+    update: ['name', 'url', 'token', 'type', 'verifySsl'],
+    delete: ['name', 'confirm', 'force'],
+    'set-default': ['name'],
+    'import-env': ['name', 'type', 'verifySsl'],
+    'cloud-info': ['instance'],
+  },
+  {
+    get: ['name'],
+    add: ['name', 'url', 'token', 'type'],
+    update: ['name'],
+    delete: ['name'],
+    'set-default': ['name'],
+  },
+  (data, ctx) => {
+    if (data.action !== 'cloud-info' && data.instance !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Parameter 'instance' is not allowed for action '${data.action}'`,
+        path: ['instance'],
+      });
+    }
+    if (data.action === 'update') {
+      const hasPatch =
+        data.url !== undefined ||
+        data.token !== undefined ||
+        data.type !== undefined ||
+        data.verifySsl !== undefined;
+      if (!hasPatch) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'At least one of url, token, type, or verifySsl is required for update',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
+  },
+);
 
 export type InstanceAction = z.infer<typeof instanceActionSchema>;
 

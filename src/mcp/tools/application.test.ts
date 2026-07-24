@@ -548,6 +548,24 @@ describe('handleApplicationAction lifecycle mutations (APP-03)', () => {
     );
     expect(issue).toBeDefined();
   });
+
+  it('logs rejects format table', () => {
+    const parsed = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      format: 'table',
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects max_chars below 1000 on mutations', () => {
+    const parsed = applicationActionSchema.safeParse({
+      action: 'start',
+      uuid: 'app-uuid-1',
+      max_chars: 50,
+    });
+    expect(parsed.success).toBe(false);
+  });
 });
 
 const mockDeployResponse = {

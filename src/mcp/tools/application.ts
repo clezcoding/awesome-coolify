@@ -62,11 +62,14 @@ import {
   sliceLogBlob,
 } from '../../utils/log-helpers.js';
 import {
+  createFlatActionSchema,
+  mutationResponseParamsFlatShape,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
   safeParseWithInstanceRouting,
+  sharedLogParamsFlatShape,
   sharedLogParamsSchema,
-  sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 import { generateHints, logsAvailableHint } from '../../utils/diagnose-hints.js';
 import { pollDeploymentUntilTerminal } from '../../utils/deploy-poll.js';
@@ -149,88 +152,6 @@ function requireMutationIdentifier<T extends z.ZodObject<z.ZodRawShape>>(
   });
 }
 
-const startActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('start'),
-      uuid: z.string().optional().describe('Application UUID'),
-      name: z.string().optional().describe('Application name substring'),
-      fqdn: z.string().optional().describe('Application FQDN substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'start',
-);
-
-const stopActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('stop'),
-      uuid: z.string().optional().describe('Application UUID'),
-      name: z.string().optional().describe('Application name substring'),
-      fqdn: z.string().optional().describe('Application FQDN substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'stop',
-);
-
-const restartActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('restart'),
-      uuid: z.string().optional().describe('Application UUID'),
-      name: z.string().optional().describe('Application name substring'),
-      fqdn: z.string().optional().describe('Application FQDN substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'restart',
-);
-
-const deployActionSchema = z
-  .object({
-    action: z.literal('deploy'),
-    uuid: z.string().optional().describe('Application UUID'),
-    name: z.string().optional().describe('Application name substring'),
-    fqdn: z.string().optional().describe('Application FQDN substring'),
-    uuids: z.array(z.string()).optional().describe('Batch deploy UUIDs'),
-    tags: z.array(z.string()).optional().describe('Batch deploy tags'),
-    tag: z.string().optional().describe('Single tag batch expand'),
-    force: z.boolean().default(false).describe('Force rebuild without cache'),
-    wait: z.boolean().default(false).describe('Poll until terminal or timeout'),
-    timeout: z
-      .number()
-      .int()
-      .min(10)
-      .max(1800)
-      .default(300)
-      .describe('Wait-mode timeout in seconds (default 300, max 1800)'),
-    format: z
-      .enum(['pretty', 'json', 'table'])
-      .default('pretty')
-      .optional()
-      .describe('Output format (default pretty)'),
-    max_chars: z
-      .number()
-      .int()
-      .min(1000)
-      .max(100000)
-      .default(16000)
-      .optional()
-      .describe('Max formatted output characters (default 16000)'),
-  })
-  .superRefine((data, ctx) => {
-    if (!hasAtLeastOneIdentifier(data, DEPLOY_IDENTIFIER_FIELDS)) {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'At least one identifier (uuid|name|fqdn|uuids|tags|tag) required for action deploy',
-        params: { code: 'COOLIFY_422' },
-      });
-    }
-  });
-
 export const applicationLogsSchema = z
   .object({
     action: z.literal('logs'),
@@ -285,42 +206,6 @@ export const applicationLogsSchema = z
     }
   });
 
-const createSharedFields = {
-  action: z.literal('create'),
-  project_uuid: z.string().optional().describe('Project UUID'),
-  project_name: z.string().optional().describe('Project name for lookup'),
-  environment_name: z.string().optional().describe('Environment name'),
-  environment_uuid: z.string().optional().describe('Environment UUID'),
-  server_uuid: z.string().describe('Server UUID (required)'),
-  name: z.string().optional().describe('Application name'),
-  description: z.string().optional().describe('Application description'),
-  domains: z.string().optional().describe('Comma-separated domain list'),
-  ports_exposes: z.string().optional().describe('Ports to expose'),
-  ports_mappings: z.string().optional().describe('Port mappings'),
-  instant_deploy: z
-    .boolean()
-    .default(false)
-    .describe('Queue deploy immediately after create (fire-and-forget)'),
-  force_domain_override: z
-    .boolean()
-    .default(false)
-    .describe('Override domain conflict on create'),
-  ...mutationResponseParamsSchema,
-};
-
-const gitBuildPackSchema = z
-  .enum(['nixpacks', 'railpack', 'static', 'dockerfile', 'dockercompose'])
-  .superRefine((val, ctx) => {
-    if (val === 'dockercompose') {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          "build_pack='dockercompose' is not supported on application create — use service.create (Phase 11)",
-        params: { code: 'COOLIFY_VALIDATION_ERROR' },
-      });
-    }
-  });
-
 function requireProjectAndEnvironment(
   data: {
     project_uuid?: string;
@@ -362,292 +247,6 @@ function rejectDockercomposeBuildPack(
   }
 }
 
-const publicGitCreateSchema = z
-  .object({
-    ...createSharedFields,
-    source_type: z.literal('public_git'),
-    git_repository: z.string().describe('Public git repository URL'),
-    git_branch: z.string().describe('Git branch to deploy'),
-    build_pack: gitBuildPackSchema,
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    requireProjectAndEnvironment(data, ctx);
-    rejectDockercomposeBuildPack(data, ctx);
-  });
-
-const privateDeployKeyCreateSchema = z
-  .object({
-    ...createSharedFields,
-    source_type: z.literal('private_deploy_key'),
-    private_key_uuid: z.string().describe('Private deploy key UUID'),
-    git_repository: z.string().describe('Private git repository URL'),
-    git_branch: z.string().describe('Git branch to deploy'),
-    build_pack: gitBuildPackSchema,
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    requireProjectAndEnvironment(data, ctx);
-    rejectDockercomposeBuildPack(data, ctx);
-  });
-
-const privateGithubAppCreateSchema = z
-  .object({
-    ...createSharedFields,
-    source_type: z.literal('private_github_app'),
-    github_app_uuid: z.string().describe('GitHub app UUID'),
-    git_repository: z.string().describe('Private git repository URL'),
-    git_branch: z.string().describe('Git branch to deploy'),
-    build_pack: gitBuildPackSchema,
-  })
-  .strict()
-  .superRefine((data, ctx) => {
-    requireProjectAndEnvironment(data, ctx);
-    rejectDockercomposeBuildPack(data, ctx);
-  });
-
-const dockerfileCreateSchema = z
-  .object({
-    ...createSharedFields,
-    source_type: z.literal('dockerfile'),
-    dockerfile: z.string().describe('Dockerfile content'),
-    build_pack: z.literal('dockerfile').optional(),
-  })
-  .strict()
-  .superRefine(requireProjectAndEnvironment);
-
-const dockerimageCreateSchema = z
-  .object({
-    ...createSharedFields,
-    source_type: z.literal('dockerimage'),
-    docker_registry_image_name: z
-      .string()
-      .describe('Docker registry image name'),
-    docker_registry_image_tag: z
-      .string()
-      .optional()
-      .describe('Docker registry image tag'),
-  })
-  .strict()
-  .superRefine(requireProjectAndEnvironment);
-
-const createActionSchema = z.discriminatedUnion('source_type', [
-  publicGitCreateSchema,
-  privateDeployKeyCreateSchema,
-  privateGithubAppCreateSchema,
-  dockerfileCreateSchema,
-  dockerimageCreateSchema,
-]);
-
-const updateBuildPackSchema = z
-  .enum(['nixpacks', 'railpack', 'static', 'dockerfile', 'dockercompose'])
-  .optional()
-  .superRefine((val, ctx) => {
-    if (val === 'dockercompose') {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          "build_pack='dockercompose' is not supported on application update — use service.update (Phase 11)",
-        params: { code: 'COOLIFY_VALIDATION_ERROR' },
-      });
-    }
-  });
-
-const updateActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('update'),
-      uuid: z.string().optional().describe('Application UUID'),
-      name: z.string().optional().describe('Application name substring or new name'),
-      fqdn: z.string().optional().describe('Application FQDN substring'),
-      description: z.string().optional().describe('Application description'),
-      domains: z.string().optional().describe('Comma-separated domain list'),
-      git_repository: z.string().optional().describe('Git repository URL'),
-      git_branch: z.string().optional().describe('Git branch'),
-      git_commit_sha: z.string().optional().describe('Git commit SHA'),
-      build_pack: updateBuildPackSchema.describe('Build pack'),
-      docker_registry_image_name: z
-        .string()
-        .optional()
-        .describe('Docker registry image name'),
-      docker_registry_image_tag: z
-        .string()
-        .optional()
-        .describe('Docker registry image tag'),
-      is_static: z.boolean().optional().describe('Static site flag'),
-      is_spa: z.boolean().optional().describe('Single-page application flag'),
-      is_auto_deploy_enabled: z.boolean().optional().describe('Auto-deploy on push'),
-      is_force_https_enabled: z
-        .boolean()
-        .optional()
-        .describe('Force HTTPS redirect'),
-      install_command: z.string().optional().describe('Install command'),
-      build_command: z.string().optional().describe('Build command'),
-      start_command: z.string().optional().describe('Start command'),
-      ports_exposes: z.string().optional().describe('Ports to expose'),
-      ports_mappings: z.string().optional().describe('Port mappings'),
-      base_directory: z.string().optional().describe('Base directory'),
-      publish_directory: z.string().optional().describe('Publish directory'),
-      health_check_enabled: z.boolean().optional().describe('Health check enabled'),
-      health_check_path: z.string().optional().describe('Health check path'),
-      health_check_port: z.string().optional().describe('Health check port'),
-      health_check_host: z.string().optional().describe('Health check host'),
-      health_check_method: z.string().optional().describe('Health check HTTP method'),
-      health_check_return_code: z
-        .number()
-        .int()
-        .optional()
-        .describe('Expected health check status code'),
-      health_check_scheme: z.string().optional().describe('Health check scheme'),
-      health_check_response_text: z
-        .string()
-        .optional()
-        .describe('Expected health check response text'),
-      health_check_interval: z
-        .number()
-        .int()
-        .optional()
-        .describe('Health check interval seconds'),
-      health_check_timeout: z
-        .number()
-        .int()
-        .optional()
-        .describe('Health check timeout seconds'),
-      health_check_retries: z
-        .number()
-        .int()
-        .optional()
-        .describe('Health check retries'),
-      health_check_start_period: z
-        .number()
-        .int()
-        .optional()
-        .describe('Health check start period seconds'),
-      custom_labels: z.string().optional().describe('Custom Docker labels'),
-      custom_docker_run_options: z
-        .string()
-        .optional()
-        .describe('Custom docker run options'),
-      redirect: z
-        .enum(['www', 'non-www', 'both'])
-        .optional()
-        .describe('WWW redirect mode'),
-      watch_paths: z.string().optional().describe('Git watch paths'),
-      use_build_server: z.boolean().optional().describe('Use build server'),
-      is_preserve_repository_enabled: z
-        .boolean()
-        .optional()
-        .describe('Preserve repository on deploy'),
-      connect_to_docker_network: z
-        .boolean()
-        .optional()
-        .describe('Connect to Docker network'),
-      is_container_label_escape_enabled: z
-        .boolean()
-        .optional()
-        .describe('Container label escape enabled'),
-      is_http_basic_auth_enabled: z
-        .boolean()
-        .optional()
-        .describe('Enable HTTP basic authentication'),
-      http_basic_auth_username: z
-        .string()
-        .optional()
-        .describe('HTTP basic auth username'),
-      http_basic_auth_password: z
-        .string()
-        .optional()
-        .describe('HTTP basic auth password (caller-supplied only)'),
-      force_domain_override: z
-        .boolean()
-        .default(false)
-        .describe('Override domain conflict on update'),
-      reveal: z
-        .boolean()
-        .default(false)
-        .describe('Reveal masked secrets in full projection response'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'update',
-);
-
-const deleteActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('delete'),
-      uuid: z.string().optional().describe('Application UUID'),
-      name: z.string().optional().describe('Application name substring'),
-      fqdn: z.string().optional().describe('Application FQDN substring'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for destructive delete'),
-      delete_volumes: z
-        .boolean()
-        .default(false)
-        .describe('Also delete attached volumes (default false)'),
-      delete_configurations: z
-        .boolean()
-        .default(false)
-        .describe('Also delete configurations (default false)'),
-      docker_cleanup: z
-        .boolean()
-        .default(false)
-        .describe('Run docker cleanup after delete (default false)'),
-      delete_connected_networks: z
-        .boolean()
-        .default(false)
-        .describe('Delete connected networks (default false)'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'delete',
-);
-
-const deletePreviewActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('delete_preview'),
-      uuid: z.string().optional().describe('Application UUID'),
-      name: z.string().optional().describe('Application name substring'),
-      fqdn: z.string().optional().describe('Application FQDN substring'),
-      ...mutationResponseParamsSchema,
-    })
-    .strict(),
-  'delete_preview',
-);
-
-const envParentFields = {
-  uuid: z.string().optional().describe('Application UUID'),
-  name: z.string().optional().describe('Application name substring'),
-  fqdn: z.string().optional().describe('Application FQDN substring'),
-  reveal: z
-    .boolean()
-    .default(false)
-    .describe('Reveal masked env values for this call only'),
-  ...mutationResponseParamsSchema,
-};
-
-const envFlagFields = {
-  is_preview: z
-    .boolean()
-    .default(false)
-    .describe('Preview variable (build-time only)'),
-  is_literal: z
-    .boolean()
-    .default(false)
-    .describe('Treat value as literal (no variable interpolation)'),
-  is_multiline: z
-    .boolean()
-    .default(false)
-    .describe('Multiline env value'),
-  is_shown_once: z
-    .boolean()
-    .default(false)
-    .describe('Show value once in Coolify UI'),
-};
-
 function requireEnvUuidOrKey(
   data: { env_uuid?: string; key?: string },
   ctx: z.RefinementCtx,
@@ -666,81 +265,15 @@ function requireEnvUuidOrKey(
   }
 }
 
-const envsListActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:list'),
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:list',
-);
-
-const envsGetActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:get'),
-      env_uuid: z.string().optional().describe('Environment variable UUID'),
-      key: z.string().optional().describe('Environment variable key'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireEnvUuidOrKey(data, ctx, 'envs:get');
-    }),
-  'envs:get',
-);
-
-const envsCreateActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:create'),
-      key: z.string().describe('Environment variable key'),
-      value: z.string().describe('Environment variable value'),
-      ...envFlagFields,
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:create',
-);
-
-const envsUpdateActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:update'),
-      env_uuid: z.string().optional().describe('Environment variable UUID'),
-      key: z.string().optional().describe('Environment variable key'),
-      value: z.string().describe('New environment variable value'),
-      is_preview: z.boolean().optional().describe('Preview variable override'),
-      is_literal: z.boolean().optional().describe('Literal flag override'),
-      is_multiline: z.boolean().optional().describe('Multiline flag override'),
-      is_shown_once: z
-        .boolean()
-        .optional()
-        .describe('Show-once flag override'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      requireEnvUuidOrKey(data, ctx, 'envs:update');
-    }),
-  'envs:update',
-);
-
-const envsDeleteActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:delete'),
-      env_uuid: z.string().describe('Environment variable UUID to delete'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for env delete'),
-      ...envParentFields,
-    })
-    .strict(),
-  'envs:delete',
-);
+const applicationReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'page',
+  'per_page',
+  'max_chars',
+  'reveal',
+] as const;
 
 const envBulkEntrySchema = z
   .object({
@@ -753,84 +286,474 @@ const envBulkEntrySchema = z
   })
   .strict();
 
-const envsBulkUpdateActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:bulk-update'),
-      entries: z
-        .array(envBulkEntrySchema)
-        .min(1)
-        .describe('Bulk env entries (min 1, max 100 per call)'),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe('Explicit confirmation required for bulk env update'),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      if (data.entries.length > 100) {
+export const applicationActionsCatalog =
+  'Actions: get(uuid, format?, projection?, reveal?) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid, force?) · ' +
+  'logs(uuid, lines?) · create(source_type, server_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · ' +
+  'envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · ' +
+  'envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm) · ' +
+  'envs:sync(uuid, env_file?, env_content?, dry_run?, confirm?, conflict_policy?)';
+
+export const applicationSafetyFooter =
+  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+
+export const applicationActionSchema = createFlatActionSchema(
+  [
+    'get',
+    'start',
+    'stop',
+    'restart',
+    'deploy',
+    'logs',
+    'create',
+    'update',
+    'delete',
+    'delete_preview',
+    'envs:list',
+    'envs:get',
+    'envs:create',
+    'envs:update',
+    'envs:delete',
+    'envs:bulk-update',
+    'envs:sync',
+  ],
+  {
+    uuid: z.string().optional().describe('Application UUID'),
+    name: z.string().optional().describe('Application name substring'),
+    fqdn: z.string().optional().describe('Application FQDN substring'),
+    uuids: z.array(z.string()).optional().describe('Batch deploy UUIDs'),
+    tags: z.array(z.string()).optional().describe('Batch deploy tags'),
+    tag: z.string().optional().describe('Single tag batch expand'),
+    force: z.boolean().optional().describe('Force rebuild without cache'),
+    wait: z.boolean().optional().describe('Poll until terminal or timeout'),
+    timeout: z
+      .number()
+      .int()
+      .min(10)
+      .max(1800)
+      .optional()
+      .describe('Wait-mode timeout in seconds'),
+    deployment_uuid: z.string().optional().describe('Deployment UUID for build logs'),
+    offset: z.number().int().min(0).optional().describe('Skip first K log lines'),
+    lines: sharedLogParamsFlatShape.lines,
+    include_hidden: sharedLogParamsFlatShape.include_hidden,
+    type: sharedLogParamsFlatShape.type,
+    source_type: z
+      .enum([
+        'public_git',
+        'private_deploy_key',
+        'private_github_app',
+        'dockerfile',
+        'dockerimage',
+      ])
+      .optional()
+      .describe('Application source type for create'),
+    project_uuid: z.string().optional().describe('Project UUID'),
+    project_name: z.string().optional().describe('Project name for lookup'),
+    environment_name: z.string().optional().describe('Environment name'),
+    environment_uuid: z.string().optional().describe('Environment UUID'),
+    server_uuid: z.string().optional().describe('Server UUID (required for create)'),
+    description: z.string().optional().describe('Application description'),
+    domains: z.string().optional().describe('Comma-separated domain list'),
+    ports_exposes: z.string().optional().describe('Ports to expose'),
+    ports_mappings: z.string().optional().describe('Port mappings'),
+    instant_deploy: z.boolean().optional().describe('Queue deploy immediately after create'),
+    force_domain_override: z.boolean().optional().describe('Override domain conflict'),
+    git_repository: z.string().optional().describe('Git repository URL'),
+    git_branch: z.string().optional().describe('Git branch'),
+    git_commit_sha: z.string().optional().describe('Git commit SHA'),
+    build_pack: z
+      .enum(['nixpacks', 'railpack', 'static', 'dockerfile', 'dockercompose'])
+      .optional()
+      .describe('Build pack'),
+    private_key_uuid: z.string().optional().describe('Private deploy key UUID'),
+    github_app_uuid: z.string().optional().describe('GitHub app UUID'),
+    dockerfile: z.string().optional().describe('Dockerfile content'),
+    docker_registry_image_name: z.string().optional().describe('Docker registry image name'),
+    docker_registry_image_tag: z.string().optional().describe('Docker registry image tag'),
+    is_static: z.boolean().optional(),
+    is_spa: z.boolean().optional(),
+    is_auto_deploy_enabled: z.boolean().optional(),
+    is_force_https_enabled: z.boolean().optional(),
+    install_command: z.string().optional(),
+    build_command: z.string().optional(),
+    start_command: z.string().optional(),
+    base_directory: z.string().optional(),
+    publish_directory: z.string().optional(),
+    health_check_enabled: z.boolean().optional(),
+    health_check_path: z.string().optional(),
+    health_check_port: z.string().optional(),
+    health_check_host: z.string().optional(),
+    health_check_method: z.string().optional(),
+    health_check_return_code: z.number().int().optional(),
+    health_check_scheme: z.string().optional(),
+    health_check_response_text: z.string().optional(),
+    health_check_interval: z.number().int().optional(),
+    health_check_timeout: z.number().int().optional(),
+    health_check_retries: z.number().int().optional(),
+    health_check_start_period: z.number().int().optional(),
+    custom_labels: z.string().optional(),
+    custom_docker_run_options: z.string().optional(),
+    redirect: z.enum(['www', 'non-www', 'both']).optional(),
+    watch_paths: z.string().optional(),
+    use_build_server: z.boolean().optional(),
+    is_preserve_repository_enabled: z.boolean().optional(),
+    connect_to_docker_network: z.boolean().optional(),
+    is_container_label_escape_enabled: z.boolean().optional(),
+    is_http_basic_auth_enabled: z.boolean().optional(),
+    http_basic_auth_username: z.string().optional(),
+    http_basic_auth_password: z.string().optional(),
+    confirm: z.boolean().optional().describe('Explicit confirmation for destructive ops'),
+    delete_volumes: z.boolean().optional(),
+    delete_configurations: z.boolean().optional(),
+    docker_cleanup: z.boolean().optional(),
+    delete_connected_networks: z.boolean().optional(),
+    env_uuid: z.string().optional().describe('Environment variable UUID'),
+    key: z.string().optional().describe('Environment variable key'),
+    value: z.string().optional().describe('Environment variable value'),
+    is_preview: z.boolean().optional(),
+    is_literal: z.boolean().optional(),
+    is_multiline: z.boolean().optional(),
+    is_shown_once: z.boolean().optional(),
+    entries: z.array(envBulkEntrySchema).optional(),
+    env_file: z.string().optional().describe('Local filesystem path to a .env file'),
+    env_content: z.string().optional().describe('Inline .env file content'),
+    dry_run: z.boolean().optional().describe('Preview diff only'),
+    prune: z.boolean().optional().describe('Delete remote env keys absent from local'),
+    conflict_policy: z
+      .union([z.literal('overwrite'), z.literal('keep_remote'), z.literal('abort')])
+      .optional()
+      .describe('How to resolve value conflicts on apply'),
+    reveal: z.boolean().optional().describe('Reveal masked values for this call only'),
+    // Read bounds win for format/max_chars. Do NOT spread sharedLogParamsFlatShape —
+    // it would overwrite format with log-only enum then get clobbered by mutation shape;
+    // log-only fields (lines/include_hidden/type) are listed above individually.
+    ...sharedReadParamsFlatShape,
+    ...mutationResponseParamsFlatShape,
+  },
+  {
+    get: ['uuid', ...applicationReadParamKeys],
+    start: ['uuid', 'name', 'fqdn', 'format', 'max_chars'],
+    stop: ['uuid', 'name', 'fqdn', 'format', 'max_chars'],
+    restart: ['uuid', 'name', 'fqdn', 'format', 'max_chars'],
+    deploy: [
+      'uuid',
+      'name',
+      'fqdn',
+      'uuids',
+      'tags',
+      'tag',
+      'force',
+      'wait',
+      'timeout',
+      'format',
+      'max_chars',
+    ],
+    logs: [
+      'uuid',
+      'name',
+      'fqdn',
+      'deployment_uuid',
+      'offset',
+      'lines',
+      'max_chars',
+      'format',
+      'include_hidden',
+      'type',
+    ],
+    create: [
+      'source_type',
+      'project_uuid',
+      'project_name',
+      'environment_name',
+      'environment_uuid',
+      'server_uuid',
+      'name',
+      'description',
+      'domains',
+      'ports_exposes',
+      'ports_mappings',
+      'instant_deploy',
+      'force_domain_override',
+      'git_repository',
+      'git_branch',
+      'build_pack',
+      'private_key_uuid',
+      'github_app_uuid',
+      'dockerfile',
+      'docker_registry_image_name',
+      'docker_registry_image_tag',
+      'format',
+      'max_chars',
+    ],
+    update: [
+      'uuid',
+      'name',
+      'fqdn',
+      'description',
+      'domains',
+      'git_repository',
+      'git_branch',
+      'git_commit_sha',
+      'build_pack',
+      'docker_registry_image_name',
+      'docker_registry_image_tag',
+      'is_static',
+      'is_spa',
+      'is_auto_deploy_enabled',
+      'is_force_https_enabled',
+      'install_command',
+      'build_command',
+      'start_command',
+      'ports_exposes',
+      'ports_mappings',
+      'base_directory',
+      'publish_directory',
+      'health_check_enabled',
+      'health_check_path',
+      'health_check_port',
+      'health_check_host',
+      'health_check_method',
+      'health_check_return_code',
+      'health_check_scheme',
+      'health_check_response_text',
+      'health_check_interval',
+      'health_check_timeout',
+      'health_check_retries',
+      'health_check_start_period',
+      'custom_labels',
+      'custom_docker_run_options',
+      'redirect',
+      'watch_paths',
+      'use_build_server',
+      'is_preserve_repository_enabled',
+      'connect_to_docker_network',
+      'is_container_label_escape_enabled',
+      'is_http_basic_auth_enabled',
+      'http_basic_auth_username',
+      'http_basic_auth_password',
+      'force_domain_override',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    delete: [
+      'uuid',
+      'name',
+      'fqdn',
+      'confirm',
+      'delete_volumes',
+      'delete_configurations',
+      'docker_cleanup',
+      'delete_connected_networks',
+      'format',
+      'max_chars',
+    ],
+    delete_preview: ['uuid', 'name', 'fqdn', 'format', 'max_chars'],
+    'envs:list': ['uuid', 'name', 'fqdn', 'reveal', 'format', 'max_chars'],
+    'envs:get': ['uuid', 'name', 'fqdn', 'env_uuid', 'key', 'reveal', 'format', 'max_chars'],
+    'envs:create': [
+      'uuid',
+      'name',
+      'fqdn',
+      'key',
+      'value',
+      'is_preview',
+      'is_literal',
+      'is_multiline',
+      'is_shown_once',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:update': [
+      'uuid',
+      'name',
+      'fqdn',
+      'env_uuid',
+      'key',
+      'value',
+      'is_preview',
+      'is_literal',
+      'is_multiline',
+      'is_shown_once',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:delete': [
+      'uuid',
+      'name',
+      'fqdn',
+      'env_uuid',
+      'confirm',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:bulk-update': [
+      'uuid',
+      'name',
+      'fqdn',
+      'entries',
+      'confirm',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+    'envs:sync': [
+      'uuid',
+      'name',
+      'fqdn',
+      'env_file',
+      'env_content',
+      'dry_run',
+      'prune',
+      'confirm',
+      'conflict_policy',
+      'reveal',
+      'format',
+      'max_chars',
+    ],
+  },
+  {
+    get: ['uuid'],
+    create: ['source_type', 'server_uuid'],
+    'envs:create': ['key', 'value'],
+    'envs:update': ['value'],
+    'envs:delete': ['env_uuid'],
+    'envs:bulk-update': ['entries'],
+  },
+  (data, ctx) => {
+    const mutationIdActions = [
+      'start',
+      'stop',
+      'restart',
+      'update',
+      'delete',
+      'delete_preview',
+      'envs:list',
+      'envs:get',
+      'envs:create',
+      'envs:update',
+      'envs:delete',
+      'envs:bulk-update',
+      'envs:sync',
+    ] as const;
+    if (
+      (mutationIdActions as readonly string[]).includes(data.action) &&
+      !hasAtLeastOneIdentifier(data, MUTATION_IDENTIFIER_FIELDS)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `At least one identifier (uuid|name|fqdn) required for action ${data.action}`,
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.action === 'deploy') {
+      if (!hasAtLeastOneIdentifier(data, DEPLOY_IDENTIFIER_FIELDS)) {
         ctx.addIssue({
           code: 'custom',
           message:
-            'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
-          path: ['entries'],
+            'At least one identifier (uuid|name|fqdn|uuids|tags|tag) required for action deploy',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
+    if (data.action === 'logs') {
+      const hasRuntimeId = !!(data.uuid || data.name || data.fqdn);
+      if (!hasRuntimeId && !data.deployment_uuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Either uuid (runtime logs) or deployment_uuid (build logs) must be provided',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (hasRuntimeId && data.deployment_uuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Cannot provide both uuid and deployment_uuid — choose runtime OR build logs',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (data.format === 'table') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'format table is not supported for logs — use pretty or json',
           params: { code: 'COOLIFY_VALIDATION_ERROR' },
         });
       }
-    }),
-  'envs:bulk-update',
-);
-
-const envsSyncActionSchema = requireMutationIdentifier(
-  z
-    .object({
-      action: z.literal('envs:sync'),
-      env_file: z
-        .string()
-        .optional()
-        .describe('Local filesystem path to a .env file'),
-      env_content: z
-        .string()
-        .optional()
-        .describe('Inline .env file content'),
-      dry_run: z
-        .boolean()
-        .default(false)
-        .describe(
-          'Preview diff only — no API writes when true (default false = apply path)',
-        ),
-      prune: z
-        .boolean()
-        .default(false)
-        .describe(
-          'Delete remote env keys absent from local (requires confirm:true)',
-        ),
-      confirm: z
-        .boolean()
-        .default(false)
-        .describe(
-          'Explicit confirmation required when applying (dry_run:false) or pruning',
-        ),
-      conflict_policy: z
-        .union([
-          z.literal('overwrite'),
-          z.literal('keep_remote'),
-          z.literal('abort'),
-        ])
-        .optional()
-        .describe(
-          'How to resolve value conflicts on apply — ask human if unset (D-08). abort skips conflicted keys only; non-conflicted writes still apply.',
-        ),
-      ...envParentFields,
-    })
-    .strict()
-    .superRefine((data, ctx) => {
-      const hasFile =
-        typeof data.env_file === 'string' && data.env_file.length > 0;
-      const hasContent =
-        typeof data.env_content === 'string' && data.env_content.length > 0;
-
+    }
+    if (data.action === 'create') {
+      requireProjectAndEnvironment(data, ctx);
+      rejectDockercomposeBuildPack(data, ctx);
+      if (data.build_pack === 'dockercompose') {
+        rejectDockercomposeBuildPack(data, ctx);
+      }
+      const source = data.source_type;
+      if (!source) {
+        ctx.addIssue({
+          code: 'custom',
+          message: "Action 'create' requires field 'source_type'",
+          path: ['source_type'],
+        });
+      } else if (source === 'public_git' || source === 'private_deploy_key' || source === 'private_github_app') {
+        if (!data.git_repository) {
+          ctx.addIssue({ code: 'custom', message: 'git_repository is required', path: ['git_repository'] });
+        }
+        if (!data.git_branch) {
+          ctx.addIssue({ code: 'custom', message: 'git_branch is required', path: ['git_branch'] });
+        }
+        if (!data.build_pack) {
+          ctx.addIssue({ code: 'custom', message: 'build_pack is required', path: ['build_pack'] });
+        }
+        if (source === 'private_deploy_key' && !data.private_key_uuid) {
+          ctx.addIssue({ code: 'custom', message: 'private_key_uuid is required', path: ['private_key_uuid'] });
+        }
+        if (source === 'private_github_app' && !data.github_app_uuid) {
+          ctx.addIssue({ code: 'custom', message: 'github_app_uuid is required', path: ['github_app_uuid'] });
+        }
+      } else if (source === 'dockerfile') {
+        if (!data.dockerfile) {
+          ctx.addIssue({ code: 'custom', message: 'dockerfile is required', path: ['dockerfile'] });
+        }
+      } else if (source === 'dockerimage') {
+        if (!data.docker_registry_image_name) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'docker_registry_image_name is required',
+            path: ['docker_registry_image_name'],
+          });
+        }
+      }
+    }
+    if (data.action === 'update' && data.build_pack === 'dockercompose') {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          "build_pack='dockercompose' is not supported on application update — use service.update (Phase 11)",
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+    if (data.action === 'envs:get') {
+      requireEnvUuidOrKey(data, ctx, 'envs:get');
+    }
+    if (data.action === 'envs:update') {
+      requireEnvUuidOrKey(data, ctx, 'envs:update');
+    }
+    if (data.action === 'envs:bulk-update' && data.entries && data.entries.length > 100) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
+        path: ['entries'],
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+    if (data.action === 'envs:sync') {
+      const hasFile = typeof data.env_file === 'string' && data.env_file.length > 0;
+      const hasContent = typeof data.env_content === 'string' && data.env_content.length > 0;
       if (hasFile === hasContent) {
         ctx.addIssue({
           code: 'custom',
@@ -839,8 +762,6 @@ const envsSyncActionSchema = requireMutationIdentifier(
           params: { code: 'COOLIFY_VALIDATION_ERROR' },
         });
       }
-    })
-    .superRefine((data, ctx) => {
       const needsConfirm = data.dry_run === false || data.prune === true;
       if (needsConfirm && data.confirm !== true) {
         ctx.addIssue({
@@ -850,19 +771,10 @@ const envsSyncActionSchema = requireMutationIdentifier(
           params: { code: 'COOLIFY_CONFIRM_REQUIRED' },
         });
       }
-    }),
-  'envs:sync',
+    }
+  },
 );
 
-const envsActionSchema = z.discriminatedUnion('action', [
-  envsListActionSchema,
-  envsGetActionSchema,
-  envsCreateActionSchema,
-  envsUpdateActionSchema,
-  envsDeleteActionSchema,
-  envsBulkUpdateActionSchema,
-  envsSyncActionSchema,
-]);
 
 const UPDATE_CURATED_FIELD_KEYS = [
   'name',
@@ -909,28 +821,6 @@ const UPDATE_CURATED_FIELD_KEYS = [
   'http_basic_auth_username',
   'http_basic_auth_password',
 ] as const;
-
-const lifecycleActionSchema = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('get'),
-    uuid: z.string().describe('Application UUID'),
-    ...sharedReadParamsSchema,
-  }),
-  startActionSchema,
-  stopActionSchema,
-  restartActionSchema,
-  deployActionSchema,
-  applicationLogsSchema,
-  updateActionSchema,
-  deleteActionSchema,
-  deletePreviewActionSchema,
-]);
-
-export const applicationActionSchema = z.union([
-  lifecycleActionSchema,
-  createActionSchema,
-  envsActionSchema,
-]);
 
 export type ApplicationAction = z.infer<typeof applicationActionSchema>;
 
@@ -1086,20 +976,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-type MutationAction = z.infer<typeof startActionSchema>;
-type DeployAction = z.infer<typeof deployActionSchema>;
+type MutationAction = Extract<ApplicationAction, { action: 'start' | 'stop' | 'restart' }>;
+type DeployAction = Extract<ApplicationAction, { action: 'deploy' }>;
 type LogsAction = z.infer<typeof applicationLogsSchema>;
-type CreateAction = z.infer<typeof createActionSchema>;
-type UpdateAction = z.infer<typeof updateActionSchema>;
-type DeleteAction = z.infer<typeof deleteActionSchema>;
-type DeletePreviewAction = z.infer<typeof deletePreviewActionSchema>;
-type EnvsListAction = z.infer<typeof envsListActionSchema>;
-type EnvsGetAction = z.infer<typeof envsGetActionSchema>;
-type EnvsCreateAction = z.infer<typeof envsCreateActionSchema>;
-type EnvsUpdateAction = z.infer<typeof envsUpdateActionSchema>;
-type EnvsDeleteAction = z.infer<typeof envsDeleteActionSchema>;
-type EnvsBulkUpdateAction = z.infer<typeof envsBulkUpdateActionSchema>;
-type EnvsSyncAction = z.infer<typeof envsSyncActionSchema>;
+type CreateAction = Extract<ApplicationAction, { action: 'create' }>;
+type UpdateAction = Extract<ApplicationAction, { action: 'update' }>;
+type DeleteAction = Extract<ApplicationAction, { action: 'delete' }>;
+type DeletePreviewAction = Extract<ApplicationAction, { action: 'delete_preview' }>;
+type EnvsListAction = Extract<ApplicationAction, { action: 'envs:list' }>;
+type EnvsGetAction = Extract<ApplicationAction, { action: 'envs:get' }>;
+type EnvsCreateAction = Extract<ApplicationAction, { action: 'envs:create' }>;
+type EnvsUpdateAction = Extract<ApplicationAction, { action: 'envs:update' }>;
+type EnvsDeleteAction = Extract<ApplicationAction, { action: 'envs:delete' }>;
+type EnvsBulkUpdateAction = Extract<ApplicationAction, { action: 'envs:bulk-update' }>;
+type EnvsSyncAction = Extract<ApplicationAction, { action: 'envs:sync' }>;
 
 function validateDeleteConfirm(confirm: boolean, uuid: string): void {
   if (confirm === true) {
@@ -1387,11 +1277,12 @@ async function handleBatchApplicationDeploy(
 
   for (const uuid of allUuids) {
     try {
+      const force = parsed.force ?? false;
       const raw = await triggerDeploy(
         env.COOLIFY_URL,
         env.COOLIFY_TOKEN,
         uuid,
-        parsed.force,
+        force,
         env.COOLIFY_VERIFY_SSL,
       );
       const deploymentUuid = extractDeploymentUuid(raw);
@@ -1410,7 +1301,7 @@ async function handleBatchApplicationDeploy(
         uuid,
         deployment_uuid: deploymentUuid,
         status: 'queued',
-        force: parsed.force,
+        force,
         logs_available: logsAvailableHint(deploymentUuid),
       };
 
@@ -1478,12 +1369,13 @@ async function handleApplicationDeploy(
   }
 
   const uuid = await resolveAppMutationUuid(parsed, env);
+  const force = parsed.force ?? false;
 
   const raw = await triggerDeploy(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
     uuid,
-    parsed.force,
+    force,
     env.COOLIFY_VERIFY_SSL,
   );
 
@@ -1495,7 +1387,7 @@ async function handleApplicationDeploy(
         uuid,
         deployment_uuid: deploymentUuid,
         status: 'queued',
-        force: parsed.force,
+        force,
         logs_available: logsAvailableHint(deploymentUuid),
       },
       {
@@ -1540,6 +1432,11 @@ async function handleApplicationLogs(
   parsed: LogsAction,
   env: EnvConfig,
 ): Promise<ApplicationLogsResult> {
+  const lines = parsed.lines ?? 100;
+  const includeHidden = parsed.include_hidden ?? false;
+  const offset = parsed.offset ?? 0;
+  const logType = parsed.type ?? 'all';
+
   if (parsed.deployment_uuid) {
     const raw = await fetchDeployment(
       env.COOLIFY_URL,
@@ -1561,7 +1458,7 @@ async function handleApplicationLogs(
     const { parsed: parsedOk, entries } = parseBuildLogEntries(rec.logs);
 
     if (!parsedOk) {
-      const allLines = sliceLogBlob(rec.logs, parsed.lines, parsed.offset);
+      const allLines = sliceLogBlob(rec.logs, lines, offset);
       const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
       const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
 
@@ -1585,13 +1482,13 @@ async function handleApplicationLogs(
 
     const visibleEntries = entries.filter(
       (e) =>
-        (parsed.include_hidden ? true : !e.hidden) &&
-        (parsed.type === 'all' ? true : e.type === parsed.type),
+        (includeHidden ? true : !e.hidden) &&
+        (logType === 'all' ? true : e.type === logType),
     );
     const entriesHidden = entries.filter((e) => e.hidden).length;
     const entriesShown = visibleEntries.length;
     const flattened = visibleEntries.map((e) => e.output).join('\n');
-    const allLines = sliceLogBlob(flattened, parsed.lines, parsed.offset);
+    const allLines = sliceLogBlob(flattened, lines, offset);
     const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
     const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
 
@@ -1618,12 +1515,12 @@ async function handleApplicationLogs(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
     uuid,
-    parsed.lines,
+    lines,
     env.COOLIFY_VERIFY_SSL,
   );
   const logsStr =
     isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
-  const allLines = sliceLogBlob(logsStr, parsed.lines, 0);
+  const allLines = sliceLogBlob(logsStr, lines, 0);
   const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
   const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
 
@@ -1652,7 +1549,7 @@ async function buildCreateApiBody(
   const body: Record<string, unknown> = {
     project_uuid,
     server_uuid: parsed.server_uuid,
-    instant_deploy: parsed.instant_deploy,
+    instant_deploy: parsed.instant_deploy !== false,
     force_domain_override: parsed.force_domain_override,
     name: parsed.name,
     description: parsed.description,
@@ -1901,15 +1798,20 @@ async function handleApplicationDelete(
 
   validateDeleteConfirm(parsed.confirm, uuid);
 
+  const deleteVolumes = parsed.delete_volumes ?? false;
+  const deleteConfigurations = parsed.delete_configurations ?? false;
+  const dockerCleanup = parsed.docker_cleanup ?? false;
+  const deleteConnectedNetworks = parsed.delete_connected_networks ?? false;
+
   await deleteApplication(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
     uuid,
     {
-      delete_volumes: parsed.delete_volumes,
-      delete_configurations: parsed.delete_configurations,
-      docker_cleanup: parsed.docker_cleanup,
-      delete_connected_networks: parsed.delete_connected_networks,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
+      docker_cleanup: dockerCleanup,
+      delete_connected_networks: deleteConnectedNetworks,
     },
     env.COOLIFY_VERIFY_SSL,
   );
@@ -1919,8 +1821,8 @@ async function handleApplicationDelete(
       ok: true,
       uuid,
       deleted: true,
-      delete_volumes: parsed.delete_volumes,
-      delete_configurations: parsed.delete_configurations,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
     },
     {
       format: parsed.format,
@@ -2037,7 +1939,7 @@ async function handleApplicationCreate(
     env,
   );
 
-  if (!parsed.instant_deploy) {
+  if (parsed.instant_deploy === false) {
     return withManifestUpsert(
       buildReadResponse(
         {

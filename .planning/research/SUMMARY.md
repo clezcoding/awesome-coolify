@@ -1,132 +1,158 @@
 # Project Research Summary
 
 **Project:** Coolify MCP Server
-**Domain:** DevOps & Infrastructure Orchestration (MCP Server & Client Platform Foundation)
-**Researched:** Tuesday Jul 21, 2026
+**Domain:** MCP Server & DX Tools
+**Researched:** Friday, Jul 24, 2026
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Coolify MCP Server is an open-source platform enabling AI agents (e.g., Cursor, Claude Code) to seamlessly operate, provision, and diagnose self-hosted and cloud-hosted Coolify instances. Transitioning into v3.0 (Platform Foundation), the product evolves from a single-target configuration to a robust multi-instance architecture. This transition allows agents to manage multiple staging and production targets concurrently and persist project environment configurations (such as application, service, and database UUIDs) directly inside local workspace directories.
+The Coolify MCP Server (v3.1 Setup, Skills & DX) is designed to provide a unified, developer-friendly Model Context Protocol (MCP) interface for interacting with both self-hosted and cloud Coolify instances. This milestone shifts the focus from core platform capabilities (established in v3.0) to developer experience (DX), interactive onboarding, and IDE integrations. Experts build these tools by focusing on stateless, robust, and highly-contextualized integrations that empower AI agents (such as Cursor, Claude Code, and Codex) to perform complex infrastructure operations autonomously without blocking client sessions or triggering timeouts.
 
-The recommended implementation approach shifts the REST client from a static singleton model to a stateless per-request instantiated factory. By dynamically resolving active credentials—prioritizing local environment variables and falling back to a global, restricted-permission named registry (`~/.coolify-mcp/instances.json`)—the server eliminates cross-instance leakage. Locally, workspaces are dynamically mapped to remote resources through a gitignored state manifest (`.coolify/manifest.json`). This ensures the agent preserves context across sessions without manual user prompting or scanning remote APIs redundantly.
+The recommended approach is to establish a strong DX foundation by flattening tool parameter schemas to bypass IDE rendering limitations, implementing standard MCP Prompts for guided workflows, and introducing a non-blocking asynchronous deployment watcher. This is followed by a dynamic, API-driven service recipe discovery mechanism and an interactive, headless-safe Setup Wizard CLI. Finally, we ensure long-term maintainability through automated OpenAPI coverage mapping and a secure, OIDC-driven npm release workflow.
 
-The critical risks in this phase involve security leaks, filesystem write race conditions, and cloud REST boundary mismatches. To prevent exposure of plaintext bearer tokens, the global configuration directory and files must be generated with strictly locked POSIX permissions (`0o700` and `0o600`), and all tool responses must redact secrets dynamically. Additionally, file-write race conditions in concurrent multi-agent environments must be mitigated using atomic file-swapping operations (`fs.rename`). Lastly, since Coolify Cloud does not support low-level system operations (such as validating remote Docker hosts), the server must proactively intercept these actions and provide structured recovery guidance to avoid frustrating agent loops.
+The key risks in this milestone include:
+1. **Cursor `oneOf` rendering defects** causing tools to display as having "No parameters", which we mitigate by standardizing on flat, optional top-level schemas validated internally via Zod.
+2. **Headless execution blocks** during interactive GitHub CLI (`gh`) preflight checks, which we avoid by checking TTY status and supporting environment variable fallbacks.
+3. **Polling storms and timeouts** during deployment monitoring, which we address through progressive stateless polling with exponential backoff and log-incremental streaming.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The v3.0 stack leverages standard, high-performance Node.js built-ins combined with lightweight, strongly-typed libraries, completely bypassing heavy or buggy external dependencies like `conf` or `fs-extra`.
+The recommended stack focuses on modern, lightweight, and zero-dependency TypeScript-native libraries that integrate seamlessly with the existing Model Context Protocol and Node.js environment.
 
 **Core technologies:**
-- **Node.js (>=22.14.0):** Runtime — standard runtime enabling modern ES Modules, native fetch API, and performant filesystem interaction.
-- **TypeScript (^5.3.3):** Language — provides robust compile-time safety, auto-completion, and precise interfaces for multi-instance tool configuration schemas.
-- **@modelcontextprotocol/server (^2.0.0-beta.4):** Core Framework — Anthropic's official SDK for building stdio-based MCP servers with robust request/response handling.
-- **Zod (^4.4.3):** Schema Validation — declarative runtime schema verification ensuring strict verification of environment, registry inputs, and dynamic tool parameters.
-- **ofetch (^1.5.1):** HTTP Client — lightweight fetch wrapper from UnJS with built-in retry mechanics, intelligent error hooks, and structured JSON parsing.
-- **yaml (^2.9.0):** YAML Parser — parse multi-line Docker Compose configs and service templates reliably without brittle regex manipulation.
+- `@modelcontextprotocol/server` (`^2.0.0-beta.4`): MCP Server core framework — Provides the standard protocol implementation for tools, resources, and the new Prompts API.
+- `@clack/prompts` (`^0.9.1`): Interactive CLI Setup Wizard — Modern, beautifully designed terminal prompt library used by Vite and Astro, offering superior UX over older alternatives.
+- `@scalar/openapi-parser` (`^0.25.3`): OpenAPI Specification Parsing — Modern, zero-dependency, TypeScript-native OpenAPI parser that supports OpenAPI 3.0/3.1/3.2, perfect for mapping coverage.
+- `ofetch` (`^1.5.1`): Dynamic recipe and template fetching — Used to fetch the official `service-templates.json` from Coolify's repository at runtime, avoiding static catalog bloat (already installed).
+- `@scalar/openapi-types` (`^0.6.0`): Strict OpenAPI TypeScript types — Used alongside `@scalar/openapi-parser` for type-safe manipulation of the OpenAPI document.
+- `zod` (`^4.4.3`): Schema validation & Prompt arguments — Used to define and validate action inputs, outputs, and Prompts API arguments (already installed).
 
 ### Expected Features
 
+The feature landscape for v3.1 is prioritized to establish baseline setup capabilities, deploy IDE skills, and close critical DX and schema gaps.
+
 **Must have (table stakes):**
-- **Multi-Instance JSON Config Registry (`~/.coolify-mcp/instances.json`):** A global, secure store for named instances and keys.
-- **Active Default Instance Selection:** Setting the current target instance with env variables (`COOLIFY_URL`/`COOLIFY_TOKEN`) serving as the high-priority override.
-- **Coolify Cloud Support (`https://app.coolify.io`):** Native compatibility for Cloud connections, including correct URL handling and team-scoped token resolution.
-- **Local Project Manifest File (`.coolify/manifest.json`):** Standard schema storing project, server, and environment mappings to speed up agent context loads.
-- **Auto-Gitignore Enforcement:** Programmatic injection of `.coolify/` into local `.gitignore` on manifest creation to prevent credential or environment leaks.
+- **GitHub CLI Preflight Checks:** Verifies `gh` CLI presence and authentication status, providing a step-by-step fallback guide if unauthorized.
+- **Richer Tool Descriptions & Flat Schemas:** Replaces complex Zod unions with flat, optional top-level schemas to bypass Cursor's rendering limitations.
+- **Service Type Discovery (`service.list-types`):** Dynamically queries the active Coolify instance's catalog via the REST API rather than hardcoding static templates.
+- **Release Workflow (Changesets + OIDC):** Automates npm publishing securely using GitHub Actions and npm OIDC Trusted Publishing.
 
 **Should have (competitive):**
-- **Per-Request Dynamic Routing:** Adding an optional `instance` override parameter to all 14 tool schemas, allowing ad-hoc operations on non-default instances.
-- **Temporary Request Override Credentials:** In-memory `url_override` and `token_override` inputs for debugging or emergency tasks on unconfigured endpoints.
-- **Agent-Side Manifest Sync:** Automatic background updates to `.coolify/manifest.json` whenever resource mutations (create/delete) occur.
+- **Interactive Setup Wizard:** Guides developers through workspace initialization, git repository linking, and Coolify environment mapping.
+- **Custom IDE Skills Package:** Deploys identical instruction structures to `.cursor/skills/`, `.agents/skills/`, and `.codex/skills/` to align agent behaviors.
+- **MCP Prompts Registry:** Exposes parameterized prompt templates (`deploy`, `diagnose`, `new-project`, `incident`) to MCP-compatible IDEs.
+- **Non-blocking Deployment Watcher:** Implements progressive stateless polling with incremental log streaming to monitor long-running builds asynchronously.
+- **OpenAPI Coverage Mapping:** Audits `docs/coolify_openapi.json` against registered handlers to generate a live `COVERAGE.md` gap report.
 
-**Defer (v2+ / v3.1+):**
-- **Interactive Setup Wizard:** Guided workspace mapping and preflight checks (deferred to v3.1).
-- **Custom IDE Skills Package:** Markdown-based agent guides (deferred to v3.1).
-- **Cross-Instance Migration & Sync:** Advanced replication of apps/DBs across distinct control planes (deferred to v3.2+).
+**Defer (v2+):**
+- **Self-Hosted Compose Template Catalog:** Avoided as an anti-feature; duplicates upstream efforts and causes rapid configuration drift.
+- **Synchronous Blocking Polling:** Avoided as an anti-feature; triggers tool timeouts and blocks parallel agent processes.
+- **Global Auto-Push on Git Init:** Avoided as an anti-feature; bypasses human verification and branch protection rules.
+- **Custom Recipes Deployment:** Deferred to v3.3+ as a future consideration.
 
 ### Architecture Approach
 
-The architecture separates the MCP protocol execution, stateless API communication, and localized configuration management. This maintains absolute request isolation and enables safe concurrent agent runs.
+The architecture extends the existing v3.0 platform foundation by segregating CLI-only interactive scripts from the core MCP runtime process. This keeps build sizes slim and prevents interactive libraries from interfering with MCP stdio pipes.
 
 **Major components:**
-1. **`InstanceManager` (`src/utils/instance.ts`):** Manages the global multi-instance registry, resolves active target credentials, and enforces strict file permissions.
-2. **`ManifestManager` (`src/utils/manifest.ts`):** Controls local repository mappings, provides gitignore safety, and updates cached resource references.
-3. **`CoolifyClient` (`src/api/client.ts`):** Stateless client wrapper mapping requests dynamically using credentials passed from the active tool resolver.
+1. `SetupWizard` (`src/cli/setup-wizard.ts`) — Guides users through workspace preflights and links local repositories directly to Coolify endpoints.
+2. `McpPrompts` (`src/mcp/prompts.ts`) — Registers LLM workflow prompt templates on the MCP server layer using Zod arguments validation.
+3. `OpenAPICoverage` (`src/cli/openapi-coverage.ts`) — Maps the official Coolify OpenAPI specification against the implemented API client and tool endpoints.
+4. `RecipesCatalog` (`src/utils/service-recipes.ts`) — Catalogs Coolify’s 200+ native service templates and provides local fallback structures when the API is offline.
+5. `CoolifyClient` (`src/api/client.ts`) — Extended stateless HTTP client supporting dynamic service list types and deployment log streaming.
 
 ### Critical Pitfalls
 
-1. **Static Configuration Pollution (Global State Leakage):** Hardcoding active URL/token singleton objects causes concurrent calls to execute commands on the wrong server. **How to avoid:** Build stateless client factories that resolve and instantiate connection details on every single tool execution.
-2. **Atomic File Write Failures (State Corruption):** Concurrent writes to `instances.json` by parallel agents can corrupt the config. **How to avoid:** Implement atomic file writes using a temporary staging file swapped with `fs.renameSync`.
-3. **Insecure Plaintext Token Storage:** Exposing tokens globally to other processes on the host. **How to avoid:** Restrict config folder to POSIX `0o700` and config file to `0o600`. Strip bearer tokens from list responses.
-4. **Manifest Desynchronization (Stale Cache):** Operating on deleted resources because the cache is stale. **How to avoid:** Treat local manifest as a directory lookup index; perform GET preflights or catch API 404s to sync state dynamically.
-5. **Relative Path Manifest Resolution Failures:** Running the agent from deep directories creates fragmented `.coolify/` folders. **How to avoid:** Implement an upward-climbing project root resolver to target the workspace root consistently.
+The top critical pitfalls identified in research must be explicitly addressed during implementation:
+
+1. **Cursor `oneOf` Schema Rendering Defect** — Cursor renders complex schema unions as "No parameters". *Prevention:* Standardize on flat schemas with optional top-level fields and validate mutually-exclusive constraints internally using Zod.
+2. **Interactive `gh` Preflight Blocks Headless Agents** — Interactive CLI prompts block indefinitely in headless agent environments. *Prevention:* Detect non-interactive TTY environments, pass `--non-interactive` flags, and support env-based token fallbacks.
+3. **Deploy Watch Polling Storms & Timeouts** — Aggressive polling triggers rate limits (429) or hangs on slow builds. *Prevention:* Implement progressive stateless polling with exponential backoff, jitter, minimum 3s-5s intervals, and strict timeouts.
+4. **Stale YAML Recipe Duplication** — Embedding static Docker Compose templates leads to rapid configuration drift. *Prevention:* Query Coolify's native `service.list-types` dynamically and link to `coolify-examples` as hints only.
+5. **MCP Prompts vs. Tools Confusion** — Implementing complex multi-step workflows inside atomic tool handlers bloats code and bypasses LLM reasoning. *Prevention:* Keep tools atomic and use MCP Prompts to define workflow templates and context.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+Based on research, the suggested phase structure for the v3.1 milestone is ordered logically to resolve schema blockers first, build the dynamic capabilities, and then layer on the interactive setup and verification tools.
 
-### Phase 15: Multi-Instance Core & Registry CRUD (Platform Foundation)
-**Rationale:** Establishing secure dynamic credentials is the blocker for all downstream features.
-**Delivers:** `InstanceManager` utility, secure file I/O layer with atomic writes and locked permissions, update to `src/config/env.ts` for dynamic routing, and registration of the new `instance` tool.
-**Addresses:** Multi-instance JSON Registry, Active Default Instance Selection, Per-Request Routing.
-**Avoids:** Pitfall 1 (Static Config Pollution), Pitfall 2 (Atomic File Corruption), Pitfall 3 (Plaintext Token Leakage).
+### Phase 1: Prompts & Richer Tool Descriptions
+- **Rationale:** Cursor's `oneOf` rendering defect is a critical blocker for tool usability. Resolving this and exposing the Prompts API provides an immediate, high-value DX foundation.
+- **Delivers:** Flattened Zod schemas for all tools, standard prompts registry (`deploy`, `diagnose`, `new-project`, `incident`).
+- **Addresses:** Richer Tool Descriptions & Flat Schemas (DX-DESC-*), MCP Prompts Registry (PROMPT-*).
+- **Avoids:** Pitfall 10 (Cursor `oneOf` Schema Rendering Defect), Pitfall 9 (MCP Prompts vs. Tools Confusion).
 
-### Phase 16: Coolify Cloud Integration
-**Rationale:** Restructures API clients to handle app.coolify.io specifics before introducing workspace manifests.
-**Delivers:** Robust connection mapping for cloud subdomains, retry interceptors for rate limiting, and custom cloud 403 error diagnostics.
-**Uses:** Dynamic fetch mapping on `ofetch`.
-**Implements:** `CoolifyClient` dynamic overrides.
+### Phase 2: Recipes & Service List-Types
+- **Rationale:** Dynamic service discovery is a prerequisite for the setup wizard and prevents the maintenance nightmare of static template duplication.
+- **Delivers:** `service.list-types` action, dynamic fetching of `service-templates.json` via `ofetch` with local static fallback.
+- **Addresses:** Service Type Discovery (`service.list-types`) (RECIPE-*).
+- **Avoids:** Pitfall 8 (Stale YAML Recipe Duplication).
 
-### Phase 17: Local Project Manifest & Sync
-**Rationale:** Uses the stable multi-instance and cloud capabilities to enable localized environment preservation.
-**Delivers:** `ManifestManager` with automatic gitignore injection, mutations hooks on applications, databases, and services, and a `manifest:sync` reconciliation tool.
-**Addresses:** Local manifest schema, Gitignore enforcement, and Agent-Side Sync.
-**Avoids:** Pitfall 4 (Stale Manifest state), Pitfall 6 (Relative Path Failures).
+### Phase 3: Deploy Watch
+- **Rationale:** Non-blocking deployment monitoring is a major differentiator that prevents agent timeouts and session hangs during long-running builds.
+- **Delivers:** `deployment.watch` action, progressive stateless polling with incremental log streaming in `src/utils/deploy-poll.ts`.
+- **Addresses:** Non-blocking Deployment Watcher (WATCH-*).
+- **Avoids:** Pitfall 12 (Deploy Watch Polling Storms & Timeouts).
+
+### Phase 4: Setup Wizard & IDE Skills
+- **Rationale:** Wizards and skills are the core entry points for new developers. They depend on flat schemas and list-types to function correctly.
+- **Delivers:** Interactive Setup Wizard CLI (using `@clack/prompts` and non-interactive `gh` checks), unified IDE skills package (.cursorrules, .claudecoderules, .codex/skills).
+- **Addresses:** GitHub CLI Preflight Checks (SETUP-*), Interactive Setup Wizard (SETUP-*), Custom IDE Skills Package (SKILL-*).
+- **Avoids:** Pitfall 7 (Interactive `gh` Preflight Blocks Headless Agents), Pitfall 14 (Skills Teaching Incorrect Tool Call Patterns), Pitfall 6 (Relative Path Resolution Failures for Manifest).
+
+### Phase 5: OpenAPI Coverage Mapping & npm Release
+- **Rationale:** Ensures long-term API compliance and automates the release workflow to npm using OIDC.
+- **Delivers:** OpenAPI mapping script, `COVERAGE.md` gap analysis, GitHub Actions publish workflow with changesets and npm OIDC.
+- **Addresses:** OpenAPI Coverage Mapping (OAPI-*), Release Workflow (Changesets + OIDC) (PUB-*).
+- **Avoids:** Pitfall 11 (OpenAPI Coverage Drift), Pitfall 13 (Accidental Release of Secrets or Test Harness).
 
 ### Phase Ordering Rationale
 
-- Setting up the central instances registry first (Phase 15) ensures we can reliably authenticate and run tools before addressing the public-cloud specifics (Phase 16).
-- Integrating local manifest synchronization (Phase 17) is placed last because it depends on the CRUD mutation endpoints of existing resource tools correctly targetting the dynamically resolved multi-instance connection.
-- This grouping enforces complete isolation between global credentials and local non-sensitive metadata, preventing security leaks by design.
+- **Dependency-Driven Order:** We resolve schema blockers (Phase 1) and dynamic discovery (Phase 2) first, because the Setup Wizard (Phase 4) depends on flat, well-documented tool schemas and valid service types to function.
+- **Architecture Segregation:** We build the non-blocking polling mechanism (Phase 3) before wrapping it in the Setup Wizard and IDE skills (Phase 4) so that the skills can teach correct, non-blocking monitoring patterns.
+- **Pitfall Avoidance:** By placing the OpenAPI Coverage Mapping (Phase 5) at the end, we can audit the complete, extended tool surface against the official OpenAPI specification and establish a robust, validated release baseline.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 16 (Cloud Integration):** Requires detailed testing of the Cloud rate-limit behavior (429 handling) and mapping team authorization scopes to return intelligible recovery suggestions.
+- **Phase 3 (Deploy Watch):** Needs careful API research on how Coolify handles log streaming endpoints and whether there are differences between self-hosted and Cloud deployment log payloads.
+- **Phase 5 (OpenAPI Coverage Mapping):** Complex AST parsing of TypeScript client files and matching them against the OpenAPI JSON paths require prototyping to avoid brittle regex-based solutions.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 15 (Multi-Instance Core):** Follows highly standardized global JSON file manipulation patterns (e.g. from ServiceNow/Odoo MCP).
-- **Phase 17 (Local Project Manifest):** Implements typical gitignore appending and JSON cache sync structures common to CLI tooling.
+- **Phase 1 (Prompts & Richer Tool Descriptions):** Follows standard MCP SDK prompt registration patterns and standard Zod schema flattening.
+- **Phase 2 (Recipes & Service List-Types):** Reuses the existing stateless `ofetch` client and standard JSON parsing.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Node.js built-ins and Zod/ofetch are highly stable, verified across standard ESM-first environments. |
-| Features | HIGH | Table-stakes features are fully aligned with competitor patterns (e.g., cdeploy, CoolifyEx). |
-| Architecture | HIGH | Component diagram and dynamic request flows are clear and well-scoped. |
-| Pitfalls | HIGH | Deep understanding of security, permissions, pathing, and cloud-specific limitations. |
+| Stack | HIGH | Verified with official MCP, Clack, and Scalar documentation. |
+| Features | HIGH | Directly maps to validated user requirements and Cursor community feedback. |
+| Architecture | HIGH | Clear segregation of CLI and MCP boundaries; robust patterns for polling and prompts. |
+| Pitfalls | HIGH | Comprehensive analysis of filesystem, API, security, and IDE-specific failure modes. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Gap (Rate-Limiting on Cloud):** Dynamic rate limit recovery must be coded carefully using UnJS `ofetch` custom error hooks.
-- **Gap (Manifest Verification Preflight):** Verification of manifest entries during runtime to avoid 404 loops must gracefully trigger a cache sync.
+- **Coolify API Log Tail Parity:** Coolify 4.1.x API has known gaps regarding service and database log tailing (SVC-04 is deferred to v1.1). We must handle this gracefully by returning clear "not supported by API" hints if requested.
+- **Scalar Parser Bundle Size:** `@scalar/openapi-parser` is a powerful tool but we must ensure its inclusion does not bloat the main MCP server runtime bundle. We keep it strictly inside the CLI build boundary.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `/unjs/ofetch` — UnJS ofetch client specification and retry options.
-- `https://github.com/coollabsio/coolify` — Coolify source repo, official REST OpenAPI specs.
-- `https://app.coolify.io/api/v1` — Verified live Coolify Cloud endpoint behaviors and team token schema.
+- `/modelcontextprotocol/typescript-sdk` — MCP Prompts API and autocompletion standard.
+- `https://cursor.com/docs/rules` — Cursor rules and `.mdc` frontmatter specification.
+- `https://github.com/scalar/scalar/tree/main/packages/openapi-parser` — Scalar OpenAPI parser capabilities.
+- `https://coolify.io/docs/api` — Coolify REST API 4.1.x specifications.
 
 ### Secondary (MEDIUM confidence)
-- [CoolifyEx Guide](https://github.com/nshkrdotcom/coolify_ex/blob/main/guides/manifest.md) — Elixir multi-instance manifest patterns.
-- [ServiceNow MCP](https://github.com/aartiq/servicenow-mcp/blob/main/docs/MULTI_INSTANCE.md) — Multi-instance JSON configuration architecture.
+- `https://code.claude.com/docs/en/skills` — Claude Code skills specification.
+- `https://developers.openai.com/codex/skills` — Codex skills and TOML configuration specification.
+- `https://forum.cursor.com/t/mcp-tools-parameter-schema-not-displaying-correctly-shows-generic-random-string-instead-of-actual-schema/109840` — Cursor schema flattening community discussions.
 
 ---
-*Research completed: Tuesday Jul 21, 2026*
+*Research completed: Friday, Jul 24, 2026*
 *Ready for roadmap: yes*

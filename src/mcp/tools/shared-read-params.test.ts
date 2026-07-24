@@ -1,24 +1,84 @@
 import { describe, expect, it } from 'vitest';
 import * as z from 'zod/v4';
 import { CoolifyApiError } from '../../utils/errors.js';
-import { applicationActionSchema } from './application.js';
-import { databaseActionSchema } from './database.js';
-import { deploymentToolSchema } from './deployment.js';
-import { diagnoseToolSchema } from './diagnose.js';
-import { emergencyToolSchema } from './emergency.js';
-import { environmentActionSchema } from './environment.js';
-import { privateKeyActionSchema } from './private_key.js';
-import { projectActionSchema } from './project.js';
-import { resourceActionSchema } from './resource.js';
-import { serverActionSchema } from './server.js';
-import { serviceActionSchema } from './service.js';
 import {
   sharedReadParamsSchema,
+  sharedReadParamsFlatShape,
   parseReadParams,
   parseWithInstanceRouting,
   withInstanceRoutingSchema,
+  createFlatActionSchema,
 } from './shared-read-params.js';
-import { systemActionSchema } from './system.js';
+
+describe('createFlatActionSchema', () => {
+  const demoSchema = createFlatActionSchema(
+    ['ping', 'fetch'] as const,
+    {
+      id: z.string().optional(),
+      name: z.string().optional(),
+    },
+    {
+      ping: [],
+      fetch: ['id'],
+    },
+    {
+      fetch: ['id'],
+    },
+  );
+
+  it('accepts action with allowed optional fields', () => {
+    const parsed = demoSchema.safeParse({ action: 'ping' });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('rejects disallowed fields for the selected action', () => {
+    const parsed = demoSchema.safeParse({ action: 'ping', id: 'x' });
+    expect(parsed.success).toBe(false);
+    if (parsed.success) return;
+    expect(parsed.error.issues[0]?.message).toContain("not allowed for action 'ping'");
+  });
+
+  it('rejects missing required fields for the selected action', () => {
+    const parsed = demoSchema.safeParse({ action: 'fetch' });
+    expect(parsed.success).toBe(false);
+    if (parsed.success) return;
+    expect(parsed.error.issues[0]?.message).toContain("requires field 'id'");
+  });
+});
+
+describe('parseWithInstanceRouting action-aware recoveryHints', () => {
+  const schema = createFlatActionSchema(
+    ['run'] as const,
+    { uuid: z.string().optional() },
+    { run: ['uuid'] },
+    { run: ['uuid'] },
+  );
+
+  it('lists required fields for the selected action on validation failure', () => {
+    try {
+      parseWithInstanceRouting(schema, { action: 'run' });
+      expect.fail('expected CoolifyApiError');
+    } catch (error) {
+      expect(error).toBeInstanceOf(CoolifyApiError);
+      const hints = (error as CoolifyApiError).envelope.recoveryHints ?? [];
+      expect(hints.some((h) => h.includes("Action 'run' requires: uuid"))).toBe(
+        true,
+      );
+    }
+  });
+});
+
+describe('withInstanceRoutingSchema flat-only', () => {
+  it('throws for non-ZodObject schemas', () => {
+    const unionSchema = z.discriminatedUnion('action', [
+      z.object({ action: z.literal('a') }),
+      z.object({ action: z.literal('b') }),
+    ]);
+    expect(() => withInstanceRoutingSchema(unionSchema)).toThrow(
+      /flat z.object required/,
+    );
+  });
+});
 
 describe('parseWithInstanceRouting', () => {
   const actionSchema = z
@@ -51,58 +111,28 @@ describe('parseWithInstanceRouting', () => {
 });
 
 describe('withInstanceRoutingSchema (MCP validateToolInput boundary)', () => {
+  const flatDemoSchema = createFlatActionSchema(
+    ['health', 'get'] as const,
+    {
+      uuid: z.string().optional(),
+      ...sharedReadParamsFlatShape,
+    },
+    {
+      health: [],
+      get: ['uuid', 'format', 'projection', 'include_full', 'page', 'per_page', 'max_chars', 'reveal'],
+    },
+  );
+
   const routedSchemas: Array<{
     name: string;
     schema: z.ZodType;
     sample: Record<string, unknown>;
   }> = [
-    { name: 'system', schema: systemActionSchema, sample: { action: 'health' } },
+    { name: 'flat-demo', schema: flatDemoSchema, sample: { action: 'health' } },
     {
-      name: 'resource',
-      schema: resourceActionSchema,
-      sample: { action: 'find', query: 'x' },
-    },
-    { name: 'diagnose', schema: diagnoseToolSchema, sample: { action: 'scan' } },
-    {
-      name: 'application',
-      schema: applicationActionSchema,
+      name: 'flat-demo-get',
+      schema: flatDemoSchema,
       sample: { action: 'get', uuid: 'app-uuid-1' },
-    },
-    {
-      name: 'emergency',
-      schema: emergencyToolSchema,
-      sample: { action: 'stop_all', confirm: true },
-    },
-    {
-      name: 'deployment',
-      schema: deploymentToolSchema,
-      sample: { action: 'list', application_uuid: 'app-uuid-1' },
-    },
-    {
-      name: 'service',
-      schema: serviceActionSchema,
-      sample: { action: 'get', uuid: 'svc-uuid-1' },
-    },
-    {
-      name: 'database',
-      schema: databaseActionSchema,
-      sample: { action: 'get', uuid: 'db-uuid-1' },
-    },
-    {
-      name: 'private_key',
-      schema: privateKeyActionSchema,
-      sample: { action: 'list' },
-    },
-    {
-      name: 'server',
-      schema: serverActionSchema,
-      sample: { action: 'get', uuid: 'srv-uuid-1' },
-    },
-    { name: 'project', schema: projectActionSchema, sample: { action: 'list' } },
-    {
-      name: 'environment',
-      schema: environmentActionSchema,
-      sample: { action: 'list', project_uuid: 'proj-uuid-1' },
     },
   ];
 
@@ -128,15 +158,14 @@ describe('withInstanceRoutingSchema (MCP validateToolInput boundary)', () => {
   });
 
   it('rejects unrecognized instance keys that previously broke strict schemas', () => {
-    // Control: unwrapped strict private_key still rejects instance
-    const unwrapped = privateKeyActionSchema.safeParse({
-      action: 'list',
+    const unwrapped = flatDemoSchema.safeParse({
+      action: 'health',
       instance: 'prod',
     });
     expect(unwrapped.success).toBe(false);
 
-    const wrapped = withInstanceRoutingSchema(privateKeyActionSchema).safeParse({
-      action: 'list',
+    const wrapped = withInstanceRoutingSchema(flatDemoSchema).safeParse({
+      action: 'health',
       instance: 'prod',
     });
     expect(wrapped.success).toBe(true);
@@ -147,7 +176,7 @@ describe('withInstanceRoutingSchema (MCP validateToolInput boundary)', () => {
 
   it('advertises instance in JSON Schema for tools/list', () => {
     const json = JSON.stringify(
-      withInstanceRoutingSchema(systemActionSchema).toJSONSchema(),
+      withInstanceRoutingSchema(flatDemoSchema).toJSONSchema(),
     );
     expect(json).toContain('instance');
   });

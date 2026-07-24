@@ -58,12 +58,24 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 </details>
 
+## Current Milestone: v3.1 Setup, Skills & DX
+
+**Goal:** Agent can guided-setup a new Coolify project, use IDE skills, and close DX gaps (schema UX, MCP prompts, OpenAPI coverage, deploy watch, npm release).
+
+**Target features:**
+- Setup wizard — `gh` preflight + Coolify wiring + **recipes** (not a forked template catalog)
+- IDE skills — Cursor, Claude Code, Codex
+- Richer tool descriptions — action catalogs (mitigate Cursor `oneOf` → "No parameters" UI)
+- MCP Prompts — deploy / diagnose / new-project / incident
+- Recipes + `service.list-types` — use Coolify's 200+ one-click catalog + build packs; link coolify-examples as hints only
+- OpenAPI coverage map — map official Coolify OpenAPI → MCP surface / gaps
+- Deploy watch — `deployment.watch` action + skill/prompt
+- Live npm publish — Release workflow, maintainer-triggered
+
 ## Next Milestone Goals
 
-- **v3.1:** Setup wizard (`gh` preflight + Coolify wiring) + IDE skills package
 - **v1.1:** SVC-04 service/DB logs when Coolify API available (v4.1.3+)
-- **Backlog:** Official Coolify OpenAPI spec integration / coverage mapping
-- **Maintainer:** Live `npm publish` of `awesome-coolify-mcp`
+- **Backlog:** Cross-instance fan-out (deferred); Cursor MCP icon render (client limitation)
 
 ## Requirements
 
@@ -94,15 +106,24 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Local Manifest & Sync — Phase 17 (MAN-01, MAN-02, MAN-03, MAN-04)
 - ✓ Live UAT CLI harness — Phase 18 (UAT-01..06)
 
-### Active (v3.1 — next)
+### Validated (v3.1)
 
-- [ ] Standard setup tool — gh preflight + Coolify wizard (SETUP-01..03)
-- [ ] Custom IDE skills — Cursor, Claude Code, Codex (SKILL-01..02)
+- ✓ Flat schemas + action catalogs + MCP prompts — Phase 19 (DX-01, DX-02, DX-DESC-*, PROMPT-01..04)
+
+### Active (v3.1)
+
+- [ ] Setup wizard — gh preflight + Coolify recipes (SETUP-*)
+- [ ] IDE skills — Cursor, Claude Code, Codex (SKILL-*)
+- [ ] Recipes + service.list-types (RECIPE-*)
+- [ ] OpenAPI coverage map (OAPI-*)
+- [ ] Deploy watch action + skill/prompt (WATCH-*)
+- [ ] Live npm publish via Release (PUB-*)
 
 ### Out of Scope
 
 - Service/DB bounded log tail — v1.1 (SVC-04, Coolify API gap)
-- Live npm publish — maintainer task
+- Own YAML/stack template catalog — Coolify one-click + coolify-examples are source of truth
+- Cursor MCP list icon rendering — client limitation (D-09); server icons already correct
 - Cross-instance fan-out queries — rate limits / security
 - Shared manifest committed to git — leak/merge risk
 - Execute Command in Container — API broken/fehlt in Coolify 4.1.x
@@ -152,10 +173,25 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 | Auto-hooks on app/service/DB mutations | Best-effort `_meta.manifestWarning` | ✓ Good — Phase 17 |
 | Hybrid live UAT (stdio + in-process) | Cover MCP wire + handler paths | ✓ Good — Phase 18 |
 | UAT harness not in npm tarball | Maintainer-only; D-02/D-03 | ✓ Good — Phase 18 |
+| v3.1: recipes over template forks | Coolify 200+ one-click + build packs; avoid stale YAML | Active — v3.1 |
+| v3.1: npm publish in-milestone | Release workflow, maintainer-triggered | Active — v3.1 |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-07-23 after v3.0 milestone*
+*Last updated: 2026-07-24 after Phase 19*

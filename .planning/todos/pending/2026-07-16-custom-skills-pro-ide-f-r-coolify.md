@@ -2,6 +2,7 @@
 created: 2026-07-16T20:10:00.718Z
 title: Custom Skills pro IDE für Coolify
 area: docs
+resolves_phase: 22
 files: []
 ---
 

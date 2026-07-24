@@ -21,7 +21,10 @@ gh api \
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": ["Lint, Test & Build", "MegaLinter"]
+    "checks": [
+      { "context": "Lint, Test & Build", "app_id": 15368 },
+      { "context": "MegaLinter", "app_id": 15368 }
+    ]
   },
   "enforce_admins": true,
   "required_pull_request_reviews": null,
