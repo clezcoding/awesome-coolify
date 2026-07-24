@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-23)
 
 ## Current Position
 
-Phase: Phase 19 (DX Schemas & MCP Prompts) — planned, not started
-Plan: Roadmap draft complete; awaiting `/gsd-plan-phase 19`
-Status: ROADMAP.md written with 5 phases covering 21/21 v3.1 requirements. STATE.md and REQUIREMENTS.md traceability updated.
-Last activity: 2026-07-24 — v3.1 roadmap created (Phases 19–23)
+Phase: Phase 19 (DX Schemas & MCP Prompts) — UI-SPEC drafted, awaiting checker/plan
+Plan: Context + UI-SPEC complete; next UI checker then `/gsd-plan-phase 19`
+Status: 19-UI-SPEC.md written for Cursor MCP text surface (catalogs, prompts, validation copy).
+Last activity: 2026-07-24 — Phase 19 UI design contract committed
 
 ## Performance Metrics
 
