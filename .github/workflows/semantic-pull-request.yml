@@ -9,6 +9,8 @@ permissions:
 
 jobs:
   validate:
+    # Skip bots: Changesets "Version Packages" + Dependabot titles are not conventional
+    if: ${{ !contains(fromJSON('["github-actions[bot]","dependabot[bot]"]'), github.event.pull_request.user.login) }}
     runs-on: ubuntu-latest
     steps:
       - name: Validate PR title
