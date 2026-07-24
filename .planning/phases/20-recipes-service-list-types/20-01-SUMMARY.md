@@ -87,7 +87,7 @@ Each task was committed atomically:
 1. **Task 1: fetchServiceTemplates helper + slim mapping** - `fca0bef` (feat)
 2. **Task 2: Wire list-types action into service tool** - `e61a2c4` (feat)
 
-**Plan metadata:** pending
+**Plan metadata:** `0ee142d` (docs: complete plan)
 
 ## Files Created/Modified
 
