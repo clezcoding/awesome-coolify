@@ -222,7 +222,12 @@ const envBulkEntrySchema = z
   .strict();
 
 export const databaseActionsCatalog =
-  'Actions: get(uuid?, name?) · start(uuid?) · stop(uuid?) · restart(uuid?) · create(engine, server_uuid) · update(uuid?) · delete(uuid?, confirm) · envs:* · backup:*';
+  'Actions: get(uuid?, name?) · start(uuid?) · stop(uuid?) · restart(uuid?) · create(engine, server_uuid) · update(uuid?) · ' +
+  'delete(uuid?, confirm) · delete_preview(uuid?, name?) · envs:list(uuid?) · envs:get(uuid?, env_uuid?, key?) · ' +
+  'envs:create(uuid?, key, value) · envs:update(uuid?, env_uuid?, key?, value) · envs:delete(uuid?, env_uuid, confirm) · ' +
+  'envs:bulk-update(uuid?, entries, confirm) · backup:create(uuid?, frequency) · backup:list(uuid?) · ' +
+  'backup:history(uuid?, scheduled_backup_uuid) · backup:update(uuid?, scheduled_backup_uuid) · ' +
+  'backup:delete(uuid?, scheduled_backup_uuid, confirm) · backup:now(uuid?, scheduled_backup_uuid)';
 
 export const databaseSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';

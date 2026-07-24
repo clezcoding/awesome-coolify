@@ -269,7 +269,7 @@ const SERVICE_UPDATE_CURATED_FIELD_KEYS = [
 ] as const;
 
 export const serviceActionsCatalog =
-  'Actions: get(uuid, format?, projection?, reveal?) · create(server_uuid, type?, compose?) · update(uuid) · delete(uuid, confirm) · start(uuid) · stop(uuid) · deploy(uuid) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, key, confirm) · envs:bulk-update(uuid, entries, confirm)';
+  'Actions: get(uuid, format?, projection?, reveal?) · create(server_uuid, type?, compose?) · update(uuid) · delete(uuid, confirm) · start(uuid) · stop(uuid) · deploy(uuid) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm)';
 
 export const serviceSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';

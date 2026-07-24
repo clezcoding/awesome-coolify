@@ -299,7 +299,11 @@ const envBulkEntrySchema = z
   .strict();
 
 export const applicationActionsCatalog =
-  'Actions: get(uuid, format?, projection?, reveal?) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid, force?) · logs(uuid, lines?) · envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · envs:delete(uuid, key, confirm) · envs:bulk-update(uuid, envs, confirm) · envs:sync(uuid, env_file?, env_content?, dry_run?, confirm?, conflict_policy?)';
+  'Actions: get(uuid, format?, projection?, reveal?) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid, force?) · ' +
+  'logs(uuid, lines?) · create(source_type, server_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · ' +
+  'envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · ' +
+  'envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm) · ' +
+  'envs:sync(uuid, env_file?, env_content?, dry_run?, confirm?, conflict_policy?)';
 
 export const applicationSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
