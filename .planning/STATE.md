@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-23)
 
 ## Current Position
 
-Phase: Phase 19 (DX Schemas & MCP Prompts) — UI-SPEC drafted, awaiting checker/plan
-Plan: Context + UI-SPEC complete; next UI checker then `/gsd-plan-phase 19`
-Status: 19-UI-SPEC.md written for Cursor MCP text surface (catalogs, prompts, validation copy).
-Last activity: 2026-07-24 — Phase 19 UI design contract committed
+Phase: Phase 19 (DX Schemas & MCP Prompts) — UI-SPEC approved
+Plan: Next `/gsd-plan-phase 19` (planner consumes UI-SPEC as design context)
+Status: 19-UI-SPEC.md approved — Cursor MCP text surface (flat schemas, catalogs, 4 prompts, validation copy).
+Last activity: 2026-07-24 — Phase 19 UI-SPEC approved
 
 ## Performance Metrics
 
