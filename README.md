@@ -40,6 +40,7 @@
   <a href="#-install">Install</a> ·
   <a href="#%EF%B8%8F-coolify-cloud">Cloud</a> ·
   <a href="#-tools-reference">Tools</a> ·
+  <a href="#-mcp-prompts">Prompts</a> ·
   <a href="#-safety-model">Safety</a> ·
   <a href="#-coming-soon">Roadmap</a>
 </p>
@@ -76,6 +77,7 @@
 - [Coolify Cloud](#%EF%B8%8F-coolify-cloud)
 - [Supported clients](#-supported-clients)
 - [Environment variables](#-environment-variables)
+- [MCP Prompts](#-mcp-prompts)
 - [Tools reference](#-tools-reference)
 - [Safety model](#-safety-model)
 - [Structured errors & retries](#-structured-errors--retries)
@@ -301,6 +303,21 @@ Credentials are read from the process environment (your IDE's MCP `env` block) o
 Run `instance({ action: "cloud-info" })` before your first Cloud session — it returns `isCloud`, resolved `url`, credential `source` (`registry` | `env` | `infer`), `knownLimits`, and a docs link. **No live API call.**
 
 Full setup, smoke test, and known limits → **[docs/en/cloud.md](docs/en/cloud.md)**
+
+---
+
+## 💬 MCP Prompts
+
+Four parameterized workflow prompts return numbered step guidance (English bodies) that orchestrate existing tools. All arguments are optional — open any prompt without prefill.
+
+| Prompt | Args (all optional) | Purpose |
+|--------|---------------------|---------|
+| `deploy` | `instance?`, `uuid?`, `force?` | Deploy an application and monitor until terminal status |
+| `diagnose` | `instance?`, `uuid?` | Investigate app, server, or fleet-wide issues |
+| `new-project` | `instance?`, `name?`, `server_uuid?` | Create project, environment, and optional server linkage |
+| `incident` | `instance?`, `uuid?`, `project_uuid?` | Triage with diagnose, logs, restart, or emergency redeploy |
+
+Prompt handlers never read `.coolify/manifest.json` from disk — they steer the agent to resolve UUIDs from manifest or ask the user.
 
 ---
 
