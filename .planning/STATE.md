@@ -5,10 +5,10 @@ milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: recipes-service-list-types
 status: verifying
-stopped_at: Completed 20-recipes-service-list-types-03-PLAN.md
-last_updated: "2026-07-24T06:28:07.136Z"
+stopped_at: Phase 20 verification gaps_found (13/14) — D-20 create-git-app manifest hint
+last_updated: "2026-07-24T06:34:20Z"
 last_activity: 2026-07-24
-last_activity_desc: Phase 20 execution started
+last_activity_desc: Phase 20 verification complete — gaps_found
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 20 (recipes-service-list-types) — EXECUTING
+Phase: 20 (recipes-service-list-types) — VERIFYING
 Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-07-24 — Phase 20 execution started
+Status: Verification gaps_found (13/14) — see 20-VERIFICATION.md
+Last activity: 2026-07-24 — Phase 20 verification complete
 
 ## Performance Metrics
 
