@@ -86,7 +86,7 @@ Each task was committed atomically:
 
 1. **Task 1: recipe.ts foundation — flat schema, catalog/footer, detectBuildPack, create-git-app handler** - `fa83600` (feat)
 
-**Plan metadata:** pending
+**Plan metadata:** `7545bf1` (docs: complete plan)
 
 ## Files Created/Modified
 
