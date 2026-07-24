@@ -69,7 +69,9 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   2. Agent can call every existing tool with parameters visible at the top-level schema shape while action routing still works
   3. User/agent invokes MCP prompt `deploy` and receives parameterized guidance covering deploy + watch flow
   4. User/agent invokes MCP prompts `diagnose`, `new-project`, and `incident` and each returns workflow guidance with the right arguments
-**Plans**: TBD
+**Plans**:
+- [ ] 19-01-PLAN.md — Flat schema helper + migrate all 17 domain tools to flat z.object + co-located actionsCatalog/safetyFooter constants
+- [ ] 19-02-PLAN.md — Compose tool descriptions from catalogs + ship MCP prompts registry (deploy/diagnose/new-project/incident) + tests + docs
 **UI hint**: yes
 
 ### Phase 20: Recipes & Service List-Types
