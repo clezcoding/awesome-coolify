@@ -396,6 +396,26 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 | `service` | `get`, `start`, `stop`, `restart`, `deploy`, `create` (one-click type XOR compose), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
 | `database` | `get`, `start`, `stop`, `restart`, `create` (8 engines), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `backup:create`, `backup:list`, `backup:update`, `backup:delete`, `backup:now`, `backup:history` |
 
+### 🍳 `recipe` — multi-resource orchestration
+
+One MCP call to stand up common workload patterns — application + database wiring, git apps, or validated one-click services.
+
+| Action | Purpose |
+|--------|---------|
+| `create-git-app` | Create a git-backed application with local `build_pack` detection (`Dockerfile` / `Dockerfile.*` glob) |
+| `create-app-db` | Create a database + application and wire `DATABASE_URL` (or custom `env_key`) between them |
+| `create-one-click` | Create a one-click service after validating `type` against the live service-templates catalog |
+
+**Safety:** Recipe creates are intentional — **no confirm gate**. No dry-run / preview. Partial failure does **not** auto-rollback; created UUIDs are returned in `error.data`. Connection strings are masked unless `reveal: true`.
+
+```js
+recipe({ action: "create-git-app", server_uuid, git_repository, git_branch, repo_path: "/path/to/repo" })
+recipe({ action: "create-app-db", server_uuid, app_name, db_name, db_engine: "postgresql" })
+recipe({ action: "create-one-click", server_uuid, type: "gitea" })
+```
+
+Also use `service.list-types` to discover valid one-click type IDs before `create-one-click`.
+
 ### 🌱 Resource environment variables (`envs:*`)
 
 Manage Coolify runtime configuration on applications, services, and databases through `envs:*` actions on the existing domain tools — no separate env MCP tool.

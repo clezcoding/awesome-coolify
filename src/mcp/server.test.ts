@@ -13,6 +13,7 @@ import { databaseActionSchema, databaseActionsCatalog } from './tools/database.j
 import { docsActionSchema } from './tools/docs.js';
 import { diagnoseToolSchema } from './tools/diagnose.js';
 import { deploymentToolSchema } from './tools/deployment.js';
+import { recipeActionSchema } from './tools/recipe.js';
 import { toolOutputSchema } from './server.js';
 
 describe('toolOutputSchema', () => {
@@ -57,7 +58,7 @@ describe('MCP server tool registration', () => {
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(16);
+    expect(matches.length).toBe(17);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
@@ -76,9 +77,10 @@ describe('MCP server tool registration', () => {
     expect(source).toContain("registerTool(\n    'project'");
     expect(source).toContain("registerTool(\n    'environment'");
     expect(source).toContain("registerTool(\n    'docs'");
+    expect(source).toContain("registerTool(\n    'recipe'");
   });
 
-  it('wraps 12 routed tool inputSchemas with withInstanceRoutingSchema (MCP boundary)', () => {
+  it('wraps 13 routed tool inputSchemas with withInstanceRoutingSchema (MCP boundary)', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
@@ -99,6 +101,7 @@ describe('MCP server tool registration', () => {
       'serverActionSchema',
       'projectActionSchema',
       'environmentActionSchema',
+      'recipeActionSchema',
     ];
     for (const schema of routed) {
       expect(source).toContain(`withInstanceRoutingSchema(${schema})`);
@@ -137,6 +140,9 @@ describe('MCP server tool registration', () => {
     expect(
       deploymentToolSchema.safeParse({ action: 'invalid' }).success,
     ).toBe(false);
+    expect(recipeActionSchema.safeParse({ action: 'invalid' }).success).toBe(
+      false,
+    );
   });
 
   it('deployment tool has openWorldHint without readOnlyHint per D-05', () => {
@@ -252,6 +258,7 @@ describe('MCP server tool registration', () => {
       'project',
       'environment',
       'docs',
+      'recipe',
     ];
     expect(Object.keys(registered).sort()).toEqual(expectedTools.sort());
     for (const name of expectedTools) {

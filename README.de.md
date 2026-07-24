@@ -396,6 +396,26 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `service` | `get`, `start`, `stop`, `restart`, `deploy`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
 | `database` | `get`, `start`, `stop`, `restart`, `create` (8 Engines), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `backup:create`, `backup:list`, `backup:update`, `backup:delete`, `backup:now`, `backup:history` |
 
+### 🍳 `recipe` — Multi-Ressourcen-Orchestrierung
+
+Ein MCP-Call für häufige Workload-Muster — App+DB-Verdrahtung, Git-Apps oder validierte One-Click-Services.
+
+| Action | Zweck |
+|--------|-------|
+| `create-git-app` | Git-Application mit lokaler `build_pack`-Erkennung (`Dockerfile` / `Dockerfile.*`-Glob) |
+| `create-app-db` | Datenbank + Application erstellen und `DATABASE_URL` (oder `env_key`) verdrahten |
+| `create-one-click` | One-Click-Service nach Validierung von `type` gegen live service-templates |
+
+**Safety:** Recipe-Creates sind intentional — **kein Confirm-Gate**. Kein Dry-Run / Preview. Teilfehler **ohne** Auto-Rollback; erzeugte UUIDs in `error.data`. Connection Strings maskiert, außer `reveal: true`.
+
+```js
+recipe({ action: "create-git-app", server_uuid, git_repository, git_branch, repo_path: "/path/to/repo" })
+recipe({ action: "create-app-db", server_uuid, app_name, db_name, db_engine: "postgresql" })
+recipe({ action: "create-one-click", server_uuid, type: "gitea" })
+```
+
+Nutze `service.list-types`, um gültige One-Click-Type-IDs vor `create-one-click` zu laden.
+
 ### 🌱 Ressourcen-Umgebungsvariablen (`envs:*`)
 
 Coolify-Laufzeitkonfiguration auf Applications, Services und Datenbanken über `envs:*`-Actions auf den bestehenden Domain-Tools — kein separates Env-MCP-Tool.

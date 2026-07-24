@@ -116,6 +116,13 @@ import {
   emergencyActionsCatalog,
   emergencySafetyFooter,
 } from './tools/emergency.js';
+import {
+  handleRecipeAction,
+  isRecipeErrorResult,
+  recipeActionSchema,
+  recipeActionsCatalog,
+  recipeSafetyFooter,
+} from './tools/recipe.js';
 import { registerCoolifyPrompts } from './prompts.js';
 
 function isInfrastructureOverviewResult(
@@ -695,6 +702,40 @@ export function registerCoolifyTools(
     },
     async (args) => {
       const result = await handleDocsAction(args);
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'recipe',
+    {
+      description: composeToolDescription(
+        'Multi-resource orchestration recipes & dynamic provisioning.',
+        recipeActionsCatalog,
+        recipeSafetyFooter,
+      ),
+      inputSchema: withInstanceRoutingSchema(recipeActionSchema),
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleRecipeAction(args, env);
+      if (isRecipeErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
       return {
         content: [{ type: 'text', text: result._formattedText }],
         structuredContent: {
