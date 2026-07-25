@@ -114,7 +114,7 @@ Checked locally via a git hook (`commitlint`) before the commit is even created.
 ## Pull Requests
 
 - Use the PR template (auto-filled).
-- If the change is release-relevant (feature, fix, breaking change): run `npx changeset` and commit the generated file. This drives the version bump and changelog automatically.
+- Routine GSD phase ships do **not** add Changesets by default — npm publish is milestone-scoped. For hotfixes or out-of-band releases, use `./scripts/gsd-ship-post.sh <pr> --with-changeset` or run `npx changeset` manually.
 - CI (lint, test, build) must be green before merging.
 
 ### Auto-merge (Kodiak)
@@ -127,6 +127,16 @@ This repo uses [Kodiak](https://kodiakhq.com/) to update PR branches and squash-
 
 Config lives in `.kodiak.toml`. One-time app install + verification: `./scripts/setup-kodiak.sh`. Kodiak will **not** merge PRs with blocking labels such as `status: needs-review` or `gsd: plan`.
 
+### Milestone npm release
+
+npm publish is intentional and milestone-scoped — not every phase merge triggers a release.
+
+1. **During the milestone:** merge phase PRs without Changesets. Default `./scripts/gsd-ship-post.sh <pr>` applies labels + `automerge` only (no Version Packages churn).
+2. **At milestone close:** on a release PR or dedicated chore branch, create fragment(s) via `npx changeset`, `./scripts/gsd-ship-post.sh <pr-number> --with-changeset`, or `scripts/gsd-ensure-changeset.sh`.
+3. Merge that PR to `main` → the Changesets action opens **Version Packages**.
+4. Merge **Version Packages** → `.github/workflows/release.yml` publishes to npm via OIDC (unchanged in this repo).
+5. Prefer one accumulated release at milestone close over leaving Version Packages open for weeks.
+
 ## Issues
 
 - Bug: use the bug report template.
@@ -137,13 +147,19 @@ Config lives in `.kodiak.toml`. One-time app install + verification: `./scripts/
 
 Labels are managed centrally in `.github/labels.yml` and synced automatically — please don't create labels manually in the UI, edit the file and push instead.
 
-PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/workflows/pr-labels.yml` (`scripts/gsd-pr-labels.sh --mode ci`). Labels cover type, GSD phase, diff size, scope (from changed paths), and release checks (`needs-changeset`).
+PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/workflows/pr-labels.yml` (`scripts/gsd-pr-labels.sh --mode ci`). Labels cover type, GSD phase, diff size, scope (from changed paths), and release checks (`needs-changeset` may appear from `--mode ci` until ship clears it).
 
-After `/gsd-ship` opens a phase PR, **`./scripts/gsd-ship-post.sh <pr>` runs automatically** (GSD `ship.md` step + Cursor `afterShellExecution` hook + always-on rule). It:
-1. Creates a Changeset under `.changeset/` when the PR is release-relevant and none exists
-2. Commits + pushes the changeset
-3. Applies ship labels (`gsd: ship`, `type:*`, `size:*`, `scope:*`, `status: ready-to-merge`) and clears `needs-changeset` when a changeset is present
-4. Sets the **`automerge`** label for Kodiak — merge still waits for required checks (`Lint, Test & Build`, `MegaLinter`) and will not proceed while blocking labels are present
+After `/gsd-ship` opens a phase PR, **`./scripts/gsd-ship-post.sh <pr>` runs automatically** (GSD `ship.md` step + Cursor `afterShellExecution` hook + always-on rule). By default it:
+1. Applies ship labels (`gsd: ship`, `type:*`, `size:*`, `scope:*`, `status: ready-to-merge`) and clears `needs-changeset`
+2. Sets the **`automerge`** label for Kodiak — merge still waits for required checks (`Lint, Test & Build`, `MegaLinter`) and will not proceed while blocking labels are present
+
+For hotfix / out-of-band releases that need an immediate changeset:
+
+```bash
+./scripts/gsd-ship-post.sh <n> --with-changeset
+```
+
+That opt-in path creates a Changeset under `.changeset/`, commits + pushes it, then applies ship labels.
 
 Manual / preview: `./scripts/gsd-ship-post.sh <n> --dry-run` (alias: `./scripts/gsd-ship-labels.sh`).  
 Opt out of automerge: `./scripts/gsd-pr-labels.sh --pr <n> --mode ship --no-automerge`.
