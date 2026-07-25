@@ -329,6 +329,7 @@ Last activity: 2026-07-25
 | 260721-70k | CI/CD speed audit + Kodiak autodeploy activation | 2026-07-21 | 0d5fbb5 | [260721-70k-die-github-prs-dauern-teils-mehrere-minu](./quick/260721-70k-die-github-prs-dauern-teils-mehrere-minu/) |
 | 260723-w1r | v3.0 docs overhaul + repo metadata; npm via Release | 2026-07-23 | c5aa0cd | [260723-w1r-overhaul-all-public-docs-to-v3-0-platfor](./quick/260723-w1r-overhaul-all-public-docs-to-v3-0-platfor/) |
 | 260724-86t | Install recommended next GitHub tools (CODEOWNERS, CodeQL, dependency review, stale, semantic PR) | 2026-07-24 | 5405dc2 | [260724-86t-install-all-recommended-next-from-260724](./quick/260724-86t-install-all-recommended-next-from-260724/) |
+| 260725-8la | Phase 20 review leftovers: recipe Object.hasOwn, deploy.status, allowlist, README 17 tools | 2026-07-25 | 4aed33b | [260725-8la-phase-20-review-leftovers-1-object-hasow](./quick/260725-8la-phase-20-review-leftovers-1-object-hasow/) |
 
 ## Deferred Items
 
