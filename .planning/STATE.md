@@ -4,11 +4,11 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: recipes-service-list-types
-status: paused
-stopped_at: Phase 20 paused — gaps_found D-20; resume /gsd-resume-work
-last_updated: "2026-07-24T06:36:28.634Z"
-last_activity: 2026-07-24
-last_activity_desc: Paused — handoff written (.continue-here.md)
+status: resumed
+stopped_at: Phase 20 UI-SPEC approved
+last_updated: "2026-07-25T03:04:03.721Z"
+last_activity: 2026-07-25
+last_activity_desc: Session resumed from handoff
 progress:
   total_phases: 5
   completed_phases: 2
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 20 (recipes-service-list-types) — PAUSED
+Phase: 20 (recipes-service-list-types) — RESUMED
 Plan: 4 of 4 (executed); verification gaps_found 13/14
-Status: Paused — see .continue-here.md + HANDOFF.json
-Last activity: 2026-07-24 — Pause handoff written
+Status: Resumed — gap closure next (see .continue-here.md)
+Last activity: 2026-07-25 — Session resumed from handoff
 
 ## Performance Metrics
 
@@ -357,11 +357,11 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-24T06:28:07.128Z
-**Stopped at:** Completed 20-recipes-service-list-types-03-PLAN.md
-**Resume file:** None
+**Last session:** 2026-07-25T03:04:03.712Z
+**Stopped at:** Phase 20 UI-SPEC approved
+**Resume file:** .planning/phases/20-recipes-service-list-types/20-UI-SPEC.md
 
-Last activity: 2026-07-24 — Phase 19 UI design contract (Cursor MCP surface)
+Last activity: 2026-07-25 — `/gsd-resume-work` session entry
 
 ## Operator Next Steps
 
