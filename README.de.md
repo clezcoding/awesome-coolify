@@ -26,7 +26,7 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.14-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 22.14" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
-  <img src="https://img.shields.io/badge/MCP-16%20Tools%20·%20~87%20Actions-181818?style=flat-square" alt="16 Domänen-Tools, ~87 Actions" />
+  <img src="https://img.shields.io/badge/MCP-17%20Tools%20·%20~91%20Actions-181818?style=flat-square" alt="17 Domänen-Tools, ~91 Actions" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/Lizenz-MIT-fcd34d?style=flat-square" alt="MIT Lizenz" /></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-6b16ed?style=flat-square" alt="PRs willkommen" /></a>
 </p>
@@ -113,7 +113,7 @@ Unter der Haube läuft jeder Call durch dieselbe Pipeline: Zod-validierte Eingab
 | Typisches Setup ohne awesome-coolify-mcp | Mit awesome-coolify-mcp |
 |--------------------------------------------|--------------------------|
 | Mehrere überlappende Community-MCP-Tools, jedes mit eigenem Schema | **Ein Server, ein konsistentes Schema** |
-| Dutzende granulare Einzeltools pro Ressource | **16 Domänen-Tools** × `action`-Discriminator (~87 Actions insgesamt) |
+| Dutzende granulare Einzeltools pro Ressource | **17 Domänen-Tools** × `action`-Discriminator (~91 Actions insgesamt) |
 | Ad-hoc Fehlermeldungen, die der Agent selbst deuten muss | Strukturierte Codes (`COOLIFY_401`, `COOLIFY_404`, …) + maschinenlesbare Recovery-Hints |
 | Secrets können direkt im Agent-Kontext landen | Default-Maskierung + Confirm-Gates auf destruktiven Actions |
 | Rohes JSON durchwühlen, um zu sehen, was sich geändert hat | Begrenzte, paginierte Projektionen, abgestimmt auf LLM-Context-Fenster |
@@ -298,7 +298,7 @@ Credentials werden aus der Prozess-Umgebung gelesen (dem `env`-Block deiner IDE-
 
 ## ☁️ Coolify Cloud
 
-**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben 16 Tools — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
+**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben 17 Tools — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
 
 Rufe `instance({ action: "cloud-info" })` vor deiner ersten Cloud-Session auf — liefert `isCloud`, aufgelöste `url`, Credential-`source` (`registry` | `env` | `infer`), `knownLimits` und Docs-Link. **Kein Live-API-Call.**
 
@@ -671,7 +671,7 @@ system({ action: "verify" })
 
 ## ✅ Status heute
 
-Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4.1.x-Instanzen eingesetzt — **16 Tools, ~87 Actions**:
+Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4.1.x-Instanzen eingesetzt — **17 Tools, ~91 Actions**:
 
 | Fähigkeit | Status |
 |-----------|--------|

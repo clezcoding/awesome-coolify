@@ -118,7 +118,7 @@ describe('recipe create-git-app', () => {
 
   it('detects dockerfile when repo_path has Dockerfile', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(statSync).mockImplementation((p) => {
       if (String(p) === path.join(repoPath, 'Dockerfile')) {
         return { isFile: () => true } as ReturnType<typeof statSync>;
@@ -139,7 +139,7 @@ describe('recipe create-git-app', () => {
 
   it('detects dockerfile when repo_path has Dockerfile.prod (Dockerfile.* glob, D-10 full)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(readdirSync).mockReturnValue(['Dockerfile.prod']);
     vi.mocked(statSync).mockImplementation((p) => {
       if (String(p) === path.join(repoPath, 'Dockerfile.prod')) {
@@ -161,7 +161,7 @@ describe('recipe create-git-app', () => {
 
   it('detects dockerfile when repo_path has Dockerfile.dev (D-10 full)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(readdirSync).mockReturnValue(['Dockerfile.dev']);
     vi.mocked(statSync).mockImplementation((p) => {
       if (String(p) === path.join(repoPath, 'Dockerfile.dev')) {
@@ -183,7 +183,7 @@ describe('recipe create-git-app', () => {
 
   it('defaults to nixpacks when repo_path has no Dockerfile or Dockerfile.* match', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(readdirSync).mockReturnValue(['package.json', 'README.md']);
     vi.mocked(statSync).mockImplementation(() => {
       throw new Error('ENOENT');
@@ -202,7 +202,7 @@ describe('recipe create-git-app', () => {
 
   it('build_pack override wins over detection', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(statSync).mockImplementation((p) => {
       if (String(p) === path.join(repoPath, 'Dockerfile')) {
         return { isFile: () => true } as ReturnType<typeof statSync>;
@@ -275,7 +275,7 @@ describe('recipe create-git-app', () => {
 
   it('calls createPublicApplication with detected build_pack + git_repository + git_branch', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(statSync).mockImplementation((p) => {
       if (String(p) === path.join(repoPath, 'Dockerfile')) {
         return { isFile: () => true } as ReturnType<typeof statSync>;
@@ -300,7 +300,7 @@ describe('recipe create-git-app', () => {
 
   it('instant_deploy default true triggers deploy (D-16)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(statSync).mockImplementation((p) => {
       if (String(p) === path.join(repoPath, 'Dockerfile')) {
         return { isFile: () => true } as ReturnType<typeof statSync>;
@@ -322,7 +322,7 @@ describe('recipe create-git-app', () => {
 
   it('no confirm gate on create (D-17)', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
-    const repoPath = '/tmp/my-repo';
+    const repoPath = path.join(process.cwd(), 'my-repo');
     vi.mocked(statSync).mockImplementation((p) => {
       if (String(p) === path.join(repoPath, 'Dockerfile')) {
         return { isFile: () => true } as ReturnType<typeof statSync>;
@@ -337,6 +337,64 @@ describe('recipe create-git-app', () => {
 
     expect(result.structuredContent?.error?.code).not.toBe('COOLIFY_CONFIRM_REQUIRED');
     expect(createPublicApplication).toHaveBeenCalled();
+  });
+
+  it('rejects repo_path outside allowlisted cwd root', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(
+      { ...baseGitAppArgs, repo_path: '/etc/evil-repo' },
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.message).toMatch(/escapes allowlisted root/i);
+    expect(createPublicApplication).not.toHaveBeenCalled();
+  });
+
+  it('returns deploy.status not_triggered when instant_deploy:false', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+    const repoPath = path.join(process.cwd(), 'my-repo');
+    vi.mocked(statSync).mockImplementation((p) => {
+      if (String(p) === path.join(repoPath, 'Dockerfile')) {
+        return { isFile: () => true } as ReturnType<typeof statSync>;
+      }
+      throw new Error('ENOENT');
+    });
+
+    const result = await handleRecipeAction(
+      { ...baseGitAppArgs, repo_path: repoPath, instant_deploy: false },
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(result.data.deploy).toEqual({ status: 'not_triggered' });
+    expect(triggerDeploy).not.toHaveBeenCalled();
+  });
+
+  it('soft-ignores triggerDeploy failure after successful create (parity with create-app-db, D-16)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+    const repoPath = path.join(process.cwd(), 'my-repo');
+    vi.mocked(statSync).mockImplementation((p) => {
+      if (String(p) === path.join(repoPath, 'Dockerfile')) {
+        return { isFile: () => true } as ReturnType<typeof statSync>;
+      }
+      throw new Error('ENOENT');
+    });
+    vi.mocked(triggerDeploy).mockRejectedValue(new Error('deploy queue failed'));
+
+    const result = await handleRecipeAction({ ...baseGitAppArgs, repo_path: repoPath }, testEnv);
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(result.data.application_uuid).toBe('app-new-uuid');
+    expect(result.data.deploy).toEqual({ status: 'not_triggered' });
   });
 });
 
@@ -552,6 +610,7 @@ describe('recipe create-app-db', () => {
     expect(isRecipeErrorResult(result)).toBe(false);
     if (isRecipeErrorResult(result)) return;
 
+    expect(result.data.deploy).toEqual({ status: 'not_triggered' });
     expect(triggerDatabaseStart).not.toHaveBeenCalled();
     expect(triggerDeploy).not.toHaveBeenCalled();
   });
@@ -659,6 +718,35 @@ describe('recipe create-one-click', () => {
       expect.objectContaining({ instant_deploy: true }),
       testEnv.COOLIFY_VERIFY_SSL,
     );
+  });
+
+  it('returns deploy.status not_triggered when instant_deploy:false', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(
+      { ...baseOneClickArgs, instant_deploy: false },
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    expect(result.data.deploy).toEqual({ status: 'not_triggered' });
+  });
+
+  it('Object.hasOwn rejects prototype-inherited type (no __proto__ lookup)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(
+      { ...baseOneClickArgs, type: 'toString' },
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(createService).not.toHaveBeenCalled();
   });
 
   it('no confirm gate (D-17)', async () => {
