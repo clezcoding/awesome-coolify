@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
-status: planning
+status: "Phase 20 shipped — PR #59"
 stopped_at: Completed 20-recipes-service-list-types-04-PLAN.md
-last_updated: "2026-07-25T03:45:00Z"
+last_updated: "2026-07-25T03:52:01.742Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 20 UAT complete (13/13 pass) + SECURITY.md verified
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 8
   completed_plans: 8
   percent: 40
+last_activity_desc: Phase 20 UAT complete (13/13 pass) + SECURITY.md verified
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 21 — Deploy Watch
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-25 — Phase 20 complete, transitioned to Phase 21
+Status: Phase 20 shipped — PR #59
+Last activity: 2026-07-25
 
 ## Performance Metrics
 
