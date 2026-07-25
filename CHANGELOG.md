@@ -1,5 +1,12 @@
 # awesome-coolify-mcp
 
+## 0.4.1
+
+### Patch Changes
+
+- 40ab6c6: fix release tagging: create and push `v*` tags + GitHub Releases from `changeset:emit-tag` (pnpm workspace broke changesets/action `name@version` push).
+- 75311d9: Bump transitive build tooling to latest stable: direct `postcss@^8.5.23` (Dependabot GHSA-r28c-9q8g-f849) and tighten `fast-uri` override to `>=4.1.1` (already latest; parent ajv still on ^3).
+
 ## 0.4.0
 
 ### Minor Changes
