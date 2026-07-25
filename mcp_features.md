@@ -93,10 +93,12 @@ Coolify API-Version referenziert: **4.1.x**
 ## 8. Cloud Provider Integration
 
 ### Cloud Tokens
+
 - list, get, create, update, delete, validate
 - Provider: Hetzner, DigitalOcean
 
 ### Hetzner-spezifisch
+
 - Locations listen
 - Server-Types listen
 - Images listen
@@ -119,6 +121,7 @@ Coolify API-Version referenziert: **4.1.x**
 ## 10. Applications — Lifecycle
 
 ### Lesen
+
 - Apps listen (summary oder full)
 - App Details (get)
 - App Runtime-Logs (limitiert / follow)
@@ -128,6 +131,7 @@ Coolify API-Version referenziert: **4.1.x**
 - Deployment canceln
 
 ### Erstellen (Build-Pack Varianten)
+
 - Public Git Repo (nixpacks / dockerfile / dockercompose)
 - Private Git Repo via Deploy Key
 - Private Git Repo via GitHub App
@@ -137,6 +141,7 @@ Coolify API-Version referenziert: **4.1.x**
 - Generic Application Create
 
 ### Konfiguration (Create & Update)
+
 - Name, Description, FQDN, Domains
 - Project + Environment (name oder UUID)
 - Server + Destination UUID
@@ -154,12 +159,14 @@ Coolify API-Version referenziert: **4.1.x**
 - HTTP Basic Auth (enable, user, password)
 
 ### Health Checks
+
 - Enable/Disable
 - Path, Port, Host, Method, Scheme
 - Expected Return Code, Response Text Match
 - Interval, Timeout, Retries, Start Period
 
 ### Steuerung
+
 - Start, Stop, Restart
 - Deploy (per UUID, Name, Tag, Batch)
 - Deploy mit Force Rebuild (no cache)
@@ -168,6 +175,7 @@ Coolify API-Version referenziert: **4.1.x**
 - Preview Deployment löschen (per pull_request_id)
 
 ### Löschen
+
 - App delete (optional confirm)
 - Preview delete
 - Volumes mit löschen (`delete_volumes`)
@@ -195,22 +203,26 @@ Coolify API-Version referenziert: **4.1.x**
 ## 13. One-Click Services
 
 ### Lesen
+
 - Services: list, get
 - Service Logs
 - Service Env Vars: list, get, create, update, delete, bulk
 
 ### Lifecycle
+
 - Service create (one-click type)
 - Service update, delete
 - Start, Stop, Restart
 - Restart mit Pull Latest Images
 
 ### Konfiguration
+
 - Custom Docker Compose YAML (raw, auto base64)
 - Name, Description, Project, Environment, Server
 - Service Env Vars (preview, literal, multiline)
 
 ### Storage
+
 - Service Storages: list, create, update, delete
 
 ---
@@ -218,27 +230,33 @@ Coolify API-Version referenziert: **4.1.x**
 ## 14. Databases
 
 ### Typen
+
 postgresql, mysql, mariadb, mongodb, redis, clickhouse, dragonfly, keydb
 
 ### Lesen
+
 - Databases: list, get
 - Database Logs
 
 ### Lifecycle
+
 - Create (mit instant_deploy, is_public, public_port, custom image)
 - Update
 - Delete (optional delete_volumes)
 - Start, Stop, Restart
 
 ### Konfiguration
+
 - Name, Description, Server, Project, Environment, Destination
 - Postgres User/Password (bei Create)
 - Public Access + Public Port
 
 ### Env Vars
+
 - Database Env: list, create, update, delete, bulk
 
 ### Storage
+
 - Database Storages: list, create, update, delete
 
 ---
@@ -303,6 +321,7 @@ postgresql, mysql, mariadb, mongodb, redis, clickhouse, dragonfly, keydb
 ## 21. Wünschenswerte Features (fehlen komplett oder nur teilweise)
 
 ### Agent & DX
+
 - Einheitliches Tool-Schema (action-basiert statt 60+ Einzeltools)
 - Automatische Payload-Größen-Warnung vor Tool-Call
 - Structured Error Codes (401 vs 404 vs 422 vs 500) mit Recovery-Hints
@@ -311,6 +330,7 @@ postgresql, mysql, mariadb, mongodb, redis, clickhouse, dragonfly, keydb
 - Audit Log / „who changed what“ aus Coolify API
 
 ### Observability
+
 - Metrics/Sentinel-Daten abfragen (CPU, RAM, Disk pro Server)
 - Traefik/Proxy Status + Version + outdated warning
 - Container-Liste pro App (nicht nur Coolify-Status)
@@ -319,6 +339,7 @@ postgresql, mysql, mariadb, mongodb, redis, clickhouse, dragonfly, keydb
 - Sentry/Log-drain Konfiguration lesen/setzen
 
 ### Networking & Security
+
 - SSL/TLS Certificate Status per Domain
 - Firewall-Regel Management
 - IP Allowlist für DB Public Access
@@ -326,6 +347,7 @@ postgresql, mysql, mariadb, mongodb, redis, clickhouse, dragonfly, keydb
 - Secrets Manager Integration (Vault, 1Password) statt inline env
 
 ### CI/CD
+
 - Webhook URL + Secret pro App ausgeben
 - PR Preview automatisch listen (nicht nur delete)
 - Rollback zu vorherigem Deployment
@@ -334,23 +356,27 @@ postgresql, mysql, mariadb, mongodb, redis, clickhouse, dragonfly, keydb
 - GHCR/Docker Hub Registry Credential Management
 
 ### Multi-Tenancy & Access
+
 - Team Member add/remove/invite (nur list existiert in CLI)
 - RBAC: wer darf deployen/restarten
 - Per-Project API Tokens
 
 ### Daten & Storage
+
 - Volume Snapshot / Restore
 - S3-Backup Destination konfigurieren
 - Database Connection String export (internal vs public, masked)
 - Cross-server Database Migration Helper
 
 ### Infrastructure as Code
+
 - Export Project/App als Coolify-kompatibles JSON/YAML
 - Import / Restore from Backup
 - Drift Detection (API state vs. git-tracked config)
 - Terraform/Pulumi Provider Wrapper
 
 ### Cloud & Server
+
 - DigitalOcean Server Create (nur Token-Management existiert)
 - Server Metrics History (Sentinel 7-day)
 - Auto-scaling Hooks
@@ -358,18 +384,21 @@ postgresql, mysql, mariadb, mongodb, redis, clickhouse, dragonfly, keydb
 - Swarm/Cluster Node Management
 
 ### Documentation & Discovery
+
 - OpenAPI Schema introspection
 - Interactive „what should I run?“ Planner (natural language → action)
 - Changelog / Breaking Changes per Coolify Version
 - Example Recipes (Next.js + Postgres + Redis Stack)
 
 ### Reliability
+
 - Retry mit Exponential Backoff für transient API errors
 - Deployment Queue Depth / Position
 - Concurrent Build Limit lesen/setzen
 - Maintenance Mode per App (traffic drain)
 
 ### Container Runtime
+
 - Exec into Container (wenn API kommt)
 - File Upload/Download in Container
 - Port-Forward / Tunnel für Debug
