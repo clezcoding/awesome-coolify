@@ -81,8 +81,9 @@ describe('pollDeploymentWithBackoff', () => {
 
       const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
+      // Short timeout so the poll promise resolves (no dangling fake-timer work).
       const resultPromise = pollDeploymentWithBackoff(fetcher, {
-        timeoutMs: 120000,
+        timeoutMs: 66000,
         minIntervalMs: 3000,
         maxIntervalMs: 30000,
         random,
@@ -91,7 +92,7 @@ describe('pollDeploymentWithBackoff', () => {
       await vi.advanceTimersByTimeAsync(3000);
       await vi.advanceTimersByTimeAsync(30000);
       await vi.advanceTimersByTimeAsync(30000);
-      void resultPromise;
+      await vi.advanceTimersByTimeAsync(3000);
 
       const delays = setTimeoutSpy.mock.calls
         .map((call) => call[1] as number | undefined)
@@ -105,6 +106,9 @@ describe('pollDeploymentWithBackoff', () => {
       if (delays.length >= 2) {
         expect(delays[1]!).toBeGreaterThanOrEqual(delays[0]!);
       }
+
+      const outcome = await resultPromise;
+      expect(outcome.kind).toBe('timeout');
 
       setTimeoutSpy.mockRestore();
     },
@@ -164,13 +168,14 @@ describe('pollDeploymentWithBackoff', () => {
 
     const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
+    // Short timeout so the poll promise resolves after delay assertions.
     const resultPromise = pollDeploymentWithBackoff(fetcher, {
-      timeoutMs: 120000,
+      timeoutMs: 6000,
       random: () => 0.5,
     });
 
     await vi.advanceTimersByTimeAsync(3000);
-    void resultPromise;
+    await vi.advanceTimersByTimeAsync(3000);
 
     const delays = setTimeoutSpy.mock.calls
       .map((call) => call[1] as number | undefined)
@@ -179,6 +184,9 @@ describe('pollDeploymentWithBackoff', () => {
     expect(delays.length).toBeGreaterThan(0);
     expect(delays[0]).toBeGreaterThanOrEqual(3000);
     expect(delays[0]).toBeLessThanOrEqual(30000);
+
+    const outcome = await resultPromise;
+    expect(outcome.kind).toBe('timeout');
 
     setTimeoutSpy.mockRestore();
   });
