@@ -298,7 +298,7 @@ Credentials werden aus der Prozess-Umgebung gelesen (dem `env`-Block deiner IDE-
 
 ## ☁️ Coolify Cloud
 
-**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben 16 Tools — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
+**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben 17 Tools — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
 
 Rufe `instance({ action: "cloud-info" })` vor deiner ersten Cloud-Session auf — liefert `isCloud`, aufgelöste `url`, Credential-`source` (`registry` | `env` | `infer`), `knownLimits` und Docs-Link. **Kein Live-API-Call.**
 
@@ -671,7 +671,7 @@ system({ action: "verify" })
 
 ## ✅ Status heute
 
-Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4.1.x-Instanzen eingesetzt — **16 Tools, ~87 Actions**:
+Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4.1.x-Instanzen eingesetzt — **17 Tools, ~91 Actions**:
 
 | Fähigkeit | Status |
 |-----------|--------|
