@@ -5,7 +5,7 @@ milestone_name: Setup, Skills & DX
 current_phase: 22
 current_phase_name: Setup Wizard & IDE Skills
 status: planning
-stopped_at: Completed 21-deploy-watch-04-PLAN.md
+stopped_at: Phase 21 UAT + secure-phase complete
 last_updated: "2026-07-25T08:19:09Z"
 last_activity: 2026-07-25
 last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
@@ -383,7 +383,7 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 **Stopped at:** Phase 21 UAT + secure-phase complete; Phase 22 ready to plan
 **Resume file:** None
 
-Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
+Last activity: 2026-07-25 — Phase 21 UAT 15/15 pass; SECURITY.md verified (threats_open: 0)
 
 ## Operator Next Steps
 
