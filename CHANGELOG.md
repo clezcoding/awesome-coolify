@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.4.5
+
+### Patch Changes
+
+- a6f6347: Inline OIDC npm publish in release.yml (single Trusted Publisher — npm allows only one workflow).
+
 ## 0.4.4
 
 ### Patch Changes
