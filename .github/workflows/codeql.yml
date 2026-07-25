@@ -1,10 +1,26 @@
 name: CodeQL
 
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/codeql.yml'
+      - '.github/codeql/**'
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/codeql.yml'
+      - '.github/codeql/**'
   schedule:
     - cron: '17 3 * * 2'
 
