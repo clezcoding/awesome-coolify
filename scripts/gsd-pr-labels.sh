@@ -323,10 +323,13 @@ for file in "${CHANGED_FILES[@]}"; do
 done
 
 if [[ "$release_relevant" -eq 1 ]]; then
-  if [[ "$has_changeset" -eq 0 ]]; then
-    NEEDS_CHANGESET="add"
-  else
+  if [[ "$has_changeset" -eq 1 ]]; then
     NEEDS_CHANGESET="remove"
+  elif has_label "automerge" || has_label "gsd: ship"; then
+    # Milestone-only: phase ships skip changesets; do not re-add blocker after ship/ci sync
+    NEEDS_CHANGESET="remove"
+  else
+    NEEDS_CHANGESET="add"
   fi
 fi
 

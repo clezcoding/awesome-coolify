@@ -147,7 +147,7 @@ npm publish is intentional and milestone-scoped — not every phase merge trigge
 
 Labels are managed centrally in `.github/labels.yml` and synced automatically — please don't create labels manually in the UI, edit the file and push instead.
 
-PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/workflows/pr-labels.yml` (`scripts/gsd-pr-labels.sh --mode ci`). Labels cover type, GSD phase, diff size, scope (from changed paths), and release checks (`needs-changeset` may appear from `--mode ci` until ship clears it).
+PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/workflows/pr-labels.yml` (`scripts/gsd-pr-labels.sh --mode ci`). Labels cover type, GSD phase, diff size, scope (from changed paths). `needs-changeset` is advisory only (not a Kodiak blocker); ship/automerge PRs will not keep that label.
 
 After `/gsd-ship` opens a phase PR, **`./scripts/gsd-ship-post.sh <pr>` runs automatically** (GSD `ship.md` step + Cursor `afterShellExecution` hook + always-on rule). By default it:
 1. Applies ship labels (`gsd: ship`, `type:*`, `size:*`, `scope:*`, `status: ready-to-merge`) and clears `needs-changeset`
