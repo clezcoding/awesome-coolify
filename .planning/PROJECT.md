@@ -8,17 +8,19 @@ Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Clou
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.1 in progress — Phase 20 complete 2026-07-25)
+## Current State (v3.1 in progress — Phase 21 complete 2026-07-25)
 
 | Metric | Value |
 |--------|-------|
 | Package | `awesome-coolify-mcp` v0.2.0 |
 | Tools / Actions | 17 / ~90 |
 | TypeScript LOC | ~35.6k (`src/`) |
-| Milestone | v3.1 Setup, Skills & DX — Phase 20 done; next Phase 21 |
+| Milestone | v3.1 Setup, Skills & DX — Phase 21 done; next Phase 22 |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | npm publish-ready; GitHub Pages `docs/install.html` |
 | Live UAT | `npm run uat:live` harness shipped (Phase 18) |
+
+**Phase 21 complete:** `deployment.watch` with backoff/jitter, bounded timeout sleep clamp, dual-signal errors, deploy-prompt + README Watch docs (WATCH-01/02).
 
 **Phase 20 complete:** Dynamic `service.list-types` + `recipe` tool (`create-git-app`, `create-app-db`, `create-one-click`) from Coolify catalog — no forked YAML.
 
@@ -112,13 +114,13 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 - ✓ Flat schemas + action catalogs + MCP prompts — Phase 19 (DX-01, DX-02, DX-DESC-*, PROMPT-01..04)
 - ✓ Recipes + service.list-types — Phase 20 (RECIPE-01..04)
+- ✓ Deploy watch — Phase 21 (WATCH-01, WATCH-02). Validated in Phase 21: Deploy Watch
 
 ### Active (v3.1)
 
 - [ ] Setup wizard — gh preflight + Coolify recipes (SETUP-*)
 - [ ] IDE skills — Cursor, Claude Code, Codex (SKILL-*)
 - [ ] OpenAPI coverage map (OAPI-*)
-- [ ] Deploy watch action + skill/prompt (WATCH-*)
 - [ ] Live npm publish via Release (PUB-*)
 
 ### Out of Scope
@@ -196,4 +198,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-25 after Phase 20*
+*Last updated: 2026-07-25 after Phase 21*

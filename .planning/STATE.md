@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 21
-current_phase_name: deploy-watch
-status: executing
+current_phase: 22
+current_phase_name: Setup Wizard & IDE Skills
+status: planning
 stopped_at: Completed 21-deploy-watch-04-PLAN.md
-last_updated: "2026-07-25T07:24:18.144Z"
+last_updated: "2026-07-25T07:29:57.532Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 21 execution started
+last_activity_desc: Phase 21 complete, transitioned to Phase 22
 progress:
   total_phases: 5
   completed_phases: 3
@@ -28,16 +28,16 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 ## Current Position
 
-Phase: 21 (deploy-watch) — EXECUTING
-Plan: 2 of 5
-Status: Ready to execute
-Last activity: 2026-07-25 — Phase 21 execution started
+Phase: 22 — Setup Wizard & IDE Skills
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-25 — Phase 21 complete, transitioned to Phase 22
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 87
+- Total plans completed: 92
 - Average duration: —
 - Total execution time: —
 
@@ -62,6 +62,7 @@ Last activity: 2026-07-25 — Phase 21 execution started
 | 17 | 4 | - | - |
 | 19 | 3 | - | - |
 | 20 | 5 | - | - |
+| 21 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
