@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.4.2
+
+### Patch Changes
+
+- d2fa416: Promote release-drafter drafts to published releases in emit-tag (drafts were blocking v\* publish).
+
 ## 0.4.1
 
 ### Patch Changes
