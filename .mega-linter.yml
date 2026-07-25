@@ -17,4 +17,5 @@ DISABLE_ERRORS: false
 SHOW_ELAPSED_TIME: true
 REPORT_STYLE: console
 GITHUB_STATUS_FILTER: true
+SECURITY_SUGGESTIONS: false
 FILTER_REGEX_EXCLUDE: (\.planning/|dist/|graphify-out/|node_modules/|megalinter-reports/)

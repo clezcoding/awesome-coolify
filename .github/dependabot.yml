@@ -13,9 +13,9 @@ updates:
       # Hold TS 6/7 until explicit migration — stay on TS 5.x
       - dependency-name: "typescript"
         versions: ["6.x", "7.x"]
-      # @types/node major must match engines.node (>=22.14) — not future Node majors
+      # @types/node major must match engines.node (>=24) — not future Node majors
       - dependency-name: "@types/node"
-        versions: [">=23"]
+        versions: [">=25"]
     commit-message:
       prefix: "chore"
       include: "scope"
