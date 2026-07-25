@@ -99,7 +99,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   3. Agent runs recipe `app+db` end-to-end: creates application + database and wires `DATABASE_URL` (or equivalent) env between them
   4. Agent runs recipe `one-click`: creates a service from a type returned by `list-types` on the target instance
 
-**Plans**: 4/4 plans executed
+**Plans**: 5 plans (4 executed + 1 gap_closure pending)
 
 Plans:
 **Wave 1**
@@ -114,6 +114,10 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 20-03-PLAN.md — Wave 3 create-app-db wiring (RECIPE-03) + recipe tool registration in server.ts + README docs
+
+**Wave 4** *(gap_closure — blocked on Wave 3)*
+
+- [ ] 20-04-PLAN.md — Gap D-20 / truth #14: append MANIFEST_HINT on create-git-app Zod + CoolifyApiError paths + recipe.test.ts D-20 assertion
 
 **UI hint**: yes
 
