@@ -42,12 +42,88 @@ function tagExistsLocal(name) {
   }
 }
 
-function releaseExists(name) {
+/** Published (non-draft) release only — release-drafter drafts must not block. */
+function publishedReleaseExists(name) {
   try {
-    execFileSync("gh", ["release", "view", name], { stdio: "pipe" });
-    return true;
+    const json = execFileSync(
+      "gh",
+      ["release", "view", name, "--json", "isDraft"],
+      { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
+    );
+    const { isDraft } = JSON.parse(json);
+    return isDraft === false;
   } catch {
     return false;
+  }
+}
+
+function publishOrCreateRelease(name, notes) {
+  // Promote an existing draft (release-drafter) instead of skipping.
+  try {
+    const json = execFileSync(
+      "gh",
+      ["release", "view", name, "--json", "isDraft,id"],
+      { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
+    );
+    const { isDraft } = JSON.parse(json);
+    if (isDraft) {
+      const args = ["release", "edit", name, "--draft=false", "--latest"];
+      if (notes) {
+        const dir = mkdtempSync(join(tmpdir(), "changeset-release-"));
+        const notesPath = join(dir, "notes.md");
+        try {
+          writeFileSync(notesPath, notes, "utf8");
+          execFileSync("gh", [...args, "--notes-file", notesPath], {
+            stdio: "inherit",
+          });
+        } finally {
+          rmSync(dir, { recursive: true, force: true });
+        }
+      } else {
+        execFileSync("gh", args, { stdio: "inherit" });
+      }
+      return;
+    }
+  } catch {
+    // No release yet — create below.
+  }
+
+  if (notes) {
+    const dir = mkdtempSync(join(tmpdir(), "changeset-release-"));
+    const notesPath = join(dir, "notes.md");
+    try {
+      writeFileSync(notesPath, notes, "utf8");
+      execFileSync(
+        "gh",
+        [
+          "release",
+          "create",
+          name,
+          "--title",
+          name,
+          "--notes-file",
+          notesPath,
+          "--verify-tag",
+        ],
+        { stdio: "inherit" },
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  } else {
+    execFileSync(
+      "gh",
+      [
+        "release",
+        "create",
+        name,
+        "--title",
+        name,
+        "--generate-notes",
+        "--verify-tag",
+      ],
+      { stdio: "inherit" },
+    );
   }
 }
 
@@ -73,47 +149,10 @@ execFileSync("git", ["push", "origin", `refs/tags/${tag}`], {
   stdio: "inherit",
 });
 
-if (!releaseExists(tag)) {
-  const notes = changelogNotes(pkg.version);
-  if (notes) {
-    const dir = mkdtempSync(join(tmpdir(), "changeset-release-"));
-    const notesPath = join(dir, "notes.md");
-    try {
-      writeFileSync(notesPath, notes, "utf8");
-      execFileSync(
-        "gh",
-        [
-          "release",
-          "create",
-          tag,
-          "--title",
-          tag,
-          "--notes-file",
-          notesPath,
-          "--verify-tag",
-        ],
-        { stdio: "inherit" },
-      );
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  } else {
-    execFileSync(
-      "gh",
-      [
-        "release",
-        "create",
-        tag,
-        "--title",
-        tag,
-        "--generate-notes",
-        "--verify-tag",
-      ],
-      { stdio: "inherit" },
-    );
-  }
+if (publishedReleaseExists(tag)) {
+  console.error(`Release ${tag} already published — skip create`);
 } else {
-  console.error(`Release ${tag} already exists — skip create`);
+  publishOrCreateRelease(tag, changelogNotes(pkg.version));
 }
 
 // Keep action logs/outputs useful; createGithubReleases must stay false.
