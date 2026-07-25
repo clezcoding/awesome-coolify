@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
-status: executing
-stopped_at: Completed 21-deploy-watch-02-PLAN.md
-last_updated: "2026-07-25T06:28:18.556Z"
+status: verifying
+stopped_at: Completed 21-deploy-watch-03-PLAN.md
+last_updated: "2026-07-25T06:30:53.144Z"
 last_activity: 2026-07-25
 last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 11
-  percent: 40
+  completed_plans: 12
+  percent: 60
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 21 (Deploy Watch) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-25 — Phase 21 execution started
 
 ## Performance Metrics
@@ -115,6 +115,7 @@ Last activity: 2026-07-25 — Phase 21 execution started
 | Phase 21-deploy-watch P00 | 3min | 3 tasks | 3 files |
 | Phase 21-deploy-watch P01 | 3min | 2 tasks | 4 files |
 | Phase 21-deploy-watch P02 | 4min | 2 tasks | 5 files |
+| Phase 21-deploy-watch P03 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -313,6 +314,7 @@ Last activity: 2026-07-25 — Phase 21 execution started
 - [Phase ?]: Watch timeout test uses fake timers with min_interval 1 — schema min timeout 10s
 - [Phase ?]: zodDefaultFields on createFlatActionSchema strips phantom watch defaults on list/get/cancel
 - [Phase ?]: Recursive redactEnvelopeData preserves nested deployment summary in error.data
+- [Phase ?]: Deploy prompt + README document watch-primary flow; wait:true legacy; D-16 Phase 22 SKILL note without skill pack files
 
 ### Pending Todos
 
@@ -373,8 +375,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T06:28:18.548Z
-**Stopped at:** Completed 21-deploy-watch-02-PLAN.md
+**Last session:** 2026-07-25T06:30:53.136Z
+**Stopped at:** Completed 21-deploy-watch-03-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main

@@ -132,7 +132,7 @@ Plans:
   2. Polling uses exponential backoff with jitter and a minimum interval — no 429 storms against Coolify during long builds
   3. Skill and/or prompt documents `deployment.watch` usage including non-blocking behavior, timeout, and recovery guidance
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -146,7 +146,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 21-03-PLAN.md — deploy prompt + README EN/DE Watch docs
+- [x] 21-03-PLAN.md — deploy prompt + README EN/DE Watch docs
 
 ### Phase 22: Setup Wizard & IDE Skills
 
@@ -191,7 +191,7 @@ Plans:
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
-| 21 | v3.1 | 3/4 | In Progress|  |
+| 21 | v3.1 | 4/4 | In Progress|  |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
 
