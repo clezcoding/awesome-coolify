@@ -5,8 +5,8 @@ milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
 status: executing
-stopped_at: Completed 21-deploy-watch-00-PLAN.md
-last_updated: "2026-07-25T06:19:17.316Z"
+stopped_at: Completed 21-deploy-watch-01-PLAN.md
+last_updated: "2026-07-25T06:23:03.180Z"
 last_activity: 2026-07-25
 last_activity_desc: Phase 21 execution started
 progress:
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 21 (Deploy Watch) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-25 — Phase 21 execution started
 
@@ -113,6 +113,7 @@ Last activity: 2026-07-25 — Phase 21 execution started
 | Phase 20-recipes-service-list-types P03 | 4min | 2 tasks | 7 files |
 | Phase 20-recipes-service-list-types P04 | 2min | 2 tasks | 2 files |
 | Phase 21-deploy-watch P00 | 3min | 3 tasks | 3 files |
+| Phase 21-deploy-watch P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -306,6 +307,8 @@ Last activity: 2026-07-25 — Phase 21 execution started
 - [Phase ?]: D-20 test uses omit-repo_path Zod path matching D-11 probe
 - [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 21 — flip to it in 21-01..21-03
 - [Phase ?]: Schema-reject scaffolds assert refine messages not unrecognized-key errors
+- [Phase ?]: Watch-only pollDeploymentWithBackoff imports TERMINAL_DEPLOYMENT_STATES; timeout outcome never synthesizes status:timeout (21-01)
+- [Phase ?]: toStructuredError attaches data.retry_after ms from Retry-After header on HTTP 429 (21-01)
 
 ### Pending Todos
 
@@ -366,8 +369,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T06:19:17.308Z
-**Stopped at:** Completed 21-deploy-watch-00-PLAN.md
+**Last session:** 2026-07-25T06:23:03.172Z
+**Stopped at:** Completed 21-deploy-watch-01-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
