@@ -1,53 +1,60 @@
 ---
 phase: 21-deploy-watch
-fixed_at: 2026-07-25T07:39:30Z
+fixed_at: 2026-07-25T07:46:40Z
 review_path: .planning/phases/21-deploy-watch/21-REVIEW.md
 iteration: 1
-findings_in_scope: 4
-fixed: 4
+findings_in_scope: 5
+fixed: 5
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 21: Code Review Fix Report
 
-**Fixed at:** 2026-07-25T07:39:30Z
-**Source review:** `.planning/phases/21-deploy-watch/21-REVIEW.md`
+**Fixed at:** 2026-07-25T07:46:40Z  
+**Source review:** `.planning/phases/21-deploy-watch/21-REVIEW.md`  
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 4
-- Fixed: 4
+- Findings in scope: 5
+- Fixed: 5
 - Skipped: 0
 
 ## Fixed Issues
 
-### WR-01: Nested ofetch 429 retries ignore Retry-After before watch backoff
+### WR-01: HTTP-date 429 test can leak fake timers
 
-**Files modified:** `src/api/client.ts`, `src/mcp/tools/deployment.ts`
-**Commit:** d00068c
-**Applied fix:** Extended `fetchDeployment` with optional `{ retry?: false | number }` and passed `{ retry: false }` from the watch poller so the first 429 reaches `isRetryableRateLimit` / D-08 Retry-After instead of nested ofetch backoff.
+**Files modified:** `src/utils/errors.test.ts`  
+**Commit:** d4a635a  
+**Applied fix:** Wrapped `vi.useFakeTimers()` / `vi.setSystemTime` / expects in `try/finally` with `vi.useRealTimers()` so assertion failures cannot leak fake timers into later tests.
 
-### WR-02: HTTP 429 still classified as `COOLIFY_500`
+### IN-01: All-429 timeout yields empty deployment snapshot
 
-**Files modified:** `src/utils/errors.ts`, `src/utils/errors.test.ts`
-**Commit:** 321fba9
-**Applied fix:** Added `COOLIFY_429` to `CoolifyErrorCode`, `RECOVERY_HINTS`, and `statusToCode`; updated 429 tests to expect the new code and rate-limit hints.
+**Files modified:** `src/utils/deploy-watch-poll.ts`, `src/utils/deploy-watch-poll.test.ts`, `src/mcp/tools/deployment.ts`  
+**Commit:** a31531a  
+**Applied fix:** Track `hadSuccessfulFetch`; timeout outcomes set `noSuccessfulFetch: true` when every `fetcher()` call failed. Watch handler message notes `no successful fetch` and error data includes `no_successful_fetch: true`. Added regression test for all-429 timeout.  
+**Commit status:** fixed: requires human verification (logic/edge-case path)
 
-### WR-03: Watch timeout test can leak fake timers
+### IN-02: Poll helper tests leave long-running promises unresolved
 
-**Files modified:** `src/mcp/tools/deployment.test.ts`
-**Commit:** 4e71395
-**Applied fix:** Wrapped the `COOLIFY_WATCH_TIMEOUT` fake-timer test body in `try/finally` with `vi.useRealTimers()` in `finally`.
+**Files modified:** `src/utils/deploy-watch-poll.test.ts`  
+**Commit:** 2377498  
+**Applied fix:** Lowered `timeoutMs` on Equal Jitter and defaults cases; advance timers past timeout and `await` the poll promise so fake-timer teardown has no dangling work.
 
-### WR-04: FAILED/CANCELLED recovery hints mislead agents to `include_logs` on watch
+### IN-03: Deploy prompt says “cancelled” vs API status `cancelled-by-user`
 
-**Files modified:** `src/utils/errors.ts`, `src/utils/errors.test.ts`
-**Commit:** f498991
-**Applied fix:** Updated `COOLIFY_DEPLOYMENT_FAILED` / `COOLIFY_DEPLOYMENT_CANCELLED` hints to point only at `deployment.get` with `projection: full`; tightened tests to reject watch/`include_logs` alternatives.
+**Files modified:** `src/mcp/prompts.ts`  
+**Commit:** c21acda  
+**Applied fix:** Prompt terminal wording now uses `` `cancelled-by-user` `` to match `TERMINAL_DEPLOYMENT_STATES` / `COOLIFY_DEPLOYMENT_CANCELLED`.
+
+### IN-04: No regression assertion for watch `{ retry: false }`
+
+**Files modified:** `src/mcp/tools/deployment.test.ts`  
+**Commit:** fdfddb5  
+**Applied fix:** Watch success path asserts `fetchDeployment` fifth arg `{ retry: false }` so nested ofetch 429 retries cannot regress silently.
 
 ---
 
-_Fixed: 2026-07-25T07:39:30Z_
-_Fixer: Claude (gsd-code-fixer)_
+_Fixed: 2026-07-25T07:46:40Z_  
+_Fixer: Claude (gsd-code-fixer)_  
 _Iteration: 1_
