@@ -9,7 +9,7 @@ describe('pollDeploymentWithBackoff', () => {
     vi.useRealTimers();
   });
 
-  it.fails('exits with terminal outcome when fetcher returns finished', async () => {
+  it('exits with terminal outcome when fetcher returns finished', async () => {
     const { pollDeploymentWithBackoff } = await import('./deploy-watch-poll.js');
 
     const fetcher = vi
@@ -35,7 +35,7 @@ describe('pollDeploymentWithBackoff', () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
-  it.fails(
+  it(
     'returns timeout outcome without synthesizing status timeout on deployment',
     async () => {
       const { pollDeploymentWithBackoff } = await import('./deploy-watch-poll.js');
@@ -50,6 +50,7 @@ describe('pollDeploymentWithBackoff', () => {
         timeoutMs: 6000,
         minIntervalMs: 3000,
         maxIntervalMs: 30000,
+        random: () => 0,
       });
 
       await vi.advanceTimersByTimeAsync(3000);
@@ -64,7 +65,7 @@ describe('pollDeploymentWithBackoff', () => {
     },
   );
 
-  it.fails(
+  it(
     'keeps Equal Jitter delays within [minIntervalMs, maxIntervalMs] with injectable random',
     async () => {
       const { pollDeploymentWithBackoff } = await import('./deploy-watch-poll.js');
@@ -109,7 +110,7 @@ describe('pollDeploymentWithBackoff', () => {
     },
   );
 
-  it.fails('continues polling after 429 with Retry-After instead of hard abort', async () => {
+  it('continues polling after 429 with Retry-After instead of hard abort', async () => {
     const { pollDeploymentWithBackoff } = await import('./deploy-watch-poll.js');
 
     const rateLimitError = Object.assign(new Error('Too Many Requests'), {
@@ -139,10 +140,11 @@ describe('pollDeploymentWithBackoff', () => {
       timeoutMs: 60000,
       minIntervalMs: 3000,
       maxIntervalMs: 30000,
+      random: () => 0,
       isRetryableRateLimit,
     });
 
-    await vi.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(3000);
     await vi.advanceTimersByTimeAsync(3000);
 
     const outcome = await resultPromise;
@@ -152,7 +154,7 @@ describe('pollDeploymentWithBackoff', () => {
     expect(fetcher).toHaveBeenCalledTimes(3);
   });
 
-  it.fails('defaults minIntervalMs to 3000 and maxIntervalMs to 30000 when omitted', async () => {
+  it('defaults minIntervalMs to 3000 and maxIntervalMs to 30000 when omitted', async () => {
     const { pollDeploymentWithBackoff } = await import('./deploy-watch-poll.js');
 
     const fetcher = vi.fn().mockResolvedValue({
