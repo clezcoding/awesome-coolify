@@ -12,6 +12,7 @@ vi.mock('../../api/client.js', () => ({
   fetchProjects: vi.fn(),
   fetchProject: vi.fn(),
   fetchEnvironments: vi.fn(),
+  fetchVersion: vi.fn(),
   triggerServiceStart: vi.fn(),
   triggerServiceStop: vi.fn(),
   triggerServiceRestart: vi.fn(),
@@ -23,6 +24,10 @@ vi.mock('../../api/client.js', () => ({
   updateEnvViaBulk: vi.fn(),
   bulkUpdateEnvs: vi.fn(),
   deleteEnv: vi.fn(),
+}));
+
+vi.mock('ofetch', () => ({
+  ofetch: vi.fn(),
 }));
 
 vi.mock('../../utils/manifest.js', () => ({
@@ -47,6 +52,7 @@ import {
   fetchProjects,
   fetchProject,
   fetchEnvironments,
+  fetchVersion,
   triggerServiceRestart,
   triggerServiceStart,
   triggerServiceStop,
@@ -59,6 +65,7 @@ import {
   bulkUpdateEnvs,
   deleteEnv,
 } from '../../api/client.js';
+import { ofetch } from 'ofetch';
 import {
   closeSync,
   fstatSync,
@@ -1457,5 +1464,123 @@ describe('service envs:bulk-update', () => {
 
     expect(isServiceErrorResult(result)).toBe(false);
     expect(bulkUpdateEnvs).toHaveBeenCalled();
+  });
+});
+
+describe('service list-types', () => {
+  const rawTemplates = {
+    zebra: {
+      name: 'Zebra Service',
+      compose: 'services:\n  zebra:\n    image: zebra',
+      category: 'tools',
+    },
+    alpha: { name: 'Alpha Service', template: 'full-payload' },
+  };
+
+  beforeEach(() => {
+    vi.mocked(ofetch).mockReset();
+    vi.mocked(fetchVersion).mockReset();
+    vi.mocked(fetchVersion).mockResolvedValue({ version: '4.1.2' });
+  });
+
+  it('returns slim mapped templates from CDN success', async () => {
+    vi.mocked(ofetch).mockResolvedValueOnce(rawTemplates);
+
+    const result = await handleServiceAction({ action: 'list-types' }, testEnv);
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toEqual([
+      { id: 'alpha', label: 'Alpha Service' },
+      { id: 'zebra', label: 'Zebra Service' },
+    ]);
+    expect(String(vi.mocked(ofetch).mock.calls[0]?.[0])).toContain(
+      'cdn.jsdelivr.net',
+    );
+  });
+
+  it('returns slim mapped templates from GitHub Raw fallback', async () => {
+    vi.mocked(ofetch)
+      .mockRejectedValueOnce(new Error('CDN unavailable'))
+      .mockResolvedValueOnce(rawTemplates);
+
+    const result = await handleServiceAction({ action: 'list-types' }, testEnv);
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect(result.data).toEqual([
+      { id: 'alpha', label: 'Alpha Service' },
+      { id: 'zebra', label: 'Zebra Service' },
+    ]);
+    expect(String(vi.mocked(ofetch).mock.calls[1]?.[0])).toContain(
+      'raw.githubusercontent.com',
+    );
+  });
+
+  it('returns COOLIFY_FETCH_TEMPLATES_FAILED on double failure', async () => {
+    vi.mocked(ofetch)
+      .mockRejectedValueOnce(new Error('CDN unavailable'))
+      .mockRejectedValueOnce(new Error('GitHub unavailable'));
+
+    const result = await handleServiceAction({ action: 'list-types' }, testEnv);
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_FETCH_TEMPLATES_FAILED',
+    );
+  });
+
+  it('returns COOLIFY_FETCH_TEMPLATES_FAILED on empty object response', async () => {
+    vi.mocked(ofetch).mockResolvedValueOnce({});
+
+    const result = await handleServiceAction({ action: 'list-types' }, testEnv);
+
+    expect(isServiceErrorResult(result)).toBe(true);
+    if (!isServiceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_FETCH_TEMPLATES_FAILED',
+    );
+  });
+
+  it('returns only id and label fields in slim response', async () => {
+    vi.mocked(ofetch).mockResolvedValueOnce(rawTemplates);
+
+    const result = await handleServiceAction({ action: 'list-types' }, testEnv);
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    const rows = result.data as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(Object.keys(row).sort()).toEqual(['id', 'label']);
+      expect(row).not.toHaveProperty('compose');
+      expect(row).not.toHaveProperty('template');
+      expect(row).not.toHaveProperty('category');
+    }
+  });
+
+  it('returns stable sort by id regardless of CDN JSON order', async () => {
+    vi.mocked(ofetch).mockResolvedValueOnce({
+      zebra: { name: 'Zebra Service' },
+      alpha: { name: 'Alpha Service' },
+      mike: { name: 'Mike Service' },
+    });
+
+    const result = await handleServiceAction({ action: 'list-types' }, testEnv);
+
+    expect(isServiceErrorResult(result)).toBe(false);
+    if (isServiceErrorResult(result)) return;
+
+    expect((result.data as Array<{ id: string }>).map((row) => row.id)).toEqual([
+      'alpha',
+      'mike',
+      'zebra',
+    ]);
   });
 });

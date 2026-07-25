@@ -53,7 +53,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 ### 📋 v3.1 Setup, Skills & DX (Planned)
 
 - [x] **Phase 19: DX Schemas & MCP Prompts** - Flat tool schemas + action catalogs + prompts registry (deploy/diagnose/new-project/incident) (completed 2026-07-24)
-- [ ] **Phase 20: Recipes & Service List-Types** - Dynamic `service.list-types` + recipes (git-app, app+db, one-click) from Coolify catalog
+- [x] **Phase 20: Recipes & Service List-Types** - Dynamic `service.list-types` + recipes (git-app, app+db, one-click) from Coolify catalog (completed 2026-07-25)
 - [ ] **Phase 21: Deploy Watch** - Non-blocking `deployment.watch` action with backoff/timeout + skill/prompt docs
 - [ ] **Phase 22: Setup Wizard & IDE Skills** - Headless-safe `gh` preflight + Coolify wiring wizard + Cursor/Claude Code/Codex skill packs
 - [ ] **Phase 23: OpenAPI Coverage & npm Release** - Coverage map (Coolify OpenAPI → MCP surface/gaps) + maintainer OIDC Release publish
@@ -99,7 +99,27 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
   3. Agent runs recipe `app+db` end-to-end: creates application + database and wires `DATABASE_URL` (or equivalent) env between them
   4. Agent runs recipe `one-click`: creates a service from a type returned by `list-types` on the target instance
 
-**Plans**: TBD
+**Plans**: 5/5 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 20-00-PLAN.md — Wave 0 RED scaffolds for recipe.test.ts (create-git-app, create-app-db, create-one-click) via dynamic import + it.fails husky pattern
+- [x] 20-01-PLAN.md — Wave 1 service.list-types (RECIPE-01): fetchServiceTemplates helper (CDN + GitHub Raw fallback, version pin, hard error) + slim { id, label }[] response
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 20-02-PLAN.md — Wave 2 recipe tool foundation (RECIPE-02, RECIPE-04): create-git-app with build_pack detection + create-one-click with type validation against list-types; create-app-db stubs to COOLIFY_NOT_IMPLEMENTED
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 20-03-PLAN.md — Wave 3 create-app-db wiring (RECIPE-03) + recipe tool registration in server.ts + README docs
+
+**Wave 4** *(gap_closure — blocked on Wave 3)*
+
+- [x] 20-04-PLAN.md — Gap D-20 / truth #14: append MANIFEST_HINT on create-git-app Zod + CoolifyApiError paths + recipe.test.ts D-20 assertion
+
+**UI hint**: yes
 
 ### Phase 21: Deploy Watch
 
@@ -156,13 +176,13 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
-| 20 | v3.1 | 0/? | Not started | - |
+| 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
 
-**Next:** `/gsd-execute-phase 19` — execute DX Schemas & MCP Prompts
+**Next:** `/gsd-plan-phase 21` — Deploy Watch
 
 ---
 
-*Last updated: 2026-07-24 — v3.1 Setup, Skills & DX roadmap created*
+*Last updated: 2026-07-25 — Phase 20 complete; Phase 21 next*

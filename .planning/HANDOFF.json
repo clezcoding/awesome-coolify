@@ -1,0 +1,95 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-24T06:36:28.634Z",
+  "phase": "20",
+  "phase_name": "recipes-service-list-types",
+  "phase_dir": ".planning/phases/20-recipes-service-list-types",
+  "plan": 4,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "paused_at": "verification_gaps_found",
+  "verification": {
+    "status": "gaps_found",
+    "score": "13/14",
+    "file": ".planning/phases/20-recipes-service-list-types/20-VERIFICATION.md",
+    "next_command": "/gsd-plan-phase 20 --gaps"
+  },
+  "completed_tasks": [
+    {
+      "id": "20-00",
+      "name": "Wave 0 RED scaffolds (recipe.test.ts)",
+      "status": "done",
+      "commit": "d049ac6"
+    },
+    {
+      "id": "20-01",
+      "name": "service.list-types + fetchServiceTemplates",
+      "status": "done",
+      "commit": "e61a2c4"
+    },
+    {
+      "id": "20-02",
+      "name": "recipe create-git-app + create-one-click",
+      "status": "done",
+      "commit": "fa83600"
+    },
+    {
+      "id": "20-03",
+      "name": "create-app-db + register recipe tool + README",
+      "status": "done",
+      "commit": "2b7ed89"
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": "gap-D-20",
+      "name": "Append MANIFEST_HINT to create-git-app error paths + test",
+      "status": "not_started",
+      "source": "20-VERIFICATION.md"
+    },
+    {
+      "id": "re-verify",
+      "name": "Re-run verification after gap closure; then phase.complete",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Verification gaps_found (13/14) — D-20 soft manifest hint missing on create-git-app errors. Phase must NOT be marked complete until gap closed + re-verified.",
+      "type": "technical",
+      "workaround": "/gsd-plan-phase 20 --gaps then /gsd-execute-phase 20 --gaps-only"
+    }
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "USE_WORKTREES=false → sequential executors on phase branch gsd/phase-20-recipes-service-list-types",
+      "rationale": "Project config workflow.use_worktrees=false",
+      "phase": "20"
+    },
+    {
+      "decision": "create-app-db stubbed in 20-02 with COOLIFY_NOT_IMPLEMENTED; full handler in 20-03",
+      "rationale": "Plan split RECIPE-02/04 vs RECIPE-03",
+      "phase": "20"
+    },
+    {
+      "decision": "No local YAML catalog — dynamic jsDelivr/GitHub service-templates.json",
+      "rationale": "D-01/D-03 CONTEXT",
+      "phase": "20"
+    }
+  ],
+  "uncommitted_files": [],
+  "branch": "gsd/phase-20-recipes-service-list-types",
+  "code_review": {
+    "file": ".planning/phases/20-recipes-service-list-types/20-REVIEW.md",
+    "status": "issues_found",
+    "critical": 0,
+    "warning": 6,
+    "info": 3,
+    "optional_fix": "/gsd-code-review 20 --fix"
+  },
+  "next_action": "Run /gsd-plan-phase 20 --gaps to create gap_closure plan for D-20 MANIFEST_HINT on create-git-app errors, then /gsd-execute-phase 20 --gaps-only",
+  "context_notes": "All 4 plans executed and committed. 1020 tests green. Goal RECIPE-01..04 largely met. Only D-20 create-git-app error-path soft manifest hint blocks clean verification. Advisory code-review warnings (prototype `in` check, deploy.status, repo_path allowlist) not blocking phase completion. response_language=German for user-facing GSD output."
+}

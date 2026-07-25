@@ -8,17 +8,19 @@ Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Clou
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.0 shipped 2026-07-23)
+## Current State (v3.1 in progress — Phase 20 complete 2026-07-25)
 
 | Metric | Value |
 |--------|-------|
 | Package | `awesome-coolify-mcp` v0.2.0 |
-| Tools / Actions | 16 / ~87 |
+| Tools / Actions | 17 / ~90 |
 | TypeScript LOC | ~35.6k (`src/`) |
-| Milestone | ✅ v3.0 Platform Foundation shipped |
+| Milestone | v3.1 Setup, Skills & DX — Phase 20 done; next Phase 21 |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | npm publish-ready; GitHub Pages `docs/install.html` |
 | Live UAT | `npm run uat:live` harness shipped (Phase 18) |
+
+**Phase 20 complete:** Dynamic `service.list-types` + `recipe` tool (`create-git-app`, `create-app-db`, `create-one-click`) from Coolify catalog — no forked YAML.
 
 **v3.0 shipped:** Multi-instance registry + routing, Coolify Cloud error/branding path, `.coolify/manifest.json` sync + auto-hooks, live UAT CLI harness.
 
@@ -109,12 +111,12 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 ### Validated (v3.1)
 
 - ✓ Flat schemas + action catalogs + MCP prompts — Phase 19 (DX-01, DX-02, DX-DESC-*, PROMPT-01..04)
+- ✓ Recipes + service.list-types — Phase 20 (RECIPE-01..04)
 
 ### Active (v3.1)
 
 - [ ] Setup wizard — gh preflight + Coolify recipes (SETUP-*)
 - [ ] IDE skills — Cursor, Claude Code, Codex (SKILL-*)
-- [ ] Recipes + service.list-types (RECIPE-*)
 - [ ] OpenAPI coverage map (OAPI-*)
 - [ ] Deploy watch action + skill/prompt (WATCH-*)
 - [ ] Live npm publish via Release (PUB-*)
@@ -173,7 +175,7 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 | Auto-hooks on app/service/DB mutations | Best-effort `_meta.manifestWarning` | ✓ Good — Phase 17 |
 | Hybrid live UAT (stdio + in-process) | Cover MCP wire + handler paths | ✓ Good — Phase 18 |
 | UAT harness not in npm tarball | Maintainer-only; D-02/D-03 | ✓ Good — Phase 18 |
-| v3.1: recipes over template forks | Coolify 200+ one-click + build packs; avoid stale YAML | Active — v3.1 |
+| v3.1: recipes over template forks | Coolify 200+ one-click + build packs; avoid stale YAML | ✓ Good — Phase 20 |
 | v3.1: npm publish in-milestone | Release workflow, maintainer-triggered | Active — v3.1 |
 
 ## Evolution
@@ -194,4 +196,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-24 after Phase 19*
+*Last updated: 2026-07-25 after Phase 20*

@@ -2,42 +2,42 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 20
-current_phase_name: Recipes & Service List-Types
-status: "Phase 19 shipped — PR #47"
-stopped_at: Completed 19-03-PLAN.md
-last_updated: "2026-07-24T02:35:56.638Z"
-last_activity: 2026-07-24
+current_phase: 21
+current_phase_name: Deploy Watch
+status: "Phase 20 shipped — PR #59"
+stopped_at: Completed 20-recipes-service-list-types-04-PLAN.md
+last_updated: "2026-07-25T03:52:01.742Z"
+last_activity: 2026-07-25
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 20
-last_activity_desc: Phase 19 complete, transitioned to Phase 20
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 8
+  percent: 40
+last_activity_desc: Phase 20 UAT complete (13/13 pass) + SECURITY.md verified
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-24)
+See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 20 — Recipes & Service List-Types
+**Current focus:** Phase 21 — Deploy Watch
 
 ## Current Position
 
-Phase: 20 — Recipes & Service List-Types
+Phase: 21 — Deploy Watch
 Plan: Not started
-Status: Phase 19 shipped — PR #47
-Last activity: 2026-07-24
+Status: Phase 20 shipped — PR #59
+Last activity: 2026-07-25
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 82
+- Total plans completed: 87
 - Average duration: —
 - Total execution time: —
 
@@ -61,6 +61,7 @@ Last activity: 2026-07-24
 | 16 | 5 | - | - |
 | 17 | 4 | - | - |
 | 19 | 3 | - | - |
+| 20 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -106,6 +107,11 @@ Last activity: 2026-07-24
 | Phase 19-dx-schemas-mcp-prompts P01 | 18min | 3 tasks | 19 files |
 | Phase 19-dx-schemas-mcp-prompts P02 | 6min | 3 tasks | 8 files |
 | Phase 19-dx-schemas-mcp-prompts P03 | 2min | 2 tasks | 4 files |
+| Phase 20-recipes-service-list-types P00 | 2min | 1 tasks | 1 files |
+| Phase 20-recipes-service-list-types P01 | 3min | 2 tasks | 5 files |
+| Phase 20-recipes-service-list-types P02 | 3min | 1 tasks | 3 files |
+| Phase 20-recipes-service-list-types P03 | 4min | 2 tasks | 7 files |
+| Phase 20-recipes-service-list-types P04 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -288,6 +294,15 @@ Last activity: 2026-07-24
 - [Phase ?]: Prompt tests use _registeredPrompts — no public McpServer listTools/getPrompt (19-02)
 - [Phase ?]: String-only catalog edits — no schema/handler/prompt changes per gap_closure scope
 - [Phase ?]: Eight separate it cases (A-H) for precise regression attribution
+- [Phase ?]: Phase 20 Wave 0: it.fails + dynamic import RED scaffolds — husky pre-commit bleibt grün; flip zu it in 20-02/20-03
+- [Phase ?]: Added COOLIFY_FETCH_TEMPLATES_FAILED to CoolifyErrorCode union for typed template fetch failures (20-01)
+- [Phase ?]: fetchServiceTemplates exported from utils for Plan 20-02 create-one-click type validation reuse (20-01)
+- [Phase ?]: Added COOLIFY_NOT_IMPLEMENTED to CoolifyErrorCode union for create-app-db stub until Plan 20-03
+- [Phase ?]: build_pack enum includes dockercompose for superRefine reject with service.create/create-one-click hint (mirrors application.ts)
+- [Phase ?]: Added COOLIFY_RECIPE_PARTIAL_FAILURE to CoolifyErrorCode union for typed partial-failure envelope
+- [Phase ?]: Mask connection_string only — full-object sanitizeFullProjection incorrectly masked env_key
+- [Phase ?]: Shared appendManifestHint helper for create-git-app D-20 error parity
+- [Phase ?]: D-20 test uses omit-repo_path Zod path matching D-11 probe
 
 ### Pending Todos
 
@@ -347,15 +362,15 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-24T04:00:00.000Z
-**Stopped at:** Completed quick-260724-86t-01-PLAN.md
+**Last session:** 2026-07-25T03:14:40.549Z
+**Stopped at:** Completed 20-recipes-service-list-types-04-PLAN.md
 **Resume file:** None
 
-Last activity: 2026-07-24 - Completed quick task 260724-86t: Install recommended next GitHub tools
+Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
 
 ## Operator Next Steps
 
-- UI-SPEC checker / continue `/gsd-ui-phase 19`, then `/gsd-plan-phase 19`
+- `/gsd-plan-phase 21` — Deploy Watch
 
 ## Rebuild Log
 
