@@ -4,16 +4,16 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
-status: Phase 21 planned — 4 plans ready
-stopped_at: Phase 21 plans created
-last_updated: "2026-07-25T06:14:34.297Z"
+status: executing
+stopped_at: Completed 21-deploy-watch-00-PLAN.md
+last_updated: "2026-07-25T06:19:17.316Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 21 planning complete
+last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
   percent: 40
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 ## Current Position
 
-Phase: 21 — Deploy Watch
-Plan: 21-00 (Wave 0) next
-Status: Phase 21 planned — 4 plans ready
-Last activity: 2026-07-25 — Phase 21 planning complete
+Phase: 21 (Deploy Watch) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-25 — Phase 21 execution started
 
 ## Performance Metrics
 
@@ -112,6 +112,7 @@ Last activity: 2026-07-25 — Phase 21 planning complete
 | Phase 20-recipes-service-list-types P02 | 3min | 1 tasks | 3 files |
 | Phase 20-recipes-service-list-types P03 | 4min | 2 tasks | 7 files |
 | Phase 20-recipes-service-list-types P04 | 2min | 2 tasks | 2 files |
+| Phase 21-deploy-watch P00 | 3min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -303,6 +304,8 @@ Last activity: 2026-07-25 — Phase 21 planning complete
 - [Phase ?]: Mask connection_string only — full-object sanitizeFullProjection incorrectly masked env_key
 - [Phase ?]: Shared appendManifestHint helper for create-git-app D-20 error parity
 - [Phase ?]: D-20 test uses omit-repo_path Zod path matching D-11 probe
+- [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 21 — flip to it in 21-01..21-03
+- [Phase ?]: Schema-reject scaffolds assert refine messages not unrecognized-key errors
 
 ### Pending Todos
 
@@ -363,9 +366,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T05:56:38.726Z
-**Stopped at:** Phase 21 context gathered
-**Resume file:** .planning/phases/21-deploy-watch/21-CONTEXT.md
+**Last session:** 2026-07-25T06:19:17.308Z
+**Stopped at:** Completed 21-deploy-watch-00-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
 
