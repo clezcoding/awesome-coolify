@@ -178,6 +178,46 @@ function extractConflicts(data: unknown): unknown[] | undefined {
   return Array.isArray(conflicts) ? conflicts : undefined;
 }
 
+function parseRetryAfterMs(headerValue: string | null | undefined): number | undefined {
+  if (headerValue === null || headerValue === undefined) {
+    return undefined;
+  }
+
+  const trimmed = headerValue.trim();
+  if (trimmed.length === 0) {
+    return undefined;
+  }
+
+  const deltaSeconds = Number(trimmed);
+  if (!Number.isNaN(deltaSeconds) && deltaSeconds >= 0) {
+    return deltaSeconds * 1000;
+  }
+
+  const dateMs = Date.parse(trimmed);
+  if (!Number.isNaN(dateMs)) {
+    return Math.max(0, dateMs - Date.now());
+  }
+
+  return undefined;
+}
+
+function getRetryAfterHeader(
+  headers: unknown,
+): string | null | undefined {
+  if (headers === null || headers === undefined) {
+    return undefined;
+  }
+
+  if (typeof headers === 'object' && headers !== null && 'get' in headers) {
+    const get = (headers as { get: (name: string) => string | null }).get;
+    if (typeof get === 'function') {
+      return get.call(headers, 'retry-after');
+    }
+  }
+
+  return undefined;
+}
+
 export function mapApiError(
   error: unknown,
   httpStatus?: number,
@@ -311,7 +351,11 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
 
   const fetchError = error as {
     request?: string;
-    response?: { status?: number; _data?: unknown };
+    response?: {
+      status?: number;
+      _data?: unknown;
+      headers?: unknown;
+    };
     status?: number;
     statusCode?: number;
     data?: unknown;
@@ -345,6 +389,18 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
           'Retry with force_domain_override: true on the same create call to override the domain conflict.',
         ],
       });
+    }
+
+    if (status === 429) {
+      const retryAfterMs = parseRetryAfterMs(
+        getRetryAfterHeader(fetchError.response?.headers),
+      );
+      if (retryAfterMs !== undefined) {
+        return injectStaleManifestHints({
+          ...envelope,
+          data: { ...envelope.data, retry_after: retryAfterMs },
+        });
+      }
     }
 
     return injectStaleManifestHints(envelope);

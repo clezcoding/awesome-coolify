@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   mapApiError,
   toStructuredError,
@@ -220,6 +220,56 @@ describe('COOLIFY_VALIDATION_ERROR', () => {
     expect(result.structuredContent.error.recoveryHints[1]).toContain(
       'service.create',
     );
+  });
+});
+
+describe('429 Retry-After passthrough', () => {
+  it('toStructuredError attaches retry_after ms from delta-seconds Retry-After on HTTP 429', () => {
+    const fetchError = {
+      response: {
+        status: 429,
+        headers: { get: (name: string) => (name === 'retry-after' ? '5' : null) },
+        _data: { message: 'Too Many Requests' },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_500');
+    expect(envelope.httpStatus).toBe(429);
+    expect(envelope.data?.retry_after).toBe(5000);
+  });
+
+  it('toStructuredError attaches retry_after ms from HTTP-date Retry-After on HTTP 429', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-25T12:00:00.000Z'));
+
+    const fetchError = {
+      response: {
+        status: 429,
+        headers: {
+          get: (name: string) =>
+            name === 'retry-after' ? 'Wed, 25 Jul 2026 12:00:10 GMT' : null,
+        },
+        _data: { message: 'Too Many Requests' },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.httpStatus).toBe(429);
+    expect(envelope.data?.retry_after).toBe(10000);
+
+    vi.useRealTimers();
+  });
+
+  it('toStructuredError omits retry_after when Retry-After header is missing on HTTP 429', () => {
+    const fetchError = {
+      response: {
+        status: 429,
+        headers: { get: () => null },
+        _data: { message: 'Too Many Requests' },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.httpStatus).toBe(429);
+    expect(envelope.data?.retry_after).toBeUndefined();
   });
 });
 
