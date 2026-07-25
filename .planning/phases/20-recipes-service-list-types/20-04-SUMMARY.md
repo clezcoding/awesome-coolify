@@ -82,7 +82,7 @@ Each task was committed atomically:
 1. **Task 1: Append MANIFEST_HINT on create-git-app Zod and CoolifyApiError paths (D-20)** - `d835ced` (feat)
 2. **Task 2: Add create-git-app D-20 recoveryHints regression test** - `4619c0f` (test)
 
-**Plan metadata:** pending (docs commit after state update)
+**Plan metadata:** `22b6087` (docs: complete plan)
 
 ## Files Created/Modified
 

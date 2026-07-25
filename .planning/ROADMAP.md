@@ -53,7 +53,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 ### 📋 v3.1 Setup, Skills & DX (Planned)
 
 - [x] **Phase 19: DX Schemas & MCP Prompts** - Flat tool schemas + action catalogs + prompts registry (deploy/diagnose/new-project/incident) (completed 2026-07-24)
-- [ ] **Phase 20: Recipes & Service List-Types** - Dynamic `service.list-types` + recipes (git-app, app+db, one-click) from Coolify catalog
+- [x] **Phase 20: Recipes & Service List-Types** - Dynamic `service.list-types` + recipes (git-app, app+db, one-click) from Coolify catalog (completed 2026-07-25)
 - [ ] **Phase 21: Deploy Watch** - Non-blocking `deployment.watch` action with backoff/timeout + skill/prompt docs
 - [ ] **Phase 22: Setup Wizard & IDE Skills** - Headless-safe `gh` preflight + Coolify wiring wizard + Cursor/Claude Code/Codex skill packs
 - [ ] **Phase 23: OpenAPI Coverage & npm Release** - Coverage map (Coolify OpenAPI → MCP surface/gaps) + maintainer OIDC Release publish
@@ -176,7 +176,7 @@ Plans:
 | 17 | v3.0 | 4/4 | Complete | 2026-07-22 |
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
-| 20 | v3.1 | 5/5 | In Progress|  |
+| 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 0/? | Not started | - |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
