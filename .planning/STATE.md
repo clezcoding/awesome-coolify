@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 22
 current_phase_name: Setup Wizard & IDE Skills
-status: planning
+status: "Phase 21 shipped — PR #73"
 stopped_at: Phase 21 UAT + secure-phase complete
-last_updated: "2026-07-25T08:19:09Z"
+last_updated: "2026-07-25T08:21:45.646Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 13
   completed_plans: 13
   percent: 60
+last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 22 — Setup Wizard & IDE Skills
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-25 — Phase 21 UAT 15/15 pass; SECURITY.md verified (threats_open: 0)
+Status: Phase 21 shipped — PR #73
+Last activity: 2026-07-25
 
 ## Performance Metrics
 
@@ -388,7 +388,6 @@ Last activity: 2026-07-25 — Phase 21 UAT 15/15 pass; SECURITY.md verified (thr
 ## Operator Next Steps
 
 - `/gsd-plan-phase 22` — Setup Wizard & IDE Skills
-
 
 ## Rebuild Log
 
