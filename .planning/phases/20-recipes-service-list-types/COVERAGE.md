@@ -32,7 +32,7 @@ matrix records the integrate/opt-out decisions for the Phase 20 surface.
 | `recipe.create-git-app` action (build_pack detection + app create) | INTEGRATE | RECIPE-02; D-09–D-12 |
 | `recipe.create-app-db` action (DB + app + env wiring) | INTEGRATE | RECIPE-03; D-13–D-16 |
 | `recipe.create-one-click` action (type validation + service.create) | INTEGRATE | RECIPE-04; D-07 |
-| `detectBuildPack(repoPath)` local heuristic (Dockerfile → dockerfile, else nixpacks) | INTEGRATE | D-09, D-10 |
+| `detectBuildPack` heuristic (Dockerfile→dockerfile else nixpacks) | INTEGRATE | D-09, D-10 |
 | `build_pack=dockercompose` reject on create-git-app with hint to service.create | INTEGRATE | D-12 |
 | Engine-dispatched DB create (8 engines via create&lt;Engine&gt;Database) | INTEGRATE | RECIPE-03; src/api/client.ts:404-474 |
 | `internal_db_url` read from GET /databases/{uuid} | INTEGRATE | D-14; src/api/client.ts:354 |
