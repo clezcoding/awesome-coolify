@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.4.3
+
+### Patch Changes
+
+- aef8b54: Publish to npm inside release.yml — GITHUB_TOKEN release events do not trigger publish.yml.
+
 ## 0.4.2
 
 ### Patch Changes
