@@ -43,6 +43,23 @@ import {
 const MANIFEST_HINT =
   'Tip: pass `instance` to target a registered Coolify instance or use the manifest tool to record context (D-20 soft manifest hint).';
 
+function appendManifestHint(hints: string[]): string[] {
+  if (hints.includes(MANIFEST_HINT)) {
+    return hints;
+  }
+  return [...hints, MANIFEST_HINT];
+}
+
+function rethrowGitAppApiErrorWithManifestHint(error: unknown): never {
+  if (error instanceof CoolifyApiError) {
+    throw new CoolifyApiError({
+      ...error.envelope,
+      recoveryHints: appendManifestHint(error.envelope.recoveryHints),
+    });
+  }
+  throw error;
+}
+
 export const recipeActionsCatalog =
   'Actions: create-git-app(server_uuid, git_repository, git_branch, repo_path?, build_pack?) · create-app-db(server_uuid, app_name, db_name, db_engine, env_key?) · create-one-click(server_uuid, type, instant_deploy?)';
 
@@ -253,11 +270,17 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
 
   const resolvedCode = code ?? 'COOLIFY_422';
 
+  let recoveryHints =
+    RECOVERY_HINTS[resolvedCode] ?? RECOVERY_HINTS.COOLIFY_422;
+
+  if (isRecord(args) && args.action === 'create-git-app') {
+    recoveryHints = appendManifestHint(recoveryHints);
+  }
+
   throw new CoolifyApiError({
     code: resolvedCode,
     message: error.issues.map((issue) => issue.message).join('; '),
-    recoveryHints:
-      RECOVERY_HINTS[resolvedCode] ?? RECOVERY_HINTS.COOLIFY_422,
+    recoveryHints,
   });
 }
 
@@ -320,7 +343,7 @@ async function handleCreateGitApp(
     throw new CoolifyApiError({
       code: 'COOLIFY_VALIDATION_ERROR',
       message: 'build_pack is required when repo_path is omitted',
-      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      recoveryHints: appendManifestHint(RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR),
     });
   }
 
@@ -336,23 +359,32 @@ async function handleCreateGitApp(
     instant_deploy: parsed.instant_deploy !== false,
   });
 
-  const raw = await createPublicApplication(
-    env.COOLIFY_URL,
-    env.COOLIFY_TOKEN,
-    body,
-    env.COOLIFY_VERIFY_SSL,
-  );
+  let raw: unknown;
+  try {
+    raw = await createPublicApplication(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      body,
+      env.COOLIFY_VERIFY_SSL,
+    );
+  } catch (error) {
+    rethrowGitAppApiErrorWithManifestHint(error);
+  }
 
   const created = isRecord(raw) ? raw : {};
   const application_uuid = String(created.uuid ?? '');
 
   if (parsed.instant_deploy !== false && application_uuid) {
-    await triggerDeploy(
-      env.COOLIFY_URL,
-      env.COOLIFY_TOKEN,
-      application_uuid,
-      env.COOLIFY_VERIFY_SSL,
-    );
+    try {
+      await triggerDeploy(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        application_uuid,
+        env.COOLIFY_VERIFY_SSL,
+      );
+    } catch (error) {
+      rethrowGitAppApiErrorWithManifestHint(error);
+    }
   }
 
   return buildReadResponse(
