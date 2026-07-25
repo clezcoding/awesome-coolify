@@ -5,8 +5,8 @@ milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
 status: "Quick 260725-8la shipped — PR #61"
-stopped_at: Completed 20-recipes-service-list-types-04-PLAN.md
-last_updated: "2026-07-25T04:20:55.771Z"
+stopped_at: Phase 21 context gathered
+last_updated: "2026-07-25T05:56:38.737Z"
 last_activity: 2026-07-25
 progress:
   total_phases: 5
@@ -363,9 +363,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T03:14:40.549Z
-**Stopped at:** Completed 20-recipes-service-list-types-04-PLAN.md
-**Resume file:** None
+**Last session:** 2026-07-25T05:56:38.726Z
+**Stopped at:** Phase 21 context gathered
+**Resume file:** .planning/phases/21-deploy-watch/21-CONTEXT.md
 
 Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
 
