@@ -4,16 +4,16 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 20
 current_phase_name: recipes-service-list-types
-status: resumed
-stopped_at: Phase 20 UI-SPEC approved
-last_updated: "2026-07-25T03:04:03.721Z"
+status: executing
+stopped_at: Completed 20-recipes-service-list-types-04-PLAN.md
+last_updated: "2026-07-25T03:14:40.556Z"
 last_activity: 2026-07-25
-last_activity_desc: Session resumed from handoff
+last_activity_desc: Phase 20 execution started
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
   percent: 40
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 
 ## Current Position
 
-Phase: 20 (recipes-service-list-types) — RESUMED
-Plan: 4 of 4 executed + 20-04 gap_closure planned (D-20 / truth #14)
-Status: Gap-closure plan ready — execute 20-04 then re-verify
-Last activity: 2026-07-25 — Gap-closure PLAN 20-04 created for create-git-app MANIFEST_HINT
+Phase: 20 (recipes-service-list-types) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-07-25 — Phase 20 execution started
 
 ## Performance Metrics
 
@@ -110,6 +110,7 @@ Last activity: 2026-07-25 — Gap-closure PLAN 20-04 created for create-git-app 
 | Phase 20-recipes-service-list-types P01 | 3min | 2 tasks | 5 files |
 | Phase 20-recipes-service-list-types P02 | 3min | 1 tasks | 3 files |
 | Phase 20-recipes-service-list-types P03 | 4min | 2 tasks | 7 files |
+| Phase 20-recipes-service-list-types P04 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -299,6 +300,8 @@ Last activity: 2026-07-25 — Gap-closure PLAN 20-04 created for create-git-app 
 - [Phase ?]: build_pack enum includes dockercompose for superRefine reject with service.create/create-one-click hint (mirrors application.ts)
 - [Phase ?]: Added COOLIFY_RECIPE_PARTIAL_FAILURE to CoolifyErrorCode union for typed partial-failure envelope
 - [Phase ?]: Mask connection_string only — full-object sanitizeFullProjection incorrectly masked env_key
+- [Phase ?]: Shared appendManifestHint helper for create-git-app D-20 error parity
+- [Phase ?]: D-20 test uses omit-repo_path Zod path matching D-11 probe
 
 ### Pending Todos
 
@@ -357,9 +360,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T03:04:03.712Z
-**Stopped at:** Phase 20 gap-closure plan 20-04 created (D-20)
-**Resume file:** .planning/phases/20-recipes-service-list-types/20-04-PLAN.md
+**Last session:** 2026-07-25T03:14:40.549Z
+**Stopped at:** Completed 20-recipes-service-list-types-04-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-25 — `/gsd-plan-phase 20 --gaps` → 20-04-PLAN.md
 
