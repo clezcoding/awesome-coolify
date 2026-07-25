@@ -1,15 +1,18 @@
 name: Publish to npm
 
-# Backup path for human/PAT-created GitHub Releases (fires `release: published`).
-# Bot releases from release.yml use GITHUB_TOKEN and do NOT chain here — that
-# path publishes inside release.yml instead (OIDC, same Trusted Publisher).
+# npm Trusted Publisher is registered for this workflow file (publish.yml).
+# Two entry points:
+#   1) release: published — human/PAT-created GitHub Releases
+#   2) workflow_call — bot path from release.yml (GITHUB_TOKEN cannot chain
+#      release→publish events; reusable workflow keeps OIDC on publish.yml)
 #
-# One-time setup on npmjs.com before this works:
+# One-time setup on npmjs.com:
 #   Package settings -> Trusted Publisher -> GitHub Actions
-#   Repo: clezcoding/awesome-coolify, Workflow: publish.yml (and release.yml)
+#   Repo: clezcoding/awesome-coolify, Workflow: publish.yml
 on:
   release:
     types: [published]
+  workflow_call:
 
 permissions:
   contents: read
