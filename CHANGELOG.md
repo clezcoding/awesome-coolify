@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.5.0
+
+### Minor Changes
+
+- 3cdd356: Phase 21: non-blocking `deployment.watch` with Equal-Jitter backoff, 429 Retry-After handling, dual-signal timeout/fail/cancel errors, and watch-primary deploy prompt + README docs.
+
 ## 0.4.5
 
 ### Patch Changes
