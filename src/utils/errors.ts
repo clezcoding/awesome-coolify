@@ -6,6 +6,7 @@ export type CoolifyErrorCode =
   | 'COOLIFY_404'
   | 'COOLIFY_409'
   | 'COOLIFY_422'
+  | 'COOLIFY_429'
   | 'COOLIFY_500'
   | 'COOLIFY_NETWORK'
   | 'COOLIFY_TIMEOUT'
@@ -60,6 +61,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_422: [
     'Review the request payload for missing or invalid fields.',
     'Check Coolify API docs for required parameters.',
+  ],
+  COOLIFY_429: [
+    'Coolify rate-limited the request — wait for Retry-After (see error.data.retry_after in ms) before retrying.',
+    'Reduce request concurrency; deployment.watch already backs off on 429 using Retry-After.',
   ],
   COOLIFY_500: [
     'Retry after a short delay — the Coolify server may be temporarily overloaded.',
@@ -165,6 +170,8 @@ function statusToCode(status: number): CoolifyErrorCode {
     case 400:
     case 422:
       return 'COOLIFY_422';
+    case 429:
+      return 'COOLIFY_429';
     default:
       return 'COOLIFY_500';
   }

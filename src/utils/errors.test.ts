@@ -233,7 +233,7 @@ describe('429 Retry-After passthrough', () => {
       },
     };
     const envelope = toStructuredError(fetchError);
-    expect(envelope.code).toBe('COOLIFY_500');
+    expect(envelope.code).toBe('COOLIFY_429');
     expect(envelope.httpStatus).toBe(429);
     expect(envelope.data?.retry_after).toBe(5000);
   });
@@ -253,6 +253,7 @@ describe('429 Retry-After passthrough', () => {
       },
     };
     const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_429');
     expect(envelope.httpStatus).toBe(429);
     expect(envelope.data?.retry_after).toBe(10000);
 
@@ -268,8 +269,16 @@ describe('429 Retry-After passthrough', () => {
       },
     };
     const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_429');
     expect(envelope.httpStatus).toBe(429);
     expect(envelope.data?.retry_after).toBeUndefined();
+  });
+
+  it('mapApiError maps HTTP 429 to COOLIFY_429 with rate-limit recovery hints', () => {
+    const envelope = mapApiError(null, 429);
+    expect(envelope.code).toBe('COOLIFY_429');
+    expect(envelope.recoveryHints).toEqual(RECOVERY_HINTS.COOLIFY_429);
+    expect(envelope.recoveryHints.join(' ')).toMatch(/rate-limit|Retry-After/i);
   });
 });
 
