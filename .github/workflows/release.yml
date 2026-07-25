@@ -9,6 +9,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions:
   contents: write
   pull-requests: write
+  id-token: write # OIDC npm publish in this job (GITHUB_TOKEN release events do not chain to publish.yml)
 
 jobs:
   release:
@@ -29,6 +30,7 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
+          registry-url: "https://registry.npmjs.org"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -40,7 +42,9 @@ jobs:
       # `changeset:emit-tag` creates+pushes `v*` tag and GitHub Release;
       # createGithubReleases stays false — with pnpm-workspace the action
       # would otherwise `git push` a missing `name@version` tag.
-      # publish.yml then npm-publishes via OIDC on `release: published`.
+      #
+      # npm publish runs in THIS job: releases created with GITHUB_TOKEN do
+      # not trigger other workflows (so publish.yml never sees them).
       - name: Changesets
         id: changesets
         uses: changesets/action@v1.9.0
@@ -49,3 +53,9 @@ jobs:
           publish: pnpm run changeset:emit-tag
           createGithubReleases: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Publish to npm
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          pnpm run build
+          npm publish

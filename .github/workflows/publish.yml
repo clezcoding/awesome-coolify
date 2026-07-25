@@ -1,13 +1,12 @@
 name: Publish to npm
 
-# Fires when release.yml's Changesets PR gets merged and creates a GitHub
-# Release. Uses npm Trusted Publishing (OIDC) — no NPM_TOKEN secret and no
-# 2FA/OTP prompt required. Needs npm >= 11.5.1 and Node >= 22.14 (Node 24
-# below already satisfies this).
+# Backup path for human/PAT-created GitHub Releases (fires `release: published`).
+# Bot releases from release.yml use GITHUB_TOKEN and do NOT chain here — that
+# path publishes inside release.yml instead (OIDC, same Trusted Publisher).
 #
 # One-time setup on npmjs.com before this works:
 #   Package settings -> Trusted Publisher -> GitHub Actions
-#   Repo: clezcoding/awesome-coolify, Workflow: publish.yml
+#   Repo: clezcoding/awesome-coolify, Workflow: publish.yml (and release.yml)
 on:
   release:
     types: [published]
