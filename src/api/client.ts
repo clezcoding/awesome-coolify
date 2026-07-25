@@ -1063,9 +1063,13 @@ export async function fetchDeployment(
   token: string,
   deploymentUuid: string,
   verifySsl = true,
+  options?: { retry?: false | number },
 ): Promise<unknown> {
   const client = createCoolifyClient(url, token, verifySsl);
-  return client(`/deployments/${deploymentUuid}`, { method: 'GET' });
+  return client(`/deployments/${deploymentUuid}`, {
+    method: 'GET',
+    ...(options?.retry !== undefined ? { retry: options.retry } : {}),
+  });
 }
 
 export async function cancelDeployment(

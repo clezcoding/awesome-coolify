@@ -308,11 +308,14 @@ async function handleDeploymentWatch(
   const maxIntervalMs = parsed.max_interval * 1000;
 
   const fetcher = async () => {
+    // No ofetch retries: first 429 reaches isRetryableRateLimit (D-08 Retry-After).
+    // Nested ofetch 429 sleeps ignore Retry-After and can overshoot short timeouts.
     const dep = await fetchDeployment(
       env.COOLIFY_URL,
       env.COOLIFY_TOKEN,
       parsed.deployment_uuid,
       env.COOLIFY_VERIFY_SSL,
+      { retry: false },
     );
     return (isRecord(dep) ? dep : {}) as Record<string, unknown>;
   };
