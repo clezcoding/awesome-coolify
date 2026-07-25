@@ -1,27 +1,30 @@
 #!/usr/bin/env bash
-# Post-/gsd-ship automation: changeset + labels + push.
+# Post-/gsd-ship automation: labels + optional changeset + push.
 #
 # Usage:
-#   gsd-ship-post.sh [<pr-number>] [--dry-run] [--no-push] [--bump patch|minor|major]
+#   gsd-ship-post.sh [<pr-number>] [--dry-run] [--no-push] [--with-changeset] [--bump patch|minor|major]
 #
 # Called automatically by:
 #   - GSD ship.md create_pr step (when this script exists)
 #   - Cursor afterShellExecution hook on `gh pr create` (gsd/* branches only)
 #   - ./scripts/gsd-ship-labels.sh (delegates here)
 #
-# Fail-closed: changeset script errors abort before automerge labels are applied.
+# Default: apply ship labels + automerge only (no changeset). Pass --with-changeset
+# for hotfix/out-of-band releases. Fail-closed: ensure-changeset errors abort before labels.
 
 set -euo pipefail
 
 PR=""
 DRY_RUN=0
 NO_PUSH=0
+WITH_CHANGESET=0
 BUMP_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run) DRY_RUN=1; shift ;;
     --no-push) NO_PUSH=1; shift ;;
+    --with-changeset) WITH_CHANGESET=1; shift ;;
     --bump)
       BUMP_ARGS=(--bump "${2:-}")
       shift 2
@@ -63,41 +66,45 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   DRY_FLAG=(--dry-run)
 fi
 
-# 1) Ensure changeset — fail closed (no || true). Exit 0 = skip or wrote.
-CHANGESET_OUT="$(
-  bash "${ROOT}/scripts/gsd-ensure-changeset.sh" --pr "$PR" "${BUMP_ARGS[@]+"${BUMP_ARGS[@]}"}" "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}"
-)"
-echo "$CHANGESET_OUT"
-
 CREATED_FILE=""
-if echo "$CHANGESET_OUT" | grep -q '^changeset: wrote '; then
-  CREATED_FILE="$(echo "$CHANGESET_OUT" | awk '/^changeset: wrote /{print $3}')"
-fi
-if [[ -z "$CREATED_FILE" ]]; then
-  CREATED_FILE="$(echo "$CHANGESET_OUT" | awk '/^\.changeset\//{print; exit}')"
-fi
 
-# 2) Commit + push changeset if we created one
-if [[ -n "$CREATED_FILE" && -f "$CREATED_FILE" && "$DRY_RUN" -eq 0 ]]; then
-  git add "$CREATED_FILE"
-  if ! git diff --cached --quiet; then
-    git commit -m "$(cat <<EOF
+if [[ "$WITH_CHANGESET" -eq 1 ]]; then
+  # Ensure changeset — fail closed (no || true). Exit 0 = skip or wrote.
+  CHANGESET_OUT="$(
+    bash "${ROOT}/scripts/gsd-ensure-changeset.sh" --pr "$PR" "${BUMP_ARGS[@]+"${BUMP_ARGS[@]}"}" "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}"
+  )"
+  echo "$CHANGESET_OUT"
+
+  if echo "$CHANGESET_OUT" | grep -q '^changeset: wrote '; then
+    CREATED_FILE="$(echo "$CHANGESET_OUT" | awk '/^changeset: wrote /{print $3}')"
+  fi
+  if [[ -z "$CREATED_FILE" ]]; then
+    CREATED_FILE="$(echo "$CHANGESET_OUT" | awk '/^\.changeset\//{print; exit}')"
+  fi
+
+  # Commit + push changeset if we created one
+  if [[ -n "$CREATED_FILE" && -f "$CREATED_FILE" && "$DRY_RUN" -eq 0 ]]; then
+    git add "$CREATED_FILE"
+    if ! git diff --cached --quiet; then
+      git commit -m "$(cat <<EOF
 chore: add changeset for PR #${PR}
 
 EOF
 )"
-    if [[ "$NO_PUSH" -eq 0 ]]; then
-      BRANCH="$(git branch --show-current)"
-      git push -u origin "$BRANCH"
-      echo "gsd-ship-post: pushed changeset on ${BRANCH}"
+      if [[ "$NO_PUSH" -eq 0 ]]; then
+        BRANCH="$(git branch --show-current)"
+        git push -u origin "$BRANCH"
+        echo "gsd-ship-post: pushed changeset on ${BRANCH}"
+      fi
     fi
+  elif [[ "$DRY_RUN" -eq 1 && -n "$CREATED_FILE" ]]; then
+    echo "gsd-ship-post: dry-run would commit+push ${CREATED_FILE}"
   fi
-elif [[ "$DRY_RUN" -eq 1 && -n "$CREATED_FILE" ]]; then
-  echo "gsd-ship-post: dry-run would commit+push ${CREATED_FILE}"
+else
+  echo "gsd-ship-post: changeset skipped (pass --with-changeset to create)"
 fi
 
-# 3) Ship labels + Kodiak automerge (merge still waits for green required checks).
-# gsd-pr-labels ship mode withholds automerge when needs-changeset is still required.
+# Ship labels + Kodiak automerge (merge still waits for green required checks).
 bash "${ROOT}/scripts/gsd-pr-labels.sh" --pr "$PR" --mode ship "${DRY_FLAG[@]+"${DRY_FLAG[@]}"}"
 
 echo "==> gsd-ship-post done for PR #${PR} (labels applied; Kodiak waits for CI + non-blocking labels)"
