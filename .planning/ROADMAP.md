@@ -132,7 +132,7 @@ Plans:
   2. Polling uses exponential backoff with jitter and a minimum interval — no 429 storms against Coolify during long builds
   3. Skill and/or prompt documents `deployment.watch` usage including non-blocking behavior, timeout, and recovery guidance
 
-**Plans**: 4/4 plans executed
+**Plans**: 5 plans (4 executed + 1 gap_closure)
 
 Plans:
 **Wave 1**
@@ -147,6 +147,10 @@ Plans:
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [x] 21-03-PLAN.md — deploy prompt + README EN/DE Watch docs
+
+**Wave 4** *(gap_closure — blocked on Wave 3)*
+
+- [ ] 21-04-PLAN.md — Clamp sleep to remaining timeout (CR-01/WR-01) + include_logs success test (WR-02)
 
 ### Phase 22: Setup Wizard & IDE Skills
 
@@ -199,4 +203,4 @@ Plans:
 
 ---
 
-*Last updated: 2026-07-25 — Phase 21 planned (4 plans)*
+*Last updated: 2026-07-25 — Phase 21 gap_closure plan 21-04 (bounded timeout clamp)*
