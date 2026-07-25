@@ -1,5 +1,12 @@
 # awesome-coolify-mcp
 
+## 0.4.0
+
+### Minor Changes
+
+- 783d656: Phase 19: DX Schemas & MCP Prompts
+- a9588f8: fix(recipe): Phase 20 review leftovers (allowlist, deploy.status, docs)
+
 ## 0.3.3
 
 ### Patch Changes
