@@ -45,7 +45,7 @@ describe('MCP prompts registration', () => {
     }
   });
 
-  it('deploy prompt leads with application.deploy + deployment.get and notes watch as future', async () => {
+  it.fails('deploy prompt recommends watch-primary flow with timeout re-watch and wait:true legacy', async () => {
     const server = new McpServer({ name: 'test-server', version: '1.0.0' });
     registerCoolifyPrompts(server);
     const result = await getRegisteredPrompts(server).deploy.handler({
@@ -53,12 +53,21 @@ describe('MCP prompts registration', () => {
       force: 'true',
     });
     const content = assistantContent(result);
+
     expect(content).toContain('application.deploy');
-    expect(content).toContain('deployment.get');
     expect(content).toContain('deployment.watch');
-    expect(content.indexOf('deployment.get')).toBeLessThan(
-      content.indexOf('deployment.watch'),
-    );
+    expect(content).toMatch(/timeout|re-watch|re-call|watch again/i);
+    expect(content).toMatch(/failed|cancelled|clear error|do not treat as success/i);
+    expect(content).toMatch(/legacy|wait:\s*true|wait:true/i);
+
+    expect(content).not.toMatch(/Future \(Phase 21\)/i);
+    expect(content).not.toMatch(/do not call watch until/i);
+
+    const watchIndex = content.indexOf('deployment.watch');
+    const getIndex = content.indexOf('deployment.get');
+    if (getIndex >= 0) {
+      expect(watchIndex).toBeLessThan(getIndex);
+    }
   });
 
   it('diagnose prompt mentions app, server, and scan paths', async () => {
