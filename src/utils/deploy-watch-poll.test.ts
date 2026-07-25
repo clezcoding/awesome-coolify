@@ -210,6 +210,10 @@ describe('pollDeploymentWithBackoff', () => {
 
       expect(outcome.kind).toBe('timeout');
       expect(outcome.elapsedMs).toBeLessThanOrEqual(timeoutMs + 100);
+      if (outcome.kind === 'timeout') {
+        expect(outcome.noSuccessfulFetch).toBe(true);
+        expect(outcome.deployment).toEqual({});
+      }
 
       const delays = setTimeoutSpy.mock.calls
         .map((call) => call[1] as number | undefined)
@@ -223,4 +227,28 @@ describe('pollDeploymentWithBackoff', () => {
       setTimeoutSpy.mockRestore();
     },
   );
+
+  it('marks noSuccessfulFetch on timeout when every fetcher call is 429', async () => {
+    const { pollDeploymentWithBackoff } = await import('./deploy-watch-poll.js');
+
+    const rateLimitError = new Error('Too Many Requests');
+    const fetcher = vi.fn().mockRejectedValue(rateLimitError);
+    const isRetryableRateLimit = () => ({ retryAfterMs: 1000 });
+
+    const resultPromise = pollDeploymentWithBackoff(fetcher, {
+      timeoutMs: 5000,
+      minIntervalMs: 1000,
+      maxIntervalMs: 2000,
+      random: () => 0,
+      isRetryableRateLimit,
+    });
+
+    await vi.advanceTimersByTimeAsync(5500);
+    const outcome = await resultPromise;
+
+    expect(outcome.kind).toBe('timeout');
+    if (outcome.kind !== 'timeout') return;
+    expect(outcome.noSuccessfulFetch).toBe(true);
+    expect(outcome.deployment).toEqual({});
+  });
 });

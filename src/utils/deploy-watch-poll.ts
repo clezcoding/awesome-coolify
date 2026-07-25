@@ -2,7 +2,13 @@ import { TERMINAL_DEPLOYMENT_STATES } from './deploy-poll.js';
 
 export type WatchPollOutcome =
   | { kind: 'terminal'; deployment: Record<string, unknown> }
-  | { kind: 'timeout'; deployment: Record<string, unknown>; elapsedMs: number };
+  | {
+      kind: 'timeout';
+      deployment: Record<string, unknown>;
+      elapsedMs: number;
+      /** True when every fetcher() call failed (e.g. all 429) before timeout — snapshot never populated. */
+      noSuccessfulFetch?: boolean;
+    };
 
 const DEFAULT_MIN_INTERVAL_MS = 3000;
 const DEFAULT_MAX_INTERVAL_MS = 30000;
@@ -48,29 +54,30 @@ export async function pollDeploymentWithBackoff(
 
   const startTime = Date.now();
   let deployment: Record<string, unknown> = {};
+  let hadSuccessfulFetch = false;
   let attempt = 0;
+
+  const timeoutOutcome = (elapsedMs: number): WatchPollOutcome => ({
+    kind: 'timeout',
+    deployment,
+    elapsedMs,
+    ...(hadSuccessfulFetch ? {} : { noSuccessfulFetch: true }),
+  });
 
   while (true) {
     try {
       deployment = await fetcher();
+      hadSuccessfulFetch = true;
     } catch (err) {
       const rateLimitInfo = isRetryableRateLimit?.(err);
       if (rateLimitInfo !== null && rateLimitInfo !== undefined) {
         if (Date.now() - startTime >= options.timeoutMs) {
-          return {
-            kind: 'timeout',
-            deployment,
-            elapsedMs: Date.now() - startTime,
-          };
+          return timeoutOutcome(Date.now() - startTime);
         }
 
         const remaining = remainingMs(startTime, options.timeoutMs);
         if (remaining <= 0) {
-          return {
-            kind: 'timeout',
-            deployment,
-            elapsedMs: Date.now() - startTime,
-          };
+          return timeoutOutcome(Date.now() - startTime);
         }
 
         const backoffMs = nextDelayMs(attempt, minIntervalMs, maxIntervalMs, random);
@@ -89,20 +96,12 @@ export async function pollDeploymentWithBackoff(
     }
 
     if (Date.now() - startTime >= options.timeoutMs) {
-      return {
-        kind: 'timeout',
-        deployment,
-        elapsedMs: Date.now() - startTime,
-      };
+      return timeoutOutcome(Date.now() - startTime);
     }
 
     const remaining = remainingMs(startTime, options.timeoutMs);
     if (remaining <= 0) {
-      return {
-        kind: 'timeout',
-        deployment,
-        elapsedMs: Date.now() - startTime,
-      };
+      return timeoutOutcome(Date.now() - startTime);
     }
 
     const delayMs = Math.min(

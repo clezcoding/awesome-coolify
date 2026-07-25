@@ -332,14 +332,18 @@ async function handleDeploymentWatch(
 
   if (outcome.kind === 'timeout') {
     const elapsedSeconds = Math.round(outcome.elapsedMs / 1000);
+    const statusNote = outcome.noSuccessfulFetch
+      ? 'no successful fetch'
+      : `deployment still ${summary.status}`;
     throw new CoolifyApiError({
       code: 'COOLIFY_WATCH_TIMEOUT',
-      message: `Deployment watch timed out after ${elapsedSeconds}s — deployment still ${summary.status}.`,
+      message: `Deployment watch timed out after ${elapsedSeconds}s — ${statusNote}.`,
       recoveryHints: RECOVERY_HINTS.COOLIFY_WATCH_TIMEOUT,
       data: {
         deployment: summary,
         timed_out: true,
         elapsed_seconds: elapsedSeconds,
+        ...(outcome.noSuccessfulFetch ? { no_successful_fetch: true } : {}),
       },
     });
   }
