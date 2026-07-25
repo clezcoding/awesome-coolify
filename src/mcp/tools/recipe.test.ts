@@ -257,6 +257,22 @@ describe('recipe create-git-app', () => {
     expect(createPublicApplication).not.toHaveBeenCalled();
   });
 
+  it('error result carries soft manifest hint suggesting instance param or manifest context per D-20', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(
+      { ...baseGitAppArgs, repo_path: undefined },
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(true);
+    if (!isRecipeErrorResult(result)) return;
+
+    expect(result.structuredContent.error.recoveryHints).toEqual(
+      expect.arrayContaining([expect.stringMatching(/instance|manifest/i)]),
+    );
+  });
+
   it('calls createPublicApplication with detected build_pack + git_repository + git_branch', async () => {
     const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
     const repoPath = '/tmp/my-repo';
