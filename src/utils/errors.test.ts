@@ -389,12 +389,21 @@ describe('deployment watch error codes', () => {
   it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_FAILED with non-empty hints', () => {
     const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_FAILED;
     expect(hints.length).toBeGreaterThanOrEqual(1);
-    expect(hints.some((h) => /deployment\.get|include_logs/i.test(h))).toBe(true);
+    expect(hints.some((h) => /deployment\.get/i.test(h))).toBe(true);
+    expect(hints.some((h) => /projection:\s*full/i.test(h))).toBe(true);
+    expect(hints.join(' ')).not.toMatch(
+      /re-call\s+deployment\.watch.*include_logs|deployment\.watch\s+with\s+include_logs/i,
+    );
   });
 
   it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_CANCELLED with non-empty hints', () => {
     const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_CANCELLED;
     expect(hints.length).toBeGreaterThanOrEqual(1);
+    expect(hints.some((h) => /deployment\.get/i.test(h))).toBe(true);
+    expect(hints.some((h) => /projection:\s*full/i.test(h))).toBe(true);
+    expect(hints.join(' ')).not.toMatch(
+      /deployment\.watch\s+with\s+include_logs|or\s+deployment\.watch/i,
+    );
   });
 
   it('CoolifyErrorCode union includes watch timeout, failed, and cancelled codes', () => {
