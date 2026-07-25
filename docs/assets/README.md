@@ -32,13 +32,13 @@ Generated 2026-07-16 with **Higgsfield Nano Banana Pro**, using `logo.png` + `he
 
 README images:
 
-```
+```text
 https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/<file>
 ```
 
 MCP server list icon (`serverInfo.icons`):
 
-```
+```text
 https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png
 ```
 
