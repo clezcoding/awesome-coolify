@@ -52,6 +52,10 @@ skills-lock.json
 # Generated analysis
 graphify-out/
 
+# MegaLinter
+megalinter-reports/
+mega-linter.log
+
 # Test artifacts
 coverage/
 
