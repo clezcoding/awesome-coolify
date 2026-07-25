@@ -1,5 +1,5 @@
 import * as z from 'zod/v4';
-import { readdirSync, statSync } from 'node:fs';
+import { readdirSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import type { EnvConfig } from '../config/env.js';
 import {
@@ -295,8 +295,42 @@ function parseRecipeAction(
 }
 
 export function detectBuildPack(repoPath: string): 'dockerfile' | 'nixpacks' {
+  let root: string;
   try {
-    const dockerfilePath = path.join(repoPath, 'Dockerfile');
+    root = realpathSync(process.cwd());
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Cannot resolve repo_path allowlist root: ${message}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const resolved = path.resolve(root, repoPath);
+  let realPath: string;
+  try {
+    realPath = realpathSync(resolved);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Cannot read repo_path at ${repoPath}: ${message}`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  const rootPrefix = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+  if (realPath !== root && !realPath.startsWith(rootPrefix)) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `repo_path escapes allowlisted root (${root})`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+
+  try {
+    const dockerfilePath = path.join(realPath, 'Dockerfile');
     const stat = statSync(dockerfilePath);
     if (stat.isFile()) {
       return 'dockerfile';
@@ -306,7 +340,7 @@ export function detectBuildPack(repoPath: string): 'dockerfile' | 'nixpacks' {
   }
 
   try {
-    const entries = readdirSync(repoPath);
+    const entries = readdirSync(realPath);
     if (entries.some((entry) => /^Dockerfile\..+$/.test(entry))) {
       return 'dockerfile';
     }
@@ -374,6 +408,9 @@ async function handleCreateGitApp(
   const created = isRecord(raw) ? raw : {};
   const application_uuid = String(created.uuid ?? '');
 
+  let deployStatus: 'not_triggered' | 'queued' =
+    parsed.instant_deploy === false ? 'not_triggered' : 'queued';
+
   if (parsed.instant_deploy !== false && application_uuid) {
     try {
       await triggerDeploy(
@@ -383,8 +420,10 @@ async function handleCreateGitApp(
         false,
         env.COOLIFY_VERIFY_SSL,
       );
-    } catch (error) {
-      rethrowGitAppApiErrorWithManifestHint(error);
+    } catch {
+      // Soft ignore deploy queue failure per D-16 — application created successfully;
+      // agent can retry via application.deploy. Parity with handleCreateAppDb.
+      deployStatus = 'not_triggered';
     }
   }
 
@@ -392,7 +431,7 @@ async function handleCreateGitApp(
     {
       application_uuid,
       build_pack,
-      deploy: { status: 'queued' as const },
+      deploy: { status: deployStatus },
     },
     {
       format: parsed.format,
@@ -692,13 +731,16 @@ async function handleCreateAppDb(
     parsed.reveal,
   ) as { connection_string: string };
 
+  const deployStatus: 'not_triggered' | 'queued' =
+    parsed.instant_deploy === false ? 'not_triggered' : 'queued';
+
   return buildReadResponse(
     {
       application_uuid: appUuid,
       database_uuid: dbUuid,
       connection_string: maskedConnection.connection_string,
       env_key: envKey,
-      deploy: { status: 'queued' as const },
+      deploy: { status: deployStatus },
     },
     {
       format: parsed.format,
@@ -713,7 +755,7 @@ async function handleCreateOneClick(
 ): Promise<ReadResponse<Record<string, unknown>>> {
   const templates = await fetchServiceTemplates(env);
 
-  if (!(parsed.type in templates)) {
+  if (!Object.hasOwn(templates, parsed.type)) {
     throw new CoolifyApiError({
       code: 'COOLIFY_VALIDATION_ERROR',
       message: `Unknown one-click type '${parsed.type}'. Call service.list-types for valid IDs.`,
@@ -758,11 +800,14 @@ async function handleCreateOneClick(
   const created = isRecord(raw) ? raw : {};
   const service_uuid = String(created.uuid ?? '');
 
+  const deployStatus: 'not_triggered' | 'queued' =
+    parsed.instant_deploy === false ? 'not_triggered' : 'queued';
+
   return buildReadResponse(
     {
       service_uuid,
       type: parsed.type,
-      deploy: { status: 'queued' as const },
+      deploy: { status: deployStatus },
     },
     {
       format: parsed.format,
