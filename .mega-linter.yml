@@ -18,4 +18,5 @@ SHOW_ELAPSED_TIME: true
 REPORT_STYLE: console
 GITHUB_STATUS_FILTER: true
 SECURITY_SUGGESTIONS: false
-FILTER_REGEX_EXCLUDE: (\.planning/|dist/|graphify-out/|node_modules/|megalinter-reports/)
+# Skip generated / vendored YAML that yamllint cannot usefully check.
+FILTER_REGEX_EXCLUDE: (\.planning/|dist/|graphify-out/|node_modules/|megalinter-reports/|pnpm-lock\.yaml|docs/coolify_openapi\.yaml)
