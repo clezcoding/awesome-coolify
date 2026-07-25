@@ -481,6 +481,38 @@ describe('deployment watch', () => {
     expect(result.data).not.toHaveProperty('logs');
   });
 
+  it('returns capped logs without raw_deployment when include_logs true on success (WR-02)', async () => {
+    const maxChars = 1000;
+    const longLogs = 'x'.repeat(maxChars + 500);
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-finished-logs',
+      git_commit_sha: 'abc123',
+      status: 'finished',
+      created_at: '2026-07-12T01:00:00.000Z',
+      finished_at: '2026-07-12T01:05:00.000Z',
+      logs: longLogs,
+    });
+
+    const result = await handleDeploymentAction(
+      {
+        action: 'watch',
+        deployment_uuid: 'dep-finished-logs',
+        include_logs: true,
+        max_chars: maxChars,
+      },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    expect(typeof result.data.logs).toBe('string');
+    expect(result.data.logs).toBe('x'.repeat(maxChars) + '…[truncated]');
+    expect(result.data.logs!.length).toBeLessThan(longLogs.length);
+    expect(result.data).not.toHaveProperty('raw_deployment');
+  });
+
   it(
     'returns dual-signal timeout with COOLIFY_WATCH_TIMEOUT',
     async () => {

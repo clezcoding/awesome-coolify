@@ -182,4 +182,45 @@ describe('pollDeploymentWithBackoff', () => {
 
     setTimeoutSpy.mockRestore();
   });
+
+  it(
+    'returns timeout when Retry-After exceeds timeoutMs — remaining clamp (CR-01)',
+    async () => {
+      const { pollDeploymentWithBackoff } = await import('./deploy-watch-poll.js');
+
+      const rateLimitError = new Error('Too Many Requests');
+      const fetcher = vi.fn().mockRejectedValue(rateLimitError);
+
+      const isRetryableRateLimit = () => ({ retryAfterMs: 3_600_000 });
+
+      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
+
+      const timeoutMs = 5000;
+      const resultPromise = pollDeploymentWithBackoff(fetcher, {
+        timeoutMs,
+        minIntervalMs: 1000,
+        maxIntervalMs: 2000,
+        random: () => 0,
+        isRetryableRateLimit,
+      });
+
+      await vi.advanceTimersByTimeAsync(timeoutMs + 100);
+
+      const outcome = await resultPromise;
+
+      expect(outcome.kind).toBe('timeout');
+      expect(outcome.elapsedMs).toBeLessThanOrEqual(timeoutMs + 100);
+
+      const delays = setTimeoutSpy.mock.calls
+        .map((call) => call[1] as number | undefined)
+        .filter((ms): ms is number => typeof ms === 'number' && ms > 0);
+
+      expect(delays.length).toBeGreaterThan(0);
+      for (const delay of delays) {
+        expect(delay).toBeLessThanOrEqual(timeoutMs);
+      }
+
+      setTimeoutSpy.mockRestore();
+    },
+  );
 });
