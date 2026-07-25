@@ -4,15 +4,15 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
-status: verifying
-stopped_at: Completed 21-deploy-watch-03-PLAN.md
-last_updated: "2026-07-25T06:30:53.144Z"
+status: planning
+stopped_at: Created 21-04 gap_closure PLAN (bounded timeout clamp)
+last_updated: "2026-07-25T07:16:00.000Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 21 execution started
+last_activity_desc: Phase 21 gap_closure plan 21-04 created
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 12
+  total_plans: 13
   completed_plans: 12
   percent: 60
 ---
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 21 — Deploy Watch
+**Current focus:** Phase 21 — Deploy Watch (gap_closure)
 
 ## Current Position
 
-Phase: 21 (Deploy Watch) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-07-25 — Phase 21 execution started
+Phase: 21 (Deploy Watch) — GAP CLOSURE PLANNED
+Plan: 5 of 5 (21-04 pending execute)
+Status: gaps_found — 21-04-PLAN.md ready (CR-01/WR-01 sleep clamp + WR-02 test)
+Last activity: 2026-07-25 — Phase 21 gap_closure plan created
 
 ## Performance Metrics
 
