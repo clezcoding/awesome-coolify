@@ -21,7 +21,10 @@ export type CoolifyErrorCode =
   | 'COOLIFY_CLOUD_UNSUPPORTED'
   | 'COOLIFY_FETCH_TEMPLATES_FAILED'
   | 'COOLIFY_NOT_IMPLEMENTED'
-  | 'COOLIFY_RECIPE_PARTIAL_FAILURE';
+  | 'COOLIFY_RECIPE_PARTIAL_FAILURE'
+  | 'COOLIFY_WATCH_TIMEOUT'
+  | 'COOLIFY_DEPLOYMENT_FAILED'
+  | 'COOLIFY_DEPLOYMENT_CANCELLED';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -123,6 +126,18 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_RECIPE_PARTIAL_FAILURE: [
     'Partial recipe failure — created resources remain; check error.data for UUIDs.',
     'Follow recoveryHints to complete wiring manually; do not auto-delete created resources.',
+  ],
+  COOLIFY_WATCH_TIMEOUT: [
+    'Re-call deployment.watch with the same deployment_uuid to continue polling.',
+    'Optionally increase timeout (seconds, max 1800) if the build typically runs longer than the default 300s.',
+  ],
+  COOLIFY_DEPLOYMENT_FAILED: [
+    'Surface the deployment failure to the user with the status and any available summary fields.',
+    'Fetch build logs via deployment.get with projection full or re-call deployment.watch with include_logs: true.',
+  ],
+  COOLIFY_DEPLOYMENT_CANCELLED: [
+    'Surface the cancellation to the user — the deployment was stopped before completion.',
+    'Fetch logs via deployment.get or deployment.watch with include_logs: true if the user needs build output.',
   ],
 };
 

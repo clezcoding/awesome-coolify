@@ -370,6 +370,36 @@ describe('wrapMcpError', () => {
   });
 });
 
+describe('deployment watch error codes', () => {
+  it('RECOVERY_HINTS defines COOLIFY_WATCH_TIMEOUT with deployment.watch re-call hint', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_WATCH_TIMEOUT;
+    expect(hints.length).toBeGreaterThanOrEqual(1);
+    expect(hints.join(' ')).toMatch(/deployment\.watch/i);
+  });
+
+  it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_FAILED with non-empty hints', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_FAILED;
+    expect(hints.length).toBeGreaterThanOrEqual(1);
+    expect(hints.some((h) => /deployment\.get|include_logs/i.test(h))).toBe(true);
+  });
+
+  it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_CANCELLED with non-empty hints', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_CANCELLED;
+    expect(hints.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('CoolifyErrorCode union includes watch timeout, failed, and cancelled codes', () => {
+    const codes: CoolifyErrorCode[] = [
+      'COOLIFY_WATCH_TIMEOUT',
+      'COOLIFY_DEPLOYMENT_FAILED',
+      'COOLIFY_DEPLOYMENT_CANCELLED',
+    ];
+    for (const code of codes) {
+      expect(RECOVERY_HINTS[code].length).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
 describe('Cloud hostname error mapping', () => {
   it('maps app.coolify.io HTTP 403 to COOLIFY_CLOUD_FORBIDDEN (CLD-02)', () => {
     const envelope = toStructuredError({
