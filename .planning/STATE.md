@@ -346,7 +346,7 @@ Last activity: 2026-07-25
 | 260723-w1r | v3.0 docs overhaul + repo metadata; npm via Release | 2026-07-23 | c5aa0cd | [260723-w1r-overhaul-all-public-docs-to-v3-0-platfor](./quick/260723-w1r-overhaul-all-public-docs-to-v3-0-platfor/) |
 | 260724-86t | Install recommended next GitHub tools (CODEOWNERS, CodeQL, dependency review, stale, semantic PR) | 2026-07-24 | 5405dc2 | [260724-86t-install-all-recommended-next-from-260724](./quick/260724-86t-install-all-recommended-next-from-260724/) |
 | 260725-8la | Phase 20 review leftovers: recipe Object.hasOwn, deploy.status, allowlist, README 17 tools | 2026-07-25 | 4aed33b | [260725-8la-phase-20-review-leftovers-1-object-hasow](./quick/260725-8la-phase-20-review-leftovers-1-object-hasow/) |
-| 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | 94c3a65 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
+| 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | a0b6187 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
 
 ## Deferred Items
 
