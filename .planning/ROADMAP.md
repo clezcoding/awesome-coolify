@@ -132,17 +132,17 @@ Plans:
   2. Polling uses exponential backoff with jitter and a minimum interval — no 429 storms against Coolify during long builds
   3. Skill and/or prompt documents `deployment.watch` usage including non-blocking behavior, timeout, and recovery guidance
 
-**Plans**: 1/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 21-00-PLAN.md — Wave 0 RED scaffolds (deploy-watch-poll + deployment.watch + deploy prompt)
-- [ ] 21-01-PLAN.md — Backoff/jitter poll helper + 429 Retry-After attach
+- [x] 21-01-PLAN.md — Backoff/jitter poll helper + 429 Retry-After attach
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 21-02-PLAN.md — deployment.watch action + dual-signal error codes
+- [x] 21-02-PLAN.md — deployment.watch action + dual-signal error codes
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -191,7 +191,7 @@ Plans:
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
-| 21 | v3.1 | 1/4 | In Progress|  |
+| 21 | v3.1 | 3/4 | In Progress|  |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
 

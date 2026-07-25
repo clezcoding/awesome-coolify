@@ -5,15 +5,15 @@ milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
 status: executing
-stopped_at: Completed 21-deploy-watch-01-PLAN.md
-last_updated: "2026-07-25T06:23:03.180Z"
+stopped_at: Completed 21-deploy-watch-02-PLAN.md
+last_updated: "2026-07-25T06:28:18.556Z"
 last_activity: 2026-07-25
 last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 11
   percent: 40
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 21 (Deploy Watch) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-25 — Phase 21 execution started
 
@@ -114,6 +114,7 @@ Last activity: 2026-07-25 — Phase 21 execution started
 | Phase 20-recipes-service-list-types P04 | 2min | 2 tasks | 2 files |
 | Phase 21-deploy-watch P00 | 3min | 3 tasks | 3 files |
 | Phase 21-deploy-watch P01 | 3min | 2 tasks | 4 files |
+| Phase 21-deploy-watch P02 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -309,6 +310,9 @@ Last activity: 2026-07-25 — Phase 21 execution started
 - [Phase ?]: Schema-reject scaffolds assert refine messages not unrecognized-key errors
 - [Phase ?]: Watch-only pollDeploymentWithBackoff imports TERMINAL_DEPLOYMENT_STATES; timeout outcome never synthesizes status:timeout (21-01)
 - [Phase ?]: toStructuredError attaches data.retry_after ms from Retry-After header on HTTP 429 (21-01)
+- [Phase ?]: Watch timeout test uses fake timers with min_interval 1 — schema min timeout 10s
+- [Phase ?]: zodDefaultFields on createFlatActionSchema strips phantom watch defaults on list/get/cancel
+- [Phase ?]: Recursive redactEnvelopeData preserves nested deployment summary in error.data
 
 ### Pending Todos
 
@@ -369,8 +373,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T06:23:03.172Z
-**Stopped at:** Completed 21-deploy-watch-01-PLAN.md
+**Last session:** 2026-07-25T06:28:18.548Z
+**Stopped at:** Completed 21-deploy-watch-02-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
