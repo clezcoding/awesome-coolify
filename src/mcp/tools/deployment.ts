@@ -18,10 +18,12 @@ import {
 } from '../../utils/formatters.js';
 import {
   CoolifyApiError,
+  RECOVERY_HINTS,
   toStructuredError,
   wrapMcpError,
   type McpErrorResult,
 } from '../../utils/errors.js';
+import { pollDeploymentWithBackoff } from '../../utils/deploy-watch-poll.js';
 import {
   createFlatActionSchema,
   parseWithInstanceRouting,
@@ -31,7 +33,7 @@ import {
 } from './shared-read-params.js';
 
 export const deploymentActionsCatalog =
-  'Actions: list(application_uuid, format?, page?, per_page?) · get(deployment_uuid, format?, projection?, reveal?) · cancel(deployment_uuid, format?, max_chars?)';
+  'Actions: list(application_uuid, format?, page?, per_page?) · get(deployment_uuid, format?, projection?, reveal?) · cancel(deployment_uuid, format?, max_chars?) · watch(deployment_uuid, timeout?, min_interval?, max_interval?, include_logs?, format?, max_chars?, instance?)';
 
 export const deploymentSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
@@ -57,7 +59,7 @@ const deploymentListReadParamKeys = [
 ] as const;
 
 export const deploymentToolSchema = createFlatActionSchema(
-  ['list', 'get', 'cancel'],
+  ['list', 'get', 'cancel', 'watch'],
   {
     application_uuid: z
       .string()
@@ -67,17 +69,54 @@ export const deploymentToolSchema = createFlatActionSchema(
       .string()
       .optional()
       .describe('Deployment UUID'),
+    timeout: z
+      .number()
+      .int()
+      .min(10)
+      .max(1800)
+      .default(300)
+      .optional()
+      .describe('Watch timeout in seconds (default 300)'),
+    min_interval: z
+      .number()
+      .int()
+      .min(1)
+      .default(3)
+      .optional()
+      .describe('Minimum poll interval in seconds (default 3)'),
+    max_interval: z
+      .number()
+      .int()
+      .min(1)
+      .default(30)
+      .optional()
+      .describe('Maximum poll interval in seconds (default 30)'),
+    include_logs: z
+      .boolean()
+      .default(false)
+      .optional()
+      .describe('Attach capped build logs on success (default false)'),
     ...sharedReadParamsFlatShape,
   },
   {
     list: ['application_uuid', ...deploymentListReadParamKeys],
     get: ['deployment_uuid', ...deploymentReadParamKeys],
     cancel: ['deployment_uuid', 'format', 'max_chars'],
+    watch: [
+      'deployment_uuid',
+      'timeout',
+      'min_interval',
+      'max_interval',
+      'include_logs',
+      'format',
+      'max_chars',
+    ],
   },
   {
     list: ['application_uuid'],
     get: ['deployment_uuid'],
     cancel: ['deployment_uuid'],
+    watch: ['deployment_uuid'],
   },
   (data, ctx) => {
     if (data.action === 'list' && data.per_page !== undefined && data.per_page > 50) {
@@ -87,6 +126,28 @@ export const deploymentToolSchema = createFlatActionSchema(
         path: ['per_page'],
       });
     }
+
+    if (data.action === 'watch') {
+      const minInterval = data.min_interval;
+      const maxInterval = data.max_interval;
+      if (
+        minInterval !== undefined &&
+        maxInterval !== undefined &&
+        minInterval > maxInterval
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'min_interval must be less than or equal to max_interval',
+          path: ['min_interval'],
+        });
+      }
+    }
+  },
+  {
+    timeout: 300,
+    min_interval: 3,
+    max_interval: 30,
+    include_logs: false,
   },
 );
 
@@ -95,6 +156,7 @@ export type DeploymentAction = z.infer<typeof deploymentToolSchema>;
 type DeploymentListAction = Extract<DeploymentAction, { action: 'list' }>;
 type DeploymentGetAction = Extract<DeploymentAction, { action: 'get' }>;
 type DeploymentCancelAction = Extract<DeploymentAction, { action: 'cancel' }>;
+type DeploymentWatchAction = Extract<DeploymentAction, { action: 'watch' }>;
 
 export type DeploymentListResult = ReadResponse<DeploymentSummary[]>;
 
@@ -109,10 +171,15 @@ export type DeploymentCancelResult = ReadResponse<{
   status?: string;
 }>;
 
+export type DeploymentWatchResult = ReadResponse<
+  DeploymentSummary | (DeploymentSummary & { logs?: string })
+>;
+
 export type DeploymentActionResult =
   | DeploymentListResult
   | DeploymentGetResult
   | DeploymentCancelResult
+  | DeploymentWatchResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -220,6 +287,94 @@ async function handleDeploymentCancel(
   }
 }
 
+function isRetryableRateLimit(err: unknown): { retryAfterMs?: number } | null {
+  const envelope =
+    err instanceof CoolifyApiError ? err.envelope : toStructuredError(err);
+  if (envelope.httpStatus === 429) {
+    const retryAfter = envelope.data?.retry_after;
+    return {
+      retryAfterMs: typeof retryAfter === 'number' ? retryAfter : undefined,
+    };
+  }
+  return null;
+}
+
+async function handleDeploymentWatch(
+  parsed: DeploymentWatchAction,
+  env: EnvConfig,
+): Promise<DeploymentWatchResult> {
+  const timeoutMs = parsed.timeout * 1000;
+  const minIntervalMs = parsed.min_interval * 1000;
+  const maxIntervalMs = parsed.max_interval * 1000;
+
+  const fetcher = async () => {
+    const dep = await fetchDeployment(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      parsed.deployment_uuid,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    return (isRecord(dep) ? dep : {}) as Record<string, unknown>;
+  };
+
+  const outcome = await pollDeploymentWithBackoff(fetcher, {
+    timeoutMs,
+    minIntervalMs,
+    maxIntervalMs,
+    isRetryableRateLimit,
+  });
+
+  const rawRecord = isRecord(outcome.deployment) ? outcome.deployment : {};
+  const summary = projectDeploymentSummary(rawRecord);
+
+  if (outcome.kind === 'timeout') {
+    const elapsedSeconds = Math.round(outcome.elapsedMs / 1000);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_WATCH_TIMEOUT',
+      message: `Deployment watch timed out after ${elapsedSeconds}s — deployment still ${summary.status}.`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_WATCH_TIMEOUT,
+      data: {
+        deployment: summary,
+        timed_out: true,
+        elapsed_seconds: elapsedSeconds,
+      },
+    });
+  }
+
+  const status = summary.status;
+  if (status === 'failed') {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_DEPLOYMENT_FAILED',
+      message: `Deployment failed with status: ${status}.`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_DEPLOYMENT_FAILED,
+      data: { deployment: summary },
+    });
+  }
+
+  if (status === 'cancelled-by-user') {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_DEPLOYMENT_CANCELLED',
+      message: `Deployment was cancelled by user (status: ${status}).`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_DEPLOYMENT_CANCELLED,
+      data: { deployment: summary },
+    });
+  }
+
+  let data: DeploymentSummary | (DeploymentSummary & { logs?: string }) = summary;
+  if (parsed.include_logs) {
+    const full = projectDeploymentFull(rawRecord, parsed.max_chars, false);
+    data = {
+      ...summary,
+      ...(full.logs !== undefined ? { logs: full.logs } : {}),
+    };
+  }
+
+  return buildReadResponse(data, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 export async function handleDeploymentAction(
   args: DeploymentAction,
   env: EnvConfig,
@@ -235,6 +390,8 @@ export async function handleDeploymentAction(
         return await handleDeploymentGet(parsed, routingEnv);
       case 'cancel':
         return await handleDeploymentCancel(parsed, routingEnv);
+      case 'watch':
+        return await handleDeploymentWatch(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown deployment action: ${String(_exhaustive)}`);

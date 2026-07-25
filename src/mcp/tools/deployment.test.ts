@@ -385,7 +385,7 @@ describe('deployment watch', () => {
     vi.mocked(fetchDeployment).mockReset();
   });
 
-  it.fails('schema accepts watch with deployment_uuid only', () => {
+  it('schema accepts watch with deployment_uuid only', () => {
     const result = deploymentToolSchema.safeParse({
       action: 'watch',
       deployment_uuid: 'dep-uuid-1',
@@ -398,7 +398,7 @@ describe('deployment watch', () => {
     expect(result.data.deployment_uuid).toBe('dep-uuid-1');
   });
 
-  it.fails('schema defaults timeout 300, min_interval 3, max_interval 30, include_logs false', () => {
+  it('schema defaults timeout 300, min_interval 3, max_interval 30, include_logs false', () => {
     const result = deploymentToolSchema.safeParse({
       action: 'watch',
       deployment_uuid: 'dep-uuid-1',
@@ -416,7 +416,7 @@ describe('deployment watch', () => {
     });
   });
 
-  it.fails('schema rejects min_interval greater than max_interval', () => {
+  it('schema rejects min_interval greater than max_interval', () => {
     const result = deploymentToolSchema.safeParse({
       action: 'watch',
       deployment_uuid: 'dep-uuid-1',
@@ -435,7 +435,7 @@ describe('deployment watch', () => {
     );
   });
 
-  it.fails('schema rejects min_interval less than 1', () => {
+  it('schema rejects min_interval less than 1', () => {
     const result = deploymentToolSchema.safeParse({
       action: 'watch',
       deployment_uuid: 'dep-uuid-1',
@@ -455,7 +455,7 @@ describe('deployment watch', () => {
     ).toBe(true);
   });
 
-  it.fails('returns OK summary when deployment finishes', async () => {
+  it('returns OK summary when deployment finishes', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-finished',
       git_commit_sha: 'abc123',
@@ -481,23 +481,41 @@ describe('deployment watch', () => {
     expect(result.data).not.toHaveProperty('logs');
   });
 
-  it.fails('returns dual-signal timeout with COOLIFY_WATCH_TIMEOUT', async () => {
-    vi.mocked(fetchDeployment).mockResolvedValue({
-      deployment_uuid: 'dep-timeout',
-      git_commit_sha: 'abc123',
-      status: 'in_progress',
-      created_at: '2026-07-12T01:00:00.000Z',
-    });
+  it(
+    'returns dual-signal timeout with COOLIFY_WATCH_TIMEOUT',
+    async () => {
+      vi.useFakeTimers();
 
-    const result = await handleDeploymentAction(
-      { action: 'watch', deployment_uuid: 'dep-timeout', timeout: 1 },
-      testEnv,
-    );
+      vi.mocked(fetchDeployment).mockResolvedValue({
+        deployment_uuid: 'dep-timeout',
+        git_commit_sha: 'abc123',
+        status: 'in_progress',
+        created_at: '2026-07-12T01:00:00.000Z',
+      });
 
-    expect(isDeploymentErrorResult(result)).toBe(true);
-    if (!isDeploymentErrorResult(result)) return;
+      const resultPromise = handleDeploymentAction(
+        {
+          action: 'watch',
+          deployment_uuid: 'dep-timeout',
+          timeout: 10,
+          min_interval: 1,
+          max_interval: 1,
+        },
+        testEnv,
+      );
 
-    expect(result.structuredContent.error.code).toBe('COOLIFY_WATCH_TIMEOUT');
+      for (let i = 0; i < 12; i++) {
+        await vi.advanceTimersByTimeAsync(1000);
+      }
+
+      const result = await resultPromise;
+
+      vi.useRealTimers();
+
+      expect(isDeploymentErrorResult(result)).toBe(true);
+      if (!isDeploymentErrorResult(result)) return;
+
+      expect(result.structuredContent.error.code).toBe('COOLIFY_WATCH_TIMEOUT');
     const errorData = result.structuredContent.error.data as {
       deployment?: { status?: string };
       timed_out?: boolean;
@@ -507,9 +525,11 @@ describe('deployment watch', () => {
     expect(result.structuredContent.error.recoveryHints?.join(' ')).toMatch(
       /deployment\.watch|watch/i,
     );
-  });
+  },
+  15000,
+  );
 
-  it.fails('returns COOLIFY_DEPLOYMENT_FAILED with clear error on failed terminal', async () => {
+  it('returns COOLIFY_DEPLOYMENT_FAILED with clear error on failed terminal', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-failed',
       git_commit_sha: 'abc123',
@@ -530,7 +550,7 @@ describe('deployment watch', () => {
     expect(result.structuredContent.error.message).toMatch(/fail/i);
   });
 
-  it.fails('returns COOLIFY_DEPLOYMENT_CANCELLED on cancelled-by-user terminal', async () => {
+  it('returns COOLIFY_DEPLOYMENT_CANCELLED on cancelled-by-user terminal', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-cancelled',
       git_commit_sha: 'abc123',

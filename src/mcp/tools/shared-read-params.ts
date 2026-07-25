@@ -28,6 +28,7 @@ export function createFlatActionSchema<
   actionAllowedFields: Record<TAction, (keyof TShape | 'action')[]>,
   actionRequiredFields?: Partial<Record<TAction, (keyof TShape)[]>>,
   extraRefine?: (data: z.infer<z.ZodObject<{ action: z.ZodEnum<{ [K in TAction]: K }> } & TShape>>, ctx: z.RefinementCtx) => void,
+  zodDefaultFields?: Partial<Record<keyof TShape & string, unknown>>,
 ) {
   const schema = z
     .object({
@@ -56,6 +57,17 @@ export function createFlatActionSchema<
       for (const key of Object.keys(data)) {
         if (key === 'instance') continue;
         if (!allowed.has(key)) {
+          if (
+            zodDefaultFields &&
+            key in zodDefaultFields &&
+            Object.is(
+              data[key as keyof typeof data],
+              zodDefaultFields[key as keyof typeof zodDefaultFields],
+            )
+          ) {
+            delete (data as Record<string, unknown>)[key];
+            continue;
+          }
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `Parameter '${key}' is not allowed for action '${action}'`,

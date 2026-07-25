@@ -430,23 +430,30 @@ export interface McpErrorResult {
   structuredContent: { ok: false; error: CoolifyErrorEnvelope };
 }
 
+function redactEnvelopeDataValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return redactSecrets(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(redactEnvelopeDataValue);
+  }
+  if (value !== null && typeof value === 'object') {
+    const redacted: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value)) {
+      redacted[key] = redactEnvelopeDataValue(entry);
+    }
+    return redacted;
+  }
+  return value;
+}
+
 function redactEnvelopeData(
   data: Record<string, unknown> | undefined,
 ): Record<string, unknown> | undefined {
   if (!data) return undefined;
   const redacted: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
-    if (typeof value === 'string') {
-      redacted[key] = redactSecrets(value);
-    } else if (Array.isArray(value)) {
-      redacted[key] = value.map((entry) =>
-        typeof entry === 'string' ? redactSecrets(entry) : entry,
-      );
-    } else if (value !== null && typeof value === 'object') {
-      redacted[key] = redactSecrets(JSON.stringify(value));
-    } else {
-      redacted[key] = value;
-    }
+    redacted[key] = redactEnvelopeDataValue(value);
   }
   return redacted;
 }
