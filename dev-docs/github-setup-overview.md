@@ -20,7 +20,7 @@ Stand: 2026-07-24. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 ## Labels
 
 - `.github/labels.yml` — Typ-, Priorität-, Status-, GSD-Phasen- (discuss/plan/execute/verify/ship) und Größen-Labels
-- `.github/workflows/labels.yml` — synct die Labels automatisch (EndBug/label-sync@v2.3.3) bei Änderung der Datei
+- `.github/workflows/labels.yml` — synct die Labels automatisch (EndBug/label-sync@v2) bei Änderung der Datei
 
 ## CI/CD
 
@@ -44,10 +44,10 @@ Stand: 2026-07-24. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 ## Security & Hygiene (2026-07-24)
 
 - `.github/CODEOWNERS` — auto Review-Requests für `@clezcoding` auf sensible Pfade
-- `.github/workflows/codeql.yml` — CodeQL SAST (javascript-typescript), wöchentlicher Scan + PR/Push-Trigger, `github/codeql-action@v3`
+- `.github/workflows/codeql.yml` — CodeQL SAST (javascript-typescript), wöchentlicher Scan + PR/Push-Trigger, `github/codeql-action@v4`
 - `.github/workflows/dependency-review.yml` — Dependency Review Action auf PRs, blockt vulnerable Dep-Änderungen
-- `.github/workflows/stale.yml` — `actions/stale@v9`, 60/14-Tage-Cycle, exempt Labels `pinned,security,help wanted`
-- `.github/workflows/semantic-pull-request.yml` — `amannn/action-semantic-pull-request@v5`, erzwingt Conventional-Commit-PR-Titel (ergänzt lokales commitlint)
+- `.github/workflows/stale.yml` — `actions/stale@v10`, 60/14-Tage-Cycle, exempt Labels `pinned,security,help wanted`
+- `.github/workflows/semantic-pull-request.yml` — `amannn/action-semantic-pull-request@v6`, erzwingt Conventional-Commit-PR-Titel (ergänzt lokales commitlint)
 
 ## Commit-Qualität
 
