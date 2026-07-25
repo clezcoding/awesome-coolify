@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 21
-current_phase_name: Deploy Watch
-status: planning
-stopped_at: Created 21-04 gap_closure PLAN (bounded timeout clamp)
-last_updated: "2026-07-25T07:16:00.000Z"
+current_phase_name: deploy-watch
+status: executing
+stopped_at: Completed 21-deploy-watch-04-PLAN.md
+last_updated: "2026-07-25T07:24:18.144Z"
 last_activity: 2026-07-25
-last_activity_desc: Phase 21 gap_closure plan 21-04 created
+last_activity_desc: Phase 21 execution started
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 60
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 21 — Deploy Watch (gap_closure)
+**Current focus:** Phase 21 — deploy-watch
 
 ## Current Position
 
-Phase: 21 (Deploy Watch) — GAP CLOSURE PLANNED
-Plan: 5 of 5 (21-04 pending execute)
-Status: gaps_found — 21-04-PLAN.md ready (CR-01/WR-01 sleep clamp + WR-02 test)
-Last activity: 2026-07-25 — Phase 21 gap_closure plan created
+Phase: 21 (deploy-watch) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-07-25 — Phase 21 execution started
 
 ## Performance Metrics
 
@@ -116,6 +116,7 @@ Last activity: 2026-07-25 — Phase 21 gap_closure plan created
 | Phase 21-deploy-watch P01 | 3min | 2 tasks | 4 files |
 | Phase 21-deploy-watch P02 | 4min | 2 tasks | 5 files |
 | Phase 21-deploy-watch P03 | 2min | 2 tasks | 4 files |
+| Phase 21-deploy-watch P04 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -315,6 +316,8 @@ Last activity: 2026-07-25 — Phase 21 gap_closure plan created
 - [Phase ?]: zodDefaultFields on createFlatActionSchema strips phantom watch defaults on list/get/cancel
 - [Phase ?]: Recursive redactEnvelopeData preserves nested deployment summary in error.data
 - [Phase ?]: Deploy prompt + README document watch-primary flow; wait:true legacy; D-16 Phase 22 SKILL note without skill pack files
+- [Phase ?]: remainingMs module-local — behavior tested via fake timers not exported (21-04)
+- [Phase ?]: include_logs test uses schema min max_chars 1000 and truncateLogs suffix (21-04)
 
 ### Pending Todos
 
@@ -375,8 +378,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T06:30:53.136Z
-**Stopped at:** Completed 21-deploy-watch-03-PLAN.md
+**Last session:** 2026-07-25T07:24:18.135Z
+**Stopped at:** Completed 21-deploy-watch-04-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
