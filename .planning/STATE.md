@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 21
 current_phase_name: Deploy Watch
-status: "Phase 21 planned — 4 plans ready"
+status: Phase 21 planned — 4 plans ready
 stopped_at: Phase 21 plans created
-last_updated: "2026-07-25T06:10:00.000Z"
+last_updated: "2026-07-25T06:14:34.297Z"
 last_activity: 2026-07-25
+last_activity_desc: Phase 21 planning complete
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
   completed_plans: 8
   percent: 40
-last_activity_desc: Phase 21 Deploy Watch planned (21-00..21-03)
 ---
 
 # Project State
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 Phase: 21 — Deploy Watch
 Plan: 21-00 (Wave 0) next
 Status: Phase 21 planned — 4 plans ready
-Last activity: 2026-07-25
+Last activity: 2026-07-25 — Phase 21 planning complete
 
 ## Performance Metrics
 

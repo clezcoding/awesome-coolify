@@ -135,9 +135,17 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 21-00-PLAN.md — Wave 0 RED scaffolds (deploy-watch-poll + deployment.watch + deploy prompt)
 - [ ] 21-01-PLAN.md — Backoff/jitter poll helper + 429 Retry-After attach
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 21-02-PLAN.md — deployment.watch action + dual-signal error codes
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 21-03-PLAN.md — deploy prompt + README EN/DE Watch docs
 
 ### Phase 22: Setup Wizard & IDE Skills
