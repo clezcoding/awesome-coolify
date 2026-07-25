@@ -45,7 +45,7 @@ describe('MCP prompts registration', () => {
     }
   });
 
-  it.fails('deploy prompt recommends watch-primary flow with timeout re-watch and wait:true legacy', async () => {
+  it('deploy prompt recommends watch-primary flow with timeout re-watch and wait:true legacy', async () => {
     const server = new McpServer({ name: 'test-server', version: '1.0.0' });
     registerCoolifyPrompts(server);
     const result = await getRegisteredPrompts(server).deploy.handler({
