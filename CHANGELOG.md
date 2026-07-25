@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 0.4.4
+
+### Patch Changes
+
+- 71d3fc7: Call publish.yml via workflow_call from release.yml so OIDC Trusted Publisher matches (inline npm publish from release.yml got 404).
+
 ## 0.4.3
 
 ### Patch Changes
