@@ -240,24 +240,26 @@ describe('429 Retry-After passthrough', () => {
 
   it('toStructuredError attaches retry_after ms from HTTP-date Retry-After on HTTP 429', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-07-25T12:00:00.000Z'));
+    try {
+      vi.setSystemTime(new Date('2026-07-25T12:00:00.000Z'));
 
-    const fetchError = {
-      response: {
-        status: 429,
-        headers: {
-          get: (name: string) =>
-            name === 'retry-after' ? 'Wed, 25 Jul 2026 12:00:10 GMT' : null,
+      const fetchError = {
+        response: {
+          status: 429,
+          headers: {
+            get: (name: string) =>
+              name === 'retry-after' ? 'Wed, 25 Jul 2026 12:00:10 GMT' : null,
+          },
+          _data: { message: 'Too Many Requests' },
         },
-        _data: { message: 'Too Many Requests' },
-      },
-    };
-    const envelope = toStructuredError(fetchError);
-    expect(envelope.code).toBe('COOLIFY_429');
-    expect(envelope.httpStatus).toBe(429);
-    expect(envelope.data?.retry_after).toBe(10000);
-
-    vi.useRealTimers();
+      };
+      const envelope = toStructuredError(fetchError);
+      expect(envelope.code).toBe('COOLIFY_429');
+      expect(envelope.httpStatus).toBe(429);
+      expect(envelope.data?.retry_after).toBe(10000);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('toStructuredError omits retry_after when Retry-After header is missing on HTTP 429', () => {
