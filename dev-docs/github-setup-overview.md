@@ -7,7 +7,7 @@ Stand: 2026-07-24. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 - **Ein Repo:** `clezcoding/awesome-coolify` (public) — Dev + Distribution in einem Checkout
 - **npm-Paket:** `awesome-coolify-mcp` (Name bleibt unabhängig vom Repo-Namen)
 - **Legacy:** `clezcoding/awesome-coolify-mcp` archiviert (kein Dual-Repo-Sync mehr)
-- **Pages:** https://clezcoding.github.io/awesome-coolify/
+- **Pages:** <https://clezcoding.github.io/awesome-coolify/>
 - **MCP Registry Publish:** bewusst zurückgestellt — später separat einrichten
 
 ## Issues & PRs
@@ -73,14 +73,14 @@ Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/
 ## Audit-Status (2026-07-24)
 
 | Baustein | Status | Evidenz / Aktion |
-|----------|--------|------------------|
+| -------- | ------ | ---------------- |
 | CI (lint/test/publint/megalinter) | ✅ grün | Zwei parallele Jobs; MegaLinter javascript-Flavor |
 | Branch Protection | ✅ grün | `main` erfordert `Lint, Test & Build` + `MegaLinter` |
 | Labels Sync | ✅ grün | `automerge` + GSD-Labels via `labels.yml` |
 | Release (Changesets) | ✅ grün | Version-Packages-PRs merged |
 | npm Publish (OIDC) | ✅ grün | `awesome-coolify-mcp@0.1.2` auf npm |
 | Release Drafter | ✅ grün | Draft v0.1.2 |
-| Pages | ✅ grün | https://clezcoding.github.io/awesome-coolify/ |
+| Pages | ✅ grün | <https://clezcoding.github.io/awesome-coolify/> |
 | Dependabot | ✅ grün | wöchentlich npm + actions |
 | Comfy Publish | ⏸️ Stub | `COMFY_PUBLISH_ENABLED` nicht gesetzt (absichtlich) |
 | MCP Registry Publish | ⏸️ zurückgestellt | Kein Workflow — später separat |
@@ -97,4 +97,8 @@ Ignoriert u.a.: `.planning/`, `.cursor/`, `.claude/`, `.agents/`, `graphify-out/
 1. **PRs für Auto-Merge** — Label `automerge` setzen wenn CI-ready: `gh pr edit <nr> --add-label automerge` oder `./scripts/setup-kodiak.sh --pr <nr>`
 2. **Wiederholbare Prüfung** — `./scripts/verify-github-setup.sh` (Exit 0 mit Warnungen für manuelle Items; Exit 1 nur bei kritischen Repo-Lücken).
 3. **Branch Protection aktualisieren** — nach CI-Änderung einmal `./scripts/setup-branch-protection.sh` ausführen (fügt `MegaLinter` als required check hinzu).
-4. **Branch Protection ggf. erweitern** — nach erstem grünen CodeQL-Run auf `main` optional `./scripts/setup-branch-protection.sh` erneut ausführen oder manuell `CodeQL` als required check hinzufügen. Vorher nicht required setzen (Constraint: kein Auto-Require bis erster grüner Run). Dependency Review und Semantic PR sind PR-Only-Checks und können optional als required gesetzt werden, wenn erste Runs grün waren.
+4. **Branch Protection ggf. erweitern** — nach erstem grünen CodeQL-Run auf `main` optional
+   `./scripts/setup-branch-protection.sh` erneut ausführen oder manuell `CodeQL` als required check
+   hinzufügen. Vorher nicht required setzen (Constraint: kein Auto-Require bis erster grüner Run).
+   Dependency Review und Semantic PR sind PR-Only-Checks und können optional als required gesetzt
+   werden, wenn erste Runs grün waren.

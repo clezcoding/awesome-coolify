@@ -25,17 +25,27 @@ npm run uat:live
 This runs `node scripts/live-uat.mjs`. Optional flags:
 
 | Flag | Effect |
-|------|--------|
+| ---- | ------ |
 | `--write` | Unlocks create/update/restart/deploy inside the UAT project |
 | `--confirm-destructive` | Additionally unlocks deletes, emergency bulk ops, and manifest prune/clear |
 | `--full` | Runs the entire action matrix (default is representatives plus the fixed v3 mandatory set) |
+| `--out <path>` | Writes the JSON report to a file and emits a Markdown companion (`.md` alongside) |
 
-**Manifest rows are workspace-local filesystem ops** (`.coolify/manifest.json` under the repo root). They are intentionally **not** scoped by `UAT_PROJECT_UUID`. With `--write` / `--confirm-destructive` they can mutate or clear that local cache only — never Coolify cloud resources. Treat the checkout as the blast radius.
-| `--out <path>` | Writes the JSON report to a file and emits a Markdown companion (`.md` alongside or derived from the path) |
+**Manifest rows are workspace-local filesystem ops** (`.coolify/manifest.json` under the repo root).
+They are intentionally **not** scoped by `UAT_PROJECT_UUID`. With `--write` / `--confirm-destructive`
+they can mutate or clear that local cache only — never Coolify cloud resources.
+Treat the checkout as the blast radius.
 
-Without `--write`, the harness stays **read-only** for normal matrix rows: lists, gets, diff, and meta-style calls execute; write and destructive matrix rows are recorded as status `planned`, not executed.
+Without `--write`, the harness stays **read-only** for normal matrix rows: lists, gets, diff, and
+meta-style calls execute; write and destructive matrix rows are recorded as status `planned`, not executed.
 
-One smoke exception: `emergency-stop-all-preview-smoke` intentionally calls `emergency` / `stop_all` without `confirm`. That performs a live `fetchResources` probe; the MCP handler rejects with `COOLIFY_CONFIRM_REQUIRED` (preview semantics). The harness scores **only** that error code as **pass**. If the call returns success (`ok: true`), the row fails with `UAT_CONFIRM_GATE_REGRESSION` — a confirm-gate regression must never green-light an instance-wide stop. This row is typed `read` in the matrix because it never mutates when `confirm` is absent.
+One smoke exception: `emergency-stop-all-preview-smoke` intentionally calls `emergency` /
+`stop_all` without `confirm`. That performs a live `fetchResources` probe; the MCP handler
+rejects with `COOLIFY_CONFIRM_REQUIRED` (preview semantics). The harness scores **only** that
+error code as **pass**. If the call returns success (`ok: true`), the row fails with
+`UAT_CONFIRM_GATE_REGRESSION` — a confirm-gate regression must never green-light an
+instance-wide stop. This row is typed `read` in the matrix because it never mutates when
+`confirm` is absent.
 
 ### Preconditions
 
@@ -45,7 +55,7 @@ One smoke exception: `emergency-stop-all-preview-smoke` intentionally calls `eme
 4. **Smoke fixtures (optional)** — several smoke rows look up named resources inside the UAT project. Set these env vars when you have seeded fixtures; rows are **skipped** (`missing-fixture`) when unset:
 
 | Env var | Matrix row(s) |
-|---------|----------------|
+| ------- | ------------- |
 | `UAT_SMOKE_APP_NAME` | `application-get-smoke`, full-suite application write/destructive rows |
 | `UAT_SMOKE_APP_UUID` | `deployment-list-smoke` |
 | `UAT_SMOKE_SERVICE_NAME` | `service-get-smoke` |
@@ -67,7 +77,7 @@ npm run uat:live -- --out /tmp/uat-report.json
 - With `--out`, the same JSON is written to disk plus a **Markdown companion** for human review.
 
 | Exit code | Meaning |
-|-----------|---------|
+| --------- | ------- |
 | `0` | No failures (`skip` and `planned` are OK) |
 | `1` | At least one matrix row failed, **or** any `blocked-outside-uat` (scope miss counts as fail) |
 | `2` | Setup abort (missing `UAT_PROJECT_UUID`, missing credentials, project mismatch, invalid flags) |
@@ -92,7 +102,7 @@ Matrix rows live in `scripts/live-uat.matrix.json`. Add or adjust rows there; av
 
 All commits follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 <type>(<optional scope>): <short description>
 
 feat: a new feature
@@ -149,9 +159,12 @@ Labels are managed centrally in `.github/labels.yml` and synced automatically �
 
 PRs are auto-labeled on open, edit, sync, and ready-for-review via `.github/workflows/pr-labels.yml` (`scripts/gsd-pr-labels.sh --mode ci`). Labels cover type, GSD phase, diff size, scope (from changed paths). `needs-changeset` is advisory only (not a Kodiak blocker); ship/automerge PRs will not keep that label.
 
-After `/gsd-ship` opens a phase PR, **`./scripts/gsd-ship-post.sh <pr>` runs automatically** (GSD `ship.md` step + Cursor `afterShellExecution` hook + always-on rule). By default it:
+After `/gsd-ship` opens a phase PR, **`./scripts/gsd-ship-post.sh <pr>` runs automatically**
+(GSD `ship.md` step + Cursor `afterShellExecution` hook + always-on rule). By default it:
+
 1. Applies ship labels (`gsd: ship`, `type:*`, `size:*`, `scope:*`, `status: ready-to-merge`) and clears `needs-changeset`
-2. Sets the **`automerge`** label for Kodiak — merge still waits for required checks (`Lint, Test & Build`, `MegaLinter`) and will not proceed while blocking labels are present
+2. Sets the **`automerge`** label for Kodiak — merge still waits for required checks
+   (`Lint, Test & Build`, `MegaLinter`) and will not proceed while blocking labels are present
 
 For hotfix / out-of-band releases that need an immediate changeset:
 
