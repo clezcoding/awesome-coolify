@@ -328,6 +328,7 @@ Last activity: 2026-07-25
 | 260719-fju | GitHub Actions/Bots/Workflows Audit — MCP publish gaps + verify script | 2026-07-19 | 75d61d3 | [260719-fju-berpr-fe-ob-alle-github-action-tools-bot](./quick/260719-fju-berpr-fe-ob-alle-github-action-tools-bot/) |
 | 260721-70k | CI/CD speed audit + Kodiak autodeploy activation | 2026-07-21 | 0d5fbb5 | [260721-70k-die-github-prs-dauern-teils-mehrere-minu](./quick/260721-70k-die-github-prs-dauern-teils-mehrere-minu/) |
 | 260723-w1r | v3.0 docs overhaul + repo metadata; npm via Release | 2026-07-23 | c5aa0cd | [260723-w1r-overhaul-all-public-docs-to-v3-0-platfor](./quick/260723-w1r-overhaul-all-public-docs-to-v3-0-platfor/) |
+| 260724-86t | Install recommended next GitHub tools (CODEOWNERS, CodeQL, dependency review, stale, semantic PR) | 2026-07-24 | 5405dc2 | [260724-86t-install-all-recommended-next-from-260724](./quick/260724-86t-install-all-recommended-next-from-260724/) |
 
 ## Deferred Items
 
@@ -365,11 +366,11 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 **Stopped at:** Completed 20-recipes-service-list-types-04-PLAN.md
 **Resume file:** None
 
-Last activity: 2026-07-25 — `/gsd-plan-phase 20 --gaps` → 20-04-PLAN.md
+Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
 
 ## Operator Next Steps
 
-- `/gsd-execute-phase 20` — Recipes & Service List-Types (4 plans)
+- `/gsd-plan-phase 21` — Deploy Watch
 
 ## Rebuild Log
 

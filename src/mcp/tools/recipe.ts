@@ -380,6 +380,7 @@ async function handleCreateGitApp(
         env.COOLIFY_URL,
         env.COOLIFY_TOKEN,
         application_uuid,
+        false,
         env.COOLIFY_VERIFY_SSL,
       );
     } catch (error) {
@@ -678,6 +679,7 @@ async function handleCreateAppDb(
         env.COOLIFY_URL,
         env.COOLIFY_TOKEN,
         appUuid,
+        false,
         env.COOLIFY_VERIFY_SSL,
       );
     } catch {

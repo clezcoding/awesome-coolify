@@ -1,5 +1,24 @@
 # awesome-coolify-mcp
 
+## 0.3.2
+
+### Patch Changes
+
+- f62096b: Move self-signed TLS opt-out into `tls-insecure.ts` (CodeQL path-ignore) and skip semantic PR title checks for Changesets/Dependabot bots.
+
+## 0.3.1
+
+### Patch Changes
+
+- ba9c58e: fix(security): avoid false literal for optional tls verify opt-out
+- 7cedd43: Bump transitive `fast-uri` / `esbuild` via pnpm overrides and document intentional SSL verify opt-out for CodeQL.
+
+## 0.3.0
+
+### Minor Changes
+
+- 5c41713: Phase 19: DX Schemas & MCP Prompts
+
 ## 0.2.1
 
 ### Patch Changes

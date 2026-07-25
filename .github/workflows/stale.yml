@@ -1,0 +1,28 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark and close stale issues and pull requests
+        uses: actions/stale@v9
+        with:
+          days-before-stale: 60
+          days-before-close: 14
+          days-before-issue-stale: 60
+          days-before-pr-stale: 60
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: pinned,security,help wanted
+          exempt-pr-labels: pinned,security,help wanted
+          operations-per-run: 30
+          remove-stale-when-updated: true

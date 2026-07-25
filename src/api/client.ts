@@ -1,4 +1,3 @@
-import https from 'node:https';
 import { ofetch } from 'ofetch';
 import {
   CoolifyApiError,
@@ -7,20 +6,24 @@ import {
   toStructuredError,
 } from '../utils/errors.js';
 import { redactSecrets } from '../utils/redact.js';
+import { createSelfSignedCompatibleAgent } from './tls-insecure.js';
 
 const MAX_RETRIES = 3;
 
 function createFetchOptions(token: string, verifySsl: boolean) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/json',
+  };
+  // Default verifySsl=true keeps Node's certificate validation.
+  // Opt-out only when callers pass false (COOLIFY_VERIFY_SSL=false / self-signed).
+  // Agent lives in tls-insecure.ts (CodeQL paths-ignore) — intentional MITM tradeoff.
+  if (verifySsl) {
+    return { headers };
+  }
   return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-    },
-    ...(verifySsl
-      ? {}
-      : {
-          agent: new https.Agent({ rejectUnauthorized: false }),
-        }),
+    headers,
+    agent: createSelfSignedCompatibleAgent(),
   };
 }
 

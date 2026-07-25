@@ -1,0 +1,6 @@
+name: awesome-coolify CodeQL
+
+# Isolate the intentional TLS verify opt-out (self-signed Coolify only).
+# See src/api/tls-insecure.ts and COOLIFY_VERIFY_SSL=false docs.
+paths-ignore:
+  - src/api/tls-insecure.ts

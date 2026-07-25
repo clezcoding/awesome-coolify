@@ -315,6 +315,7 @@ describe('recipe create-git-app', () => {
       testEnv.COOLIFY_URL,
       testEnv.COOLIFY_TOKEN,
       'app-new-uuid',
+      false,
       testEnv.COOLIFY_VERIFY_SSL,
     );
   });
@@ -535,6 +536,7 @@ describe('recipe create-app-db', () => {
       testEnv.COOLIFY_URL,
       testEnv.COOLIFY_TOKEN,
       'app-new-uuid',
+      false,
       testEnv.COOLIFY_VERIFY_SSL,
     );
   });

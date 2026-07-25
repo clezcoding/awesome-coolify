@@ -181,8 +181,8 @@ Plans:
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
 
-**Next:** `/gsd-execute-phase 19` — execute DX Schemas & MCP Prompts
+**Next:** `/gsd-plan-phase 21` — Deploy Watch
 
 ---
 
-*Last updated: 2026-07-24 — v3.1 Setup, Skills & DX roadmap created*
+*Last updated: 2026-07-25 — Phase 20 complete; Phase 21 next*
