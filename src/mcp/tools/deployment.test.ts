@@ -479,6 +479,14 @@ describe('deployment watch', () => {
       status: 'finished',
     });
     expect(result.data).not.toHaveProperty('logs');
+    // WR-01 / IN-04: watch must disable nested ofetch 429 retries so Retry-After is honored.
+    expect(fetchDeployment).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'dep-finished',
+      testEnv.COOLIFY_VERIFY_SSL,
+      { retry: false },
+    );
   });
 
   it('returns capped logs without raw_deployment when include_logs true on success (WR-02)', async () => {
