@@ -96,7 +96,8 @@ Self-hosted [Coolify](https://coolify.io) ist eine der besten Open-Source-Altern
 **awesome-coolify-mcp** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent Domänen-Tools mit einem `action`-Feld auf:
 
 ```js
-application({ action: "deploy", uuid: "<app-uuid>", wait: true })
+application({ action: "deploy", uuid: "<app-uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
 diagnose({ action: "scan" })
 emergency({ action: "stop_all", confirm: true })
 ```
@@ -327,7 +328,8 @@ Jede Domäne ist **ein MCP-Tool** mit `action`-Discriminator — die Tool-Liste 
 
 ```js
 system({ action: "health" })
-application({ action: "deploy", uuid: "<app-uuid>", wait: true })
+application({ action: "deploy", uuid: "<app-uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
 emergency({ action: "stop_all", confirm: true })
 ```
 
@@ -373,7 +375,7 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 |--------|-------|
 | `get` | Detaillierte Application-Konfiguration |
 | `start` / `stop` / `restart` | Container-Lifecycle-Kontrolle |
-| `deploy` | Deploy auslösen, optional mit `wait`/Poll und `force`-Rebuild |
+| `deploy` | Deploy auslösen, optional mit `force`-Rebuild; empfohlen: `wait: false` + `deployment.watch`, legacy: `wait: true` |
 | `logs` | Paginierte Runtime- oder Build-Logs, begrenzt, damit sie dein Context-Fenster nicht sprengen |
 | `envs:list` / `envs:get` | Env-Vars auflisten oder abrufen (Werte als `***` maskiert, außer mit `reveal: true`) |
 | `envs:create` / `envs:update` | Einzelne Env-Vars anlegen oder aktualisieren (Flags: `is_preview`, `is_literal`, `is_multiline`, `is_shown_once`) |
@@ -387,7 +389,27 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 |--------|-------|
 | `list` | Deployments einer bestimmten Application |
 | `get` | Status, Commit und Timing-Details eines Deployments |
+| `watch` | Bis Terminalstatus pollen mit begrenztem Timeout, Backoff und Jitter |
 | `cancel` | Laufendes Deployment saubär abbrechen |
+
+### ⏱️ Beobachten — begrenztes Deploy-Monitoring
+
+Nach `application.deploy` mit `wait: false` `deployment.watch` aufrufen — nicht manuell `deployment.get` loopen.
+
+| Verhalten | Detail |
+|-----------|--------|
+| Standard-Timeout | **300 Sekunden** |
+| Poll-Intervall | Start bei **3s**, Cap bei **30s** mit Equal-Jitter-Backoff |
+| Timeout-Recovery | `deployment.watch` mit derselben `deployment_uuid` erneut aufrufen (`timeout` bei langsamen Builds erhöhen) |
+| Failed / cancelled | Tool liefert klaren Fehler — **nicht als Erfolg werten** |
+| Legacy / Kompatibilität | `application.deploy wait:true` funktioniert noch, ist aber nur Back-Compat; Watch bevorzugen |
+
+```js
+application({ action: "deploy", uuid: "<app-uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
+```
+
+> **Phase 22 (SKILL-02):** IDE-Skill-Packs für Cursor / Claude Code müssen `deployment.watch` (Timeout, kein ewiges Blockieren, Recovery) dokumentieren — in diesem Repo noch nicht enthalten.
 
 ### 🧩 `service` / `database` — Sidecar-Lifecycle
 
@@ -641,7 +663,8 @@ resource({ action: "list" })
 
 ```js
 resource({ action: "find", query: "nginx" })
-application({ action: "deploy", uuid: "<uuid>", wait: true })
+application({ action: "deploy", uuid: "<uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
 application({ action: "logs", uuid: "<uuid>" })
 ```
 
