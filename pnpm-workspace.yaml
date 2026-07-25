@@ -5,7 +5,11 @@ packages:
 allowBuilds:
   esbuild: true
 
-# Security: force patched transitive versions (Dependabot GHSA-v2hh-gcrm-f6hx / GHSA-g7r4-m6w7-qqqr)
+minimumReleaseAgeExclude:
+  - postcss@8.5.23
+
+# Security: force latest when parent ranges block (ajv→fast-uri ^3; tsup→esbuild ^0.27).
+# Prefer direct dep bumps (see postcss) when ranges already allow latest.
 overrides:
-  fast-uri: ">=3.1.4"
+  fast-uri: ">=4.1.1"
   esbuild: ">=0.28.1"
