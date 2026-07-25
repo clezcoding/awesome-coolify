@@ -517,48 +517,49 @@ describe('deployment watch', () => {
     'returns dual-signal timeout with COOLIFY_WATCH_TIMEOUT',
     async () => {
       vi.useFakeTimers();
-
-      vi.mocked(fetchDeployment).mockResolvedValue({
-        deployment_uuid: 'dep-timeout',
-        git_commit_sha: 'abc123',
-        status: 'in_progress',
-        created_at: '2026-07-12T01:00:00.000Z',
-      });
-
-      const resultPromise = handleDeploymentAction(
-        {
-          action: 'watch',
+      try {
+        vi.mocked(fetchDeployment).mockResolvedValue({
           deployment_uuid: 'dep-timeout',
-          timeout: 10,
-          min_interval: 1,
-          max_interval: 1,
-        },
-        testEnv,
-      );
+          git_commit_sha: 'abc123',
+          status: 'in_progress',
+          created_at: '2026-07-12T01:00:00.000Z',
+        });
 
-      for (let i = 0; i < 12; i++) {
-        await vi.advanceTimersByTimeAsync(1000);
+        const resultPromise = handleDeploymentAction(
+          {
+            action: 'watch',
+            deployment_uuid: 'dep-timeout',
+            timeout: 10,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        for (let i = 0; i < 12; i++) {
+          await vi.advanceTimersByTimeAsync(1000);
+        }
+
+        const result = await resultPromise;
+
+        expect(isDeploymentErrorResult(result)).toBe(true);
+        if (!isDeploymentErrorResult(result)) return;
+
+        expect(result.structuredContent.error.code).toBe('COOLIFY_WATCH_TIMEOUT');
+        const errorData = result.structuredContent.error.data as {
+          deployment?: { status?: string };
+          timed_out?: boolean;
+        };
+        expect(errorData.timed_out).toBe(true);
+        expect(errorData.deployment?.status).toBe('in_progress');
+        expect(result.structuredContent.error.recoveryHints?.join(' ')).toMatch(
+          /deployment\.watch|watch/i,
+        );
+      } finally {
+        vi.useRealTimers();
       }
-
-      const result = await resultPromise;
-
-      vi.useRealTimers();
-
-      expect(isDeploymentErrorResult(result)).toBe(true);
-      if (!isDeploymentErrorResult(result)) return;
-
-      expect(result.structuredContent.error.code).toBe('COOLIFY_WATCH_TIMEOUT');
-    const errorData = result.structuredContent.error.data as {
-      deployment?: { status?: string };
-      timed_out?: boolean;
-    };
-    expect(errorData.timed_out).toBe(true);
-    expect(errorData.deployment?.status).toBe('in_progress');
-    expect(result.structuredContent.error.recoveryHints?.join(' ')).toMatch(
-      /deployment\.watch|watch/i,
-    );
-  },
-  15000,
+    },
+    15000,
   );
 
   it('returns COOLIFY_DEPLOYMENT_FAILED with clear error on failed terminal', async () => {
