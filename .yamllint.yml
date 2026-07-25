@@ -1,0 +1,28 @@
+---
+# MegaLinter YAML_YAMLLINT config (auto-discovered as .yamllint.yml).
+# Base: https://github.com/oxsecurity/megalinter/blob/main/TEMPLATES/.yamllint.yml
+# Docs: https://yamllint.readthedocs.io/en/stable/configuration.html
+extends: default
+
+ignore: |
+  pnpm-lock.yaml
+  docs/coolify_openapi.yaml
+
+rules:
+  braces:
+    max-spaces-inside: 1
+  new-lines:
+    level: warning
+    type: unix
+  line-length:
+    max: 500
+  comments:
+    min-spaces-from-content: 1
+  # GitHub Actions / Dependabot YAML conventionally omit document markers.
+  document-start: disable
+  # `on:` workflow keys trip truthy when check-keys is enabled.
+  truthy:
+    allowed-values: ["true", "false", "on", "off"]
+    check-keys: false
+  # Inline comment alignment in workflows is noisy vs. useful.
+  comments-indentation: disable
