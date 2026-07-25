@@ -27,6 +27,10 @@ function nextDelayMs(
   return Math.max(minIntervalMs, Math.min(maxIntervalMs, equal));
 }
 
+function remainingMs(startTime: number, timeoutMs: number): number {
+  return timeoutMs - (Date.now() - startTime);
+}
+
 export async function pollDeploymentWithBackoff(
   fetcher: () => Promise<Record<string, unknown>>,
   options: {
@@ -60,8 +64,18 @@ export async function pollDeploymentWithBackoff(
           };
         }
 
+        const remaining = remainingMs(startTime, options.timeoutMs);
+        if (remaining <= 0) {
+          return {
+            kind: 'timeout',
+            deployment,
+            elapsedMs: Date.now() - startTime,
+          };
+        }
+
         const backoffMs = nextDelayMs(attempt, minIntervalMs, maxIntervalMs, random);
-        const delayMs = Math.max(backoffMs, rateLimitInfo.retryAfterMs ?? 0);
+        const computedDelay = Math.max(backoffMs, rateLimitInfo.retryAfterMs ?? 0);
+        const delayMs = Math.min(computedDelay, remaining);
         await sleep(delayMs);
         attempt++;
         continue;
@@ -82,7 +96,19 @@ export async function pollDeploymentWithBackoff(
       };
     }
 
-    const delayMs = nextDelayMs(attempt, minIntervalMs, maxIntervalMs, random);
+    const remaining = remainingMs(startTime, options.timeoutMs);
+    if (remaining <= 0) {
+      return {
+        kind: 'timeout',
+        deployment,
+        elapsedMs: Date.now() - startTime,
+      };
+    }
+
+    const delayMs = Math.min(
+      nextDelayMs(attempt, minIntervalMs, maxIntervalMs, random),
+      remaining,
+    );
     await sleep(delayMs);
     attempt++;
   }
