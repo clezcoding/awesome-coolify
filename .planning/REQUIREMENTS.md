@@ -40,8 +40,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Deploy Watch
 
-- [ ] **WATCH-01**: Agent can call `deployment.watch` to poll a deployment until terminal status with backoff and bounded timeout
-- [ ] **WATCH-02**: Skill and/or prompt documents watch usage (non-blocking forever; timeout/recovery guidance)
+- [x] **WATCH-01**: Agent can call `deployment.watch` to poll a deployment until terminal status with backoff and bounded timeout
+- [x] **WATCH-02**: Skill and/or prompt documents watch usage (non-blocking forever; timeout/recovery guidance)
 
 ### OpenAPI Coverage
 
@@ -97,8 +97,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETUP-03 | Phase 22 | Pending |
 | SKILL-01 | Phase 22 | Pending |
 | SKILL-02 | Phase 22 | Pending |
-| WATCH-01 | Phase 21 | Pending |
-| WATCH-02 | Phase 21 | Pending |
+| WATCH-01 | Phase 21 | Complete |
+| WATCH-02 | Phase 21 | Complete |
 | OAPI-01 | Phase 23 | Pending |
 | OAPI-02 | Phase 23 | Pending |
 | PUB-01 | Phase 23 | Pending |

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   mapApiError,
   toStructuredError,
@@ -223,6 +223,67 @@ describe('COOLIFY_VALIDATION_ERROR', () => {
   });
 });
 
+describe('429 Retry-After passthrough', () => {
+  it('toStructuredError attaches retry_after ms from delta-seconds Retry-After on HTTP 429', () => {
+    const fetchError = {
+      response: {
+        status: 429,
+        headers: { get: (name: string) => (name === 'retry-after' ? '5' : null) },
+        _data: { message: 'Too Many Requests' },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_429');
+    expect(envelope.httpStatus).toBe(429);
+    expect(envelope.data?.retry_after).toBe(5000);
+  });
+
+  it('toStructuredError attaches retry_after ms from HTTP-date Retry-After on HTTP 429', () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-07-25T12:00:00.000Z'));
+
+      const fetchError = {
+        response: {
+          status: 429,
+          headers: {
+            get: (name: string) =>
+              name === 'retry-after' ? 'Wed, 25 Jul 2026 12:00:10 GMT' : null,
+          },
+          _data: { message: 'Too Many Requests' },
+        },
+      };
+      const envelope = toStructuredError(fetchError);
+      expect(envelope.code).toBe('COOLIFY_429');
+      expect(envelope.httpStatus).toBe(429);
+      expect(envelope.data?.retry_after).toBe(10000);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('toStructuredError omits retry_after when Retry-After header is missing on HTTP 429', () => {
+    const fetchError = {
+      response: {
+        status: 429,
+        headers: { get: () => null },
+        _data: { message: 'Too Many Requests' },
+      },
+    };
+    const envelope = toStructuredError(fetchError);
+    expect(envelope.code).toBe('COOLIFY_429');
+    expect(envelope.httpStatus).toBe(429);
+    expect(envelope.data?.retry_after).toBeUndefined();
+  });
+
+  it('mapApiError maps HTTP 429 to COOLIFY_429 with rate-limit recovery hints', () => {
+    const envelope = mapApiError(null, 429);
+    expect(envelope.code).toBe('COOLIFY_429');
+    expect(envelope.recoveryHints).toEqual(RECOVERY_HINTS.COOLIFY_429);
+    expect(envelope.recoveryHints.join(' ')).toMatch(/rate-limit|Retry-After/i);
+  });
+});
+
 describe('409 conflicts passthrough', () => {
   it('toStructuredError attaches conflicts array from response._data on HTTP 409', () => {
     const conflicts = [
@@ -317,6 +378,45 @@ describe('wrapMcpError', () => {
     const text = result.content[0].text;
     expect(text).not.toContain(secret);
     expect(envelope.message).not.toContain(secret);
+  });
+});
+
+describe('deployment watch error codes', () => {
+  it('RECOVERY_HINTS defines COOLIFY_WATCH_TIMEOUT with deployment.watch re-call hint', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_WATCH_TIMEOUT;
+    expect(hints.length).toBeGreaterThanOrEqual(1);
+    expect(hints.join(' ')).toMatch(/deployment\.watch/i);
+  });
+
+  it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_FAILED with non-empty hints', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_FAILED;
+    expect(hints.length).toBeGreaterThanOrEqual(1);
+    expect(hints.some((h) => /deployment\.get/i.test(h))).toBe(true);
+    expect(hints.some((h) => /projection:\s*full/i.test(h))).toBe(true);
+    expect(hints.join(' ')).not.toMatch(
+      /re-call\s+deployment\.watch.*include_logs|deployment\.watch\s+with\s+include_logs/i,
+    );
+  });
+
+  it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_CANCELLED with non-empty hints', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_CANCELLED;
+    expect(hints.length).toBeGreaterThanOrEqual(1);
+    expect(hints.some((h) => /deployment\.get/i.test(h))).toBe(true);
+    expect(hints.some((h) => /projection:\s*full/i.test(h))).toBe(true);
+    expect(hints.join(' ')).not.toMatch(
+      /deployment\.watch\s+with\s+include_logs|or\s+deployment\.watch/i,
+    );
+  });
+
+  it('CoolifyErrorCode union includes watch timeout, failed, and cancelled codes', () => {
+    const codes: CoolifyErrorCode[] = [
+      'COOLIFY_WATCH_TIMEOUT',
+      'COOLIFY_DEPLOYMENT_FAILED',
+      'COOLIFY_DEPLOYMENT_CANCELLED',
+    ];
+    for (const code of codes) {
+      expect(RECOVERY_HINTS[code].length).toBeGreaterThanOrEqual(1);
+    }
   });
 });
 

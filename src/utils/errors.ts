@@ -6,6 +6,7 @@ export type CoolifyErrorCode =
   | 'COOLIFY_404'
   | 'COOLIFY_409'
   | 'COOLIFY_422'
+  | 'COOLIFY_429'
   | 'COOLIFY_500'
   | 'COOLIFY_NETWORK'
   | 'COOLIFY_TIMEOUT'
@@ -21,7 +22,10 @@ export type CoolifyErrorCode =
   | 'COOLIFY_CLOUD_UNSUPPORTED'
   | 'COOLIFY_FETCH_TEMPLATES_FAILED'
   | 'COOLIFY_NOT_IMPLEMENTED'
-  | 'COOLIFY_RECIPE_PARTIAL_FAILURE';
+  | 'COOLIFY_RECIPE_PARTIAL_FAILURE'
+  | 'COOLIFY_WATCH_TIMEOUT'
+  | 'COOLIFY_DEPLOYMENT_FAILED'
+  | 'COOLIFY_DEPLOYMENT_CANCELLED';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -57,6 +61,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_422: [
     'Review the request payload for missing or invalid fields.',
     'Check Coolify API docs for required parameters.',
+  ],
+  COOLIFY_429: [
+    'Coolify rate-limited the request — wait for Retry-After (see error.data.retry_after in ms) before retrying.',
+    'Reduce request concurrency; deployment.watch already backs off on 429 using Retry-After.',
   ],
   COOLIFY_500: [
     'Retry after a short delay — the Coolify server may be temporarily overloaded.',
@@ -124,6 +132,18 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
     'Partial recipe failure — created resources remain; check error.data for UUIDs.',
     'Follow recoveryHints to complete wiring manually; do not auto-delete created resources.',
   ],
+  COOLIFY_WATCH_TIMEOUT: [
+    'Re-call deployment.watch with the same deployment_uuid to continue polling.',
+    'Optionally increase timeout (seconds, max 1800) if the build typically runs longer than the default 300s.',
+  ],
+  COOLIFY_DEPLOYMENT_FAILED: [
+    'Surface the deployment failure to the user with the status and any available summary fields.',
+    'Fetch build logs via deployment.get with projection: full (include_logs on watch only applies to finished success).',
+  ],
+  COOLIFY_DEPLOYMENT_CANCELLED: [
+    'Surface the cancellation to the user — the deployment was stopped before completion.',
+    'Fetch logs via deployment.get with projection: full if the user needs build output.',
+  ],
 };
 
 export function isCloudUrl(url: string): boolean {
@@ -150,6 +170,8 @@ function statusToCode(status: number): CoolifyErrorCode {
     case 400:
     case 422:
       return 'COOLIFY_422';
+    case 429:
+      return 'COOLIFY_429';
     default:
       return 'COOLIFY_500';
   }
@@ -176,6 +198,46 @@ function extractConflicts(data: unknown): unknown[] | undefined {
   }
   const conflicts = data.conflicts;
   return Array.isArray(conflicts) ? conflicts : undefined;
+}
+
+function parseRetryAfterMs(headerValue: string | null | undefined): number | undefined {
+  if (headerValue === null || headerValue === undefined) {
+    return undefined;
+  }
+
+  const trimmed = headerValue.trim();
+  if (trimmed.length === 0) {
+    return undefined;
+  }
+
+  const deltaSeconds = Number(trimmed);
+  if (!Number.isNaN(deltaSeconds) && deltaSeconds >= 0) {
+    return deltaSeconds * 1000;
+  }
+
+  const dateMs = Date.parse(trimmed);
+  if (!Number.isNaN(dateMs)) {
+    return Math.max(0, dateMs - Date.now());
+  }
+
+  return undefined;
+}
+
+function getRetryAfterHeader(
+  headers: unknown,
+): string | null | undefined {
+  if (headers === null || headers === undefined) {
+    return undefined;
+  }
+
+  if (typeof headers === 'object' && headers !== null && 'get' in headers) {
+    const get = (headers as { get: (name: string) => string | null }).get;
+    if (typeof get === 'function') {
+      return get.call(headers, 'retry-after');
+    }
+  }
+
+  return undefined;
 }
 
 export function mapApiError(
@@ -311,7 +373,11 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
 
   const fetchError = error as {
     request?: string;
-    response?: { status?: number; _data?: unknown };
+    response?: {
+      status?: number;
+      _data?: unknown;
+      headers?: unknown;
+    };
     status?: number;
     statusCode?: number;
     data?: unknown;
@@ -347,6 +413,18 @@ export function toStructuredError(error: unknown): CoolifyErrorEnvelope {
       });
     }
 
+    if (status === 429) {
+      const retryAfterMs = parseRetryAfterMs(
+        getRetryAfterHeader(fetchError.response?.headers),
+      );
+      if (retryAfterMs !== undefined) {
+        return injectStaleManifestHints({
+          ...envelope,
+          data: { ...envelope.data, retry_after: retryAfterMs },
+        });
+      }
+    }
+
     return injectStaleManifestHints(envelope);
   }
 
@@ -359,23 +437,30 @@ export interface McpErrorResult {
   structuredContent: { ok: false; error: CoolifyErrorEnvelope };
 }
 
+function redactEnvelopeDataValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return redactSecrets(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(redactEnvelopeDataValue);
+  }
+  if (value !== null && typeof value === 'object') {
+    const redacted: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value)) {
+      redacted[key] = redactEnvelopeDataValue(entry);
+    }
+    return redacted;
+  }
+  return value;
+}
+
 function redactEnvelopeData(
   data: Record<string, unknown> | undefined,
 ): Record<string, unknown> | undefined {
   if (!data) return undefined;
   const redacted: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
-    if (typeof value === 'string') {
-      redacted[key] = redactSecrets(value);
-    } else if (Array.isArray(value)) {
-      redacted[key] = value.map((entry) =>
-        typeof entry === 'string' ? redactSecrets(entry) : entry,
-      );
-    } else if (value !== null && typeof value === 'object') {
-      redacted[key] = redactSecrets(JSON.stringify(value));
-    } else {
-      redacted[key] = value;
-    }
+    redacted[key] = redactEnvelopeDataValue(value);
   }
   return redacted;
 }

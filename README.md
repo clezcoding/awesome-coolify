@@ -96,7 +96,8 @@ Self-hosted [Coolify](https://coolify.io) is one of the best open-source alterna
 **awesome-coolify-mcp** replaces that patchwork with a single, community-maintained MCP server that speaks Coolify's REST API **4.1.x** through a clean, **action-based** tool surface. Source, docs, and npm distribution live in one public repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — while the installable package stays **`awesome-coolify-mcp`**. Instead of memorizing dozens of near-identical tool names, your agent calls domain tools with an `action` field:
 
 ```js
-application({ action: "deploy", uuid: "<app-uuid>", wait: true })
+application({ action: "deploy", uuid: "<app-uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
 diagnose({ action: "scan" })
 emergency({ action: "stop_all", confirm: true })
 ```
@@ -327,7 +328,8 @@ Every domain is exposed as **one MCP tool** with an `action` discriminator, so y
 
 ```js
 system({ action: "health" })
-application({ action: "deploy", uuid: "<app-uuid>", wait: true })
+application({ action: "deploy", uuid: "<app-uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
 emergency({ action: "stop_all", confirm: true })
 ```
 
@@ -373,7 +375,7 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 |--------|---------|
 | `get` | Detailed application configuration |
 | `start` / `stop` / `restart` | Container lifecycle control |
-| `deploy` | Trigger a deploy, with optional `wait`/poll and `force` rebuild |
+| `deploy` | Trigger a deploy with optional `force` rebuild; use `wait: false` + `deployment.watch` (recommended) or legacy `wait: true` poll |
 | `logs` | Paginated runtime or build logs, bounded so they never blow your context |
 | `envs:list` / `envs:get` | List or fetch env vars (values masked as `***` unless `reveal: true`) |
 | `envs:create` / `envs:update` | Create or update individual env vars (supports `is_preview`, `is_literal`, `is_multiline`, `is_shown_once`) |
@@ -387,7 +389,27 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 |--------|---------|
 | `list` | Deployments for a given application |
 | `get` | Status, commit, and timing details for one deployment |
+| `watch` | Poll until terminal with bounded timeout, backoff, and jitter |
 | `cancel` | Cancel an in-flight deployment cleanly |
+
+### ⏱️ Watch — bounded deploy monitoring
+
+After `application.deploy` with `wait: false`, call `deployment.watch` — do not loop `deployment.get` manually.
+
+| Behavior | Detail |
+|----------|--------|
+| Default timeout | **300 seconds** |
+| Poll interval | Starts at **3s**, caps at **30s** with equal-jitter backoff |
+| Timeout recovery | Re-call `deployment.watch` with the same `deployment_uuid` (raise `timeout` for slow builds) |
+| Failed / cancelled | Tool returns a clear error — **do not treat as success** |
+| Legacy | `application.deploy wait:true` still works but is back-compat only; prefer watch |
+
+```js
+application({ action: "deploy", uuid: "<app-uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
+```
+
+> **Phase 22 (SKILL-02):** IDE skill packs for Cursor / Claude Code must document `deployment.watch` timeout, non-forever polling, and recovery — not shipped in this repo yet.
 
 ### 🧩 `service` / `database` — sidecar lifecycle
 
@@ -641,7 +663,8 @@ resource({ action: "list" })
 
 ```js
 resource({ action: "find", query: "nginx" })
-application({ action: "deploy", uuid: "<uuid>", wait: true })
+application({ action: "deploy", uuid: "<uuid>", wait: false })
+deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
 application({ action: "logs", uuid: "<uuid>" })
 ```
 

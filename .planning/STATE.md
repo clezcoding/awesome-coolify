@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 21
-current_phase_name: Deploy Watch
-status: "Quick 260725-8la shipped — PR #61"
-stopped_at: Completed 20-recipes-service-list-types-04-PLAN.md
-last_updated: "2026-07-25T04:20:55.771Z"
+current_phase: 22
+current_phase_name: Setup Wizard & IDE Skills
+status: "Phase 21 shipped — PR #73"
+stopped_at: Phase 21 UAT + secure-phase complete
+last_updated: "2026-07-25T08:21:45.646Z"
 last_activity: 2026-07-25
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 40
-last_activity_desc: Phase 20 UAT complete (13/13 pass) + SECURITY.md verified
+  completed_phases: 3
+  total_plans: 13
+  completed_plans: 13
+  percent: 60
+last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
 ---
 
 # Project State
@@ -24,20 +24,20 @@ last_activity_desc: Phase 20 UAT complete (13/13 pass) + SECURITY.md verified
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 21 — Deploy Watch
+**Current focus:** Phase 22 — Setup Wizard & IDE Skills
 
 ## Current Position
 
-Phase: 21 — Deploy Watch
+Phase: 22 — Setup Wizard & IDE Skills
 Plan: Not started
-Status: Quick 260725-8la shipped — PR #61
+Status: Phase 21 shipped — PR #73
 Last activity: 2026-07-25
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 87
+- Total plans completed: 92
 - Average duration: —
 - Total execution time: —
 
@@ -62,6 +62,7 @@ Last activity: 2026-07-25
 | 17 | 4 | - | - |
 | 19 | 3 | - | - |
 | 20 | 5 | - | - |
+| 21 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -112,6 +113,11 @@ Last activity: 2026-07-25
 | Phase 20-recipes-service-list-types P02 | 3min | 1 tasks | 3 files |
 | Phase 20-recipes-service-list-types P03 | 4min | 2 tasks | 7 files |
 | Phase 20-recipes-service-list-types P04 | 2min | 2 tasks | 2 files |
+| Phase 21-deploy-watch P00 | 3min | 3 tasks | 3 files |
+| Phase 21-deploy-watch P01 | 3min | 2 tasks | 4 files |
+| Phase 21-deploy-watch P02 | 4min | 2 tasks | 5 files |
+| Phase 21-deploy-watch P03 | 2min | 2 tasks | 4 files |
+| Phase 21-deploy-watch P04 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -303,6 +309,16 @@ Last activity: 2026-07-25
 - [Phase ?]: Mask connection_string only — full-object sanitizeFullProjection incorrectly masked env_key
 - [Phase ?]: Shared appendManifestHint helper for create-git-app D-20 error parity
 - [Phase ?]: D-20 test uses omit-repo_path Zod path matching D-11 probe
+- [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 21 — flip to it in 21-01..21-03
+- [Phase ?]: Schema-reject scaffolds assert refine messages not unrecognized-key errors
+- [Phase ?]: Watch-only pollDeploymentWithBackoff imports TERMINAL_DEPLOYMENT_STATES; timeout outcome never synthesizes status:timeout (21-01)
+- [Phase ?]: toStructuredError attaches data.retry_after ms from Retry-After header on HTTP 429 (21-01)
+- [Phase ?]: Watch timeout test uses fake timers with min_interval 1 — schema min timeout 10s
+- [Phase ?]: zodDefaultFields on createFlatActionSchema strips phantom watch defaults on list/get/cancel
+- [Phase ?]: Recursive redactEnvelopeData preserves nested deployment summary in error.data
+- [Phase ?]: Deploy prompt + README document watch-primary flow; wait:true legacy; D-16 Phase 22 SKILL note without skill pack files
+- [Phase ?]: remainingMs module-local — behavior tested via fake timers not exported (21-04)
+- [Phase ?]: include_logs test uses schema min max_chars 1000 and truncateLogs suffix (21-04)
 
 ### Pending Todos
 
@@ -363,15 +379,15 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T03:14:40.549Z
-**Stopped at:** Completed 20-recipes-service-list-types-04-PLAN.md
+**Last session:** 2026-07-25T08:19:09Z
+**Stopped at:** Phase 21 UAT + secure-phase complete; Phase 22 ready to plan
 **Resume file:** None
 
-Last activity: 2026-07-25 — Phase 20 UAT complete (13/13 pass); quick task 260724-86t (CI tooling) merged from main
+Last activity: 2026-07-25 — Phase 21 UAT 15/15 pass; SECURITY.md verified (threats_open: 0)
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 21` — Deploy Watch
+- `/gsd-plan-phase 22` — Setup Wizard & IDE Skills
 
 ## Rebuild Log
 

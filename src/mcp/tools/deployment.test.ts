@@ -379,3 +379,235 @@ describe('handleDeploymentAction cancel', () => {
     expect(fetchDeployment).not.toHaveBeenCalled();
   });
 });
+
+describe('deployment watch', () => {
+  beforeEach(() => {
+    vi.mocked(fetchDeployment).mockReset();
+  });
+
+  it('schema accepts watch with deployment_uuid only', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'watch',
+      deployment_uuid: 'dep-uuid-1',
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data.action).toBe('watch');
+    expect(result.data.deployment_uuid).toBe('dep-uuid-1');
+  });
+
+  it('schema defaults timeout 300, min_interval 3, max_interval 30, include_logs false', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'watch',
+      deployment_uuid: 'dep-uuid-1',
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+
+    expect(result.data).toMatchObject({
+      action: 'watch',
+      timeout: 300,
+      min_interval: 3,
+      max_interval: 30,
+      include_logs: false,
+    });
+  });
+
+  it('schema rejects min_interval greater than max_interval', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'watch',
+      deployment_uuid: 'dep-uuid-1',
+      min_interval: 60,
+      max_interval: 10,
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    const minIssue = result.error.issues.find((issue) =>
+      issue.path.includes('min_interval'),
+    );
+    expect(minIssue?.message).toMatch(
+      /less than or equal to max_interval|must not exceed max_interval|min_interval must be/i,
+    );
+  });
+
+  it('schema rejects min_interval less than 1', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'watch',
+      deployment_uuid: 'dep-uuid-1',
+      min_interval: 0,
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) return;
+
+    expect(
+      result.error.issues.some(
+        (issue) =>
+          issue.path.includes('min_interval') &&
+          (issue.code === 'too_small' ||
+            /at least 1|minimum.*1|greater than or equal to 1/i.test(issue.message)),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns OK summary when deployment finishes', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-finished',
+      git_commit_sha: 'abc123',
+      status: 'finished',
+      created_at: '2026-07-12T01:00:00.000Z',
+      finished_at: '2026-07-12T01:05:00.000Z',
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'watch', deployment_uuid: 'dep-finished' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    expect(result.data).toMatchObject({
+      deployment_uuid: 'dep-finished',
+      commit: 'abc123',
+      status: 'finished',
+    });
+    expect(result.data).not.toHaveProperty('logs');
+    // WR-01 / IN-04: watch must disable nested ofetch 429 retries so Retry-After is honored.
+    expect(fetchDeployment).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'dep-finished',
+      testEnv.COOLIFY_VERIFY_SSL,
+      { retry: false },
+    );
+  });
+
+  it('returns capped logs without raw_deployment when include_logs true on success (WR-02)', async () => {
+    const maxChars = 1000;
+    const longLogs = 'x'.repeat(maxChars + 500);
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-finished-logs',
+      git_commit_sha: 'abc123',
+      status: 'finished',
+      created_at: '2026-07-12T01:00:00.000Z',
+      finished_at: '2026-07-12T01:05:00.000Z',
+      logs: longLogs,
+    });
+
+    const result = await handleDeploymentAction(
+      {
+        action: 'watch',
+        deployment_uuid: 'dep-finished-logs',
+        include_logs: true,
+        max_chars: maxChars,
+      },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    expect(typeof result.data.logs).toBe('string');
+    expect(result.data.logs).toBe('x'.repeat(maxChars) + '…[truncated]');
+    expect(result.data.logs!.length).toBeLessThan(longLogs.length);
+    expect(result.data).not.toHaveProperty('raw_deployment');
+  });
+
+  it(
+    'returns dual-signal timeout with COOLIFY_WATCH_TIMEOUT',
+    async () => {
+      vi.useFakeTimers();
+      try {
+        vi.mocked(fetchDeployment).mockResolvedValue({
+          deployment_uuid: 'dep-timeout',
+          git_commit_sha: 'abc123',
+          status: 'in_progress',
+          created_at: '2026-07-12T01:00:00.000Z',
+        });
+
+        const resultPromise = handleDeploymentAction(
+          {
+            action: 'watch',
+            deployment_uuid: 'dep-timeout',
+            timeout: 10,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        for (let i = 0; i < 12; i++) {
+          await vi.advanceTimersByTimeAsync(1000);
+        }
+
+        const result = await resultPromise;
+
+        expect(isDeploymentErrorResult(result)).toBe(true);
+        if (!isDeploymentErrorResult(result)) return;
+
+        expect(result.structuredContent.error.code).toBe('COOLIFY_WATCH_TIMEOUT');
+        const errorData = result.structuredContent.error.data as {
+          deployment?: { status?: string };
+          timed_out?: boolean;
+        };
+        expect(errorData.timed_out).toBe(true);
+        expect(errorData.deployment?.status).toBe('in_progress');
+        expect(result.structuredContent.error.recoveryHints?.join(' ')).toMatch(
+          /deployment\.watch|watch/i,
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+    15000,
+  );
+
+  it('returns COOLIFY_DEPLOYMENT_FAILED with clear error on failed terminal', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-failed',
+      git_commit_sha: 'abc123',
+      status: 'failed',
+      created_at: '2026-07-12T01:00:00.000Z',
+      finished_at: '2026-07-12T01:05:00.000Z',
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'watch', deployment_uuid: 'dep-failed' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(true);
+    if (!isDeploymentErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_DEPLOYMENT_FAILED');
+    expect(result.structuredContent.error.message).toMatch(/fail/i);
+  });
+
+  it('returns COOLIFY_DEPLOYMENT_CANCELLED on cancelled-by-user terminal', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-cancelled',
+      git_commit_sha: 'abc123',
+      status: 'cancelled-by-user',
+      created_at: '2026-07-12T01:00:00.000Z',
+      finished_at: '2026-07-12T01:05:00.000Z',
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'watch', deployment_uuid: 'dep-cancelled' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(true);
+    if (!isDeploymentErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_DEPLOYMENT_CANCELLED');
+  });
+});

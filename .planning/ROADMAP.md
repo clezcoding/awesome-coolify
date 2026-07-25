@@ -54,7 +54,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 
 - [x] **Phase 19: DX Schemas & MCP Prompts** - Flat tool schemas + action catalogs + prompts registry (deploy/diagnose/new-project/incident) (completed 2026-07-24)
 - [x] **Phase 20: Recipes & Service List-Types** - Dynamic `service.list-types` + recipes (git-app, app+db, one-click) from Coolify catalog (completed 2026-07-25)
-- [ ] **Phase 21: Deploy Watch** - Non-blocking `deployment.watch` action with backoff/timeout + skill/prompt docs
+- [x] **Phase 21: Deploy Watch** - Non-blocking `deployment.watch` action with backoff/timeout + skill/prompt docs (completed 2026-07-25)
 - [ ] **Phase 22: Setup Wizard & IDE Skills** - Headless-safe `gh` preflight + Coolify wiring wizard + Cursor/Claude Code/Codex skill packs
 - [ ] **Phase 23: OpenAPI Coverage & npm Release** - Coverage map (Coolify OpenAPI → MCP surface/gaps) + maintainer OIDC Release publish
 
@@ -132,7 +132,25 @@ Plans:
   2. Polling uses exponential backoff with jitter and a minimum interval — no 429 storms against Coolify during long builds
   3. Skill and/or prompt documents `deployment.watch` usage including non-blocking behavior, timeout, and recovery guidance
 
-**Plans**: TBD
+**Plans**: 5/5 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 21-00-PLAN.md — Wave 0 RED scaffolds (deploy-watch-poll + deployment.watch + deploy prompt)
+- [x] 21-01-PLAN.md — Backoff/jitter poll helper + 429 Retry-After attach
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 21-02-PLAN.md — deployment.watch action + dual-signal error codes
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 21-03-PLAN.md — deploy prompt + README EN/DE Watch docs
+
+**Wave 4** *(gap_closure — blocked on Wave 3)*
+
+- [x] 21-04-PLAN.md — Clamp sleep to remaining timeout (CR-01/WR-01) + include_logs success test (WR-02)
 
 ### Phase 22: Setup Wizard & IDE Skills
 
@@ -177,7 +195,7 @@ Plans:
 | 18 | v3.0 | 4/4 | Complete | 2026-07-23 |
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
-| 21 | v3.1 | 0/? | Not started | - |
+| 21 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 22 | v3.1 | 0/? | Not started | - |
 | 23 | v3.1 | 0/? | Not started | - |
 
@@ -185,4 +203,4 @@ Plans:
 
 ---
 
-*Last updated: 2026-07-25 — Phase 20 complete; Phase 21 next*
+*Last updated: 2026-07-25 — Phase 21 gap_closure plan 21-04 (bounded timeout clamp)*

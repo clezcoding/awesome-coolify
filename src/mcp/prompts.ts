@@ -47,16 +47,15 @@ export function registerCoolifyPrompts(server: McpServer): void {
 
 1. Resolve the target application UUID${uuid ? ` (${uuid})` : ''} from args, \`.coolify/manifest.json\`, or ask the user.${manifestSoftNote(Boolean(uuid))}
 
-2. Trigger deployment via \`application.deploy\`:
+2. Trigger deployment and capture \`deployment_uuid\` via \`application.deploy\` with \`wait: false\`:
    application({ action: "deploy", uuid: "${uuidValue}", force: ${parsedForce}, wait: false${instanceSuffix} })
 
-3. Capture the returned \`deployment_uuid\` from the response.
+3. Monitor until terminal with \`deployment.watch\` (timeout optional, default 300s):
+   deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300${instanceSuffix} })
 
-4. Poll deployment progress with \`deployment.get\` until status is terminal (\`finished\` or \`failed\`):
-   deployment({ action: "get", deployment_uuid: "<deployment_uuid>"${instanceSuffix} })
-   Future (Phase 21): \`deployment.watch\` will replace polling — do not call watch until it exists.
+4. On watch timeout error: re-call \`deployment.watch\` with the same \`deployment_uuid\` (raise \`timeout\` if builds are slow). On \`failed\` or \`cancelled-by-user\`: surface the error and logs hint to the user — do not treat as success.
 
-5. Report the final deployment status and any relevant logs hint to the user.`,
+Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deployment.watch\` for bounded polling with backoff. Phase 22 IDE skill packs must document watch timeout/recovery per SKILL-02.`,
           },
         ],
       };
