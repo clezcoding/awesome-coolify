@@ -1,8 +1,8 @@
 ---
-description: After /gsd-ship creates a PR, always run gsd-ship-post (changeset + labels)
+description: After /gsd-ship creates a PR, always run gsd-ship-post (labels + optional changeset)
 alwaysApply: true
 ---
-# GSD Ship → Changeset + Labels (mandatory)
+# GSD Ship → Labels + Optional Changeset (mandatory)
 
 When `/gsd-ship` (or any flow that runs `gh pr create` for a GSD phase) succeeds:
 
@@ -12,11 +12,19 @@ When `/gsd-ship` (or any flow that runs `gh pr create` for a GSD phase) succeeds
 ./scripts/gsd-ship-post.sh <pr-number>
 ```
 
-This is non-optional. It:
-- Creates `.changeset/<slug>.md` when the PR is release-relevant and no changeset exists
-- Commits + pushes the changeset
+This is non-optional. By default it:
 - Applies ship labels via `scripts/gsd-pr-labels.sh --mode ship` **including `automerge`**
+- Clears `needs-changeset` so Kodiak can merge phase PRs without a changeset
 - Strips Kodiak blockers (`status: needs-review`, etc.)
+- Does **not** create a `.changeset/` file (milestone-only npm release model)
+
+For hotfix / out-of-band releases that need an immediate changeset:
+
+```bash
+./scripts/gsd-ship-post.sh <pr-number> --with-changeset
+```
+
+That opt-in path runs `gsd-ensure-changeset.sh`, commits + pushes the fragment, then applies ship labels.
 
 Kodiak still only merges when required CI checks are green — `automerge` is the opt-in, not a force-merge.
 
@@ -28,4 +36,4 @@ Kodiak still only merges when required CI checks are green — `automerge` is th
 ./scripts/gsd-ship-post.sh <n> --dry-run
 ```
 
-If the Cursor `afterShellExecution` hook already ran `gsd-ship-post`, verify labels/changeset are present and skip a duplicate run.
+If the Cursor `afterShellExecution` hook already ran `gsd-ship-post`, verify labels are present and skip a duplicate run.

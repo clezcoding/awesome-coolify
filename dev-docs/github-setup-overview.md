@@ -34,7 +34,7 @@ Stand: 2026-07-24. Übersicht aller Bausteine des GitHub-Setups für `clezcoding
 
 ## Lint & Quality
 
-- `.megalinter.yml` — schmaler MegaLinter (nur TypeScript, JavaScript, YAML, Markdown, actionlint); läuft als CI-Schritt in `ci.yml`
+- `.mega-linter.yml` — schmaler MegaLinter (`ENABLE: JAVASCRIPT,TYPESCRIPT,YAML,MARKDOWN,ACTION`); CI-Job in `ci.yml` (javascript flavor `@v9`)
 - `publint` npm-Script + CI-Schritt — prüft Package-Layout (exports/files/bin) vor jedem Publish
 
 ## Dependency-Pflege

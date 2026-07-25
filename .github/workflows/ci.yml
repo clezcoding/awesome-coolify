@@ -46,13 +46,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # Needed for PR diff mode (VALIDATE_ALL_CODEBASE=false)
           fetch-depth: 0
 
       - name: MegaLinter
-        uses: oxsecurity/megalinter/flavors/javascript@v8
+        id: ml
+        uses: oxsecurity/megalinter/flavors/javascript@v9
         env:
-          # PRs: only changed files (fast). main push: full repo scan.
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
+          # Full scan only on push to main; PRs lint the git diff vs main.
+          # https://megalinter.io/latest/install-github/
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Config: .mega-linter.yml at repo root (auto-discovered)
+
+      - name: Archive MegaLinter reports
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
         with:
-          args: --env-file .megalinter.yml
+          name: MegaLinter reports
+          include-hidden-files: true
+          path: |
+            megalinter-reports
+            mega-linter.log

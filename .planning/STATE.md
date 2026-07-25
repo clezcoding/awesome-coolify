@@ -5,8 +5,8 @@ milestone_name: Setup, Skills & DX
 current_phase: 22
 current_phase_name: Setup Wizard & IDE Skills
 status: "Phase 21 shipped — PR #73"
-stopped_at: Phase 21 UAT + secure-phase complete
-last_updated: "2026-07-25T08:21:45.646Z"
+stopped_at: Fixed gsd-tools +x + sessionStart workspace_roots hooks
+last_updated: "2026-07-25T08:59:04.421Z"
 last_activity: 2026-07-25
 progress:
   total_phases: 5
@@ -346,6 +346,7 @@ Last activity: 2026-07-25
 | 260723-w1r | v3.0 docs overhaul + repo metadata; npm via Release | 2026-07-23 | c5aa0cd | [260723-w1r-overhaul-all-public-docs-to-v3-0-platfor](./quick/260723-w1r-overhaul-all-public-docs-to-v3-0-platfor/) |
 | 260724-86t | Install recommended next GitHub tools (CODEOWNERS, CodeQL, dependency review, stale, semantic PR) | 2026-07-24 | 5405dc2 | [260724-86t-install-all-recommended-next-from-260724](./quick/260724-86t-install-all-recommended-next-from-260724/) |
 | 260725-8la | Phase 20 review leftovers: recipe Object.hasOwn, deploy.status, allowlist, README 17 tools | 2026-07-25 | 4aed33b | [260725-8la-phase-20-review-leftovers-1-object-hasow](./quick/260725-8la-phase-20-review-leftovers-1-object-hasow/) |
+| 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | a0b6187 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
 
 ## Deferred Items
 
@@ -379,11 +380,11 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T08:19:09Z
-**Stopped at:** Phase 21 UAT + secure-phase complete; Phase 22 ready to plan
-**Resume file:** None
+**Last session:** 2026-07-25T08:59:04.406Z
+**Stopped at:** Fixed gsd-tools +x + sessionStart workspace_roots hooks
+**Resume file:** .planning/forensics/report-20260725-105516.md
 
-Last activity: 2026-07-25 — Phase 21 UAT 15/15 pass; SECURITY.md verified (threats_open: 0)
+Last activity: 2026-07-25 - Completed quick task 260725-fx9: Audit/optimize GitHub Actions CI + milestone-only npm
 
 ## Operator Next Steps
 

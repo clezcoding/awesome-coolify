@@ -323,10 +323,13 @@ for file in "${CHANGED_FILES[@]}"; do
 done
 
 if [[ "$release_relevant" -eq 1 ]]; then
-  if [[ "$has_changeset" -eq 0 ]]; then
-    NEEDS_CHANGESET="add"
-  else
+  if [[ "$has_changeset" -eq 1 ]]; then
     NEEDS_CHANGESET="remove"
+  elif has_label "automerge" || has_label "gsd: ship"; then
+    # Milestone-only: phase ships skip changesets; do not re-add blocker after ship/ci sync
+    NEEDS_CHANGESET="remove"
+  else
+    NEEDS_CHANGESET="add"
   fi
 fi
 
@@ -358,16 +361,19 @@ case "$MODE" in
     elif has_label "status: in-progress"; then
       remove_label "status: in-progress"
     fi
-    # Default: set automerge on ship/ready, but NEVER when a changeset is still
-    # required (needs-changeset). Pass --no-automerge to force off.
+    # Default: set automerge on ship/ready unless --no-automerge. Phase ships skip
+    # changesets by default; ship/ready clears needs-changeset so Kodiak is not blocked.
     TOUCH_AUTOMERGE=1
     if [[ "$AUTOMERGE" -eq -1 ]]; then
-      ADD_AUTOMERGE=0
-    elif [[ "$NEEDS_CHANGESET" == "add" ]]; then
       ADD_AUTOMERGE=0
     else
       ADD_AUTOMERGE=1
     fi
+    # Ship/ready: strip needs-changeset (milestone-only release model).
+    if has_label "needs-changeset"; then
+      remove_label "needs-changeset"
+    fi
+    NEEDS_CHANGESET=""
     ;;
 esac
 

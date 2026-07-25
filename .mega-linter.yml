@@ -1,0 +1,20 @@
+# MegaLinter — https://megalinter.io/latest/config-file/
+# Descriptor / linter keys MUST be UPPERCASE (lowercase ENABLE matches nothing → silent no-op).
+APPLY_FIXES: none
+ENABLE: JAVASCRIPT,TYPESCRIPT,YAML,MARKDOWN,ACTION
+# Keep one primary linter per area; skip formatters/alternates that fight without local configs.
+DISABLE_LINTERS:
+  - JAVASCRIPT_STANDARD
+  - JAVASCRIPT_PRETTIER
+  - TYPESCRIPT_STANDARD
+  - TYPESCRIPT_PRETTIER
+  - YAML_PRETTIER
+  - YAML_V8R
+  - MARKDOWN_MARKDOWN_TABLE_FORMATTER
+  - MARKDOWN_RUMDL
+  - ACTION_ZIZMOR
+DISABLE_ERRORS: false
+SHOW_ELAPSED_TIME: true
+REPORT_STYLE: console
+GITHUB_STATUS_FILTER: true
+FILTER_REGEX_EXCLUDE: (\.planning/|dist/|graphify-out/|node_modules/|megalinter-reports/)
