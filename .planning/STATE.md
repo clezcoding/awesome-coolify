@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-24)
 ## Current Position
 
 Phase: 20 (recipes-service-list-types) — RESUMED
-Plan: 4 of 4 (executed); verification gaps_found 13/14
-Status: Resumed — gap closure next (see .continue-here.md)
-Last activity: 2026-07-25 — Session resumed from handoff
+Plan: 4 of 4 executed + 20-04 gap_closure planned (D-20 / truth #14)
+Status: Gap-closure plan ready — execute 20-04 then re-verify
+Last activity: 2026-07-25 — Gap-closure PLAN 20-04 created for create-git-app MANIFEST_HINT
 
 ## Performance Metrics
 
@@ -358,10 +358,10 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 ## Session Continuity
 
 **Last session:** 2026-07-25T03:04:03.712Z
-**Stopped at:** Phase 20 UI-SPEC approved
-**Resume file:** .planning/phases/20-recipes-service-list-types/20-UI-SPEC.md
+**Stopped at:** Phase 20 gap-closure plan 20-04 created (D-20)
+**Resume file:** .planning/phases/20-recipes-service-list-types/20-04-PLAN.md
 
-Last activity: 2026-07-25 — `/gsd-resume-work` session entry
+Last activity: 2026-07-25 — `/gsd-plan-phase 20 --gaps` → 20-04-PLAN.md
 
 ## Operator Next Steps
 
