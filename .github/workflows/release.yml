@@ -36,8 +36,10 @@ jobs:
 
       # Opens a "Version Packages" PR when changesets land on main.
       # After that PR merges: `publish` must be set or the action skips
-      # tag/release creation ("Not publishing because no publish script found").
-      # We only emit a New-tag line — action creates the GitHub Release/tag;
+      # ("Not publishing because no publish script found").
+      # `changeset:emit-tag` creates+pushes `v*` tag and GitHub Release;
+      # createGithubReleases stays false — with pnpm-workspace the action
+      # would otherwise `git push` a missing `name@version` tag.
       # publish.yml then npm-publishes via OIDC on `release: published`.
       - name: Changesets
         id: changesets
@@ -45,5 +47,5 @@ jobs:
         with:
           version: pnpm run version
           publish: pnpm run changeset:emit-tag
-          createGithubReleases: true
+          createGithubReleases: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
