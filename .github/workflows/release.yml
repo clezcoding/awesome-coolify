@@ -9,14 +9,12 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
+  id-token: write # OIDC npm publish (add Trusted Publisher for release.yml on npmjs.com)
 
 jobs:
   release:
     name: Version PR / Create Release
     runs-on: ubuntu-latest
-    outputs:
-      published: ${{ steps.changesets.outputs.published }}
     env:
       HUSKY: 0 # changesets commits must not hit local commit-msg hooks in CI
     steps:
@@ -32,6 +30,7 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
+          registry-url: "https://registry.npmjs.org"
           cache: "pnpm"
 
       - name: Install dependencies
@@ -44,8 +43,9 @@ jobs:
       # createGithubReleases stays false — with pnpm-workspace the action
       # would otherwise `git push` a missing `name@version` tag.
       #
-      # npm publish is a reusable workflow call (publish.yml) — GITHUB_TOKEN
-      # release events do not chain to other workflows.
+      # npm publish runs HERE (not publish.yml): GITHUB_TOKEN-created
+      # releases do not trigger other workflows. OIDC Trusted Publisher
+      # on npmjs.com must allow workflow filename `release.yml`.
       - name: Changesets
         id: changesets
         uses: changesets/action@v1.9.0
@@ -55,11 +55,8 @@ jobs:
           createGithubReleases: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  publish:
-    name: Publish to npm
-    needs: release
-    if: needs.release.outputs.published == 'true'
-    uses: ./.github/workflows/publish.yml
-    permissions:
-      contents: read
-      id-token: write
+      - name: Build & Publish to npm
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          pnpm run build
+          npm publish

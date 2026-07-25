@@ -1,18 +1,12 @@
 name: Publish to npm
 
-# npm Trusted Publisher is registered for this workflow file (publish.yml).
-# Two entry points:
-#   1) release: published — human/PAT-created GitHub Releases
-#   2) workflow_call — bot path from release.yml (GITHUB_TOKEN cannot chain
-#      release→publish events; reusable workflow keeps OIDC on publish.yml)
-#
-# One-time setup on npmjs.com:
-#   Package settings -> Trusted Publisher -> GitHub Actions
-#   Repo: clezcoding/awesome-coolify, Workflow: publish.yml
+# Legacy trigger for human/PAT-created GitHub Releases.
+# npm allows only ONE Trusted Publisher — currently `release.yml` (bot path).
+# This workflow will 404 on OIDC unless Trusted Publisher is switched back here.
+# Prefer bot Version Packages → release.yml inline publish.
 on:
   release:
     types: [published]
-  workflow_call:
 
 permissions:
   contents: read
