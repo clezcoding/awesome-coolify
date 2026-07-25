@@ -383,16 +383,18 @@ Note: application.deploy wait:true is legacy; prefer watch.
 | A4 | Watch timeout Zod bounds min 10 / max 1800 (same as wait) | Pattern 3 | CONTEXT only locks default 300; bounds are discretion |
 | A5 | Preserving Retry-After via `toStructuredError` header read is acceptable scope for D-08 | Pitfall 3 | Could instead use watch-only raw fetch; slightly broader change |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `min_interval` allow values below 3s if the agent passes them?**
    - What we know: D-06 sets the default band start at 3s; D-07 exposes `min_interval?`.
    - What's unclear: Hard floor vs soft default.
    - Recommendation: Default 3s; allow agent override down to **1s** minimum; reject `< 1` to prevent storms. Document that defaults follow D-06.
+   - **RESOLVED:** Hard floor `min_interval ≥ 1s`; Zod/schema default **3s** (D-06). Agent may override down to 1s; reject `< 1`. Matches Plan 02 schema bounds.
 
 2. **Does preserving Retry-After require changing shared `toStructuredError`, or only the watch fetcher?**
    - What we know: headers currently dropped; ofetch error may still hold `response`.
    - Recommendation: Small shared enhancement in `toStructuredError` for `status === 429` — benefits Cloud rate limits beyond watch.
+   - **RESOLVED:** Shared `toStructuredError` attaches `data.retry_after` (ms) when HTTP status is 429 by parsing `Retry-After` (delta-seconds or HTTP-date). Matches Plan 01 Task 2; watch poller reads that field via `isRetryableRateLimit`.
 
 ## Environment Availability
 

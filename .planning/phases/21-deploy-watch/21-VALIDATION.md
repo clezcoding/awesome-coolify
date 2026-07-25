@@ -43,9 +43,12 @@ created: 2026-07-25
 | 21-00-01 | 00 | 0 | WATCH-01 | T-21-01 | Polling bounds prevent API storm | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts` | ❌ W0 | ⬜ pending |
 | 21-00-02 | 00 | 0 | WATCH-01 | T-21-02 | Timeout/fail dual-signal via isError | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "watch"` | ❌ W0 | ⬜ pending |
 | 21-00-03 | 00 | 0 | WATCH-02 | — | Prompt documents watch path | unit | `npx vitest run tests/mcp/prompts.test.ts` | ✅ (update) | ⬜ pending |
-| 21-01-01 | 01 | 1 | WATCH-01 | T-21-01 | Backoff+jitter+429 Retry-After | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts` | ❌ W0 | ⬜ pending |
-| 21-02-01 | 02 | 2 | WATCH-01 | T-21-02 | watch action dual-signal outcomes | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "watch"` | ❌ W0 | ⬜ pending |
-| 21-03-01 | 03 | 3 | WATCH-02 | — | Prompt + README EN/DE | unit + docs | `npx vitest run tests/mcp/prompts.test.ts` | ✅ (update) | ⬜ pending |
+| 21-01-01 | 01 | 1 | WATCH-01 | T-21-01 | Backoff+jitter helper GREEN | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts src/utils/deploy-poll.test.ts` | ❌ W0 | ⬜ pending |
+| 21-01-02 | 01 | 1 | WATCH-01 | T-21-01-02 | toStructuredError 429 retry_after | unit | `npx vitest run src/utils/errors.test.ts -t "429"` | ✅ | ⬜ pending |
+| 21-02-01 | 02 | 2 | WATCH-01 | T-21-02 | Watch error codes + RECOVERY_HINTS | unit | `npx vitest run src/utils/errors.test.ts` | ✅ | ⬜ pending |
+| 21-02-02 | 02 | 2 | WATCH-01 | T-21-02 | watch action dual-signal outcomes | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "watch"` | ❌ W0 | ⬜ pending |
+| 21-03-01 | 03 | 3 | WATCH-02 | — | Deploy prompt watch-primary GREEN | unit | `npx vitest run tests/mcp/prompts.test.ts` | ✅ (update) | ⬜ pending |
+| 21-03-02 | 03 | 3 | WATCH-02 | T-21-03 | README EN/DE Watch section + table | docs | `rg -n "deployment\.watch" README.md && rg -n "Watch" README.md && rg -n "Beobachten" README.de.md && rg -n "300" README.md && rg -n "Phase 22" README.md` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
