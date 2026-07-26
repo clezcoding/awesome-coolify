@@ -202,4 +202,28 @@ describe('createGhRepo', () => {
     });
     expect(execFile).not.toHaveBeenCalled();
   });
+
+  it('resolves repo URL from gh user login when stdout has no URL', async () => {
+    vi.mocked(execFile).mockImplementation((...args) => {
+      const argv = execFileArgs(args);
+      if (argv?.includes('create')) {
+        invokeExecFileCallback(args, null, 'Created repository\n');
+        return undefined as never;
+      }
+      if (argv?.includes('.login')) {
+        invokeExecFileCallback(args, null, 'my-org\n');
+        return undefined as never;
+      }
+      invokeExecFileCallback(args, null, 'ok');
+      return undefined as never;
+    });
+
+    const { createGhRepo } = await import('./gh-preflight.js');
+    const result = await createGhRepo('my-repo');
+
+    expect(result).toEqual({
+      repo_name: 'my-repo',
+      repo_url: 'https://github.com/my-org/my-repo',
+    });
+  });
 });

@@ -52,6 +52,26 @@ export type CreateGhRepoOptions = {
   push?: boolean;
 };
 
+async function resolveGhUserLogin(): Promise<string> {
+  const execResult = await execFileAsync('gh', ['api', 'user', '-q', '.login'], {
+    timeout: GH_TIMEOUT_MS,
+    env: GH_ENV,
+  });
+  const stdout =
+    typeof execResult === 'string'
+      ? execResult
+      : ((execResult as { stdout?: string }).stdout ?? '');
+  const login = stdout.trim();
+  if (!login) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: 'Could not resolve GitHub user login after repo create',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+  return login;
+}
+
 export async function createGhRepo(
   repoName: string,
   options: CreateGhRepoOptions = {},
@@ -90,9 +110,17 @@ export async function createGhRepo(
       : ((execResult as { stdout?: string }).stdout ?? '');
 
   const urlMatch = stdout.match(/https:\/\/github\.com\/[^\s/]+\/[^\s/]+/);
+  if (urlMatch?.[0]) {
+    return {
+      repo_name: repoName,
+      repo_url: urlMatch[0],
+    };
+  }
+
+  const owner = await resolveGhUserLogin();
   return {
     repo_name: repoName,
-    repo_url: urlMatch?.[0] ?? `https://github.com/${repoName}/${repoName}`,
+    repo_url: `https://github.com/${owner}/${repoName}`,
   };
 }
 
