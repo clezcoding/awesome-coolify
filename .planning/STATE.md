@@ -6,15 +6,15 @@ current_phase: 22
 current_phase_name: setup-wizard-ide-skills
 status: executing
 stopped_at: Completed 22-setup-wizard-ide-skills-02-PLAN.md
-last_updated: "2026-07-26T02:17:33.256Z"
+last_updated: "2026-07-26T02:20:38.815Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 22 execution started
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 17
-  completed_plans: 16
-  percent: 60
+  completed_plans: 17
+  percent: 80
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 22 (setup-wizard-ide-skills) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-26 — Phase 22 execution started
 
