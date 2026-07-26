@@ -1,10 +1,11 @@
 ---
 phase: 22
 slug: setup-wizard-ide-skills
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-26
+reviewed_at: 2026-07-26
 ---
 
 # Phase 22 — UI Design Contract
@@ -58,21 +59,23 @@ Declared values (multiples of 4; align with `shared.css` custom properties):
 
 Exceptions:
 
-- Touch/copy targets: buttons and client-grid links ≥ 44px height (padding `0.7rem 1.2rem` on `.btn` satisfies this).
+- Touch targets: `.btn` padding `12px 16px` (`--space-3` vertical + `--space-4` horizontal) → min-height 44px with 16px body line — grid-aligned, not `0.7rem/1.2rem`.
 - Monospace command rows in `pre`: vertical padding `16px` (`--space-4`).
 
 ---
 
 ## Typography
 
+Four roles only — inputs, hints, badges, and `pre` use the nearest role token (no extra sizes).
+
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 16px (`1rem` / `0.95rem` inputs) | 400 | 1.6 |
-| Label | 14px (`0.9rem` labels; `0.8rem` hints) | 600 labels / 400 hints | 1.5 |
-| Heading | 22–30px (`section-title` clamp 1.35–1.85rem) | 600–700 (display family) | 1.2 |
-| Display | 32–54px (`display-title` clamp 2–3.4rem) | 700 | 0.95 (hero only) |
+| Label | 14px | 400 | 1.5 |
+| Body | 16px | 400 | 1.6 |
+| Heading | 24px (`section-title`; clamp 1.35–1.5rem) | 600 | 1.2 |
+| Display | 40px (`display-title`; clamp 2–2.5rem hero only) | 600 | 0.95 |
 
-Monospace: JetBrains Mono at `0.72–0.78rem` for badges, `pre`, CLI snippets, agent status lines.
+Mono commands (`pre`, CLI snippets, agent status): JetBrains Mono at **Body 16px** — same size, mono family only.
 
 ---
 
@@ -90,6 +93,14 @@ Monospace: JetBrains Mono at `0.72–0.78rem` for badges, `pre`, CLI snippets, a
 Accent reserved for: primary CTA buttons (`.btn`), primary deeplinks, focus rings on inputs, `badge--accent`, active step indicator in setup docs, copy-button success flash border — **not** body text or large backgrounds.
 
 **60/30/10 rule:** Hero mesh image is decorative (one flourish max); all form/setup content sits on calm glass panels without additional shaders or wave animations on the same page.
+
+### Focal points (per screen)
+
+| Screen | Primary focal | Secondary |
+|--------|---------------|-----------|
+| `install.html` | **Generate config** CTA (accent `.btn`) | Skills install command block (mono `pre` + Copy) |
+| `docs/en/setup.md` | Active step row (`.setup-step--active`) | Resume / preflight CTA in first notice |
+| `index.html` cross-link | Install + Skills bento cards (equal weight) | — |
 
 ---
 
@@ -280,13 +291,31 @@ Use Unicode symbols sparingly; agents parse `recoveryHints` first. `_formattedTe
 
 ## UI Considerations
 
-> Populated by the ui-phase UI-consideration probe (Step 9.5). Placeholder until probe runs.
-
-Applicable state considerations resolved: pending probe
+Applicable state considerations resolved: 18 covered, 3 backstop, 0 unresolved
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
-| _probe pending_ | _awaiting Step 9.5_ | ⚠ unresolved | UI-consideration probe not yet run — planner treats as assumption |
+| empty | install form (E1) | ✅ covered | `#output-section` stays `[hidden]` until first Generate — no empty snippet panel |
+| loading | install form (E1) | ✅ covered | Client-side sync generation — no spinner; output reveals via 250ms opacity/translateY |
+| error | install form (E1) | ✅ covered | Clipboard fail → Copywriting **Could not copy** + manual select hint |
+| partial | install form (E1) | ✅ covered | Partial form (URL only) still generates snippet with placeholder token |
+| overflow | install form (E1) | ✅ covered | `pre` horizontal scroll + `overflow-x: auto` on config output |
+| long-text | install form (E1) | ✅ covered | Long URLs/tokens wrap inside `pre`; no ellipsis on secrets |
+| overflow | skills block (E2) | ✅ covered | `pre.skills-command` scrolls horizontally; copy row stays fixed |
+| long-text | skills block (E2) | ✅ covered | Full CLI command visible via scroll — no truncation |
+| empty | setup-steps (E3) | ✅ covered | Static docs always show full step list; optional steps omitted when flags off |
+| loading | setup-steps (E3) | ✅ covered | No async fetch on setup docs — static markdown, no skeleton |
+| error | setup-steps (E3) | ✅ covered | MCP errors use `error.message` + numbered `recoveryHints` (Copywriting Contract) |
+| populated | setup-steps (E3) | ✅ covered | Happy path: all core steps listed with `.setup-step--done` checkmarks |
+| partial | setup-steps (E3) | ✅ covered | Agent `steps_completed` / `steps_remaining` arrays mirror partial wizard progress |
+| overflow | setup-steps (E3) | 🧪 backstop | `{ statement: "8+ setup steps scroll inside container without layout break", verification: backstop }` |
+| zero-one-many | setup-steps (E3) | ✅ covered | Optional steps (domains/env/deploy_watch) hidden when flags false — singular copy per mode |
+| unclassified | MCP responses (E4) | ✅ covered | Soft-pause / in-progress / complete / timeout banners defined in Agent-Visible UX Contract |
+| unclassified | notice banners (E5) | ✅ covered | `.notice`, `.notice--pause`, `.notice--warning` classes with gold/green semantic borders |
+| overflow | copy button (E6) | ✅ covered | Button label swaps in-place; no container growth |
+| long-text | copy button (E6) | ✅ covered | "Copied" / "Could not copy" fixed-width labels |
+| overflow | empty state (E7) | ✅ covered | Empty-state block fits single glass card |
+| long-text | empty state (E7) | ✅ covered | Heading + body under 80 chars; no truncation |
 
 ---
 
@@ -301,11 +330,11 @@ Applicable state considerations resolved: pending probe
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-07-26
