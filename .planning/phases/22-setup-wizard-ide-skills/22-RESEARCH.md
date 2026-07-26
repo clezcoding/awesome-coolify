@@ -457,21 +457,17 @@ npx skills add clezcoding/awesome-coolify -a cursor -a claude-code -a codex
 | A3 | `resume` can rely on agent re-supplying wire params (no server session file) | Pitfall 3 | Poor UX if agents omit params; document required fields |
 | A4 | Link-existing mode skips gh preflight when `skip_gh?: true` or mode does not need repo | Architecture | Over-strict gh gate blocks valid link-existing flows |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact `gh repo create` flags for no-push**
-   - What we know: D-12 forbids auto-push; gh supports `--source` and push control.
-   - What's unclear: Default push behavior for `gh repo create --source .` in gh 2.91.
-   - Recommendation: Planner adds `checkpoint:human-verify` or unit test with mocked gh argv asserting no `--push`.
+1. **Exact `gh repo create` flags for no-push** — **RESOLVED (Plan 22-02)**
+   - Resolution: `createGhRepoNoPush` uses fixed argv `gh repo create <name> --private --source . --remote origin` with no `--push`; Plan 22-02 `checkpoint:decision` gate `push-never` confirms D-12; unit test asserts argv excludes `--push`.
+   - A1 marked resolved at implementation.
 
-2. **In-process watch vs UUID handoff for `deploy_and_watch`**
-   - What we know: D-11 allows either within bounded timeout.
-   - What's unclear: MCP host default tool timeout budget.
-   - Recommendation: Default in-process watch `timeout: 300`; on timeout return UUID + hints; skills document re-watch.
+2. **In-process watch vs UUID handoff for `deploy_and_watch`** — **RESOLVED (Plan 22-02)**
+   - Resolution: In-process `handleDeploymentAction` watch with `timeout: 300`; on `COOLIFY_WATCH_TIMEOUT` return `deployment_uuid` + recovery hints per UI-SPEC; coolify-deploy skill documents re-watch path (Plan 22-03).
 
-3. **Symlink vs `--copy` for skills install**
-   - What we know: User deferred; Vercel CLI defaults to symlink with `--copy` opt-in.
-   - Recommendation: Document default symlink; mention `--copy` for Windows/constrained FS in setup.md footnote only.
+3. **Symlink vs `--copy` for skills install** — **RESOLVED (Plan 22-03)**
+   - Resolution: Document Vercel CLI default symlink in `docs/en/setup.md`; footnote only for `--copy` on Windows/constrained FS per user deferral (D-13 discretion).
 
 ## Environment Availability
 
