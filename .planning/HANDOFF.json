@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-26T02:40:08.333Z",
+  "phase": "22",
+  "phase_name": "setup-wizard-ide-skills",
+  "phase_dir": ".planning/phases/22-setup-wizard-ide-skills",
+  "plan": 4,
+  "task": 0,
+  "total_tasks": 0,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": "22-00", "name": "Wave 0 RED scaffolds", "status": "done", "commit": "various"},
+    {"id": "22-01", "name": "Setup preflight/resume + server registration + coolify-setup skill", "status": "done", "commit": "various"},
+    {"id": "22-02", "name": "Wire link-existing/greenfield + optional flags + deploy_and_watch", "status": "done", "commit": "various"},
+    {"id": "22-03", "name": "Remaining skills + docs (install, setup guide, README EN/DE)", "status": "done", "commit": "5e1f346"},
+    {"id": "code-review", "name": "Phase 22 code review (7 warnings)", "status": "done", "commit": "22-REVIEW.md"},
+    {"id": "code-review-fix", "name": "Auto-fix all 7 review warnings", "status": "done", "commit": "ef2a22e"}
+  ],
+  "remaining_tasks": [
+    {"id": "uat-1", "name": "Human UAT: setup steps scroll layout at mobile width", "status": "not_started"},
+    {"id": "verify", "name": "Re-verify after review fixes (optional) + close human_needed gap", "status": "not_started"},
+    {"id": "ship", "name": "Ship phase 22 PR via /gsd-ship", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "Human UAT test #1 pending — mobile scroll layout for .setup-steps in docs/en/setup.md", "type": "human_action", "workaround": "Open docs shell at ≤768px viewport, scroll 9 setup steps, confirm no horizontal overflow"}
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {"action": "Run UAT test #1: open docs/en/setup.md in HTML docs shell at ≤768px viewport; scroll .setup-steps list", "context": "22-VERIFICATION.md truth #12 (11/12 verified); only remaining human_needed item", "blocking": true}
+  ],
+  "decisions": [
+    {"decision": "All 7 code review warnings auto-fixed via gsd-code-fixer", "rationale": "WR-01 through WR-07 addressed in 8 atomic fix(22) commits; IN-01/IN-02 skipped per scope", "phase": "22"},
+    {"decision": "Link-existing optional wire steps run when application_uuid present", "rationale": "WR-07 fix — include_domains/set_env/deploy_and_watch now supported on link-existing path", "phase": "22"}
+  ],
+  "uncommitted_files": [
+    ".planning/REQUIREMENTS.md",
+    ".planning/ROADMAP.md",
+    ".planning/STATE.md",
+    ".planning/phases/22-setup-wizard-ide-skills/22-UAT.md",
+    ".planning/forensics/report-20260725-103641.md",
+    ".planning/forensics/report-20260725-105516.md"
+  ],
+  "next_action": "Run human UAT test #1 (setup steps scroll layout) — see 22-UAT.md test #1. On pass, update UAT + re-run /gsd-verify-work, then /gsd-ship.",
+  "context_notes": "All 4 plans (00-03) executed. Code review + fix complete. Branch gsd/phase-22-setup-wizard-ide-skills has 8 fix commits + REVIEW-FIX.md. Phase ready to ship after single human UAT item."
+}
