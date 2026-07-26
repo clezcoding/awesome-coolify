@@ -165,7 +165,7 @@ Plans:
   4. Repo ships Coolify skill packs for Cursor, Claude Code, and Codex with consistent workflows
   5. Skills document recipes, deploy watch, prompts, and safety rules (confirm gates, reveal opt-in)
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -175,7 +175,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 22-02-PLAN.md — wire link-existing/greenfield, optional flags, deploy_and_watch bounded
+- [x] 22-02-PLAN.md — wire link-existing/greenfield, optional flags, deploy_and_watch bounded
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -211,7 +211,7 @@ Plans:
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 5/5 | Complete    | 2026-07-25 |
-| 22 | v3.1 | 2/4 | In Progress|  |
+| 22 | v3.1 | 3/4 | In Progress|  |
 | 23 | v3.1 | 0/? | Not started | - |
 
 **Next:** `/gsd-plan-phase 21` — Deploy Watch

@@ -30,7 +30,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Setup
 
 - [x] **SETUP-01**: Setup flow verifies `gh` presence and auth; if missing, provides install/login guidance (headless-safe, no indefinite TTY block)
-- [ ] **SETUP-02**: Setup wizard wires Coolify project/environment/server linkage and updates workspace manifest
+- [x] **SETUP-02**: Setup wizard wires Coolify project/environment/server linkage and updates workspace manifest
 - [x] **SETUP-03**: Setup supports non-interactive / ask-human pause path so agents can resume after user completes `gh auth`
 
 ### IDE Skills
@@ -93,7 +93,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RECIPE-03 | Phase 20 | Complete |
 | RECIPE-04 | Phase 20 | Complete |
 | SETUP-01 | Phase 22 | Complete |
-| SETUP-02 | Phase 22 | Pending |
+| SETUP-02 | Phase 22 | Complete |
 | SETUP-03 | Phase 22 | Complete |
 | SKILL-01 | Phase 22 | Complete |
 | SKILL-02 | Phase 22 | Pending |
