@@ -5,15 +5,15 @@ milestone_name: Setup, Skills & DX
 current_phase: 22
 current_phase_name: setup-wizard-ide-skills
 status: executing
-stopped_at: Completed 22-setup-wizard-ide-skills-00-PLAN.md
-last_updated: "2026-07-26T01:25:07.784Z"
+stopped_at: Completed 22-setup-wizard-ide-skills-01-PLAN.md
+last_updated: "2026-07-26T01:28:13.257Z"
 last_activity: 2026-07-26
 last_activity_desc: Phase 22 execution started
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
   percent: 60
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 22 (setup-wizard-ide-skills) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-26 — Phase 22 execution started
 
@@ -119,6 +119,7 @@ Last activity: 2026-07-26 — Phase 22 execution started
 | Phase 21-deploy-watch P03 | 2min | 2 tasks | 4 files |
 | Phase 21-deploy-watch P04 | 5min | 2 tasks | 3 files |
 | Phase 22-setup-wizard-ide-skills P00 | 5min | 3 tasks | 4 files |
+| Phase 22-setup-wizard-ide-skills P01 | 3min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -322,6 +323,9 @@ Last activity: 2026-07-26 — Phase 22 execution started
 - [Phase ?]: include_logs test uses schema min max_chars 1000 and truncateLogs suffix (21-04)
 - [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 22 — flip to it in 22-01..22-03
 - [Phase ?]: setup.test.ts vi.hoisted gh mock — top-level import breaks when gh-preflight.ts absent
+- [Phase ?]: wire stub throws COOLIFY_NOT_IMPLEMENTED — full greenfield/link-existing deferred to 22-02
+- [Phase ?]: Pause UX uses wrapSetupMcpError for UI-SPEC banner without changing global wrapMcpError
+- [Phase ?]: coolify-setup manifest test flipped GREEN; deploy/diagnose/incident remain it.fails until 22-03
 
 ### Pending Todos
 
@@ -383,8 +387,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-26T01:25:07.776Z
-**Stopped at:** Completed 22-setup-wizard-ide-skills-00-PLAN.md
+**Last session:** 2026-07-26T01:28:13.248Z
+**Stopped at:** Completed 22-setup-wizard-ide-skills-01-PLAN.md
 **Resume file:** None
 
 Last activity: 2026-07-25 - Completed quick task 260725-fx9: Audit/optimize GitHub Actions CI + milestone-only npm
