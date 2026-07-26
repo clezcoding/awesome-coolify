@@ -29,13 +29,13 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Setup
 
-- [ ] **SETUP-01**: Setup flow verifies `gh` presence and auth; if missing, provides install/login guidance (headless-safe, no indefinite TTY block)
+- [x] **SETUP-01**: Setup flow verifies `gh` presence and auth; if missing, provides install/login guidance (headless-safe, no indefinite TTY block)
 - [ ] **SETUP-02**: Setup wizard wires Coolify project/environment/server linkage and updates workspace manifest
-- [ ] **SETUP-03**: Setup supports non-interactive / ask-human pause path so agents can resume after user completes `gh auth`
+- [x] **SETUP-03**: Setup supports non-interactive / ask-human pause path so agents can resume after user completes `gh auth`
 
 ### IDE Skills
 
-- [ ] **SKILL-01**: Repo ships Coolify skill pack for Cursor, Claude Code, and Codex with consistent workflows
+- [x] **SKILL-01**: Repo ships Coolify skill pack for Cursor, Claude Code, and Codex with consistent workflows
 - [ ] **SKILL-02**: Skills document recipes, deploy watch, prompts, and safety rules (confirm gates, reveal opt-in)
 
 ### Deploy Watch
@@ -92,10 +92,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RECIPE-02 | Phase 20 | Complete |
 | RECIPE-03 | Phase 20 | Complete |
 | RECIPE-04 | Phase 20 | Complete |
-| SETUP-01 | Phase 22 | Pending |
+| SETUP-01 | Phase 22 | Complete |
 | SETUP-02 | Phase 22 | Pending |
-| SETUP-03 | Phase 22 | Pending |
-| SKILL-01 | Phase 22 | Pending |
+| SETUP-03 | Phase 22 | Complete |
+| SKILL-01 | Phase 22 | Complete |
 | SKILL-02 | Phase 22 | Pending |
 | WATCH-01 | Phase 21 | Complete |
 | WATCH-02 | Phase 21 | Complete |

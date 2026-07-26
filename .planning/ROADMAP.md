@@ -165,12 +165,20 @@ Plans:
   4. Repo ships Coolify skill packs for Cursor, Claude Code, and Codex with consistent workflows
   5. Skills document recipes, deploy watch, prompts, and safety rules (confirm gates, reveal opt-in)
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
-- [ ] 22-00-PLAN.md — Wave 0 RED scaffolds (gh-preflight, setup pause/resume, skills manifest tests)
+**Wave 1**
+
+- [x] 22-00-PLAN.md — Wave 0 RED scaffolds (gh-preflight, setup pause/resume, skills manifest tests)
 - [ ] 22-01-PLAN.md — Tracer: setup preflight/resume + server registration + coolify-setup skill
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 22-02-PLAN.md — wire link-existing/greenfield, optional flags, deploy_and_watch bounded
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 22-03-PLAN.md — Remaining skills + docs (install, setup guide, README EN/DE)
 
 **UI hint**: yes
@@ -203,7 +211,7 @@ Plans:
 | 19 | v3.1 | 3/3 | Complete    | 2026-07-24 |
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 5/5 | Complete    | 2026-07-25 |
-| 22 | v3.1 | 0/? | Not started | - |
+| 22 | v3.1 | 1/4 | In Progress|  |
 | 23 | v3.1 | 0/? | Not started | - |
 
 **Next:** `/gsd-plan-phase 21` — Deploy Watch

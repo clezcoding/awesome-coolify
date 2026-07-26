@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 22
-current_phase_name: Setup Wizard & IDE Skills
-status: "Phase 21 shipped — PR #73"
-stopped_at: Phase 22 context gathered
-last_updated: "2026-07-26T00:53:01.995Z"
-last_activity: 2026-07-25
+current_phase_name: setup-wizard-ide-skills
+status: executing
+stopped_at: Completed 22-setup-wizard-ide-skills-00-PLAN.md
+last_updated: "2026-07-26T01:25:07.784Z"
+last_activity: 2026-07-26
+last_activity_desc: Phase 22 execution started
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 17
+  completed_plans: 14
   percent: 60
-last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
 ---
 
 # Project State
@@ -24,14 +24,14 @@ last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 22 — Setup Wizard & IDE Skills
+**Current focus:** Phase 22 — setup-wizard-ide-skills
 
 ## Current Position
 
-Phase: 22 — Setup Wizard & IDE Skills
-Plan: Not started
-Status: Phase 21 shipped — PR #73
-Last activity: 2026-07-25
+Phase: 22 (setup-wizard-ide-skills) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-26 — Phase 22 execution started
 
 ## Performance Metrics
 
@@ -118,6 +118,7 @@ Last activity: 2026-07-25
 | Phase 21-deploy-watch P02 | 4min | 2 tasks | 5 files |
 | Phase 21-deploy-watch P03 | 2min | 2 tasks | 4 files |
 | Phase 21-deploy-watch P04 | 5min | 2 tasks | 3 files |
+| Phase 22-setup-wizard-ide-skills P00 | 5min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -319,6 +320,8 @@ Last activity: 2026-07-25
 - [Phase ?]: Deploy prompt + README document watch-primary flow; wait:true legacy; D-16 Phase 22 SKILL note without skill pack files
 - [Phase ?]: remainingMs module-local — behavior tested via fake timers not exported (21-04)
 - [Phase ?]: include_logs test uses schema min max_chars 1000 and truncateLogs suffix (21-04)
+- [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 22 — flip to it in 22-01..22-03
+- [Phase ?]: setup.test.ts vi.hoisted gh mock — top-level import breaks when gh-preflight.ts absent
 
 ### Pending Todos
 
@@ -380,9 +383,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-26T00:53:01.984Z
-**Stopped at:** Phase 22 context gathered
-**Resume file:** .planning/phases/22-setup-wizard-ide-skills/22-CONTEXT.md
+**Last session:** 2026-07-26T01:25:07.776Z
+**Stopped at:** Completed 22-setup-wizard-ide-skills-00-PLAN.md
+**Resume file:** None
 
 Last activity: 2026-07-25 - Completed quick task 260725-fx9: Audit/optimize GitHub Actions CI + milestone-only npm
 
