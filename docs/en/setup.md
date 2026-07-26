@@ -78,6 +78,8 @@ setup({
   action: "wire",
   mode: "greenfield",
   server_uuid: "<server-uuid>",
+  project_name: "my-project",
+  initial_environment: "production",
   recipe_type: "create-git-app",
   git_repository: "https://github.com/org/repo",
   git_branch: "main",
