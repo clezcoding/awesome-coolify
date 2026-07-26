@@ -127,3 +127,79 @@ describe('checkGhAuth', () => {
     }
   });
 });
+
+describe('createGhRepo', () => {
+  beforeEach(() => {
+    vi.mocked(execFile).mockReset();
+  });
+
+  it('omits --push from argv by default', async () => {
+    vi.mocked(execFile).mockImplementation((...args) => {
+      invokeExecFileCallback(
+        args,
+        null,
+        'https://github.com/org/my-repo\n',
+      );
+      return undefined as never;
+    });
+
+    const { createGhRepo } = await import('./gh-preflight.js');
+    await createGhRepo('my-repo');
+
+    const repoCreateCall = vi
+      .mocked(execFile)
+      .mock.calls.find((call) => execFileArgs(call)?.includes('create'));
+    expect(repoCreateCall).toBeDefined();
+    const argv = execFileArgs(repoCreateCall!);
+    expect(argv).not.toContain('--push');
+  });
+
+  it('includes --push in argv when push true', async () => {
+    vi.mocked(execFile).mockImplementation((...args) => {
+      invokeExecFileCallback(
+        args,
+        null,
+        'https://github.com/org/my-repo\n',
+      );
+      return undefined as never;
+    });
+
+    const { createGhRepo } = await import('./gh-preflight.js');
+    await createGhRepo('my-repo', { push: true });
+
+    const repoCreateCall = vi
+      .mocked(execFile)
+      .mock.calls.find((call) => execFileArgs(call)?.includes('create'));
+    expect(repoCreateCall).toBeDefined();
+    const argv = execFileArgs(repoCreateCall!);
+    expect(argv).toContain('--push');
+  });
+
+  it('createGhRepoNoPush never passes --push', async () => {
+    vi.mocked(execFile).mockImplementation((...args) => {
+      invokeExecFileCallback(
+        args,
+        null,
+        'https://github.com/org/my-repo\n',
+      );
+      return undefined as never;
+    });
+
+    const { createGhRepoNoPush } = await import('./gh-preflight.js');
+    await createGhRepoNoPush('my-repo');
+
+    const repoCreateCall = vi
+      .mocked(execFile)
+      .mock.calls.find((call) => execFileArgs(call)?.includes('create'));
+    const argv = execFileArgs(repoCreateCall!);
+    expect(argv).not.toContain('--push');
+  });
+
+  it('rejects invalid repo_name before exec', async () => {
+    const { createGhRepo } = await import('./gh-preflight.js');
+    await expect(createGhRepo('../evil')).rejects.toMatchObject({
+      envelope: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+    expect(execFile).not.toHaveBeenCalled();
+  });
+});
