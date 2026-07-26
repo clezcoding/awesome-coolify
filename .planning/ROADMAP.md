@@ -165,7 +165,14 @@ Plans:
   4. Repo ships Coolify skill packs for Cursor, Claude Code, and Codex with consistent workflows
   5. Skills document recipes, deploy watch, prompts, and safety rules (confirm gates, reveal opt-in)
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 22-00-PLAN.md — Wave 0 RED scaffolds (gh-preflight, setup pause/resume, skills manifest tests)
+- [ ] 22-01-PLAN.md — Tracer: setup preflight/resume + server registration + coolify-setup skill
+- [ ] 22-02-PLAN.md — wire link-existing/greenfield, optional flags, deploy_and_watch bounded
+- [ ] 22-03-PLAN.md — Remaining skills + docs (install, setup guide, README EN/DE)
+
 **UI hint**: yes
 
 ### Phase 23: OpenAPI Coverage & npm Release
