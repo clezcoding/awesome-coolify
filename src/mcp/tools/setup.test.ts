@@ -311,3 +311,72 @@ describe('handleSetupAction wire greenfield', () => {
     expect(handleRecipeAction).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('handleSetupAction wire deploy_and_watch', () => {
+  beforeEach(() => {
+    checkGhAuthMock.mockReset();
+    createGhRepoMock.mockReset();
+    vi.mocked(handleRecipeAction).mockReset();
+    vi.mocked(handleApplicationAction).mockReset();
+    vi.mocked(handleDeploymentAction).mockReset();
+    mockLinkageFetch();
+    checkGhAuthMock.mockResolvedValue({ ok: true });
+    vi.mocked(handleRecipeAction).mockResolvedValue({
+      data: { application_uuid: APP_UUID },
+    });
+    vi.mocked(handleApplicationAction).mockResolvedValue({
+      data: { deployment_uuid: 'dep-watch-uuid' },
+    });
+    vi.mocked(handleDeploymentAction).mockResolvedValue({
+      isError: true,
+      structuredContent: {
+        error: {
+          code: 'COOLIFY_WATCH_TIMEOUT',
+          message: 'Watch timed out',
+          recoveryHints: ['Re-call deployment({ action: "watch", deployment_uuid: "..." })'],
+        },
+      },
+      content: [{ type: 'text', text: 'timeout' }],
+    });
+    testWorkspaceRoot = mkdtempSync(join(tmpdir(), 'coolify-mcp-setup-'));
+    process.env.COOLIFY_MCP_TEST_WORKSPACE = testWorkspaceRoot;
+  });
+
+  afterEach(() => {
+    delete process.env.COOLIFY_MCP_TEST_WORKSPACE;
+    rmSync(testWorkspaceRoot, { recursive: true, force: true });
+  });
+
+  it('returns deployment_uuid and recovery hints on COOLIFY_WATCH_TIMEOUT', async () => {
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'greenfield',
+        server_uuid: SERVER_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        recipe_type: 'create-git-app',
+        skip_gh: true,
+        deploy_and_watch: true,
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(false);
+    if (isSetupErrorResult(result)) return;
+
+    expect(result.data.deployment_uuid).toBe('dep-watch-uuid');
+    expect(result.data.watch_timed_out).toBe(true);
+    expect(String(result.data._formattedText)).toMatch(/dep-watch-uuid/);
+    expect(String(result.data._formattedText)).toMatch(/deployment.*watch/i);
+    expect(handleDeploymentAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'watch',
+        deployment_uuid: 'dep-watch-uuid',
+        timeout: 300,
+      }),
+      testEnv,
+    );
+  });
+});
