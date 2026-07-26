@@ -11,7 +11,8 @@ const SKILLS = [
 
 describe('skills manifest', () => {
   for (const dir of SKILLS) {
-    it.fails(`skills/${dir}/SKILL.md has frontmatter name matching directory`, () => {
+    const testFn = dir === 'coolify-setup' ? it : it.fails;
+    testFn(`skills/${dir}/SKILL.md has frontmatter name matching directory`, () => {
       const skillPath = join('skills', dir, 'SKILL.md');
       expect(existsSync(skillPath)).toBe(true);
 
