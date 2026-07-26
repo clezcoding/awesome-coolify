@@ -782,10 +782,27 @@ async function runOptionalWireSteps(
   return { stepsCompleted, deployment_uuid, watch_timed_out, formattedText };
 }
 
+function assertLinkExistingOptionalFlags(parsed: WireLikeAction): void {
+  const hasOptionalFlag =
+    flagEnabled(parsed.include_domains) ||
+    flagEnabled(parsed.set_env) ||
+    flagEnabled(parsed.deploy_and_watch);
+  if (hasOptionalFlag && !parsed.application_uuid) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message:
+        'link-existing optional flags (include_domains, set_env, deploy_and_watch) require application_uuid',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+    });
+  }
+}
+
 async function handleLinkExistingWire(
   parsed: WireLikeAction,
   routingEnv: EnvConfig,
+  env: EnvConfig,
 ): Promise<ReadResponse<Record<string, unknown>>> {
+  assertLinkExistingOptionalFlags(parsed);
   const stepsCompleted: SetupStep[] = [];
   if (shouldRunGhPreflight(parsed)) {
     stepsCompleted.push('gh_preflight');
@@ -805,19 +822,41 @@ async function handleLinkExistingWire(
   }
 
   await writeLinkageManifest(linkage, resource);
-  stepsCompleted.push('manifest');
+  let allCompleted: SetupStep[] = [...stepsCompleted, 'manifest'];
+
+  let deployment_uuid: string | undefined;
+  let watch_timed_out: boolean | undefined;
+  let formattedText: string | undefined;
+
+  if (resource) {
+    const optional = await runOptionalWireSteps(
+      parsed,
+      env,
+      linkage,
+      resource,
+      allCompleted,
+    );
+    allCompleted = optional.stepsCompleted;
+    deployment_uuid = optional.deployment_uuid;
+    watch_timed_out = optional.watch_timed_out;
+    formattedText = optional.formattedText;
+  }
 
   const data: Record<string, unknown> = {
     setup_status: 'complete',
     mode: 'link-existing',
-    current_step: 'manifest',
-    steps_completed: stepsCompleted,
-    steps_remaining: remainingSteps('link-existing', parsed, stepsCompleted),
+    current_step: allCompleted[allCompleted.length - 1] ?? 'manifest',
+    steps_completed: allCompleted,
+    steps_remaining: remainingSteps('link-existing', parsed, allCompleted),
     manifest_path: '.coolify/manifest.json',
     project_uuid: linkage.project_uuid,
     environment_uuid: linkage.environment_uuid,
     server_uuid: linkage.server_uuid,
-    _formattedText: formatSetupCompleteBanner('link-existing', false),
+    ...(resource ? { resource_uuid: resource.uuid } : {}),
+    ...(deployment_uuid ? { deployment_uuid } : {}),
+    ...(watch_timed_out ? { watch_timed_out: true } : {}),
+    _formattedText:
+      formattedText ?? formatSetupCompleteBanner('link-existing', false),
   };
 
   return buildReadResponse(data, {
@@ -913,7 +952,7 @@ async function handleWire(
   const routingEnv = resolveRoutingEnv(env, parsed.instance);
 
   if (parsed.mode === 'link-existing') {
-    return handleLinkExistingWire(parsed, routingEnv);
+    return handleLinkExistingWire(parsed, routingEnv, env);
   }
   if (parsed.mode === 'greenfield') {
     return handleGreenfieldWire(parsed, routingEnv, env);
