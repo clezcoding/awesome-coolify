@@ -38,5 +38,14 @@ jobs:
 
       # npm auto-detects the GitHub Actions OIDC token when npm >= 11.5.1
       # and no NODE_AUTH_TOKEN/NPM_TOKEN is set — nothing else to configure.
+      # Skip if this version is already on the registry (manual re-release).
       - name: Publish
-        run: npm publish
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          NAME="$(node -p "require('./package.json').name")"
+          if npm view "${NAME}@${VERSION}" version >/dev/null 2>&1; then
+            echo "Already on npm: ${NAME}@${VERSION} — skip publish"
+            exit 0
+          fi
+          npm publish
