@@ -10,12 +10,57 @@ export const GH_REPO_CREATE_TIMEOUT_MS = 30_000;
 
 const GH_ENV = { ...process.env, GH_FORCE_TTY: '0' };
 
-/** ponytail: owner slug not parsed from gh stdout — upgrade: gh api user -q .login */
 const REPO_NAME_REGEX = /^[A-Za-z0-9._-]+$/;
+
+type ExecFileError = NodeJS.ErrnoException & {
+  killed?: boolean;
+  stderr?: string;
+};
 
 export type GhPreflightResult =
   | { ok: true }
-  | { ok: false; reason: 'gh_missing' | 'gh_unauthenticated'; message: string };
+  | {
+      ok: false;
+      reason: 'gh_missing' | 'gh_unauthenticated' | 'gh_preflight_failed';
+      message: string;
+    };
+
+function readExecFileStderr(error: unknown): string | undefined {
+  if (error && typeof error === 'object' && 'stderr' in error) {
+    const stderr = (error as { stderr?: unknown }).stderr;
+    if (typeof stderr === 'string' && stderr.trim().length > 0) {
+      return stderr.trim();
+    }
+  }
+  return undefined;
+}
+
+function isGhMissing(error: unknown): boolean {
+  const execError = error as ExecFileError;
+  return execError?.code === 'ENOENT' || execError?.message === 'ENOENT';
+}
+
+function isGhTransientFailure(error: unknown): boolean {
+  const execError = error as ExecFileError;
+  return (
+    Boolean(execError?.killed) ||
+    execError?.code === 'ETIMEDOUT' ||
+    execError?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER'
+  );
+}
+
+function formatGhPreflightFailure(
+  stage: 'version' | 'auth',
+  error: unknown,
+): GhPreflightResult {
+  const stderr = readExecFileStderr(error);
+  const detail = stderr ? `: ${stderr}` : '';
+  return {
+    ok: false,
+    reason: 'gh_preflight_failed',
+    message: `GitHub CLI ${stage} check failed${detail}`,
+  };
+}
 
 export async function checkGhAuth(): Promise<GhPreflightResult> {
   try {
@@ -23,12 +68,18 @@ export async function checkGhAuth(): Promise<GhPreflightResult> {
       timeout: GH_TIMEOUT_MS,
       env: GH_ENV,
     });
-  } catch {
-    return {
-      ok: false,
-      reason: 'gh_missing',
-      message: 'GitHub CLI not found',
-    };
+  } catch (error) {
+    if (isGhMissing(error)) {
+      return {
+        ok: false,
+        reason: 'gh_missing',
+        message: 'GitHub CLI not found',
+      };
+    }
+    if (isGhTransientFailure(error)) {
+      return formatGhPreflightFailure('version', error);
+    }
+    return formatGhPreflightFailure('version', error);
   }
 
   try {
@@ -37,11 +88,17 @@ export async function checkGhAuth(): Promise<GhPreflightResult> {
       env: GH_ENV,
     });
     return { ok: true };
-  } catch {
+  } catch (error) {
+    if (isGhTransientFailure(error)) {
+      return formatGhPreflightFailure('auth', error);
+    }
+    const stderr = readExecFileStderr(error);
     return {
       ok: false,
       reason: 'gh_unauthenticated',
-      message: 'GitHub CLI not authenticated',
+      message: stderr
+        ? `GitHub CLI not authenticated: ${stderr}`
+        : 'GitHub CLI not authenticated',
     };
   }
 }

@@ -389,6 +389,13 @@ async function assertGhPreflight(parsed: WireLikeAction): Promise<void> {
 
   const ghResult = await checkGhAuth();
   if (!ghResult.ok) {
+    if (ghResult.reason === 'gh_preflight_failed') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: ghResult.message,
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
     throwSetupPaused(ghResult.reason, ghResult.message, wireResumeParams(parsed));
   }
 }
@@ -920,6 +927,13 @@ async function handlePreflight(
 ): Promise<ReadResponse<Record<string, unknown>>> {
   const ghResult = await checkGhAuth();
   if (!ghResult.ok) {
+    if (ghResult.reason === 'gh_preflight_failed') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: ghResult.message,
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
     throwSetupPaused(ghResult.reason, ghResult.message);
   }
 

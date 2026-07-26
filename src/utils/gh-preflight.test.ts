@@ -91,6 +91,29 @@ describe('checkGhAuth', () => {
     expect(result).toEqual({ ok: true });
   });
 
+  it('returns gh_preflight_failed on gh --version timeout', async () => {
+    vi.mocked(execFile).mockImplementation((...args) => {
+      const argv = execFileArgs(args);
+      if (argv?.includes('--version')) {
+        const timeoutError = new Error('timeout') as Error & { killed: boolean };
+        timeoutError.killed = true;
+        invokeExecFileCallback(args, timeoutError);
+        return undefined as never;
+      }
+      invokeExecFileCallback(args, null);
+      return undefined as never;
+    });
+
+    const { checkGhAuth } = await import('./gh-preflight.js');
+    const result = await checkGhAuth();
+
+    expect(result).toEqual({
+      ok: false,
+      reason: 'gh_preflight_failed',
+      message: expect.stringContaining('version check failed'),
+    });
+  });
+
   it('invokes gh with timeout 5000 and GH_FORCE_TTY 0', async () => {
     vi.mocked(execFile).mockImplementation((...args) => {
       invokeExecFileCallback(args, null, 'ok');
