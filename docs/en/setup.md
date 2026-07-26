@@ -127,9 +127,9 @@ Pass explicitly only when needed:
 
 | Flag | Default | Effect |
 |------|---------|--------|
-| `include_domains` | `false` | Attach domains after wire |
-| `set_env` | `false` | Sync environment variables after wire |
-| `deploy_and_watch` | `false` | Deploy + bounded `deployment.watch` (timeout 300) |
+| `include_domains` | `false` | Attach domains after wire (greenfield, or link-existing with `application_uuid`) |
+| `set_env` | `false` | Sync environment variables after wire (greenfield, or link-existing with `application_uuid`) |
+| `deploy_and_watch` | `false` | Deploy + bounded `deployment.watch` (timeout 300; greenfield, or link-existing with `application_uuid`) |
 | `push` | `false` | Greenfield only — pass `push: true` to run `gh repo create --push` |
 
 When `deploy_and_watch: true`:

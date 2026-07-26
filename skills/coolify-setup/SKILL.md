@@ -46,9 +46,9 @@ Primary entry: MCP `setup` tool (`setupActionsCatalog`):
 
 Pass explicitly only when needed:
 
-- `include_domains` — attach domains after wire
-- `set_env` — sync environment variables after wire
-- `deploy_and_watch` — trigger deploy and bounded `deployment.watch` after wire
+- `include_domains` — attach domains after wire (greenfield, or link-existing with `application_uuid`)
+- `set_env` — sync environment variables after wire (greenfield, or link-existing with `application_uuid`)
+- `deploy_and_watch` — trigger deploy and bounded `deployment.watch` after wire (greenfield, or link-existing with `application_uuid`)
 - `push` — on greenfield only; default `false` omits `gh --push`. Set `push: true` to push after repo create.
 
 When `deploy_and_watch: true`, use `deployment({ action: "watch", deployment_uuid, timeout: 300 })` with bounded timeout (max 1800s). On `COOLIFY_WATCH_TIMEOUT`, re-call watch with the same `deployment_uuid`.
