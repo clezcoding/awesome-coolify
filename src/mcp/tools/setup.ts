@@ -331,6 +331,12 @@ Recovery:
 • deployment({ action: "watch", deployment_uuid: "${deploymentUuid}", timeout: 300 })`;
 }
 
+function wireResumeParams(parsed: WireLikeAction): Record<string, unknown> {
+  const { action: _action, format: _format, max_chars: _maxChars, ...rest } =
+    parsed;
+  return rest;
+}
+
 function throwSetupPaused(
   reason: 'gh_missing' | 'gh_unauthenticated',
   message: string,
@@ -383,21 +389,7 @@ async function assertGhPreflight(parsed: WireLikeAction): Promise<void> {
 
   const ghResult = await checkGhAuth();
   if (!ghResult.ok) {
-    throwSetupPaused(ghResult.reason, ghResult.message, {
-      mode: parsed.mode,
-      include_domains: parsed.include_domains,
-      set_env: parsed.set_env,
-      deploy_and_watch: parsed.deploy_and_watch,
-      skip_gh: parsed.skip_gh,
-      server_uuid: parsed.server_uuid,
-      project_uuid: parsed.project_uuid,
-      project_name: parsed.project_name,
-      environment_name: parsed.environment_name,
-      environment_uuid: parsed.environment_uuid,
-      recipe_type: parsed.recipe_type,
-      repo_name: parsed.repo_name,
-      push: parsed.push,
-    });
+    throwSetupPaused(ghResult.reason, ghResult.message, wireResumeParams(parsed));
   }
 }
 
