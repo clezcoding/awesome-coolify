@@ -262,6 +262,16 @@ A ready-made copy-paste template also lives at [`docs/mcp.example.json`](docs/mc
 > [!TIP]
 > Using [Coolify Cloud](https://app.coolify.io)? Generate a **team-scoped** token and follow the registry setup in [docs/en/cloud.md](docs/en/cloud.md).
 
+### IDE skills (Cursor, Claude Code, Codex)
+
+Install Coolify workflow skills for Cursor, Claude Code, and Codex:
+
+```bash
+npx skills add clezcoding/awesome-coolify -a cursor -a claude-code -a codex
+```
+
+After MCP install, run `setup({ action: "preflight" })` or see the **[Setup guide](docs/en/setup.md)** for gh preflight, project linkage, and greenfield provisioning.
+
 ---
 
 ## 🖥️ Supported clients

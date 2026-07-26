@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Generate per-client MCP config snippets for awesome-coolify-mcp v3.0 — 16 tools, ~87 actions, multi-instance + Coolify Cloud. Client-side only." />
+  <meta name="description" content="Generate per-client MCP config snippets for awesome-coolify-mcp v3.0 — 18 tools, ~91 actions, multi-instance + Coolify Cloud. Client-side only." />
   <title>Install — awesome-coolify-mcp</title>
   <link rel="stylesheet" href="shared.css" />
 </head>
@@ -20,7 +20,7 @@
         </nav>
         <p class="eyebrow">Install configurator</p>
         <h1 class="display-title">awesome-coolify-mcp</h1>
-        <p class="lead">Generate per-client MCP config snippets for awesome-coolify-mcp (16 tools · ~87 actions). Everything runs in your browser — no backend, no token logging.</p>
+        <p class="lead">Generate per-client MCP config snippets for awesome-coolify-mcp (18 tools · ~91 actions). Everything runs in your browser — no backend, no token logging.</p>
       </div>
     </header>
 
@@ -33,6 +33,16 @@
       <div class="notice">
         <strong>Coolify Cloud:</strong> Use a team-scoped token from <a href="https://app.coolify.io">app.coolify.io</a>. See <a href="en/cloud.md">docs/en/cloud.md</a> for registry setup and known limits.
       </div>
+
+      <section id="skills" class="skills-command glass-elevated">
+        <h2 class="section-title">IDE skills (Cursor, Claude Code, Codex)</h2>
+        <p class="hint">Install workflow playbooks after the MCP server is connected. Optional: <code>npx skills add clezcoding/awesome-coolify --all</code></p>
+        <pre><code id="skills-install-cmd">npx skills add clezcoding/awesome-coolify -a cursor -a claude-code -a codex</code></pre>
+        <div class="btn-row">
+          <button type="button" class="btn" id="copy-skills-btn">Copy install command</button>
+          <a class="btn btn-secondary" href="en/setup.md">Open setup guide</a>
+        </div>
+      </section>
 
       <form id="config-form" class="glass-elevated" novalidate>
         <label for="coolify-url">COOLIFY_URL</label>
@@ -370,6 +380,18 @@
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
+      });
+    });
+
+    document.getElementById('copy-skills-btn').addEventListener('click', () => {
+      const text = document.getElementById('skills-install-cmd').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copy-skills-btn');
+        const prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = prev; }, 1600);
+      }).catch(() => {
+        alert('Could not copy — select the command and copy manually.');
       });
     });
 
