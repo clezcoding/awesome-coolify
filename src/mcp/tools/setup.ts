@@ -698,7 +698,7 @@ async function runGreenfieldRecipe(
   };
 }
 
-async function runOptionalGreenfieldSteps(
+async function runOptionalWireSteps(
   parsed: WireLikeAction,
   env: EnvConfig,
   linkage: LinkageContext,
@@ -716,17 +716,21 @@ async function runOptionalGreenfieldSteps(
 
   if (flagEnabled(parsed.include_domains)) {
     const domainList = parseDomainsInput(parsed.domains);
-    if (domainList.length > 0) {
-      resource.domains = domainList;
-      await ManifestManager.upsert({
-        resource,
-        project_uuid: linkage.project_uuid,
-        project_name: linkage.project_name,
-        environment_uuid: linkage.environment_uuid,
-        environment_name: linkage.environment_name,
+    if (domainList.length === 0) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'include_domains requires a non-empty domains list',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
       });
     }
-    // ponytail: no domain list → manifest domains unchanged; API attach deferred
+    resource.domains = domainList;
+    await ManifestManager.upsert({
+      resource,
+      project_uuid: linkage.project_uuid,
+      project_name: linkage.project_name,
+      environment_uuid: linkage.environment_uuid,
+      environment_name: linkage.environment_name,
+    });
     stepsCompleted.push('domains');
   }
 
@@ -863,7 +867,7 @@ async function handleGreenfieldWire(
   });
   stepsCompleted.push('manifest');
 
-  const optional = await runOptionalGreenfieldSteps(
+  const optional = await runOptionalWireSteps(
     parsed,
     env,
     linkage,
