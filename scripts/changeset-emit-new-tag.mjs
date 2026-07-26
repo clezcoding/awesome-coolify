@@ -6,16 +6,25 @@
  * - This repo has pnpm-workspace.yaml, so @manypkg reports tool !== "root".
  * - changesets/action then tries `git push origin <name>@<version>` without
  *   creating the tag first (it expects `changeset publish` to have done that).
- * - Our npm publish path is OIDC via publish.yml on `release: published`, and
- *   existing releases use `v<version>` tags — so we create those here.
+ * - npm publish runs in release.yml when this script prints
+ *   `New tag: name@version` (changesets/action parses that → published=true).
+ * - Existing releases use `v<version>` tags — create those here.
  *
  * release.yml must keep `createGithubReleases: false` so the action does not
  * also attempt the broken name@version push.
+ *
+ * Idempotency: if the version is already on npm, do NOT print `New tag:` —
+ * otherwise every push to main republishes and fails with
+ * "cannot publish over the previously published versions".
  */
 import { execFileSync, execSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import {
+  npmHasVersion,
+  shouldAnnounceNewTag,
+} from "./lib/release-publish-gate.mjs";
 
 const pkg = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -145,9 +154,14 @@ if (!tagExistsLocal(tag)) {
   execFileSync("git", ["tag", "-a", tag, "-m", tag], { stdio: "inherit" });
 }
 
-execFileSync("git", ["push", "origin", `refs/tags/${tag}`], {
-  stdio: "inherit",
-});
+try {
+  execFileSync("git", ["push", "origin", `refs/tags/${tag}`], {
+    stdio: "inherit",
+  });
+} catch {
+  // Tag may already exist on origin at the same SHA — fine for re-runs.
+  console.error(`Tag ${tag} push skipped or already on origin`);
+}
 
 if (publishedReleaseExists(tag)) {
   console.error(`Release ${tag} already published — skip create`);
@@ -155,5 +169,12 @@ if (publishedReleaseExists(tag)) {
   publishOrCreateRelease(tag, changelogNotes(pkg.version));
 }
 
-// Keep action logs/outputs useful; createGithubReleases must stay false.
-console.log(`New tag: ${pkg.name}@${pkg.version}`);
+// changesets/action sets published=true only when it sees this line.
+const onNpm = npmHasVersion(pkg.name, pkg.version, sh);
+if (shouldAnnounceNewTag({ onNpm })) {
+  console.log(`New tag: ${pkg.name}@${pkg.version}`);
+} else {
+  console.error(
+    `npm ${pkg.name}@${pkg.version} already published — skip announce`,
+  );
+}
