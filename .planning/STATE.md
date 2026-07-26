@@ -5,8 +5,8 @@ milestone_name: Setup, Skills & DX
 current_phase: 22
 current_phase_name: Setup Wizard & IDE Skills
 status: "Phase 21 shipped — PR #73"
-stopped_at: Fixed gsd-tools +x + sessionStart workspace_roots hooks
-last_updated: "2026-07-25T08:59:04.421Z"
+stopped_at: Phase 22 context gathered
+last_updated: "2026-07-26T00:53:01.995Z"
 last_activity: 2026-07-25
 progress:
   total_phases: 5
@@ -380,9 +380,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T08:59:04.406Z
-**Stopped at:** Fixed gsd-tools +x + sessionStart workspace_roots hooks
-**Resume file:** .planning/forensics/report-20260725-105516.md
+**Last session:** 2026-07-26T00:53:01.984Z
+**Stopped at:** Phase 22 context gathered
+**Resume file:** .planning/phases/22-setup-wizard-ide-skills/22-CONTEXT.md
 
 Last activity: 2026-07-25 - Completed quick task 260725-fx9: Audit/optimize GitHub Actions CI + milestone-only npm
 
