@@ -88,6 +88,7 @@ setup({
   action: "wire",
   mode: "link-existing",
   project_uuid: "<uuid>",
+  environment_uuid: "<uuid>",
   server_uuid: "<uuid>",
   application_uuid: "<uuid>",
 })
