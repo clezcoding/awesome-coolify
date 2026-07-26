@@ -21,7 +21,7 @@ describe('handleSetupAction preflight', () => {
     checkGhAuthMock.mockReset();
   });
 
-  it.fails('returns COOLIFY_SETUP_PAUSED when gh preflight fails', async () => {
+  it('returns COOLIFY_SETUP_PAUSED when gh preflight fails', async () => {
     checkGhAuthMock.mockResolvedValue({
       ok: false,
       reason: 'gh_unauthenticated',
@@ -38,7 +38,7 @@ describe('handleSetupAction preflight', () => {
     expect(result.structuredContent.error.recoveryHints?.join(' ')).toMatch(/resume/i);
   });
 
-  it.fails('returns ok with setup progress when preflight passes', async () => {
+  it('returns ok with setup progress when preflight passes', async () => {
     checkGhAuthMock.mockResolvedValue({ ok: true });
 
     const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
@@ -52,7 +52,7 @@ describe('handleSetupAction preflight', () => {
     });
   });
 
-  it.fails('resume re-runs preflight without in-tool sleep between calls', async () => {
+  it('resume re-runs preflight without in-tool sleep between calls', async () => {
     checkGhAuthMock
       .mockResolvedValueOnce({
         ok: false,

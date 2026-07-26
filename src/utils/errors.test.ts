@@ -421,13 +421,13 @@ describe('deployment watch error codes', () => {
 });
 
 describe('setup pause error codes', () => {
-  it.fails('RECOVERY_HINTS defines COOLIFY_SETUP_PAUSED with resume hint', () => {
+  it('RECOVERY_HINTS defines COOLIFY_SETUP_PAUSED with resume hint', () => {
     const hints = RECOVERY_HINTS.COOLIFY_SETUP_PAUSED;
     expect(hints.length).toBeGreaterThanOrEqual(1);
     expect(hints.join(' ')).toMatch(/setup.*resume/i);
   });
 
-  it.fails('CoolifyErrorCode union includes COOLIFY_SETUP_PAUSED', () => {
+  it('CoolifyErrorCode union includes COOLIFY_SETUP_PAUSED', () => {
     const code: CoolifyErrorCode = 'COOLIFY_SETUP_PAUSED';
     expect(RECOVERY_HINTS[code].length).toBeGreaterThanOrEqual(1);
   });

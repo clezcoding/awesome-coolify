@@ -24,6 +24,7 @@ export type CoolifyErrorCode =
   | 'COOLIFY_NOT_IMPLEMENTED'
   | 'COOLIFY_RECIPE_PARTIAL_FAILURE'
   | 'COOLIFY_WATCH_TIMEOUT'
+  | 'COOLIFY_SETUP_PAUSED'
   | 'COOLIFY_DEPLOYMENT_FAILED'
   | 'COOLIFY_DEPLOYMENT_CANCELLED';
 
@@ -135,6 +136,11 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_WATCH_TIMEOUT: [
     'Re-call deployment.watch with the same deployment_uuid to continue polling.',
     'Optionally increase timeout (seconds, max 1800) if the build typically runs longer than the default 300s.',
+  ],
+  COOLIFY_SETUP_PAUSED: [
+    'Install GitHub CLI: https://cli.github.com/ (or brew install gh)',
+    'Run: gh auth login (or set GH_TOKEN / GITHUB_TOKEN for headless)',
+    'Re-call: setup({ action: "resume", ... }) after auth succeeds — pass same wire params',
   ],
   COOLIFY_DEPLOYMENT_FAILED: [
     'Surface the deployment failure to the user with the status and any available summary fields.',

@@ -33,7 +33,7 @@ describe('checkGhAuth', () => {
     vi.mocked(execFile).mockReset();
   });
 
-  it.fails('returns gh_missing when gh --version fails', async () => {
+  it('returns gh_missing when gh --version fails', async () => {
     vi.mocked(execFile).mockImplementation((...args) => {
       const argv = execFileArgs(args);
       if (argv?.includes('--version')) {
@@ -54,7 +54,7 @@ describe('checkGhAuth', () => {
     });
   });
 
-  it.fails('returns gh_unauthenticated when gh auth status fails', async () => {
+  it('returns gh_unauthenticated when gh auth status fails', async () => {
     vi.mocked(execFile).mockImplementation((...args) => {
       const argv = execFileArgs(args);
       if (argv?.includes('--version')) {
@@ -79,7 +79,7 @@ describe('checkGhAuth', () => {
     });
   });
 
-  it.fails('returns ok when gh --version and auth status succeed', async () => {
+  it('returns ok when gh --version and auth status succeed', async () => {
     vi.mocked(execFile).mockImplementation((...args) => {
       invokeExecFileCallback(args, null, 'ok');
       return undefined as never;
@@ -91,7 +91,7 @@ describe('checkGhAuth', () => {
     expect(result).toEqual({ ok: true });
   });
 
-  it.fails('invokes gh with timeout 5000 and GH_FORCE_TTY 0', async () => {
+  it('invokes gh with timeout 5000 and GH_FORCE_TTY 0', async () => {
     vi.mocked(execFile).mockImplementation((...args) => {
       invokeExecFileCallback(args, null, 'ok');
       return undefined as never;
