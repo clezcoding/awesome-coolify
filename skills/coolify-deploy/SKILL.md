@@ -47,7 +47,7 @@ After recipe create, deploy with the workflow above.
 
 ## Safety
 
-- **Confirm** before force deploy or destructive lifecycle actions when the user did not explicitly request them.
+- **`confirm` gates** — confirm before force deploy or destructive lifecycle actions when the user did not explicitly request them.
 - Use `reveal: true` only when the human opts in to sensitive log or env content.
 
 ## Example calls

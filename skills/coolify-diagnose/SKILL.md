@@ -44,6 +44,11 @@ Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, nam
 
 5. **Summarize** findings by severity and recommend the next remediation step.
 
+6. **If remediation requires redeploy** — use [coolify-deploy](../coolify-deploy/SKILL.md) watch-primary flow:
+   ```javascript
+   deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
+   ```
+
 ## Recipe context
 
 When diagnosis points to missing infrastructure, use `recipe` actions:
