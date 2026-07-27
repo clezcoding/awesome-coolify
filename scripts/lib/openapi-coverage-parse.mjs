@@ -12,6 +12,16 @@ const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'
  * @returns {Promise<Array<{ key: string, operationId?: string, tags?: string[] }>>}
  */
 export async function indexOpenApiOperations(rawJson) {
+  let parsed;
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch {
+    throw new Error('OpenAPI JSON parse failed — check docs/coolify_openapi.json');
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('OpenAPI document must be a non-array object');
+  }
+
   const { schema, errors } = await dereference(rawJson);
   if (errors?.length) {
     throw new Error(`OpenAPI dereference failed: ${errors.length} errors`);
