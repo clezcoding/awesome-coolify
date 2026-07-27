@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'scripts/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - '.github/workflows/codeql.yml'
@@ -17,6 +18,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'scripts/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - '.github/workflows/codeql.yml'
