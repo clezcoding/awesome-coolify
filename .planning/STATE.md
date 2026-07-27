@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23
 status: "Phase 23 shipped — PR #91"
-stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-07-27T03:15:37.129Z"
+stopped_at: Phase 23.1 context gathered
+last_updated: "2026-07-27T04:48:11.268Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 23 shipped — PR #91
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
   total_plans: 22
   completed_plans: 22
-  percent: 100
+  percent: 83
 current_phase_name: openapi-coverage-npm-release
+last_activity_desc: "Phase 23.1 inserted (URGENT): set_env + Nyquist validation"
 ---
 
 # Project State
@@ -380,6 +380,10 @@ Last activity: 2026-07-27
 | 260727-4hd | Projektordner aufräumen + .gitignore (nur projektrelevante Dateien) | 2026-07-27 | 2b940cb | [260727-4hd-r-ume-den-projektordner-auf-und-sortiere](./quick/260727-4hd-r-ume-den-projektordner-auf-und-sortiere/) |
 | 260727-codeql | Fix 3 CodeQL alerts in openapi-coverage scripts (ReDoS, logging, markdown escape) | 2026-07-27 | bf91b01 | [260727-codeql-openapi-coverage-fixes](./quick/260727-codeql-openapi-coverage-fixes/) |
 
+### Roadmap Evolution
+
+- Phase 23.1 inserted after Phase 23: Address tech debt: set_env + Nyquist validation (URGENT)
+
 ## Deferred Items
 
 Items acknowledged and deferred at milestone close on 2026-07-16:
@@ -412,9 +416,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27
-Stopped at: Phase 23 complete — v3.1 milestone phases finished, ready for /gsd-complete-milestone
-Resume file: None
+Last session: 2026-07-27T04:48:11.255Z
+Stopped at: Phase 23.1 context gathered
+Resume file: .planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/23.1-CONTEXT.md
 
 ## Operator Next Steps
 
