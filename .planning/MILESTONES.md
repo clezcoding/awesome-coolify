@@ -1,5 +1,28 @@
 # Milestones
 
+## v3.1 Setup, Skills & DX (Shipped: 2026-07-27)
+
+**Closeout:** `verified_closeout` — milestone audit passed; all 6 phases verified; 21/21 requirements complete.
+**Phases completed:** 6 phases (19–23 + 23.1), 27 plans, 62 tasks
+**Timeline:** 2026-07-24 → 2026-07-27 (~4 days)
+**Code delta (src/docs/scripts):** ~62 files, +23.3k / −15.9k LOC
+
+**Key accomplishments:**
+
+- Flat MCP schemas (`createFlatActionSchema`) + action catalogs restore Cursor parameter panels across 17 domain tools
+- Four parameterized MCP prompts (deploy, diagnose, new-project, incident) orchestrate existing atomic tools
+- Dynamic `service.list-types` + `recipe` tool (git-app, app+db, one-click) from Coolify catalog — no forked YAML
+- `deployment.watch` with Equal Jitter backoff, bounded timeout, dual-signal error envelopes
+- Setup wizard (`setup` tool) with headless `gh` preflight, pause/resume, greenfield/link-existing wire modes
+- Four IDE skill packs (Cursor, Claude Code, Codex) + coolify-setup manifest test
+- OpenAPI coverage map (`docs/COVERAGE.md`, 115 actions, v4.1.2 pin) + npm pack allowlist gate
+- Milestone Changeset for `awesome-coolify-mcp@1.0.0` via OIDC trusted publishing
+- Phase 23.1: `set_env` → `envs:sync` delegation + Nyquist 100% REQ-row coverage (phases 19–23)
+
+**Audit report:** [milestones/v3.1-MILESTONE-AUDIT.md](milestones/v3.1-MILESTONE-AUDIT.md)
+
+---
+
 ## v3.0 Platform Foundation (Shipped: 2026-07-23)
 
 **Closeout:** `override_closeout` — 4 open todos acknowledged (see STATE.md Deferred Items). Stale pre-ship audit superseded by phase verification (15–18 passed).

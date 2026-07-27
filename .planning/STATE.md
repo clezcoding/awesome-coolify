@@ -2,36 +2,36 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 23.1
-status: "Phase 23.1 shipped — PR #95"
-stopped_at: Completed 23.1-05-PLAN.md
-last_updated: "2026-07-27T18:19:12.545Z"
+status: milestone_complete
+stopped_at: Milestone v3.1 shipped
+last_updated: "2026-07-27T19:00:00.000Z"
 last_activity: 2026-07-27
+last_activity_desc: Milestone v3.1 complete
 progress:
   total_phases: 6
   completed_phases: 6
   total_plans: 27
   completed_plans: 27
   percent: 100
-current_phase_name: address-tech-debt-set-env-nyquist-validation
-last_activity_desc: Phase 23.1 complete
+current_phase: null
+current_phase_name: null
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-25)
+See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 23.1 — address-tech-debt-set-env-nyquist-validation
+**Current focus:** Planning next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 23.1
-Plan: Not started
-Status: Phase 23.1 shipped — PR #95
-Last activity: 2026-07-27
+Phase: Milestone v3.1 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-27 — Milestone v3.1 completed and archived
 
 ## Performance Metrics
 
@@ -431,6 +431,12 @@ Items acknowledged and deferred at v3.0 milestone close on 2026-07-23 (`closeout
 
 Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE-AUDIT.md (`gaps_found` from 2026-07-21) superseded by post-ship phase verification (15–18 passed).
 
+Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verified_closeout`):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat | Phase 22 UAT artifact (passed, 0 pending scenarios) | acknowledged — informational only |
+
 ## Session Continuity
 
 Last session: 2026-07-27T17:11:31.348Z
@@ -439,8 +445,8 @@ Resume file: None
 
 ## Operator Next Steps
 
-- `/gsd-verify-work 23.1` — re-verify D-05/D-07 after 23.1-05 gap closure
-- `/gsd-complete-milestone v3.1` — after Phase 23.1 passes verification
+- Merge Version Packages PR → confirm OIDC npm publish `@1.0.0`
+- `/gsd-new-milestone` — define next milestone scope
 
 ## Rebuild Log
 
