@@ -4,17 +4,17 @@ milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 24
 current_phase_name: capabilities-deployment-logs
-status: executing
-stopped_at: Completed 24-02-PLAN.md
-last_updated: "2026-07-27T21:21:37.319Z"
+status: verifying
+stopped_at: Completed 24-03-PLAN.md
+last_updated: "2026-07-27T21:23:29.893Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 24 execution started
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 0
+  completed_plans: 4
+  percent: 25
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 Phase: 24 (capabilities-deployment-logs) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-27 — Phase 24 execution started
 
 ## Performance Metrics
@@ -138,6 +138,7 @@ Last activity: 2026-07-27 — Phase 24 execution started
 | Phase 24-capabilities-deployment-logs P00 | 3min | 2 tasks | 6 files |
 | Phase 24-capabilities-deployment-logs P01 | 2min | 3 tasks | 6 files |
 | Phase 24-capabilities-deployment-logs P02 | 4min | 2 tasks | 7 files |
+| Phase 24-capabilities-deployment-logs P03 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -374,6 +375,7 @@ Last activity: 2026-07-27 — Phase 24 execution started
 - [Phase ?]: rename-coolifyVersion: break legacy { version } field per D-07/D-09
 - [Phase ?]: capabilities on system.version only; meta.version stays { mcpVersion, serverName } (D-06)
 - [Phase ?]: Combined 24-02 tasks in one commit due to lint-staged vitest related on dirty deployment.test.ts
+- [Phase ?]: Reverted unstaged OpenAPI pin drift to restore coverage-map path validation
 
 ### Pending Todos
 
@@ -447,8 +449,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T21:21:37.310Z
-Stopped at: Completed 24-02-PLAN.md
+Last session: 2026-07-27T21:23:29.885Z
+Stopped at: Completed 24-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
