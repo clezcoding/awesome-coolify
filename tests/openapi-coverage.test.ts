@@ -7,7 +7,6 @@ import { parse as parseYaml } from 'yaml';
 const ROOT = resolve(import.meta.dirname, '..');
 const SPEC_PATH = resolve(ROOT, 'docs/coolify_openapi.json');
 const MAP_PATH = resolve(ROOT, 'docs/coverage-map.yaml');
-const COVERAGE_PATH = resolve(ROOT, 'docs/COVERAGE.md');
 const CLIENT_PATH = resolve(ROOT, 'src/api/client.ts');
 const TOOLS_DIR = resolve(ROOT, 'src/mcp/tools');
 
