@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 25
-current_phase_name: Application Log Follow
-status: "Phase 24 shipped — PR #98"
-stopped_at: Phase 25 context gathered
-last_updated: "2026-07-27T23:51:31.056Z"
+current_phase_name: application-log-follow
+status: executing
+stopped_at: Completed 25-00-PLAN.md
+last_updated: "2026-07-27T23:55:34.816Z"
 last_activity: 2026-07-28
-last_activity_desc: Phase 25 planning complete
+last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
   percent: 25
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 24 — capabilities-deployment-logs
+**Current focus:** Phase 25 — application-log-follow
 
 ## Current Position
 
-Phase: 25 — Application Log Follow
-Plan: Not started
-Status: Phase 24 shipped — PR #98
-Last activity: 2026-07-28 — Phase 25 planning complete
+Phase: 25 (application-log-follow) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-28 — Phase 25 execution started
 
 ## Performance Metrics
 
@@ -140,6 +140,7 @@ Last activity: 2026-07-28 — Phase 25 planning complete
 | Phase 24-capabilities-deployment-logs P01 | 2min | 3 tasks | 6 files |
 | Phase 24-capabilities-deployment-logs P02 | 4min | 2 tasks | 7 files |
 | Phase 24-capabilities-deployment-logs P03 | 3 | 2 tasks | 5 files |
+| Phase 25-application-log-follow P00 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -377,6 +378,8 @@ Last activity: 2026-07-28 — Phase 25 planning complete
 - [Phase ?]: capabilities on system.version only; meta.version stays { mcpVersion, serverName } (D-06)
 - [Phase ?]: Combined 24-02 tasks in one commit due to lint-staged vitest related on dirty deployment.test.ts
 - [Phase ?]: Reverted unstaged OpenAPI pin drift to restore coverage-map path validation
+- [Phase ?]: Phase 25 Wave 0: it.fails RED scaffolds for follow contract; production untouched until 25-01/25-02
+- [Phase ?]: follow+deployment_uuid scaffold uses schema-level follow-specific refine message — handler XOR already passes today
 
 ### Pending Todos
 
@@ -450,9 +453,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T23:40:28.812Z
-Stopped at: Phase 25 context gathered
-Resume file: .planning/phases/25-application-log-follow/25-CONTEXT.md
+Last session: 2026-07-27T23:55:34.807Z
+Stopped at: Completed 25-00-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

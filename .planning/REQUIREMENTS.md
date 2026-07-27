@@ -16,8 +16,8 @@ Requirements for this milestone. Each maps to roadmap phases. Scoped to **Coolif
 ### Observability / Logs
 
 - [x] **OBS-01**: Agent can fetch deployment build logs via `deployment.logs` (by `deployment_uuid`) without routing through `application.logs`
-- [ ] **OBS-02**: Agent can follow application logs with bounded polling (watch-style) until timeout or terminal condition (`application.logs:follow` or equivalent)
-- [ ] **OBS-03**: Existing `application.logs` runtime and build paths remain unchanged (no regression)
+- [x] **OBS-02**: Agent can follow application logs with bounded polling (watch-style) until timeout or terminal condition (`application.logs:follow` or equivalent)
+- [x] **OBS-03**: Existing `application.logs` runtime and build paths remain unchanged (no regression)
 
 ### Diagnose
 
@@ -75,8 +75,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CAP-01 | Phase 24 | Complete |
 | CAP-02 | Phase 24 | Complete |
 | OBS-01 | Phase 24 | Complete |
-| OBS-02 | Phase 25 | Pending |
-| OBS-03 | Phase 25 | Pending |
+| OBS-02 | Phase 25 | Complete |
+| OBS-03 | Phase 25 | Complete |
 | DIAG-01 | Phase 26 | Pending |
 | PROMPT-01 | Phase 26 | Pending |
 | SKILL-01 | Phase 26 | Pending |
