@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 24
-current_phase_name: Capabilities & Deployment Logs
-status: plans_ready
-stopped_at: Phase 24 plans created
-last_updated: "2026-07-27T20:50:00.000Z"
+current_phase_name: capabilities-deployment-logs
+status: executing
+stopped_at: Completed 24-00-PLAN.md
+last_updated: "2026-07-27T20:53:01.997Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 24 plans created (24-00..24-03)
+last_activity_desc: Phase 24 execution started
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 24 — Capabilities & Deployment Logs
+**Current focus:** Phase 24 — capabilities-deployment-logs
 
 ## Current Position
 
-Phase: 24 of 27 (Capabilities & Deployment Logs)
-Plan: 00 of 04
+Phase: 24 (capabilities-deployment-logs) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-07-27 — Phase 24 plans created (4 plans, waves 0–3)
+Last activity: 2026-07-27 — Phase 24 execution started
 
 ## Performance Metrics
 
@@ -135,6 +135,7 @@ Last activity: 2026-07-27 — Phase 24 plans created (4 plans, waves 0–3)
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P03 | 2min | 2 tasks | 2 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
+| Phase 24-capabilities-deployment-logs P00 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -366,6 +367,8 @@ Last activity: 2026-07-27 — Phase 24 plans created (4 plans, waves 0–3)
 - [Phase ?]: PUB-01 live npm publish stays Manual-Only; five-phase Nyquist inventory 19-23 complete
 - [Phase ?]: Omit conflict_policy on setup set_env envs:sync delegation (CR-01 preferred fix over explicit abort)
 - [Phase ?]: Human retry via application envs:sync with explicit overwrite/keep_remote/abort policy
+- [Phase ?]: Phase 24 Wave 0: it.fails RED scaffolds for husky-green pre-commit; flip to it in 24-01..24-02
+- [Phase ?]: Schema reject tests (both/neither uuid) stay regular it until logs action registered
 
 ### Pending Todos
 
@@ -439,9 +442,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T20:34:10.475Z
-Stopped at: Phase 24 context gathered
-Resume file: .planning/phases/24-capabilities-deployment-logs/24-CONTEXT.md
+Last session: 2026-07-27T20:53:01.988Z
+Stopped at: Completed 24-00-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

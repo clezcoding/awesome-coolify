@@ -87,12 +87,12 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
   2. `system.version` returns capability flags for features known on Coolify 4.1.2 (`application_logs`, `deployment_watch`, `deploy_watch`, etc.) so agents skip unsupported APIs
   3. Agent fetches deployment build logs via `deployment.logs` by `deployment_uuid` without routing through `application.logs`
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 24-00-PLAN.md — Wave 0 Nyquist RED scaffolds (system/meta/deployment.logs/errors + coverage-map row)
+- [x] 24-00-PLAN.md — Wave 0 Nyquist RED scaffolds (system/meta/deployment.logs/errors + coverage-map row)
 - [ ] 24-01-PLAN.md — CAP-01/CAP-02: system.version + capabilities + package version (D-07 gate)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -159,7 +159,7 @@ Plans:
 | 22 | v3.1 | 4/4 | Complete | 2026-07-27 |
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
-| 24 | v3.2 | 0/? | Not started | - |
+| 24 | v3.2 | 1/4 | In Progress|  |
 | 25 | v3.2 | 0/? | Not started | - |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
