@@ -114,7 +114,21 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+**Wave 0**
+
+- [ ] 25-00-PLAN.md — Wave 0 Nyquist RED scaffolds (log-follow-poll + follow handler + capabilities)
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [ ] 25-01-PLAN.md — OBS-02 tracer: log-follow-poll + handleApplicationLogsFollow idle/timeout paths
+
+**Wave 2** *(blocked on Wave 1 completion; 25-02 and 25-03 parallel)*
+
+- [ ] 25-02-PLAN.md — OBS-02/OBS-03: flat schema wiring + one-shot regression lock
+- [ ] 25-03-PLAN.md — OBS-02: application_logs_follow capability + coverage + README EN/DE
 
 ### Phase 26: Diagnose Logs & Incident DX
 
@@ -160,7 +174,7 @@ Plans:
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
-| 25 | v3.2 | 0/? | Not started | - |
+| 25 | v3.2 | 0/4 | Planned | - |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
 
