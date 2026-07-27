@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 22
 current_phase_name: setup-wizard-ide-skills
-status: ready_to_ship
+status: "Phase 22 shipped — PR #86"
 stopped_at: Phase 22 UAT complete — ready for /gsd-ship
-last_updated: "2026-07-27T00:22:00.000Z"
+last_updated: "2026-07-27T00:28:00.000Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 22 UAT test #1 passed via agent-browser mobile layout check
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 17
   completed_plans: 17
   percent: 80
+last_activity_desc: "Phase 22 UAT test #1 passed via agent-browser mobile layout check"
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 22 (setup-wizard-ide-skills) — READY TO SHIP
 Plan: 4 of 4 complete
-Status: UAT passed (12/12 verification truths)
-Last activity: 2026-07-27 — agent-browser mobile layout UAT pass
+Status: Phase 22 shipped — PR #86
+Last activity: 2026-07-27
 
 ## Performance Metrics
 
