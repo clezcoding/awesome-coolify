@@ -650,6 +650,15 @@ describe('deployment logs', () => {
     expect(result.success).toBe(false);
   });
 
+  it('schema rejects logs with format table', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'logs',
+      deployment_uuid: 'dep-uuid-1',
+      format: 'table',
+    });
+    expect(result.success).toBe(false);
+  });
+
   it('returns logs_lines envelope when fetching by deployment_uuid', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-uuid-1',
