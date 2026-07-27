@@ -1468,12 +1468,12 @@ async function handleApplicationLogs(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
     uuid,
-    lines,
+    lines + offset,
     env.COOLIFY_VERIFY_SSL,
   );
   const logsStr =
     isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
-  const allLines = sliceLogBlob(logsStr, lines, 0);
+  const allLines = sliceLogBlob(logsStr, lines, offset);
   const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
   const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
 
