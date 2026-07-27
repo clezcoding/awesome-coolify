@@ -378,6 +378,7 @@ Last activity: 2026-07-27
 | 260725-8la | Phase 20 review leftovers: recipe Object.hasOwn, deploy.status, allowlist, README 17 tools | 2026-07-25 | 4aed33b | [260725-8la-phase-20-review-leftovers-1-object-hasow](./quick/260725-8la-phase-20-review-leftovers-1-object-hasow/) |
 | 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | a0b6187 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
 | 260727-4hd | Projektordner aufräumen + .gitignore (nur projektrelevante Dateien) | 2026-07-27 | 2b940cb | [260727-4hd-r-ume-den-projektordner-auf-und-sortiere](./quick/260727-4hd-r-ume-den-projektordner-auf-und-sortiere/) |
+| 260727-codeql | Fix 3 CodeQL alerts in openapi-coverage scripts (ReDoS, logging, markdown escape) | 2026-07-27 | bf91b01 | [260727-codeql-openapi-coverage-fixes](./quick/260727-codeql-openapi-coverage-fixes/) |
 
 ## Deferred Items
 

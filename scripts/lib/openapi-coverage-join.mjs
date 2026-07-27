@@ -3,6 +3,7 @@
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { CoverageError } from './openapi-coverage-errors.mjs';
 
 /**
  * @param {string} action
@@ -40,6 +41,52 @@ export function parseCatalogActions(catalogText) {
 }
 
 /**
+ * Linear scan for concatenated string literals after `export const …ActionsCatalog =`.
+ * Avoids ReDoS-prone regex on maintainer-controlled repo sources (CodeQL js/redos).
+ *
+ * @param {string} source
+ * @returns {string|null}
+ */
+function extractActionsCatalogLiteral(source) {
+  const decl = /export const \w+ActionsCatalog\s*=/;
+  const match = decl.exec(source);
+  if (!match) return null;
+
+  let i = match.index + match[0].length;
+  /** @type {string[]} */
+  const parts = [];
+
+  while (i < source.length) {
+    while (i < source.length && /[\s+]/.test(source[i])) i++;
+    if (i >= source.length || source[i] === ';') break;
+
+    const quote = source[i];
+    if (quote !== "'" && quote !== '"' && quote !== '`') break;
+
+    i++;
+    let segment = '';
+    while (i < source.length) {
+      const ch = source[i];
+      if (ch === '\\') {
+        if (i + 1 >= source.length) break;
+        segment += source[i + 1];
+        i += 2;
+        continue;
+      }
+      if (ch === quote) {
+        i++;
+        break;
+      }
+      segment += ch;
+      i++;
+    }
+    parts.push(segment);
+  }
+
+  return parts.length ? parts.join('') : null;
+}
+
+/**
  * @param {string} toolsDir
  * @returns {Record<string, string[]>}
  */
@@ -52,14 +99,9 @@ export function loadActionsCatalogs(toolsDir) {
 
     const tool = file.replace(/\.ts$/, '');
     const source = readFileSync(join(toolsDir, file), 'utf8');
-    const catalogMatch = source.match(
-      /export const \w+ActionsCatalog\s*=\s*((?:'[^']*'|"[^"]*"|`[^`]*`|\s*\+\s*)+)\s*;/,
-    );
-    if (!catalogMatch) continue;
+    const catalogText = extractActionsCatalogLiteral(source);
+    if (!catalogText) continue;
 
-    const catalogText = [...catalogMatch[1].matchAll(/(['"])(.*?)\1/g)]
-      .map((m) => m[2])
-      .join('');
     catalogs[tool] = parseCatalogActions(catalogText);
   }
 
@@ -103,7 +145,10 @@ export function classifyRows({ operations, map, overrides = [], catalogs = {} })
   const mapByAction = new Map();
   for (const entry of map) {
     if (mapByAction.has(entry.action)) {
-      throw new Error(`Duplicate coverage-map action: ${entry.action}`);
+      throw new CoverageError(
+        `Duplicate coverage-map action: ${entry.action}`,
+        'Duplicate action in docs/coverage-map.yaml',
+      );
     }
     mapByAction.set(entry.action, entry);
   }
@@ -121,8 +166,9 @@ export function classifyRows({ operations, map, overrides = [], catalogs = {} })
       .map((entry) => entry.action)
       .filter((action) => !actionNames.has(action));
     if (missingFromCatalog.length) {
-      throw new Error(
+      throw new CoverageError(
         `coverage-map.yaml actions missing from *ActionsCatalog: ${missingFromCatalog.join(', ')}`,
+        'coverage-map.yaml lists actions missing from *ActionsCatalog exports',
       );
     }
   } else {
@@ -174,8 +220,9 @@ export function classifyRows({ operations, map, overrides = [], catalogs = {} })
         bucket = overridesForKeys[0].bucket;
         reason = overridesForKeys[0].reason;
       } else if (overridesForKeys.length) {
-        throw new Error(
+        throw new CoverageError(
           `Conflicting/partial OpenAPI overrides for ${action}: use action_overrides`,
+          'Conflicting OpenAPI overrides in docs/coverage-overrides.yaml — use action_overrides',
         );
       } else if (openapiKeys.every((key) => opKeys.has(key))) {
         bucket = 'covered';
