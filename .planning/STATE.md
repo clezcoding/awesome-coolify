@@ -5,15 +5,15 @@ milestone_name: Observability & DX
 current_phase: 24
 current_phase_name: capabilities-deployment-logs
 status: executing
-stopped_at: Completed 24-00-PLAN.md
-last_updated: "2026-07-27T20:53:01.997Z"
+stopped_at: Completed 24-01-PLAN.md
+last_updated: "2026-07-27T21:17:36.571Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 24 execution started
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 ## Current Position
 
 Phase: 24 (capabilities-deployment-logs) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 24 execution started
 
@@ -136,6 +136,7 @@ Last activity: 2026-07-27 — Phase 24 execution started
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
 | Phase 24-capabilities-deployment-logs P00 | 3min | 2 tasks | 6 files |
+| Phase 24-capabilities-deployment-logs P01 | 2min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -369,6 +370,8 @@ Last activity: 2026-07-27 — Phase 24 execution started
 - [Phase ?]: Human retry via application envs:sync with explicit overwrite/keep_remote/abort policy
 - [Phase ?]: Phase 24 Wave 0: it.fails RED scaffolds for husky-green pre-commit; flip to it in 24-01..24-02
 - [Phase ?]: Schema reject tests (both/neither uuid) stay regular it until logs action registered
+- [Phase ?]: rename-coolifyVersion: break legacy { version } field per D-07/D-09
+- [Phase ?]: capabilities on system.version only; meta.version stays { mcpVersion, serverName } (D-06)
 
 ### Pending Todos
 
@@ -442,8 +445,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T20:53:01.988Z
-Stopped at: Completed 24-00-PLAN.md
+Last session: 2026-07-27T21:17:36.562Z
+Stopped at: Completed 24-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
