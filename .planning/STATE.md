@@ -5,15 +5,15 @@ milestone_name: Setup, Skills & DX
 current_phase: 23.1
 current_phase_name: address-tech-debt-set-env-nyquist-validation
 status: executing
-stopped_at: Completed 23.1-01-PLAN.md
-last_updated: "2026-07-27T05:14:23.432Z"
+stopped_at: Completed 23.1-02-PLAN.md
+last_updated: "2026-07-27T05:17:51.630Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 23.1 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 26
-  completed_plans: 23
+  completed_plans: 24
   percent: 83
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 23.1 execution started
 
@@ -129,6 +129,7 @@ Last activity: 2026-07-27 — Phase 23.1 execution started
 | Phase 23-openapi-coverage-npm-release P02 | 6min | 3 tasks | 7 files |
 | Phase 23-openapi-coverage-npm-release P04 | 15min | 4 tasks | 2 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P01 | 5min | 2 tasks | 2 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P02 | 3min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -352,6 +353,8 @@ Last activity: 2026-07-27 — Phase 23.1 execution started
 - [Phase ?]: No release.yml changes — existing OIDC contract sufficient (D-12)
 - [Phase ?]: set_env delegates inline to handleApplicationAction envs:sync with confirm:true and conflict_policy:abort
 - [Phase ?]: env step in steps_completed only after successful envs:sync apply per D-07
+- [Phase ?]: Phase 19-21 Nyquist reconciliation: stale VALIDATION rows flipped green after vitest confirm; no new tests needed
+- [Phase ?]: Phase 19 test paths corrected to src/mcp/server.test.ts and src/mcp/tools/shared-read-params.test.ts
 
 ### Pending Todos
 
@@ -419,8 +422,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27T05:14:23.423Z
-Stopped at: Completed 23.1-01-PLAN.md
+Last session: 2026-07-27T05:17:51.621Z
+Stopped at: Completed 23.1-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

@@ -240,7 +240,7 @@ Plans:
 **Goal:** Close set_env no-op via application envs:sync delegation and earn Nyquist validation for v3.1 phases 19–23 (100% REQ-row coverage) before milestone close
 **Requirements**: SETUP-02 (primary); Nyquist reconciliation for DX-01/02, PROMPT-01..04, RECIPE-01..04, WATCH-01/02, SETUP-01/03, SKILL-01/02, OAPI-01/02, PUB-01/02
 **Depends on:** Phase 23
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -249,7 +249,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 23.1-02-PLAN.md — Nyquist validate-phase 19→21 (DX/PROMPT/RECIPE/WATCH)
+- [x] 23.1-02-PLAN.md — Nyquist validate-phase 19→21 (DX/PROMPT/RECIPE/WATCH)
 - [ ] 23.1-04-PLAN.md — Docs/skills: env_file XOR env_content for set_env
 
 **Wave 3** *(blocked on Wave 2 completion)*
