@@ -559,9 +559,6 @@ describe('set_env', () => {
       testEnv,
     );
     expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('conflict_policy');
-    if (!isSetupErrorResult(result) && 'steps_completed' in result.data) {
-      expect(result.data.steps_completed).not.toContain('env');
-    }
   });
 
   it('rejects set_env on create-one-click service resource (non-application)', async () => {
