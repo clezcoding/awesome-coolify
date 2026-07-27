@@ -1,51 +1,65 @@
 ---
-phase: 24-capabilities-deployment-logs
-fixed_at: 2026-07-27T21:51:00Z
+phase: 24
+fixed_at: 2026-07-27T22:10:30Z
 review_path: .planning/phases/24-capabilities-deployment-logs/24-REVIEW.md
 iteration: 1
-findings_in_scope: 3
-fixed: 3
-skipped: 0
-status: all_fixed
+findings_in_scope: 5
+fixed: 4
+skipped: 1
+status: partial
 ---
 
 # Phase 24: Code Review Fix Report
 
-**Fixed at:** 2026-07-27T21:51:00Z
+**Fixed at:** 2026-07-27T22:10:30Z
 **Source review:** `.planning/phases/24-capabilities-deployment-logs/24-REVIEW.md`
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 3
-- Fixed: 3
-- Skipped: 0
+- Findings in scope: 5
+- Fixed: 4
+- Skipped: 1
 
 ## Fixed Issues
 
-### WR-01: `deployment.logs` max_chars split — processor 20000 vs envelope 16000
+### WR-01: `application.logs` runtime path ignores `offset`
 
-**Files modified:** `src/mcp/tools/deployment.ts`
-**Commit:** 13b6af1
-**Applied fix:** Introduced shared `maxChars = parsed.max_chars ?? 20000` and passed it to both `processDeploymentBuildLogs` and `buildReadResponse` so envelope truncation matches processor cap.
+**Files modified:** `src/mcp/tools/application.ts`
+**Commit:** dac5833
+**Applied fix:** Runtime branch now passes `offset` to `sliceLogBlob` and requests `lines + offset` from `fetchApplicationLogs` so API-side tail has enough rows after client skip.
 
-### WR-02: `deployment.logs` schema accepts `format: table` (D-15 violation)
+### WR-02: Deploy failure/cancel recovery hints skip `deployment.logs`
 
-**Files modified:** `src/mcp/tools/deployment.ts`
-**Commit:** 90b58d9
-**Applied fix:** Added `format === 'table'` guard in the `data.action === 'logs'` refine block, matching `application.logs` validation.
+**Files modified:** `src/utils/errors.ts`, `src/utils/errors.test.ts`
+**Commit:** f42e5d4
+**Applied fix:** Updated `COOLIFY_DEPLOYMENT_FAILED` and `COOLIFY_DEPLOYMENT_CANCELLED` recovery hints to steer agents to `deployment.logs`; updated unit tests to assert `deployment.logs` instead of `deployment.get` / `projection: full`.
 
-### WR-03: `entries_shown` counts pre-slice entries, not returned lines
+### IN-01: `extractCoolifyVersion` yields `[object Object]` on unexpected API shape
 
-**Files modified:** `src/utils/log-helpers.ts`
-**Commit:** 55cb52f
-**Applied fix:** Set `entries_shown` to `cappedLines.length` in both plain-text and structured log paths so metadata matches returned `logs_lines`.
+**Files modified:** `src/mcp/tools/system.ts`
+**Commit:** 32259c1
+**Applied fix:** `extractCoolifyVersion` now returns string/number payloads directly, extracts string/number `version` field from objects, and returns `'unknown'` instead of `String(object)` for unexpected shapes.
+
+### IN-03: No regression test for `deployment.logs` `format: table` reject
+
+**Files modified:** `src/mcp/tools/deployment.test.ts`
+**Commit:** 25fda8a
+**Applied fix:** Added schema unit test asserting `safeParse({ action: 'logs', format: 'table', deployment_uuid })` returns `success: false`.
 
 ## Skipped Issues
 
-None.
+### IN-02: Capabilities `supported: true` is static — no live version gate
+
+**File:** `src/mcp/capabilities.ts:1-25`, `src/mcp/tools/system.ts:179-184`
+**Reason:** Review fix says "None required unless product wants dynamic flags" — intentional per D-02/D-04; no code change needed.
+**Original issue:** All four D-03 keys always report `supported: true` regardless of live `coolifyVersion`.
+
+## Verification
+
+Vitest on touched files: **209 passed** (`deployment.test.ts`, `errors.test.ts`, `system.test.ts`, `application.test.ts`).
 
 ---
 
-_Fixed: 2026-07-27T21:51:00Z_
+_Fixed: 2026-07-27T22:10:30Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
