@@ -6,123 +6,135 @@
 
 | bucket | count |
 | --- | ---: |
-| covered | 5 |
-| deferred | 1 |
-| out-of-scope | 6 |
-| gap | 210 |
+| covered | 85 |
+| deferred | 2 |
+| out-of-scope | 31 |
+| gap | 57 |
 
 ## Actions
 
 | tool.action | client | openapi | bucket | reason |
 | --- | --- | --- | --- | --- |
-| `application.deploy` | triggerDeploy | POST /deploy | gap | Mapped OpenAPI key missing from dereferenced spec |
+| `application.create` | createPublicApplication, createPrivateDeployKeyApplication, createPrivateGithubAppApplication, createDockerfileApplication, createDockerimageApplication, triggerDeploy | POST /applications/public, POST /applications/private-deploy-key, POST /applications/private-github-app, POST /applications/dockerfile, POST /applications/dockerimage, GET /deploy | covered | — |
+| `application.delete` | deleteApplication | DELETE /applications/{uuid} | covered | — |
+| `application.delete_preview` | fetchResources | GET /resources | covered | — |
+| `application.deploy` | triggerDeploy, fetchDeployment | GET /deploy, GET /deployments/{uuid} | covered | — |
+| `application.envs:bulk-update` | bulkUpdateEnvs | PATCH /applications/{uuid}/envs/bulk | covered | — |
+| `application.envs:create` | createEnv, fetchEnvs | POST /applications/{uuid}/envs, GET /applications/{uuid}/envs | covered | — |
+| `application.envs:delete` | deleteEnv | DELETE /applications/{uuid}/envs/{env_uuid} | covered | — |
+| `application.envs:get` | fetchEnvs | GET /applications/{uuid}/envs | covered | — |
+| `application.envs:list` | fetchEnvs | GET /applications/{uuid}/envs | covered | — |
+| `application.envs:sync` | fetchEnvs, createEnv, updateEnvViaBulk, deleteEnv | GET /applications/{uuid}/envs, POST /applications/{uuid}/envs, PATCH /applications/{uuid}/envs/bulk, DELETE /applications/{uuid}/envs/{env_uuid} | out-of-scope | File↔remote env reconciliation orchestration |
+| `application.envs:update` | fetchEnvs, updateEnvViaBulk | GET /applications/{uuid}/envs, PATCH /applications/{uuid}/envs/bulk | covered | — |
 | `application.get` | fetchApplication | GET /applications/{uuid} | covered | — |
-| `application.restart` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `application.start` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `application.stop` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `database.create` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `database.get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `database.restart` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `database.start` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `database.stop` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `database.update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `deployment.cancel` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `deployment.get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
+| `application.logs` | fetchApplicationLogs, fetchDeployment | GET /applications/{uuid}/logs, GET /deployments/{uuid} | covered | — |
+| `application.restart` | triggerAppRestart | GET /applications/{uuid}/restart | covered | — |
+| `application.start` | triggerAppStart | GET /applications/{uuid}/start | covered | — |
+| `application.stop` | triggerAppStop | GET /applications/{uuid}/stop | covered | — |
+| `application.update` | updateApplication, fetchApplication | PATCH /applications/{uuid}, GET /applications/{uuid} | covered | — |
+| `database.backup:create` | createDatabaseBackup | POST /databases/{uuid}/backups | covered | — |
+| `database.backup:delete` | deleteDatabaseBackup | DELETE /databases/{uuid}/backups/{scheduled_backup_uuid} | covered | — |
+| `database.backup:history` | fetchBackupExecutions | GET /databases/{uuid}/backups/{scheduled_backup_uuid}/executions | covered | — |
+| `database.backup:list` | fetchDatabaseBackups | GET /databases/{uuid}/backups | covered | — |
+| `database.backup:now` | updateDatabaseBackup | PATCH /databases/{uuid}/backups/{scheduled_backup_uuid} | covered | — |
+| `database.backup:update` | updateDatabaseBackup, fetchDatabaseBackups | PATCH /databases/{uuid}/backups/{scheduled_backup_uuid}, GET /databases/{uuid}/backups | covered | — |
+| `database.create` | createPostgresqlDatabase, createMysqlDatabase, createMariadbDatabase, createMongodbDatabase, createRedisDatabase, createClickhouseDatabase, createDragonflyDatabase, createKeydbDatabase | POST /databases/postgresql, POST /databases/mysql, POST /databases/mariadb, POST /databases/mongodb, POST /databases/redis, POST /databases/clickhouse, POST /databases/dragonfly, POST /databases/keydb | covered | — |
+| `database.delete` | deleteDatabase | DELETE /databases/{uuid} | covered | — |
+| `database.delete_preview` | fetchResources | GET /resources | covered | — |
+| `database.envs:bulk-update` | bulkUpdateEnvs | PATCH /databases/{uuid}/envs/bulk | covered | — |
+| `database.envs:create` | createEnv, fetchEnvs | POST /databases/{uuid}/envs, GET /databases/{uuid}/envs | covered | — |
+| `database.envs:delete` | deleteEnv | DELETE /databases/{uuid}/envs/{env_uuid} | covered | — |
+| `database.envs:get` | fetchEnvs | GET /databases/{uuid}/envs | covered | — |
+| `database.envs:list` | fetchEnvs | GET /databases/{uuid}/envs | covered | — |
+| `database.envs:update` | fetchEnvs, updateEnvViaBulk | GET /databases/{uuid}/envs, PATCH /databases/{uuid}/envs/bulk | covered | — |
+| `database.get` | fetchDatabase | GET /databases/{uuid} | covered | — |
+| `database.restart` | triggerDatabaseRestart | GET /databases/{uuid}/restart | covered | — |
+| `database.start` | triggerDatabaseStart | GET /databases/{uuid}/start | covered | — |
+| `database.stop` | triggerDatabaseStop | GET /databases/{uuid}/stop | covered | — |
+| `database.update` | updateDatabase, fetchDatabase | PATCH /databases/{uuid}, GET /databases/{uuid} | covered | — |
+| `deployment.cancel` | cancelDeployment | POST /deployments/{uuid}/cancel | covered | — |
+| `deployment.get` | fetchDeployment | GET /deployments/{uuid} | covered | — |
 | `deployment.list` | fetchAppDeployments | GET /deployments/applications/{uuid} | covered | — |
-| `deployment.watch` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `diagnose.app` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `diagnose.scan` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `diagnose.server` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
+| `deployment.watch` | fetchDeployment | GET /deployments/{uuid} | out-of-scope | Polling orchestration over fetchDeployment |
+| `diagnose.app` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid} | covered | — |
+| `diagnose.scan` | fetchServers, fetchResources | GET /servers, GET /resources | out-of-scope | Cross-resource scan orchestration |
+| `diagnose.server` | fetchServer, fetchServerResources, fetchServerDomains, triggerServerValidate | GET /servers/{uuid}, GET /servers/{uuid}/resources, GET /servers/{uuid}/domains, GET /servers/{uuid}/validate | covered | — |
 | `docs.search` | — | — | out-of-scope | Local docs index — no Coolify REST op |
-| `emergency.redeploy_project` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `emergency.restart_project` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `emergency.stop_all` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `environment.create` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `environment.delete` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `environment.delete_preview` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `environment.get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `environment.list` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.add` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.cloud-info` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.delete` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.import-env` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.list` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.set-default` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `instance.update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `manifest.clear` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `manifest.diff` | — | — | out-of-scope | Local workspace file only — no Coolify REST op |
+| `emergency.redeploy_project` | fetchProject, fetchResources, triggerDeploy, fetchDeployment | GET /projects/{uuid}, GET /resources, GET /deploy, GET /deployments/{uuid} | out-of-scope | Fan-out deploy orchestration |
+| `emergency.restart_project` | fetchResources, triggerAppRestart | GET /resources, GET /applications/{uuid}/restart | out-of-scope | Fan-out restart orchestration |
+| `emergency.stop_all` | fetchResources, triggerAppStop | GET /resources, GET /applications/{uuid}/stop | out-of-scope | Fan-out orchestration over running applications |
+| `environment.create` | createEnvironment, fetchProject | POST /projects/{uuid}/environments, GET /projects/{uuid} | covered | — |
+| `environment.delete` | deleteEnvironment | DELETE /projects/{uuid}/environments/{environment_name_or_uuid} | covered | — |
+| `environment.delete_preview` | fetchResources, fetchProject, fetchEnvironment | GET /resources, GET /projects/{uuid}, GET /projects/{uuid}/{environment_name_or_uuid} | covered | — |
+| `environment.get` | fetchEnvironment, fetchProject | GET /projects/{uuid}/{environment_name_or_uuid}, GET /projects/{uuid} | covered | — |
+| `environment.list` | fetchEnvironments, fetchProject | GET /projects/{uuid}/environments, GET /projects/{uuid} | covered | — |
+| `instance.add` | — | — | out-of-scope | Local InstanceManager registry |
+| `instance.cloud-info` | — | — | out-of-scope | Local inference — no Coolify REST op |
+| `instance.delete` | — | — | out-of-scope | Local InstanceManager registry |
+| `instance.get` | — | — | out-of-scope | Local InstanceManager registry |
+| `instance.import-env` | — | — | out-of-scope | Local registry from env vars |
+| `instance.list` | — | — | out-of-scope | Local InstanceManager registry — no Coolify REST op |
+| `instance.set-default` | — | — | out-of-scope | Local InstanceManager registry |
+| `instance.update` | — | — | out-of-scope | Local InstanceManager registry |
+| `manifest.clear` | — | — | out-of-scope | Local manifest file only |
+| `manifest.diff` | fetchResources, fetchProjects, fetchServers, fetchProject | GET /resources, GET /projects, GET /servers, GET /projects/{uuid} | out-of-scope | Local workspace diff — REST reads are ancillary |
 | `manifest.get` | — | — | out-of-scope | Local workspace file only — no Coolify REST op |
-| `manifest.remove` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `manifest.set` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `manifest.sync` | — | — | out-of-scope | Local workspace file only — no Coolify REST op |
-| `manifest.upsert` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
+| `manifest.remove` | — | — | out-of-scope | Local manifest file only |
+| `manifest.set` | — | — | out-of-scope | Local manifest file only |
+| `manifest.sync` | fetchResources, fetchProjects, fetchServers, fetchProject | GET /resources, GET /projects, GET /servers, GET /projects/{uuid} | out-of-scope | Local workspace file orchestration — REST reads are ancillary |
+| `manifest.upsert` | — | — | out-of-scope | Local .coolify/manifest.json only |
 | `meta.version` | — | — | out-of-scope | Package version — not Coolify API |
-| `private_key.create` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `private_key.delete` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `private_key.delete_preview` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `private_key.get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `private_key.list` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `private_key.update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `project.create` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `project.delete` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `project.delete_preview` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `project.get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `project.list` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `project.update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `recipe.create-app-db` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `recipe.create-git-app` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `recipe.create-one-click` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `resource.find` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `resource.list` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `server.create` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `server.delete` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `server.delete_preview` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `server.get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `server.update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `server.validate` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.create` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.delete` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.delete_preview` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.deploy` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.envs:bulk-update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.envs:create` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.envs:delete` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.envs:get` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.envs:list` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.envs:update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
+| `private_key.create` | createPrivateKey, fetchPrivateKey | POST /security/keys, GET /security/keys/{uuid} | covered | — |
+| `private_key.delete` | fetchServers, deletePrivateKey | GET /servers, DELETE /security/keys/{uuid} | covered | — |
+| `private_key.delete_preview` | fetchServers, fetchPrivateKey | GET /servers, GET /security/keys/{uuid} | covered | — |
+| `private_key.get` | fetchPrivateKey | GET /security/keys/{uuid} | covered | — |
+| `private_key.list` | fetchPrivateKeys | GET /security/keys | covered | — |
+| `private_key.update` | updatePrivateKey | PATCH /security/keys | covered | — |
+| `project.create` | createProject, fetchEnvironments, createEnvironment | POST /projects, GET /projects/{uuid}/environments, POST /projects/{uuid}/environments | covered | — |
+| `project.delete` | fetchEnvironments, deleteProject | GET /projects/{uuid}/environments, DELETE /projects/{uuid} | covered | — |
+| `project.delete_preview` | fetchEnvironments | GET /projects/{uuid}/environments | covered | — |
+| `project.get` | fetchProject | GET /projects/{uuid} | covered | — |
+| `project.list` | fetchProjects | GET /projects | covered | — |
+| `project.update` | updateProject | PATCH /projects/{uuid} | covered | — |
+| `recipe.create-app-db` | createPostgresqlDatabase, createMysqlDatabase, createMariadbDatabase, createMongodbDatabase, createRedisDatabase, createClickhouseDatabase, createDragonflyDatabase, createKeydbDatabase, triggerDatabaseStart, createPublicApplication, fetchDatabase, bulkUpdateEnvs, triggerDeploy | POST /databases/postgresql, POST /databases/mysql, POST /databases/mariadb, POST /databases/mongodb, POST /databases/redis, POST /databases/clickhouse, POST /databases/dragonfly, POST /databases/keydb, GET /databases/{uuid}/start, POST /applications/public, GET /databases/{uuid}, PATCH /applications/{uuid}/envs/bulk, GET /deploy | out-of-scope | Multi-resource orchestration (database + application + env) |
+| `recipe.create-git-app` | createPublicApplication, triggerDeploy | POST /applications/public, GET /deploy | out-of-scope | Orchestration wrapper over application.create + deploy |
+| `recipe.create-one-click` | fetchVersion, createService | GET /version, POST /services | out-of-scope | Orchestration wrapper over service.create |
+| `resource.find` | fetchResources | GET /resources | covered | — |
+| `resource.list` | fetchResources, fetchServers, fetchProjects | GET /resources, GET /servers, GET /projects | covered | — |
+| `server.create` | createServer, validateServer, pollServerUntilReachable, fetchServer | POST /servers, GET /servers/{uuid}/validate, GET /servers/{uuid} | covered | — |
+| `server.delete` | deleteServer | DELETE /servers/{uuid} | covered | — |
+| `server.delete_preview` | fetchServerResources | GET /servers/{uuid}/resources | covered | — |
+| `server.get` | fetchServer, fetchPrivateKeys | GET /servers/{uuid}, GET /security/keys | covered | — |
+| `server.update` | updateServer | PATCH /servers/{uuid} | covered | — |
+| `server.validate` | validateServer, pollServerUntilReachable, fetchServer | GET /servers/{uuid}/validate, GET /servers/{uuid} | covered | — |
+| `service.create` | createService, triggerServiceStart | POST /services, GET /services/{uuid}/start | covered | — |
+| `service.delete` | deleteService | DELETE /services/{uuid} | covered | — |
+| `service.delete_preview` | fetchService | GET /services/{uuid} | covered | — |
+| `service.deploy` | triggerServiceRestart | GET /services/{uuid}/restart | covered | — |
+| `service.envs:bulk-update` | bulkUpdateEnvs | PATCH /services/{uuid}/envs/bulk | covered | — |
+| `service.envs:create` | createEnv, fetchEnvs | POST /services/{uuid}/envs, GET /services/{uuid}/envs | covered | — |
+| `service.envs:delete` | deleteEnv | DELETE /services/{uuid}/envs/{env_uuid} | covered | — |
+| `service.envs:get` | fetchEnvs | GET /services/{uuid}/envs | covered | — |
+| `service.envs:list` | fetchEnvs | GET /services/{uuid}/envs | covered | — |
+| `service.envs:update` | fetchEnvs, updateEnvViaBulk | GET /services/{uuid}/envs, PATCH /services/{uuid}/envs/bulk | covered | — |
 | `service.get` | fetchService | GET /services/{uuid} | covered | — |
-| `service.list-types` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.restart` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.start` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.stop` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `service.update` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `setup.preflight` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `setup.resume` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `setup.wire` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
+| `service.list-types` | fetchVersion | GET /version | out-of-scope | CDN/GitHub service templates — fetchVersion ancillary only |
+| `service.restart` | triggerServiceRestart | GET /services/{uuid}/restart | covered | — |
+| `service.start` | triggerServiceStart | GET /services/{uuid}/start | covered | — |
+| `service.stop` | triggerServiceStop | GET /services/{uuid}/stop | covered | — |
+| `service.update` | updateService, fetchService | PATCH /services/{uuid}, GET /services/{uuid} | covered | — |
+| `setup.preflight` | — | — | out-of-scope | GitHub CLI preflight — no Coolify REST op |
+| `setup.resume` | — | — | out-of-scope | Delegates to preflight/wire — no standalone REST op |
+| `setup.wire` | fetchProject, fetchEnvironment, fetchServer, createProject, createEnvironment, createPublicApplication, triggerDeploy, fetchDeployment | — | out-of-scope | Multi-step onboarding orchestration |
 | `system.health` | fetchHealth | GET /health | covered | — |
-| `system.infrastructure_overview` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
-| `system.verify` | — | — | gap | No OpenAPI mapping in coverage-map.yaml |
+| `system.infrastructure_overview` | fetchResources, fetchServers, fetchProjects | GET /resources, GET /servers, GET /projects | covered | — |
+| `system.verify` | fetchVersion | GET /version | covered | — |
 | `system.version` | fetchVersion | GET /version | covered | — |
 | `GET /services/{uuid}/logs` | — | GET /services/{uuid}/logs | deferred | SVC-04 — Coolify 4.1.x has no service log endpoint |
+| `GET /databases/{uuid}/logs` | — | GET /databases/{uuid}/logs | deferred | SVC-04 — Coolify 4.1.x has no database log endpoint |
 | `execute_command` | — | execute_command | out-of-scope | Absent from OpenAPI per Spike 001 — not in v4.x spec |
 | `GET /applications` | — | GET /applications | gap | OpenAPI operation has no MCP action mapping |
-| `POST /applications/public` | — | POST /applications/public | gap | OpenAPI operation has no MCP action mapping |
-| `POST /applications/private-github-app` | — | POST /applications/private-github-app | gap | OpenAPI operation has no MCP action mapping |
-| `POST /applications/private-deploy-key` | — | POST /applications/private-deploy-key | gap | OpenAPI operation has no MCP action mapping |
-| `POST /applications/dockerfile` | — | POST /applications/dockerfile | gap | OpenAPI operation has no MCP action mapping |
-| `POST /applications/dockerimage` | — | POST /applications/dockerimage | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /applications/{uuid}` | — | PATCH /applications/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /applications/{uuid}` | — | DELETE /applications/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /applications/{uuid}/logs` | — | GET /applications/{uuid}/logs | gap | OpenAPI operation has no MCP action mapping |
-| `GET /applications/{uuid}/envs` | — | GET /applications/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
-| `POST /applications/{uuid}/envs` | — | POST /applications/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
 | `PATCH /applications/{uuid}/envs` | — | PATCH /applications/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /applications/{uuid}/envs/bulk` | — | PATCH /applications/{uuid}/envs/bulk | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /applications/{uuid}/envs/{env_uuid}` | — | DELETE /applications/{uuid}/envs/{env_uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /applications/{uuid}/start` | — | GET /applications/{uuid}/start | gap | OpenAPI operation has no MCP action mapping |
-| `GET /applications/{uuid}/stop` | — | GET /applications/{uuid}/stop | gap | OpenAPI operation has no MCP action mapping |
-| `GET /applications/{uuid}/restart` | — | GET /applications/{uuid}/restart | gap | OpenAPI operation has no MCP action mapping |
 | `GET /applications/{uuid}/storages` | — | GET /applications/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
 | `POST /applications/{uuid}/storages` | — | POST /applications/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
 | `PATCH /applications/{uuid}/storages` | — | PATCH /applications/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
@@ -135,39 +147,13 @@
 | `DELETE /cloud-tokens/{uuid}` | — | DELETE /cloud-tokens/{uuid} | gap | OpenAPI operation has no MCP action mapping |
 | `POST /cloud-tokens/{uuid}/validate` | — | POST /cloud-tokens/{uuid}/validate | gap | OpenAPI operation has no MCP action mapping |
 | `GET /databases` | — | GET /databases | gap | OpenAPI operation has no MCP action mapping |
-| `GET /databases/{uuid}/backups` | — | GET /databases/{uuid}/backups | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/{uuid}/backups` | — | POST /databases/{uuid}/backups | gap | OpenAPI operation has no MCP action mapping |
-| `GET /databases/{uuid}` | — | GET /databases/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /databases/{uuid}` | — | PATCH /databases/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /databases/{uuid}` | — | DELETE /databases/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /databases/{uuid}/backups/{scheduled_backup_uuid}` | — | PATCH /databases/{uuid}/backups/{scheduled_backup_uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /databases/{uuid}/backups/{scheduled_backup_uuid}` | — | DELETE /databases/{uuid}/backups/{scheduled_backup_uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/postgresql` | — | POST /databases/postgresql | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/clickhouse` | — | POST /databases/clickhouse | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/dragonfly` | — | POST /databases/dragonfly | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/redis` | — | POST /databases/redis | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/keydb` | — | POST /databases/keydb | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/mariadb` | — | POST /databases/mariadb | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/mysql` | — | POST /databases/mysql | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/mongodb` | — | POST /databases/mongodb | gap | OpenAPI operation has no MCP action mapping |
 | `DELETE /databases/{uuid}/backups/{scheduled_backup_uuid}/executions/{execution_uuid}` | — | DELETE /databases/{uuid}/backups/{scheduled_backup_uuid}/executions/{execution_uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /databases/{uuid}/backups/{scheduled_backup_uuid}/executions` | — | GET /databases/{uuid}/backups/{scheduled_backup_uuid}/executions | gap | OpenAPI operation has no MCP action mapping |
-| `GET /databases/{uuid}/start` | — | GET /databases/{uuid}/start | gap | OpenAPI operation has no MCP action mapping |
-| `GET /databases/{uuid}/stop` | — | GET /databases/{uuid}/stop | gap | OpenAPI operation has no MCP action mapping |
-| `GET /databases/{uuid}/restart` | — | GET /databases/{uuid}/restart | gap | OpenAPI operation has no MCP action mapping |
-| `GET /databases/{uuid}/envs` | — | GET /databases/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
-| `POST /databases/{uuid}/envs` | — | POST /databases/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
 | `PATCH /databases/{uuid}/envs` | — | PATCH /databases/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /databases/{uuid}/envs/bulk` | — | PATCH /databases/{uuid}/envs/bulk | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /databases/{uuid}/envs/{env_uuid}` | — | DELETE /databases/{uuid}/envs/{env_uuid} | gap | OpenAPI operation has no MCP action mapping |
 | `GET /databases/{uuid}/storages` | — | GET /databases/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
 | `POST /databases/{uuid}/storages` | — | POST /databases/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
 | `PATCH /databases/{uuid}/storages` | — | PATCH /databases/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
 | `DELETE /databases/{uuid}/storages/{storage_uuid}` | — | DELETE /databases/{uuid}/storages/{storage_uuid} | gap | OpenAPI operation has no MCP action mapping |
 | `GET /deployments` | — | GET /deployments | gap | OpenAPI operation has no MCP action mapping |
-| `GET /deployments/{uuid}` | — | GET /deployments/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `POST /deployments/{uuid}/cancel` | — | POST /deployments/{uuid}/cancel | gap | OpenAPI operation has no MCP action mapping |
-| `GET /deploy` | — | GET /deploy | gap | OpenAPI operation has no MCP action mapping |
 | `GET /github-apps` | — | GET /github-apps | gap | OpenAPI operation has no MCP action mapping |
 | `POST /github-apps` | — | POST /github-apps | gap | OpenAPI operation has no MCP action mapping |
 | `GET /github-apps/{github_app_id}/repositories` | — | GET /github-apps/{github_app_id}/repositories | gap | OpenAPI operation has no MCP action mapping |
@@ -183,16 +169,6 @@
 | `GET /disable` | — | GET /disable | gap | OpenAPI operation has no MCP action mapping |
 | `POST /mcp/enable` | — | POST /mcp/enable | gap | OpenAPI operation has no MCP action mapping |
 | `POST /mcp/disable` | — | POST /mcp/disable | gap | OpenAPI operation has no MCP action mapping |
-| `GET /projects` | — | GET /projects | gap | OpenAPI operation has no MCP action mapping |
-| `POST /projects` | — | POST /projects | gap | OpenAPI operation has no MCP action mapping |
-| `GET /projects/{uuid}` | — | GET /projects/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /projects/{uuid}` | — | PATCH /projects/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /projects/{uuid}` | — | DELETE /projects/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /projects/{uuid}/{environment_name_or_uuid}` | — | GET /projects/{uuid}/{environment_name_or_uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /projects/{uuid}/environments` | — | GET /projects/{uuid}/environments | gap | OpenAPI operation has no MCP action mapping |
-| `POST /projects/{uuid}/environments` | — | POST /projects/{uuid}/environments | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /projects/{uuid}/environments/{environment_name_or_uuid}` | — | DELETE /projects/{uuid}/environments/{environment_name_or_uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /resources` | — | GET /resources | gap | OpenAPI operation has no MCP action mapping |
 | `GET /applications/{uuid}/scheduled-tasks` | — | GET /applications/{uuid}/scheduled-tasks | gap | OpenAPI operation has no MCP action mapping |
 | `POST /applications/{uuid}/scheduled-tasks` | — | POST /applications/{uuid}/scheduled-tasks | gap | OpenAPI operation has no MCP action mapping |
 | `PATCH /applications/{uuid}/scheduled-tasks/{task_uuid}` | — | PATCH /applications/{uuid}/scheduled-tasks/{task_uuid} | gap | OpenAPI operation has no MCP action mapping |
@@ -203,31 +179,8 @@
 | `PATCH /services/{uuid}/scheduled-tasks/{task_uuid}` | — | PATCH /services/{uuid}/scheduled-tasks/{task_uuid} | gap | OpenAPI operation has no MCP action mapping |
 | `DELETE /services/{uuid}/scheduled-tasks/{task_uuid}` | — | DELETE /services/{uuid}/scheduled-tasks/{task_uuid} | gap | OpenAPI operation has no MCP action mapping |
 | `GET /services/{uuid}/scheduled-tasks/{task_uuid}/executions` | — | GET /services/{uuid}/scheduled-tasks/{task_uuid}/executions | gap | OpenAPI operation has no MCP action mapping |
-| `GET /security/keys` | — | GET /security/keys | gap | OpenAPI operation has no MCP action mapping |
-| `POST /security/keys` | — | POST /security/keys | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /security/keys` | — | PATCH /security/keys | gap | OpenAPI operation has no MCP action mapping |
-| `GET /security/keys/{uuid}` | — | GET /security/keys/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /security/keys/{uuid}` | — | DELETE /security/keys/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /servers` | — | GET /servers | gap | OpenAPI operation has no MCP action mapping |
-| `POST /servers` | — | POST /servers | gap | OpenAPI operation has no MCP action mapping |
-| `GET /servers/{uuid}` | — | GET /servers/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /servers/{uuid}` | — | PATCH /servers/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /servers/{uuid}` | — | DELETE /servers/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /servers/{uuid}/resources` | — | GET /servers/{uuid}/resources | gap | OpenAPI operation has no MCP action mapping |
-| `GET /servers/{uuid}/domains` | — | GET /servers/{uuid}/domains | gap | OpenAPI operation has no MCP action mapping |
-| `GET /servers/{uuid}/validate` | — | GET /servers/{uuid}/validate | gap | OpenAPI operation has no MCP action mapping |
 | `GET /services` | — | GET /services | gap | OpenAPI operation has no MCP action mapping |
-| `POST /services` | — | POST /services | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /services/{uuid}` | — | PATCH /services/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /services/{uuid}` | — | DELETE /services/{uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /services/{uuid}/envs` | — | GET /services/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
-| `POST /services/{uuid}/envs` | — | POST /services/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
 | `PATCH /services/{uuid}/envs` | — | PATCH /services/{uuid}/envs | gap | OpenAPI operation has no MCP action mapping |
-| `PATCH /services/{uuid}/envs/bulk` | — | PATCH /services/{uuid}/envs/bulk | gap | OpenAPI operation has no MCP action mapping |
-| `DELETE /services/{uuid}/envs/{env_uuid}` | — | DELETE /services/{uuid}/envs/{env_uuid} | gap | OpenAPI operation has no MCP action mapping |
-| `GET /services/{uuid}/start` | — | GET /services/{uuid}/start | gap | OpenAPI operation has no MCP action mapping |
-| `GET /services/{uuid}/stop` | — | GET /services/{uuid}/stop | gap | OpenAPI operation has no MCP action mapping |
-| `GET /services/{uuid}/restart` | — | GET /services/{uuid}/restart | gap | OpenAPI operation has no MCP action mapping |
 | `GET /services/{uuid}/storages` | — | GET /services/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
 | `POST /services/{uuid}/storages` | — | POST /services/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
 | `PATCH /services/{uuid}/storages` | — | PATCH /services/{uuid}/storages | gap | OpenAPI operation has no MCP action mapping |
