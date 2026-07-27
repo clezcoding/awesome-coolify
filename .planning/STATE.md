@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 23
-status: Phase 23.1 planned — 4 plans ready
-stopped_at: Phase 23.1 planning complete
-last_updated: "2026-07-27T05:00:37.288Z"
+current_phase: 23.1
+current_phase_name: address-tech-debt-set-env-nyquist-validation
+status: executing
+stopped_at: Completed 23.1-01-PLAN.md
+last_updated: "2026-07-27T05:14:23.432Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 23.1 planning complete
+last_activity_desc: Phase 23.1 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 26
-  completed_plans: 22
+  completed_plans: 23
   percent: 83
-current_phase_name: address-tech-debt-set-env-nyquist-validation
 ---
 
 # Project State
@@ -24,14 +24,14 @@ current_phase_name: address-tech-debt-set-env-nyquist-validation
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** v3.1 complete — Phase 23 UAT + security verified
+**Current focus:** Phase 23.1 — address-tech-debt-set-env-nyquist-validation
 
 ## Current Position
 
-Phase: 23
-Plan: Not started
-Status: Phase 23 shipped — PR #91
-Last activity: 2026-07-27 — Phase 23.1 planning complete
+Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-27 — Phase 23.1 execution started
 
 ## Performance Metrics
 
@@ -128,6 +128,7 @@ Last activity: 2026-07-27 — Phase 23.1 planning complete
 | Phase 23-openapi-coverage-npm-release P01 | 4min | 3 tasks | 10 files |
 | Phase 23-openapi-coverage-npm-release P02 | 6min | 3 tasks | 7 files |
 | Phase 23-openapi-coverage-npm-release P04 | 15min | 4 tasks | 2 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P01 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -349,6 +350,8 @@ Last activity: 2026-07-27 — Phase 23.1 planning complete
 - [Phase ?]: 57 OpenAPI gap rows retained as honest backlog — no new MCP tools in phase 23
 - [Phase ?]: ship-1-0-0 selected — major bump 0.5.0→1.0.0 per locked D-10
 - [Phase ?]: No release.yml changes — existing OIDC contract sufficient (D-12)
+- [Phase ?]: set_env delegates inline to handleApplicationAction envs:sync with confirm:true and conflict_policy:abort
+- [Phase ?]: env step in steps_completed only after successful envs:sync apply per D-07
 
 ### Pending Todos
 
@@ -416,9 +419,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27T04:56:00.000Z
-Stopped at: Phase 23.1 planning complete (4 plans)
-Resume file: .planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/23.1-01-PLAN.md
+Last session: 2026-07-27T05:14:23.423Z
+Stopped at: Completed 23.1-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
