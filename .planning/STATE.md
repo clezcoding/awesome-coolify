@@ -5,15 +5,15 @@ milestone_name: Setup, Skills & DX
 current_phase: 23.1
 current_phase_name: address-tech-debt-set-env-nyquist-validation
 status: executing
-stopped_at: Completed 23.1-02-PLAN.md
-last_updated: "2026-07-27T05:17:51.630Z"
+stopped_at: Completed 23.1-04-PLAN.md
+last_updated: "2026-07-27T05:19:14.450Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 23.1 execution started
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 83
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 23.1 execution started
 
@@ -130,6 +130,7 @@ Last activity: 2026-07-27 — Phase 23.1 execution started
 | Phase 23-openapi-coverage-npm-release P04 | 15min | 4 tasks | 2 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P01 | 5min | 2 tasks | 2 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P02 | 3min | 3 tasks | 3 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P04 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -355,6 +356,8 @@ Last activity: 2026-07-27 — Phase 23.1 execution started
 - [Phase ?]: env step in steps_completed only after successful envs:sync apply per D-07
 - [Phase ?]: Phase 19-21 Nyquist reconciliation: stale VALIDATION rows flipped green after vitest confirm; no new tests needed
 - [Phase ?]: Phase 19 test paths corrected to src/mcp/server.test.ts and src/mcp/tools/shared-read-params.test.ts
+- [Phase ?]: Docs + coolify-setup skill mirror setup env_file/env_content XOR — no workspace auto-detect
+- [Phase ?]: set_env conflict retry via application envs:sync with explicit conflict_policy after COOLIFY_CONFIRM_REQUIRED
 
 ### Pending Todos
 
@@ -422,8 +425,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27T05:17:51.621Z
-Stopped at: Completed 23.1-02-PLAN.md
+Last session: 2026-07-27T05:19:14.441Z
+Stopped at: Completed 23.1-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
