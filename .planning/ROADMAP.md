@@ -56,7 +56,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 - [x] **Phase 20: Recipes & Service List-Types** - Dynamic `service.list-types` + recipes (git-app, app+db, one-click) from Coolify catalog (completed 2026-07-25)
 - [x] **Phase 21: Deploy Watch** - Non-blocking `deployment.watch` action with backoff/timeout + skill/prompt docs (completed 2026-07-25)
 - [x] **Phase 22: Setup Wizard & IDE Skills** - Headless-safe `gh` preflight + Coolify wiring wizard + Cursor/Claude Code/Codex skill packs (completed 2026-07-27)
-- [ ] **Phase 23: OpenAPI Coverage & npm Release** - Coverage map (Coolify OpenAPI → MCP surface/gaps) + maintainer OIDC Release publish
+- [x] **Phase 23: OpenAPI Coverage & npm Release** - Coverage map (Coolify OpenAPI → MCP surface/gaps) + maintainer OIDC Release publish (completed 2026-07-27)
 
 ## Phase Details
 
@@ -227,7 +227,7 @@ Plans:
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 22 | v3.1 | 4/4 | Complete    | 2026-07-27 |
-| 23 | v3.1 | 5/5 | In Progress|  |
+| 23 | v3.1 | 5/5 | Complete    | 2026-07-27 |
 
 **Next:** `/gsd-discuss-phase 23` — OpenAPI Coverage & npm Release
 
