@@ -20,11 +20,13 @@ Related skills: [coolify-setup](../coolify-setup/SKILL.md) · [coolify-diagnose]
 1. **Resolve UUID** — from args, `.coolify/manifest.json`, or ask the user.
 
 2. **Trigger deployment** — capture `deployment_uuid` with `wait: false`:
+
    ```javascript
    application({ action: "deploy", uuid: "<uuid>", wait: false })
    ```
 
 3. **Monitor with bounded watch** — primary path (not `wait: true`):
+
    ```javascript
    deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
    ```
