@@ -4,16 +4,16 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23
 current_phase_name: openapi-coverage-npm-release
-status: "Phase 22 shipped — PR #87"
-stopped_at: Phase 23 context gathered
-last_updated: "2026-07-27T01:32:41.293Z"
+status: executing
+stopped_at: Completed 23-00-PLAN.md
+last_updated: "2026-07-27T02:12:00.911Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 22 merged to main
+last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 22
+  completed_plans: 18
   percent: 80
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 ## Current Position
 
-Phase: 23 (openapi-coverage-npm-release) — NOT STARTED
-Plan: TBD
-Status: Phase 22 shipped — PR #87 (follow-up PR #88 markdownlint)
-Last activity: 2026-07-27 — Phase 22 merged to main
+Phase: 23 (openapi-coverage-npm-release) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-07-27 — Phase 23 execution started
 
 ## Performance Metrics
 
@@ -122,6 +122,7 @@ Last activity: 2026-07-27 — Phase 22 merged to main
 | Phase 22-setup-wizard-ide-skills P01 | 3min | 2 tasks | 10 files |
 | Phase 22-setup-wizard-ide-skills P02 | 3min | 2 tasks | 4 files |
 | Phase 22-setup-wizard-ide-skills P03 | 3min | 3 tasks | 11 files |
+| Phase 23-openapi-coverage-npm-release P00 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -332,6 +333,8 @@ Last activity: 2026-07-27 — Phase 22 merged to main
 - [Phase ?]: Optional push flag on greenfield wire — default false preserves D-12; push:true passes gh --push (22-02 soft deviation)
 - [Phase ?]: Four skills name MCP prompt analog explicitly (new-project, deploy, diagnose, incident)
 - [Phase ?]: install.html hero 18 tools — setup is 18th registerTool per 22-01
+- [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 23 — flip to it in 23-01..23-03
+- [Phase ?]: npm-pack it.fails imports future npm-pack-allowlist.mjs — live tarball already clean
 
 ### Pending Todos
 
@@ -394,9 +397,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-27T01:32:41.284Z
-**Stopped at:** Phase 23 context gathered
-**Resume file:** .planning/phases/23-openapi-coverage-npm-release/23-CONTEXT.md
+**Last session:** 2026-07-27T02:12:00.903Z
+**Stopped at:** Completed 23-00-PLAN.md
+**Resume file:** None
 
 ## Operator Next Steps
 
