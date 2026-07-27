@@ -145,11 +145,11 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   ],
   COOLIFY_DEPLOYMENT_FAILED: [
     'Surface the deployment failure to the user with the status and any available summary fields.',
-    'Fetch build logs via deployment.get with projection: full (include_logs on watch only applies to finished success).',
+    'Fetch build logs via deployment.logs with the same deployment_uuid (or application_uuid to resolve newest).',
   ],
   COOLIFY_DEPLOYMENT_CANCELLED: [
     'Surface the cancellation to the user — the deployment was stopped before completion.',
-    'Fetch logs via deployment.get with projection: full if the user needs build output.',
+    'Fetch build logs via deployment.logs with the same deployment_uuid if the user needs build output.',
   ],
   COOLIFY_NO_DEPLOYMENTS: [
     'Trigger a deploy first via application.deploy (or application action deploy with wait: false).',
