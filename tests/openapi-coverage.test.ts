@@ -155,9 +155,8 @@ describe('coverage-map completeness (OAPI-01/OAPI-02)', () => {
     expect(deferredKeys.some((k) => k.includes('logs'))).toBe(true);
 
     const executeRow = rows.find((r) => r.openapi === 'execute_command' || r.action === 'execute_command');
-    if (executeRow) {
-      expect(executeRow.bucket).toBe('out-of-scope');
-    }
+    expect(executeRow, 'execute_command override required').toBeTruthy();
+    expect(executeRow!.bucket).toBe('out-of-scope');
   });
 });
 
