@@ -1,12 +1,11 @@
 ---
 phase: 20
 slug: recipes-service-list-types
-# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
-# audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-24
+validated: 2026-07-27
 ---
 
 # Phase 20 — Validation Strategy
@@ -36,16 +35,28 @@ created: 2026-07-24
 
 ---
 
+## Phase Requirements → Test Map
+
+| Req ID | Behavior | Test Type | Automated Command | File Exists? | Status |
+|--------|----------|-----------|-------------------|-------------|--------|
+| **RECIPE-01** | service.list-types returns slim type catalog from pinned CDN | Unit | `npx vitest run src/mcp/tools/service.test.ts -t "list-types" src/utils/service-templates.test.ts` | ✅ | ✅ green |
+| **RECIPE-02** | recipe.create-git-app validates repo/build_pack; D-20 manifest hints | Unit | `npx vitest run src/mcp/tools/recipe.test.ts -t "create-git-app"` | ✅ | ✅ green |
+| **RECIPE-03** | recipe.create-app-db engine dispatch, masking, partial failure | Unit | `npx vitest run src/mcp/tools/recipe.test.ts -t "create-app-db"` | ✅ | ✅ green |
+| **RECIPE-04** | recipe.create-one-click validates type; SSRF reject | Unit | `npx vitest run src/mcp/tools/recipe.test.ts -t "create-one-click"` | ✅ | ✅ green |
+
+---
+
 ## Per-Task Verification Map
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 20-00-T1 | 00 | 0 | RECIPE-02/03/04 | T-20-02 (SSRF reject), T-20-01 (masking) | RED scaffolds assert SSRF reject, masking, partial-failure no-rollback, D-20 soft manifest hints | unit scaffold (RED) | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0 (new) | ⬜ pending |
-| 20-01-T1 | 01 | 1 | RECIPE-01 | T-20-02 | Templates only from hardcoded CDN/GitHub hosts; empty {} hard error; stable sort | unit | `npx vitest run src/utils/service-templates.test.ts` | ❌ new | ⬜ pending |
-| 20-01-T2 | 01 | 1 | RECIPE-01 | T-20-02 | list-types action dispatched; slim { id, label } response; no compose/template leak | unit | `npx vitest run src/mcp/tools/service.test.ts -t "service list-types"` | ✅ extend | ⬜ pending |
-| 20-02-T1 | 02 | 2 | RECIPE-02, RECIPE-04 | T-20-02 (SSRF), T-20-02-02 (path traversal accept v3.1) | create-git-app detects Dockerfile + Dockerfile.* (D-10 full); create-one-click validates type against list-types; D-20 soft manifest hints in error recoveryHints; dockercompose rejected | unit | `npx vitest run src/mcp/tools/recipe.test.ts` | ❌ W0→GREEN | ⬜ pending |
-| 20-03-T1 | 03 | 3 | RECIPE-03 | T-20-01 (masking), T-20-03-01 (partial failure no-rollback) | Engine-dispatched DB create; internal_db_url read; env wiring; partial failure returns UUIDs + D-20 soft manifest hint; connection_string masked unless reveal:true | unit | `npx vitest run src/mcp/tools/recipe.test.ts -t "create-app-db"` | ❌ W0→GREEN | ⬜ pending |
-| 20-03-T2 | 03 | 3 | RECIPE-03 | — | recipe tool registered in server.ts (16→17); recipeActionSchema wrapped with withInstanceRoutingSchema; openWorldHint: true; README documents three actions + safety posture | unit | `npx vitest run src/mcp/server.test.ts` | ✅ extend | ⬜ pending |
+| 20-00-T1 | 00 | 0 | RECIPE-02/03/04 | T-20-02, T-20-01 | RED scaffolds assert SSRF reject, masking, partial-failure | unit | `npx vitest run src/mcp/tools/recipe.test.ts` | ✅ | ✅ green |
+| 20-01-T1 | 01 | 1 | RECIPE-01 | T-20-02 | Templates from hardcoded CDN; empty {} hard error | unit | `npx vitest run src/utils/service-templates.test.ts` | ✅ | ✅ green |
+| 20-01-T2 | 01 | 1 | RECIPE-01 | T-20-02 | list-types slim { id, label } response | unit | `npx vitest run src/mcp/tools/service.test.ts -t "list-types"` | ✅ | ✅ green |
+| 20-02-T1 | 02 | 2 | RECIPE-02, RECIPE-04 | T-20-02 | create-git-app + create-one-click validation; D-20 hints | unit | `npx vitest run src/mcp/tools/recipe.test.ts` | ✅ | ✅ green |
+| 20-03-T1 | 03 | 3 | RECIPE-03 | T-20-01, T-20-03-01 | create-app-db masking + partial failure envelope | unit | `npx vitest run src/mcp/tools/recipe.test.ts -t "create-app-db"` | ✅ | ✅ green |
+| 20-03-T2 | 03 | 3 | RECIPE-03 | — | recipe tool registered in server.ts (17 tools) | unit | `npx vitest run src/mcp/server.test.ts` | ✅ | ✅ green |
+| 20-04-T1 | 04 | 4 | RECIPE-02 | — | create-git-app MANIFEST_HINT on all error paths (D-20) | unit | `npx vitest run src/mcp/tools/recipe.test.ts -t "create-git-app"` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,10 +64,10 @@ created: 2026-07-24
 
 ## Wave 0 Requirements
 
-- [ ] `src/mcp/tools/recipe.test.ts` — stubs for RECIPE-02, RECIPE-03, RECIPE-04
-- [ ] `src/mcp/tools/recipe.ts` — implementation target for new `recipe` tool (created in later wave; Wave 0 may use dynamic import + it.fails)
+- [x] `src/mcp/tools/recipe.test.ts` — RECIPE-02, RECIPE-03, RECIPE-04 (Wave 0 RED → GREEN in 20-02/20-03)
+- [x] `src/mcp/tools/recipe.ts` — recipe tool implementation (20-02/20-03)
 
-*Existing vitest infrastructure covers RECIPE-01 via extending `service.test.ts`.*
+*Existing vitest infrastructure covers RECIPE-01 via `service.test.ts` + `service-templates.test.ts`.*
 
 ---
 
@@ -71,11 +82,23 @@ created: 2026-07-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated
+
+---
+
+## Validation Audit 2026-07-27
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 7 (all per-task rows pending; wave_0_complete false) |
+| Resolved | 7 |
+| Escalated | 0 |
+
+Nyquist reconciliation (23.1-02): 100 recipe+service tests green; all RECIPE-01..04 REQ rows COVERED; earned `status: validated` + `nyquist_compliant: true`.
