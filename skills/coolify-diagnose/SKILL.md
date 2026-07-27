@@ -19,7 +19,7 @@ Related skills: [coolify-setup](../coolify-setup/SKILL.md) · [coolify-deploy](.
 
 Primary entry: MCP `diagnose` tool (`diagnoseActionsCatalog`):
 
-```
+```text
 Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?)
 ```
 
@@ -28,16 +28,19 @@ Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, nam
 1. **Resolve UUID** — from args, `.coolify/manifest.json`, or ask the user.
 
 2. **Application path:**
+
    ```javascript
    diagnose({ action: "app", uuid: "<uuid>" })
    ```
 
 3. **Server path:**
+
    ```javascript
    diagnose({ action: "server", uuid: "<server-uuid>" })
    ```
 
 4. **Fleet scan path:**
+
    ```javascript
    diagnose({ action: "scan" })
    ```
@@ -45,6 +48,7 @@ Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, nam
 5. **Summarize** findings by severity and recommend the next remediation step.
 
 6. **If remediation requires redeploy** — use [coolify-deploy](../coolify-deploy/SKILL.md) watch-primary flow:
+
    ```javascript
    deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
    ```

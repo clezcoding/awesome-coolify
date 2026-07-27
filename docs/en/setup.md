@@ -22,7 +22,7 @@ The `setup` tool orchestrates:
 
 Primary catalog (`setupActionsCatalog`):
 
-```
+```text
 Actions: preflight() · wire(mode, ...) · resume(mode?, ...)
 ```
 
@@ -109,7 +109,7 @@ When GitHub CLI is missing or unauthenticated, the tool returns **`COOLIFY_SETUP
 
 **Human action required:**
 
-1. Install gh: https://cli.github.com/ (or `brew install gh`)
+1. Install gh: [cli.github.com](https://cli.github.com/) (or `brew install gh`)
 2. Run `gh auth login` (or set `GH_TOKEN` / `GITHUB_TOKEN` for headless)
 3. Re-call with the same wire params:
 

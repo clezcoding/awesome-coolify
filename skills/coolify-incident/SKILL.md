@@ -20,24 +20,29 @@ Related skills: [coolify-diagnose](../coolify-diagnose/SKILL.md) · [coolify-dep
 1. **Resolve application UUID** — from args, `.coolify/manifest.json`, or ask the user.
 
 2. **Triage with diagnose:**
+
    ```javascript
    diagnose({ action: "app", uuid: "<uuid>" })
    ```
 
 3. **Pull recent logs:**
+
    ```javascript
    application({ action: "logs", uuid: "<uuid>" })
    ```
 
 4. **Non-destructive recovery — restart:**
+
    ```javascript
    application({ action: "restart", uuid: "<uuid>" })
    ```
 
 5. **If restart is insufficient** — ask the human before destructive actions. Preview emergency redeploy:
+
    ```javascript
    emergency({ action: "redeploy_project", project_uuid: "<project-uuid>", confirm: false })
    ```
+
    Retry with `confirm: true` only after explicit human approval.
 
 6. **Report** incident status, actions taken, and recommended follow-up.

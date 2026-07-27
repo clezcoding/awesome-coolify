@@ -29,7 +29,7 @@ Primary entry: MCP `setup` tool (`setupActionsCatalog`):
 
 1. **Preflight** — call `setup({ action: "preflight" })`.
 2. **On `COOLIFY_SETUP_PAUSED`** — stop for human action:
-   - Install gh if missing: https://cli.github.com/
+   - Install gh if missing: [cli.github.com](https://cli.github.com/)
    - Run `gh auth login` (or set `GH_TOKEN` / `GITHUB_TOKEN` for headless)
    - Do **not** poll or sleep inside the agent loop waiting for auth.
 3. **Resume** — after auth succeeds, call `setup({ action: "resume", ... })` with the **same wire params** you will use for step 4.
