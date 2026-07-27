@@ -7,6 +7,7 @@ status: "Phase 23 shipped — PR #91"
 stopped_at: Completed 23-04-PLAN.md
 last_updated: "2026-07-27T03:15:37.129Z"
 last_activity: 2026-07-27
+last_activity_desc: Phase 23 shipped — PR #91
 progress:
   total_phases: 5
   completed_phases: 5
@@ -14,7 +15,6 @@ progress:
   completed_plans: 22
   percent: 100
 current_phase_name: openapi-coverage-npm-release
-last_activity_desc: Phase 23 complete
 ---
 
 # Project State
