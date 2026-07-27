@@ -17,7 +17,7 @@ Agent follows application **runtime** logs with bounded watch-style polling via 
 - **D-01:** Expose follow as **`follow:true` on existing `application.logs`** (not a separate action). — **Reversibility:** costly — agent-facing schema + catalog habits.
 - **D-02:** `follow:true` + `deployment_uuid` → **`COOLIFY_422`** reject. Follow only with app runtime identity (`uuid` / `name` / `fqdn`). — **Reversibility:** costly — error contract.
 - **D-03:** Without `follow` (absent/false): **exact current one-shot behavior** — no default/regression changes (OBS-03). — **Reversibility:** one-way if broken — OBS-03 success criterion.
-- **D-04:** Document follow in actions catalog + tool description **and** via capability flag (D-16..D-18). Short catalog note that agents should check `system.version` capabilities.
+- **D-04:** Document follow in actions catalog + tool description **and** via capability flag (D-17..D-19). Short catalog note that agents should check `system.version` capabilities.
 
 ### Stop / terminal conditions
 - **D-05:** Stop on **`timeout` OR idle** (no new lines for idle window). Do **not** poll app lifecycle status as a stop signal in this phase. — **Reversibility:** reversible — status-based stop can be added later.
