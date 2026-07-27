@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { EnvConfig } from '../../config/env.js';
@@ -469,6 +469,44 @@ describe('set_env', () => {
       }),
       testEnv,
     );
+    expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('conflict_policy');
+    expect(result.data.steps_completed).toContain('env');
+  });
+
+  it('link-existing wire delegates envs:sync with env_file path', async () => {
+    const envFilePath = join(testWorkspaceRoot, '.env');
+    writeFileSync(envFilePath, 'FOO=bar\n');
+
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'link-existing',
+        application_uuid: APP_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        server_uuid: SERVER_UUID,
+        skip_gh: true,
+        set_env: true,
+        env_file: envFilePath,
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(false);
+    if (isSetupErrorResult(result)) return;
+
+    expect(handleApplicationAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'envs:sync',
+        uuid: APP_UUID,
+        env_file: envFilePath,
+        dry_run: false,
+        confirm: true,
+      }),
+      testEnv,
+    );
+    expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('env_content');
     expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('conflict_policy');
     expect(result.data.steps_completed).toContain('env');
   });
