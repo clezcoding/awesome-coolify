@@ -4,17 +4,17 @@ milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 25
 current_phase_name: Application Log Follow
-status: planning
+status: "Phase 24 shipped — PR #98"
 stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-07-27T21:27:27.819Z"
-last_activity: 2026-07-27
-last_activity_desc: Phase 24 complete, transitioned to Phase 25
+last_updated: "2026-07-27T23:02:24.572Z"
+last_activity: 2026-07-28
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 4
   completed_plans: 4
   percent: 25
+last_activity_desc: Phase 24 complete, transitioned to Phase 25
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 Phase: 25 — Application Log Follow
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-27 — Phase 24 complete, transitioned to Phase 25
+Status: Phase 24 shipped — PR #98
+Last activity: 2026-07-28
 
 ## Performance Metrics
 
