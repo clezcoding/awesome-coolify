@@ -16,11 +16,16 @@ export async function indexOpenApiOperations(rawJson) {
   if (errors?.length) {
     throw new Error(`OpenAPI dereference failed: ${errors.length} errors`);
   }
+  if (!schema?.paths || typeof schema.paths !== 'object') {
+    throw new Error(
+      'OpenAPI dereference produced no paths — check docs/coolify_openapi.json',
+    );
+  }
 
   /** @type {Array<{ key: string, operationId?: string, tags?: string[] }>} */
   const operations = [];
 
-  for (const [path, item] of Object.entries(schema?.paths ?? {})) {
+  for (const [path, item] of Object.entries(schema.paths)) {
     if (!item || typeof item !== 'object') continue;
 
     for (const method of HTTP_METHODS) {
@@ -33,6 +38,10 @@ export async function indexOpenApiOperations(rawJson) {
         tags: op.tags,
       });
     }
+  }
+
+  if (operations.length === 0) {
+    throw new Error('OpenAPI spec contains no HTTP operations');
   }
 
   return operations;
