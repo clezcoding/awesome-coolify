@@ -122,7 +122,7 @@ Pre-commit lint-staged runs `vitest related` on all dirty files — partial task
 1. **Task 1: End-to-end deployment.logs by deployment_uuid** — `470d67e` (feat)
 2. **Task 2: XOR application_uuid resolution + COOLIFY_NO_DEPLOYMENTS** — `470d67e` (feat, same commit)
 
-**Plan metadata:** pending (docs commit)
+**Plan metadata:** `e53b3c9` (docs: complete plan)
 
 ## Files Created/Modified
 
