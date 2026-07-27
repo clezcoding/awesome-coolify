@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23.1
 current_phase_name: address-tech-debt-set-env-nyquist-validation
-status: ready_to_execute — gap closure plan 05 ready
-stopped_at: Phase 23.1 gap closure planned — 23.1-05-PLAN.md (CR-01 omit conflict_policy)
-last_updated: "2026-07-27T17:08:00.000Z"
+status: complete
+stopped_at: Completed 23.1-05-PLAN.md
+last_updated: "2026-07-27T17:12:00.000Z"
 last_activity: 2026-07-27
-last_activity_desc: Gap closure plan 23.1-05 created (D-05/D-07)
+last_activity_desc: Completed 23.1-05 gap closure (omit conflict_policy)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 27
-  completed_plans: 26
-  percent: 96
+  completed_plans: 27
+  percent: 100
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 ## Current Position
 
-Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — GAP CLOSURE READY
-Plan: 05 of 05 (gap_closure) — execute next
-Status: 23.1-05-PLAN.md ready — omit conflict_policy + fix conflict test + align docs/skill
-Last activity: 2026-07-27 — Gap closure plan created
+Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — COMPLETE
+Plan: 5 of 5
+Status: All plans complete — ready for /gsd-verify-work 23.1
+Last activity: 2026-07-27 — Completed 23.1-05 gap closure
 
 ## Performance Metrics
 
@@ -132,6 +132,8 @@ Last activity: 2026-07-27 — Gap closure plan created
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P02 | 3min | 3 tasks | 3 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P04 | 3min | 2 tasks | 3 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P03 | 2min | 2 tasks | 2 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -361,6 +363,8 @@ Last activity: 2026-07-27 — Gap closure plan created
 - [Phase ?]: set_env conflict retry via application envs:sync with explicit conflict_policy after COOLIFY_CONFIRM_REQUIRED
 - [Phase ?]: No nyquist-auditor spawn — phases 22/23 gaps were stale doc rows; tests already green
 - [Phase ?]: PUB-01 live npm publish stays Manual-Only; five-phase Nyquist inventory 19-23 complete
+- [Phase ?]: Omit conflict_policy on setup set_env envs:sync delegation (CR-01 preferred fix over explicit abort)
+- [Phase ?]: Human retry via application envs:sync with explicit overwrite/keep_remote/abort policy
 
 ### Pending Todos
 
@@ -428,9 +432,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27T17:08:00.000Z
-Stopped at: Gap closure plan 23.1-05 created — ready to execute
-Resume file: .planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/.continue-here.md
+Last session: 2026-07-27T17:11:31.348Z
+Stopped at: Completed 23.1-05-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
