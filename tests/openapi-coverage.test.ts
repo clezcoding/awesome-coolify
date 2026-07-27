@@ -163,6 +163,11 @@ describe('coverage-map completeness (OAPI-01/OAPI-02)', () => {
 });
 
 describe('assertCoverageFresh', () => {
+  it('passes when committed docs/COVERAGE.md matches generator (D-06)', async () => {
+    const { assertCoverageFresh } = await import('../scripts/openapi-coverage.mjs');
+    await expect(assertCoverageFresh()).resolves.toBeUndefined();
+  });
+
   it('throws when docs/COVERAGE.md is stale (D-06)', async () => {
     const { assertCoverageFresh, generateCoverageMarkdown } = await import(
       '../scripts/openapi-coverage.mjs'
