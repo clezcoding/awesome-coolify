@@ -155,13 +155,22 @@ export function classifyRows({ operations, map, overrides = [], catalogs = {} })
       bucket = 'gap';
       reason = 'No OpenAPI mapping in coverage-map.yaml';
     } else {
-      const openapiOverride = openapiKeys
+      const overridesForKeys = openapiKeys
         .map((key) => byOpenApiKey.get(key))
-        .find(Boolean);
+        .filter(Boolean);
+      const uniqueBuckets = new Set(overridesForKeys.map((o) => o.bucket));
 
-      if (openapiOverride) {
-        bucket = openapiOverride.bucket;
-        reason = openapiOverride.reason;
+      if (
+        overridesForKeys.length &&
+        uniqueBuckets.size === 1 &&
+        overridesForKeys.length === openapiKeys.length
+      ) {
+        bucket = overridesForKeys[0].bucket;
+        reason = overridesForKeys[0].reason;
+      } else if (overridesForKeys.length) {
+        throw new Error(
+          `Conflicting/partial OpenAPI overrides for ${action}: use action_overrides`,
+        );
       } else if (openapiKeys.every((key) => opKeys.has(key))) {
         bucket = 'covered';
         reason = '';
