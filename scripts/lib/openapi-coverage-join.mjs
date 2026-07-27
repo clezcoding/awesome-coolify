@@ -100,7 +100,13 @@ export function classifyRows({ operations, map, overrides = [], catalogs = {} })
   const { byOpenApiKey, byAction } = splitOverrides(overrides);
 
   /** @type {Map<string, { action: string, client: string[], openapi: string[] }>} */
-  const mapByAction = new Map(map.map((entry) => [entry.action, entry]));
+  const mapByAction = new Map();
+  for (const entry of map) {
+    if (mapByAction.has(entry.action)) {
+      throw new Error(`Duplicate coverage-map action: ${entry.action}`);
+    }
+    mapByAction.set(entry.action, entry);
+  }
 
   /** @type {Set<string>} */
   const actionNames = new Set();
