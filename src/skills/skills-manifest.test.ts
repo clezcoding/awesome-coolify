@@ -59,7 +59,8 @@ describe('skills manifest', () => {
     expect(content).toContain('env_file');
     expect(content).toContain('env_content');
     expect(content).toMatch(/exactly one|XOR/i);
-    expect(content).toMatch(/conflict_policy.*abort|abort.*conflict/i);
+    expect(content).toMatch(/COOLIFY_CONFIRM_REQUIRED/);
+    expect(content).toMatch(/does not pass `conflict_policy`|omits `conflict_policy`/i);
     expect(content).toMatch(/application_uuid|link-existing/i);
   });
 });
