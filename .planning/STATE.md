@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23.1
 current_phase_name: address-tech-debt-set-env-nyquist-validation
-status: executing
-stopped_at: Completed 23.1-04-PLAN.md
-last_updated: "2026-07-27T05:19:14.450Z"
+status: verifying
+stopped_at: Completed 23.1-03-PLAN.md
+last_updated: "2026-07-27T05:21:21.548Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 23.1 execution started
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 26
-  completed_plans: 25
-  percent: 83
+  completed_plans: 26
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-27 — Phase 23.1 execution started
 
 ## Performance Metrics
@@ -131,6 +131,7 @@ Last activity: 2026-07-27 — Phase 23.1 execution started
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P01 | 5min | 2 tasks | 2 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P02 | 3min | 3 tasks | 3 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P04 | 3min | 2 tasks | 3 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P03 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -358,6 +359,8 @@ Last activity: 2026-07-27 — Phase 23.1 execution started
 - [Phase ?]: Phase 19 test paths corrected to src/mcp/server.test.ts and src/mcp/tools/shared-read-params.test.ts
 - [Phase ?]: Docs + coolify-setup skill mirror setup env_file/env_content XOR — no workspace auto-detect
 - [Phase ?]: set_env conflict retry via application envs:sync with explicit conflict_policy after COOLIFY_CONFIRM_REQUIRED
+- [Phase ?]: No nyquist-auditor spawn — phases 22/23 gaps were stale doc rows; tests already green
+- [Phase ?]: PUB-01 live npm publish stays Manual-Only; five-phase Nyquist inventory 19-23 complete
 
 ### Pending Todos
 
@@ -425,8 +428,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27T05:19:14.441Z
-Stopped at: Completed 23.1-04-PLAN.md
+Last session: 2026-07-27T05:21:21.539Z
+Stopped at: Completed 23.1-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
