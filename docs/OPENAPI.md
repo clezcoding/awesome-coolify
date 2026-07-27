@@ -45,6 +45,8 @@ Review the diff on `docs/coolify_openapi.{yaml,json}` before committing. Update 
 
 `docs/coverage-map.yaml` links each MCP `tool.action` row to `src/api/client.ts` exports and OpenAPI `METHOD /path` keys. Intentional deferrals and out-of-scope rows live in `docs/coverage-overrides.yaml`.
 
+Coverage tests discover client exports via `/^export (?:async )?function (\w+)/gm` plus the hard-coded `bulkUpdateEnvs` alias. Prefer `export function` / `export async function` declarations in `src/api/client.ts` — `export const` or `export { … }` re-exports are not detected and will fail the map completeness guard.
+
 **ponytail:** manual YAML maintenance ceiling — ~115 catalog actions; no auto-discovery from handlers. Upgrade path: AST or static registry generator if drift becomes painful.
 
 Regenerate the committed gap report:
