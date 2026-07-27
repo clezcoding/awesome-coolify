@@ -8,6 +8,7 @@ const PROJECT_UUID = '00000000-0000-4000-8000-000000000001';
 const ENV_UUID = '00000000-0000-4000-8000-000000000002';
 const SERVER_UUID = '00000000-0000-4000-8000-000000000003';
 const APP_UUID = '00000000-0000-4000-8000-000000000004';
+const SERVICE_UUID = '00000000-0000-4000-8000-000000000005';
 
 const { checkGhAuthMock, createGhRepoMock } = vi.hoisted(() => ({
   checkGhAuthMock: vi.fn(),
@@ -437,41 +438,17 @@ describe('set_env', () => {
     );
     expect(result.data.steps_completed).toContain('env');
   });
-});
 
-describe('set_env', () => {
-  beforeEach(() => {
-    checkGhAuthMock.mockReset();
-    createGhRepoMock.mockReset();
-    vi.mocked(handleRecipeAction).mockReset();
-    vi.mocked(handleApplicationAction).mockReset();
-    mockLinkageFetch();
-    checkGhAuthMock.mockResolvedValue({ ok: true });
-    vi.mocked(handleRecipeAction).mockResolvedValue({
-      data: { application_uuid: APP_UUID },
-    });
-    vi.mocked(handleApplicationAction).mockResolvedValue({
-      data: { dry_run: false, added: [], updated: [{ key: 'FOO' }] },
-    });
-    testWorkspaceRoot = mkdtempSync(join(tmpdir(), 'coolify-mcp-setup-'));
-    process.env.COOLIFY_MCP_TEST_WORKSPACE = testWorkspaceRoot;
-  });
-
-  afterEach(() => {
-    delete process.env.COOLIFY_MCP_TEST_WORKSPACE;
-    rmSync(testWorkspaceRoot, { recursive: true, force: true });
-  });
-
-  it('link-existing wire delegates envs:sync and marks env step complete', async () => {
+  it('greenfield create-git-app wire delegates envs:sync with recipe application uuid', async () => {
     const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
     const result = await handleSetupAction(
       {
         action: 'wire',
-        mode: 'link-existing',
-        application_uuid: APP_UUID,
+        mode: 'greenfield',
+        server_uuid: SERVER_UUID,
         project_uuid: PROJECT_UUID,
         environment_uuid: ENV_UUID,
-        server_uuid: SERVER_UUID,
+        recipe_type: 'create-git-app',
         skip_gh: true,
         set_env: true,
         env_content: 'FOO=bar',
@@ -489,6 +466,155 @@ describe('set_env', () => {
         env_content: 'FOO=bar',
         dry_run: false,
         confirm: true,
+        conflict_policy: 'abort',
+      }),
+      testEnv,
+    );
+    expect(result.data.steps_completed).toContain('env');
+  });
+
+  it('rejects set_env:true without env_file or env_content at schema boundary', async () => {
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'greenfield',
+        server_uuid: SERVER_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        recipe_type: 'create-git-app',
+        skip_gh: true,
+        set_env: true,
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(true);
+    if (!isSetupErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(handleApplicationAction).not.toHaveBeenCalled();
+  });
+
+  it('rejects set_env:true with both env_file and env_content (XOR)', async () => {
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'link-existing',
+        application_uuid: APP_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        server_uuid: SERVER_UUID,
+        skip_gh: true,
+        set_env: true,
+        env_file: '.env',
+        env_content: 'FOO=bar',
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(true);
+    if (!isSetupErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(handleApplicationAction).not.toHaveBeenCalled();
+  });
+
+  it('propagates COOLIFY_CONFIRM_REQUIRED on conflict abort without env step', async () => {
+    vi.mocked(handleApplicationAction).mockResolvedValue({
+      isError: true,
+      structuredContent: {
+        error: {
+          code: 'COOLIFY_CONFIRM_REQUIRED',
+          message: 'Value conflicts require human resolution',
+          recoveryHints: ['Ask human to choose conflict_policy'],
+        },
+      },
+      content: [{ type: 'text', text: 'confirm required' }],
+    });
+
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'link-existing',
+        application_uuid: APP_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        server_uuid: SERVER_UUID,
+        skip_gh: true,
+        set_env: true,
+        env_content: 'FOO=bar',
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(true);
+    if (!isSetupErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+    expect(handleApplicationAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'envs:sync' }),
+      testEnv,
+    );
+  });
+
+  it('rejects set_env on create-one-click service resource (non-application)', async () => {
+    vi.mocked(handleRecipeAction).mockResolvedValue({
+      data: { service_uuid: SERVICE_UUID },
+    });
+
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'greenfield',
+        server_uuid: SERVER_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        recipe_type: 'create-one-click',
+        type: 'postgresql',
+        skip_gh: true,
+        set_env: true,
+        env_content: 'FOO=bar',
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(true);
+    if (!isSetupErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.message).toMatch(/requires an application resource/i);
+    expect(handleApplicationAction).not.toHaveBeenCalled();
+  });
+
+  it('resume with set_env:true delegates envs:sync like wire', async () => {
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'resume',
+        mode: 'greenfield',
+        server_uuid: SERVER_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        recipe_type: 'create-git-app',
+        skip_gh: true,
+        set_env: true,
+        env_content: 'FOO=bar',
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(false);
+    if (isSetupErrorResult(result)) return;
+
+    expect(handleApplicationAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'envs:sync',
+        uuid: APP_UUID,
+        env_content: 'FOO=bar',
         conflict_policy: 'abort',
       }),
       testEnv,
