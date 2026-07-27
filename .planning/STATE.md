@@ -2,9 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
+current_phase: 24
+current_phase_name: Capabilities & Deployment Logs
 status: roadmap_ready
-last_updated: "2026-07-27T20:10:00.000Z"
+stopped_at: Phase 24 context gathered
+last_updated: "2026-07-27T20:34:10.483Z"
 last_activity: 2026-07-27
+last_activity_desc: v3.2 roadmap created (Phases 24–27)
 progress:
   total_phases: 4
   completed_phases: 0
@@ -435,9 +439,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27
-Stopped at: v3.2 roadmap created — Phases 24–27 ready for `/gsd-plan-phase 24`
-Resume file: None
+Last session: 2026-07-27T20:34:10.475Z
+Stopped at: Phase 24 context gathered
+Resume file: .planning/phases/24-capabilities-deployment-logs/24-CONTEXT.md
 
 ## Operator Next Steps
 
