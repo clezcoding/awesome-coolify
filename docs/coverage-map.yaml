@@ -123,6 +123,9 @@ actions:
   - action: deployment.watch
     client: [fetchDeployment]
     openapi: ["GET /deployments/{uuid}"]
+  - action: deployment.logs
+    client: [fetchDeployment, fetchAppDeployments]
+    openapi: ["GET /deployments/{uuid}", "GET /deployments/applications/{uuid}"]
   - action: diagnose.app
     client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments]
     openapi: ["GET /applications/{uuid}", "GET /applications/{uuid}/envs", "GET /deployments/applications/{uuid}"]

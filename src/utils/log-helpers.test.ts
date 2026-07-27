@@ -60,3 +60,20 @@ describe('parseBuildLogEntries', () => {
     });
   });
 });
+
+describe('processDeploymentBuildLogs', () => {
+  it.fails('flattens JSON build log entries into logs_lines envelope fields', async () => {
+    const { processDeploymentBuildLogs } = await import('./log-helpers.js');
+    const result = processDeploymentBuildLogs(
+      JSON.stringify([
+        { output: 'visible', type: 'stdout', hidden: false },
+        { output: 'hidden', type: 'stdout', hidden: true },
+      ]),
+      { include_hidden: false, type: 'all', lines: 100, offset: 0 },
+    );
+    expect(result.logs_lines).toEqual(['visible']);
+    expect(result.entries_total).toBe(2);
+    expect(result.entries_hidden).toBe(1);
+    expect(result.entries_shown).toBe(1);
+  });
+});
