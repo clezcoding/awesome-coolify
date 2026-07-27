@@ -113,11 +113,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function extractCoolifyVersion(versionData: unknown): string {
-  return typeof versionData === 'object' &&
-    versionData !== null &&
-    'version' in versionData
-    ? String((versionData as { version: unknown }).version)
-    : String(versionData);
+  if (typeof versionData === 'string' || typeof versionData === 'number') {
+    return String(versionData);
+  }
+  if (isRecord(versionData) && 'version' in versionData) {
+    const version = versionData.version;
+    if (typeof version === 'string' || typeof version === 'number') {
+      return String(version);
+    }
+  }
+  return 'unknown';
 }
 
 function statusStartsWith(value: unknown, prefix: string): boolean {
