@@ -420,6 +420,19 @@ describe('deployment watch error codes', () => {
   });
 });
 
+describe('setup pause error codes', () => {
+  it('RECOVERY_HINTS defines COOLIFY_SETUP_PAUSED with resume hint', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_SETUP_PAUSED;
+    expect(hints.length).toBeGreaterThanOrEqual(1);
+    expect(hints.join(' ')).toMatch(/setup.*resume/i);
+  });
+
+  it('CoolifyErrorCode union includes COOLIFY_SETUP_PAUSED', () => {
+    const code: CoolifyErrorCode = 'COOLIFY_SETUP_PAUSED';
+    expect(RECOVERY_HINTS[code].length).toBeGreaterThanOrEqual(1);
+  });
+});
+
 describe('Cloud hostname error mapping', () => {
   it('maps app.coolify.io HTTP 403 to COOLIFY_CLOUD_FORBIDDEN (CLD-02)', () => {
     const envelope = toStructuredError({

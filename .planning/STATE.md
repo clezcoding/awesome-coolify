@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 22
-current_phase_name: Setup Wizard & IDE Skills
-status: "Phase 21 shipped — PR #73"
-stopped_at: Fixed gsd-tools +x + sessionStart workspace_roots hooks
-last_updated: "2026-07-25T08:59:04.421Z"
-last_activity: 2026-07-25
+current_phase_name: setup-wizard-ide-skills
+status: ready_to_ship
+stopped_at: Phase 22 UAT complete — ready for /gsd-ship
+last_updated: "2026-07-27T00:22:00.000Z"
+last_activity: 2026-07-27
+last_activity_desc: Phase 22 UAT test #1 passed via agent-browser mobile layout check
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
-  percent: 60
-last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
+  completed_phases: 4
+  total_plans: 17
+  completed_plans: 17
+  percent: 80
 ---
 
 # Project State
@@ -24,14 +24,14 @@ last_activity_desc: Phase 21 UAT complete (15/15) + SECURITY.md verified
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 22 — Setup Wizard & IDE Skills
+**Current focus:** Phase 22 — setup-wizard-ide-skills
 
 ## Current Position
 
-Phase: 22 — Setup Wizard & IDE Skills
-Plan: Not started
-Status: Phase 21 shipped — PR #73
-Last activity: 2026-07-25
+Phase: 22 (setup-wizard-ide-skills) — READY TO SHIP
+Plan: 4 of 4 complete
+Status: UAT passed (12/12 verification truths)
+Last activity: 2026-07-27 — agent-browser mobile layout UAT pass
 
 ## Performance Metrics
 
@@ -118,6 +118,10 @@ Last activity: 2026-07-25
 | Phase 21-deploy-watch P02 | 4min | 2 tasks | 5 files |
 | Phase 21-deploy-watch P03 | 2min | 2 tasks | 4 files |
 | Phase 21-deploy-watch P04 | 5min | 2 tasks | 3 files |
+| Phase 22-setup-wizard-ide-skills P00 | 5min | 3 tasks | 4 files |
+| Phase 22-setup-wizard-ide-skills P01 | 3min | 2 tasks | 10 files |
+| Phase 22-setup-wizard-ide-skills P02 | 3min | 2 tasks | 4 files |
+| Phase 22-setup-wizard-ide-skills P03 | 3min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -319,6 +323,15 @@ Last activity: 2026-07-25
 - [Phase ?]: Deploy prompt + README document watch-primary flow; wait:true legacy; D-16 Phase 22 SKILL note without skill pack files
 - [Phase ?]: remainingMs module-local — behavior tested via fake timers not exported (21-04)
 - [Phase ?]: include_logs test uses schema min max_chars 1000 and truncateLogs suffix (21-04)
+- [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 22 — flip to it in 22-01..22-03
+- [Phase ?]: setup.test.ts vi.hoisted gh mock — top-level import breaks when gh-preflight.ts absent
+- [Phase ?]: wire stub throws COOLIFY_NOT_IMPLEMENTED — full greenfield/link-existing deferred to 22-02
+- [Phase ?]: Pause UX uses wrapSetupMcpError for UI-SPEC banner without changing global wrapMcpError
+- [Phase ?]: coolify-setup manifest test flipped GREEN; deploy/diagnose/incident remain it.fails until 22-03
+- [Phase ?]: Unified wire action with mode enum — option-a checkpoint resolution (22-02)
+- [Phase ?]: Optional push flag on greenfield wire — default false preserves D-12; push:true passes gh --push (22-02 soft deviation)
+- [Phase ?]: Four skills name MCP prompt analog explicitly (new-project, deploy, diagnose, incident)
+- [Phase ?]: install.html hero 18 tools — setup is 18th registerTool per 22-01
 
 ### Pending Todos
 
@@ -380,15 +393,13 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-25T08:59:04.406Z
-**Stopped at:** Fixed gsd-tools +x + sessionStart workspace_roots hooks
-**Resume file:** .planning/forensics/report-20260725-105516.md
-
-Last activity: 2026-07-25 - Completed quick task 260725-fx9: Audit/optimize GitHub Actions CI + milestone-only npm
+**Last session:** 2026-07-27T00:22:00.000Z
+**Stopped at:** Phase 22 UAT complete — proceed to `/gsd-ship`
+**Resume file:** None
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 22` — Setup Wizard & IDE Skills
+- `/gsd-ship` — open PR for Phase 22
 
 ## Rebuild Log
 

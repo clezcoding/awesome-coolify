@@ -58,7 +58,7 @@ describe('MCP server tool registration', () => {
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(17);
+    expect(matches.length).toBe(18);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
@@ -78,6 +78,7 @@ describe('MCP server tool registration', () => {
     expect(source).toContain("registerTool(\n    'environment'");
     expect(source).toContain("registerTool(\n    'docs'");
     expect(source).toContain("registerTool(\n    'recipe'");
+    expect(source).toContain("registerTool(\n    'setup'");
   });
 
   it('wraps 13 routed tool inputSchemas with withInstanceRoutingSchema (MCP boundary)', () => {
@@ -259,6 +260,7 @@ describe('MCP server tool registration', () => {
       'environment',
       'docs',
       'recipe',
+      'setup',
     ];
     expect(Object.keys(registered).sort()).toEqual(expectedTools.sort());
     for (const name of expectedTools) {

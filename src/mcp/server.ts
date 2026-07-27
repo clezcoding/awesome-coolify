@@ -123,6 +123,13 @@ import {
   recipeActionsCatalog,
   recipeSafetyFooter,
 } from './tools/recipe.js';
+import {
+  handleSetupAction,
+  isSetupErrorResult,
+  setupActionSchema,
+  setupActionsCatalog,
+  setupSafetyFooter,
+} from './tools/setup.js';
 import { registerCoolifyPrompts } from './prompts.js';
 
 function isInfrastructureOverviewResult(
@@ -728,6 +735,40 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleRecipeAction(args, env);
       if (isRecipeErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'setup',
+    {
+      description: composeToolDescription(
+        'Workspace setup: gh preflight, Coolify linkage, optional greenfield provisioning.',
+        setupActionsCatalog,
+        setupSafetyFooter,
+      ),
+      inputSchema: withInstanceRoutingSchema(setupActionSchema),
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleSetupAction(args, env);
+      if (isSetupErrorResult(result)) {
         return {
           ...result,
           structuredContent: {

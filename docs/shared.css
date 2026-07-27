@@ -394,6 +394,68 @@ code {
   color: var(--success);
 }
 
+.notice--pause {
+  border-color: rgba(252, 211, 77, 0.35);
+  background: rgba(252, 211, 77, 0.08);
+}
+
+.notice--pause strong {
+  color: var(--gold);
+}
+
+.notice--warning {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.notice--warning strong {
+  color: #fbbf24;
+}
+
+.setup-steps {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-6) 0;
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.setup-steps li {
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-2);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.9rem;
+}
+
+.setup-step--active {
+  border-left: 3px solid var(--accent);
+  margin-left: -2px;
+  background: rgba(107, 22, 237, 0.06);
+}
+
+.setup-step--done {
+  opacity: 0.7;
+}
+
+.setup-step--done::before {
+  content: '✓ ';
+  color: var(--success);
+}
+
+.skills-command {
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.skills-command pre {
+  margin-bottom: var(--space-4);
+}
+
+.skills-command .btn-row {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
 form.glass-elevated {
   padding: var(--space-6);
   margin-bottom: var(--space-8);
