@@ -13,6 +13,7 @@ import { parse as parseYaml } from 'yaml';
 import { indexOpenApiOperations } from './lib/openapi-coverage-parse.mjs';
 import { classifyRows, loadActionsCatalogs } from './lib/openapi-coverage-join.mjs';
 import { renderCoverageMarkdown } from './lib/openapi-coverage-render.mjs';
+import { CoverageError } from './lib/openapi-coverage-errors.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const check = process.argv.includes('--check');
@@ -91,9 +92,20 @@ async function main() {
   process.stdout.write(markdown);
 }
 
+/**
+ * @param {unknown} error
+ */
+function reportCliFailure(error) {
+  if (error instanceof CoverageError) {
+    console.error(`[openapi-coverage] ${error.logMessage}`);
+    return;
+  }
+  console.error('[openapi-coverage] coverage generation failed');
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   main().catch((error) => {
-    console.error(`[openapi-coverage] ${error.message}`);
+    reportCliFailure(error);
     process.exit(1);
   });
 }

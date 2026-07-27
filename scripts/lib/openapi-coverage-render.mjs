@@ -1,8 +1,19 @@
 /**
  * Render docs/COVERAGE.md markdown (maintainer/CI only).
  */
+import { CoverageError } from './openapi-coverage-errors.mjs';
 
 const ALLOWED_BUCKETS = new Set(['covered', 'deferred', 'out-of-scope', 'gap']);
+
+/**
+ * Escape dynamic markdown table cell values (CodeQL js/incomplete-sanitization).
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeMarkdownTableCell(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+}
 
 /**
  * @param {Array<{ action: string, client: string, openapi: string, bucket: string, reason: string }>} rows
@@ -18,7 +29,10 @@ export function renderCoverageMarkdown(rows) {
 
   for (const row of rows) {
     if (!ALLOWED_BUCKETS.has(row.bucket)) {
-      throw new Error(`Invalid bucket "${row.bucket}" for ${row.action}`);
+      throw new CoverageError(
+        `Invalid bucket "${row.bucket}" for ${row.action}`,
+        'Invalid coverage bucket in generated report',
+      );
     }
     counts[row.bucket] += 1;
   }
@@ -44,9 +58,12 @@ export function renderCoverageMarkdown(rows) {
   ];
 
   for (const row of rows) {
-    const reason = row.reason.replace(/\|/g, '\\|');
+    const action = escapeMarkdownTableCell(row.action);
+    const client = row.client ? escapeMarkdownTableCell(row.client) : '—';
+    const openapi = row.openapi ? escapeMarkdownTableCell(row.openapi) : '—';
+    const reason = row.reason ? escapeMarkdownTableCell(row.reason) : '—';
     lines.push(
-      `| \`${row.action}\` | ${row.client || '—'} | ${row.openapi || '—'} | ${row.bucket} | ${reason || '—'} |`,
+      `| \`${action}\` | ${client} | ${openapi} | ${row.bucket} | ${reason} |`,
     );
   }
 
