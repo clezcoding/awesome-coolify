@@ -8,17 +8,21 @@ Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Clou
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.1 in progress — Phase 21 complete 2026-07-25)
+## Current State (v3.1 phases complete — Phase 23 done 2026-07-27)
 
 | Metric | Value |
 |--------|-------|
-| Package | `awesome-coolify-mcp` v0.2.0 |
-| Tools / Actions | 17 / ~90 |
+| Package | `awesome-coolify-mcp` v0.5.0 (Changeset major → 1.0.0 pending Version Packages) |
+| Tools / Actions | 18 / ~115 |
 | TypeScript LOC | ~35.6k (`src/`) |
-| Milestone | v3.1 Setup, Skills & DX — Phase 21 done; next Phase 22 |
+| Milestone | v3.1 Setup, Skills & DX — all phases 19–23 complete |
 | Repo | Single public `clezcoding/awesome-coolify` |
-| Distribution | npm publish-ready; GitHub Pages `docs/install.html` |
+| Distribution | OIDC Release path + pack allowlist; 1.0.0 after Version Packages merge |
 | Live UAT | `npm run uat:live` harness shipped (Phase 18) |
+
+**Phase 23 complete:** OpenAPI coverage generator (`pnpm run openapi:coverage`), committed `docs/COVERAGE.md` + `--check` drift gate, Coolify `v4.1.2` spec pin + `docs/OPENAPI.md`, npm pack allowlist (PUB-02), milestone Changeset for `1.0.0` (PUB-01).
+
+**Phase 22 complete:** Setup wizard + IDE skills (shipped earlier).
 
 **Phase 21 complete:** `deployment.watch` with backoff/jitter, bounded timeout sleep clamp, dual-signal errors, deploy-prompt + README Watch docs (WATCH-01/02).
 
@@ -115,13 +119,12 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Flat schemas + action catalogs + MCP prompts — Phase 19 (DX-01, DX-02, DX-DESC-*, PROMPT-01..04)
 - ✓ Recipes + service.list-types — Phase 20 (RECIPE-01..04)
 - ✓ Deploy watch — Phase 21 (WATCH-01, WATCH-02). Validated in Phase 21: Deploy Watch
+- ✓ Setup wizard + IDE skills — Phase 22 (SETUP-*, SKILL-*)
+- ✓ OpenAPI coverage map + npm pack allowlist + milestone Changeset 1.0.0 — Phase 23 (OAPI-01, OAPI-02, PUB-01, PUB-02). Validated in Phase 23: openapi-coverage-npm-release
 
 ### Active (v3.1)
 
-- [ ] Setup wizard — gh preflight + Coolify recipes (SETUP-*)
-- [ ] IDE skills — Cursor, Claude Code, Codex (SKILL-*)
-- [ ] OpenAPI coverage map (OAPI-*)
-- [ ] Live npm publish via Release (PUB-*)
+- (none — v3.1 phase work complete; npm `1.0.0` lands after Phase 23 PR → Version Packages → OIDC)
 
 ### Out of Scope
 
@@ -137,7 +140,7 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - **Tech stack:** TypeScript, `@modelcontextprotocol/sdk`, ofetch, Zod, tsup, vitest
 - **Target API:** Coolify REST 4.1.x (+ Coolify Cloud hostname path)
 - **Repos:** Single public `clezcoding/awesome-coolify`
-- **Known debt:** OpenAPI spec files not yet wired into coverage/planning; Cursor MCP list icon is documented client limitation (D-09); Phase 18 has 4 human_needed live paths
+- **Known debt:** Cursor MCP list icon is documented client limitation (D-09); Phase 18 has 4 human_needed live paths; OpenAPI coverage gaps tracked in `docs/COVERAGE.md` (future tool work)
 - **Known API quirks:** Coolify 4.1.x omits nested `project` on resources (fixed via `environment_id` index); service stop defaults `docker_cleanup=true` (MCP sends `false`); deployment list `{count, deployments}` envelope; plain-YAML compose on 4.1.2 (projectServiceCompose fallback)
 
 ## Constraints
@@ -198,4 +201,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-25 after Phase 21*
+*Last updated: 2026-07-27 after Phase 23*
