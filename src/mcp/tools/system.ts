@@ -17,9 +17,12 @@ import {
   resolveRoutingEnv,
   sharedReadParamsFlatShape,
 } from './shared-read-params.js';
+import { COOLIFY_412_CAPABILITIES } from '../capabilities.js';
+import { MCP_SERVER_NAME } from './meta.js';
+import { readPackageVersion } from '../../utils/package-version.js';
 
 export const systemActionsCatalog =
-  'Actions: health() · version() · verify() · infrastructure_overview(format?, max_chars?)';
+  'Actions: health() · version() → { coolifyVersion, mcpVersion, serverName, capabilities } (not legacy { version }) · verify() · infrastructure_overview(format?, max_chars?)';
 
 export const systemSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
@@ -55,7 +58,10 @@ export interface SystemHealthResult {
 }
 
 export interface SystemVersionResult {
-  version: string;
+  coolifyVersion: string;
+  mcpVersion: string;
+  serverName: string;
+  capabilities: typeof COOLIFY_412_CAPABILITIES;
 }
 
 export interface SystemVerifyResult {
@@ -104,6 +110,14 @@ function hostnameFromUrl(url: string): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function extractCoolifyVersion(versionData: unknown): string {
+  return typeof versionData === 'object' &&
+    versionData !== null &&
+    'version' in versionData
+    ? String((versionData as { version: unknown }).version)
+    : String(versionData);
 }
 
 function statusStartsWith(value: unknown, prefix: string): boolean {
@@ -162,13 +176,12 @@ export async function handleSystemAction(
           routingEnv.COOLIFY_TOKEN,
           routingEnv.COOLIFY_VERIFY_SSL,
         );
-        const version =
-          typeof versionData === 'object' &&
-          versionData !== null &&
-          'version' in versionData
-            ? String((versionData as { version: unknown }).version)
-            : String(versionData);
-        return { version };
+        return {
+          coolifyVersion: extractCoolifyVersion(versionData),
+          mcpVersion: readPackageVersion(),
+          serverName: MCP_SERVER_NAME,
+          capabilities: COOLIFY_412_CAPABILITIES,
+        };
       }
       case 'verify': {
         logger.httpDebug('/api/v1/version', 0);
@@ -177,16 +190,10 @@ export async function handleSystemAction(
           routingEnv.COOLIFY_TOKEN,
           routingEnv.COOLIFY_VERIFY_SSL,
         );
-        const coolifyVersion =
-          typeof versionData === 'object' &&
-          versionData !== null &&
-          'version' in versionData
-            ? String((versionData as { version: unknown }).version)
-            : String(versionData);
         return {
           connected: true,
           host: hostnameFromUrl(routingEnv.COOLIFY_URL),
-          coolifyVersion,
+          coolifyVersion: extractCoolifyVersion(versionData),
         };
       }
       case 'infrastructure_overview': {

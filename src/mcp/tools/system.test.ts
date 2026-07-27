@@ -116,7 +116,7 @@ describe('handleSystemAction health', () => {
 });
 
 describe('handleSystemAction version', () => {
-  it.fails('returns coolifyVersion, mcpVersion, serverName, and capabilities', async () => {
+  it('returns coolifyVersion, mcpVersion, serverName, and capabilities', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (!isMcpErrorResult(result)) {
@@ -144,7 +144,7 @@ describe('capabilities', () => {
     'deploy_watch',
   ] as const;
 
-  it.fails('system.version capabilities has exactly four D-03 keys', async () => {
+  it('system.version capabilities has exactly four D-03 keys', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;
@@ -154,7 +154,7 @@ describe('capabilities', () => {
     );
   });
 
-  it.fails('each capability value has supported boolean and coolify_min_version string', async () => {
+  it('each capability value has supported boolean and coolify_min_version string', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;
