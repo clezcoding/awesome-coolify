@@ -128,7 +128,7 @@ Pass explicitly only when needed:
 | Flag | Default | Effect |
 |------|---------|--------|
 | `include_domains` | `false` | Attach domains after wire (greenfield, or link-existing with `application_uuid`) |
-| `set_env` | `false` | Sync environment variables after wire (greenfield, or link-existing with `application_uuid`) |
+| `set_env` | `false` | Sync environment variables after wire (greenfield, or link-existing with `application_uuid`). When `true`, pass **exactly one** of `env_file` (local path to a `.env` file) or `env_content` (inline `.env` text) — no workspace auto-detect. Application resources only (not one-click services). |
 | `deploy_and_watch` | `false` | Deploy + bounded `deployment.watch` (timeout 300; greenfield, or link-existing with `application_uuid`) |
 | `push` | `false` | Greenfield only — pass `push: true` to run `gh repo create --push` |
 
@@ -139,6 +139,34 @@ deployment({ action: "watch", deployment_uuid: "<uuid>", timeout: 300 })
 ```
 
 On **`COOLIFY_WATCH_TIMEOUT`**, re-call watch with the same `deployment_uuid`.
+
+### `set_env` — environment sync
+
+When `set_env: true`, provide **exactly one** env source (XOR):
+
+| Param | Type | Notes |
+|-------|------|-------|
+| `env_file` | string | Local filesystem path to a `.env` file |
+| `env_content` | string | Inline `.env` file content (e.g. `FOO=bar\nBAZ=qux`) |
+
+There is **no** auto-detect of a workspace `.env` — you must pass `env_file` or `env_content` explicitly.
+
+Works on **greenfield** (after recipe creates an application) and **link-existing** (requires `application_uuid`). Does **not** apply to one-click service resources.
+
+Apply runs with **`confirm` implicit** (opt-in via `set_env: true`) and default **`conflict_policy: abort`**. On remote/local value conflicts, setup stops and surfaces the conflict payload — retry with an explicit policy via `application({ action: "envs:sync", ... })` if the human chooses overwrite or keep-remote.
+
+```js
+setup({
+  action: "wire",
+  mode: "link-existing",
+  project_uuid: "<project-uuid>",
+  environment_uuid: "<environment-uuid>",
+  server_uuid: "<server-uuid>",
+  application_uuid: "<application-uuid>",
+  set_env: true,
+  env_content: "FOO=bar\nBAZ=qux",
+})
+```
 
 ---
 
