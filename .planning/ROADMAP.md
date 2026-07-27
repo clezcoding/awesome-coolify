@@ -56,7 +56,7 @@ Full phase details: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 - [x] **Phase 20: Recipes & Service List-Types** - Dynamic `service.list-types` + recipes (git-app, app+db, one-click) from Coolify catalog (completed 2026-07-25)
 - [x] **Phase 21: Deploy Watch** - Non-blocking `deployment.watch` action with backoff/timeout + skill/prompt docs (completed 2026-07-25)
 - [x] **Phase 22: Setup Wizard & IDE Skills** - Headless-safe `gh` preflight + Coolify wiring wizard + Cursor/Claude Code/Codex skill packs (completed 2026-07-27)
-- [ ] **Phase 23: OpenAPI Coverage & npm Release** - Coverage map (Coolify OpenAPI → MCP surface/gaps) + maintainer OIDC Release publish
+- [x] **Phase 23: OpenAPI Coverage & npm Release** - Coverage map (Coolify OpenAPI → MCP surface/gaps) + maintainer OIDC Release publish (completed 2026-07-27)
 
 ## Phase Details
 
@@ -195,7 +195,22 @@ Plans:
   3. Maintainer-triggered Release workflow publishes `awesome-coolify-mcp` to npm via OIDC / trusted publishing
   4. Published tarball excludes the UAT harness, secrets, and non-package paths (allowlist verified)
 
-**Plans**: TBD
+**Plans**: 5/5 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 23-00-PLAN.md — Wave 0 RED scaffolds (openapi-coverage + npm-pack allowlist it.fails)
+- [x] 23-01-PLAN.md — Tracer: minimal 3-layer generator → COVERAGE.md → --check (Scalar human-verify)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 23-02-PLAN.md — Full coverage-map + v4.1.2 OpenAPI pin + OPENAPI.md provenance
+- [x] 23-03-PLAN.md — PUB-02 npm pack --dry-run forbidden-path gate
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 23-04-PLAN.md — PUB-01 milestone Changeset 1.0.0 (decision gate + trusted publisher verify)
 
 ## Progress
 
@@ -212,7 +227,7 @@ Plans:
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 22 | v3.1 | 4/4 | Complete    | 2026-07-27 |
-| 23 | v3.1 | 0/? | Not started | - |
+| 23 | v3.1 | 5/5 | Complete    | 2026-07-27 |
 
 **Next:** `/gsd-discuss-phase 23` — OpenAPI Coverage & npm Release
 

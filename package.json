@@ -21,7 +21,8 @@
     "version": "changeset version",
     "changeset:emit-tag": "node scripts/changeset-emit-new-tag.mjs",
     "publint": "publint",
-    "uat:live": "node scripts/live-uat.mjs"
+    "uat:live": "node scripts/live-uat.mjs",
+    "openapi:coverage": "node scripts/openapi-coverage.mjs"
   },
   "files": [
     "dist",
@@ -64,6 +65,8 @@
     "@changesets/cli": "^2.31.1",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
+    "@scalar/openapi-parser": "^0.28.10",
+    "@scalar/openapi-types": "^0.9.3",
     "@types/node": "^24.12.0",
     "@vitest/coverage-v8": "^4.1.10",
     "husky": "^9.1.7",

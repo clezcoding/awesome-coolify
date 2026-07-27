@@ -1,0 +1,347 @@
+# Full MCP action → client → OpenAPI join (Plan 23-02)
+actions:
+  - action: application.get
+    client: [fetchApplication]
+    openapi: ["GET /applications/{uuid}"]
+  - action: application.start
+    client: [triggerAppStart]
+    openapi: ["GET /applications/{uuid}/start"]
+  - action: application.stop
+    client: [triggerAppStop]
+    openapi: ["GET /applications/{uuid}/stop"]
+  - action: application.restart
+    client: [triggerAppRestart]
+    openapi: ["GET /applications/{uuid}/restart"]
+  - action: application.deploy
+    client: [triggerDeploy, fetchDeployment]
+    openapi: ["GET /deploy", "GET /deployments/{uuid}"]
+  - action: application.logs
+    client: [fetchApplicationLogs, fetchDeployment]
+    openapi: ["GET /applications/{uuid}/logs", "GET /deployments/{uuid}"]
+  - action: application.create
+    client: [createPublicApplication, createPrivateDeployKeyApplication, createPrivateGithubAppApplication, createDockerfileApplication, createDockerimageApplication, triggerDeploy]
+    openapi: ["POST /applications/public", "POST /applications/private-deploy-key", "POST /applications/private-github-app", "POST /applications/dockerfile", "POST /applications/dockerimage", "GET /deploy"]
+  - action: application.update
+    client: [updateApplication, fetchApplication]
+    openapi: ["PATCH /applications/{uuid}", "GET /applications/{uuid}"]
+  - action: application.delete
+    client: [deleteApplication]
+    openapi: ["DELETE /applications/{uuid}"]
+  - action: application.delete_preview
+    client: [fetchResources]
+    openapi: ["GET /resources"]
+  - action: application.envs:list
+    client: [fetchEnvs]
+    openapi: ["GET /applications/{uuid}/envs"]
+  - action: application.envs:get
+    client: [fetchEnvs]
+    openapi: ["GET /applications/{uuid}/envs"]
+  - action: application.envs:create
+    client: [createEnv, fetchEnvs]
+    openapi: ["POST /applications/{uuid}/envs", "GET /applications/{uuid}/envs"]
+  - action: application.envs:update
+    client: [fetchEnvs, updateEnvViaBulk]
+    openapi: ["GET /applications/{uuid}/envs", "PATCH /applications/{uuid}/envs/bulk"]
+  - action: application.envs:delete
+    client: [deleteEnv]
+    openapi: ["DELETE /applications/{uuid}/envs/{env_uuid}"]
+  - action: application.envs:bulk-update
+    client: [bulkUpdateEnvs]
+    openapi: ["PATCH /applications/{uuid}/envs/bulk"]
+  - action: application.envs:sync
+    client: [fetchEnvs, createEnv, updateEnvViaBulk, deleteEnv]
+    openapi: ["GET /applications/{uuid}/envs", "POST /applications/{uuid}/envs", "PATCH /applications/{uuid}/envs/bulk", "DELETE /applications/{uuid}/envs/{env_uuid}"]
+  - action: database.get
+    client: [fetchDatabase]
+    openapi: ["GET /databases/{uuid}"]
+  - action: database.start
+    client: [triggerDatabaseStart]
+    openapi: ["GET /databases/{uuid}/start"]
+  - action: database.stop
+    client: [triggerDatabaseStop]
+    openapi: ["GET /databases/{uuid}/stop"]
+  - action: database.restart
+    client: [triggerDatabaseRestart]
+    openapi: ["GET /databases/{uuid}/restart"]
+  - action: database.create
+    client: [createPostgresqlDatabase, createMysqlDatabase, createMariadbDatabase, createMongodbDatabase, createRedisDatabase, createClickhouseDatabase, createDragonflyDatabase, createKeydbDatabase]
+    openapi: ["POST /databases/postgresql", "POST /databases/mysql", "POST /databases/mariadb", "POST /databases/mongodb", "POST /databases/redis", "POST /databases/clickhouse", "POST /databases/dragonfly", "POST /databases/keydb"]
+  - action: database.update
+    client: [updateDatabase, fetchDatabase]
+    openapi: ["PATCH /databases/{uuid}", "GET /databases/{uuid}"]
+  - action: database.delete
+    client: [deleteDatabase]
+    openapi: ["DELETE /databases/{uuid}"]
+  - action: database.delete_preview
+    client: [fetchResources]
+    openapi: ["GET /resources"]
+  - action: database.envs:list
+    client: [fetchEnvs]
+    openapi: ["GET /databases/{uuid}/envs"]
+  - action: database.envs:get
+    client: [fetchEnvs]
+    openapi: ["GET /databases/{uuid}/envs"]
+  - action: database.envs:create
+    client: [createEnv, fetchEnvs]
+    openapi: ["POST /databases/{uuid}/envs", "GET /databases/{uuid}/envs"]
+  - action: database.envs:update
+    client: [fetchEnvs, updateEnvViaBulk]
+    openapi: ["GET /databases/{uuid}/envs", "PATCH /databases/{uuid}/envs/bulk"]
+  - action: database.envs:delete
+    client: [deleteEnv]
+    openapi: ["DELETE /databases/{uuid}/envs/{env_uuid}"]
+  - action: database.envs:bulk-update
+    client: [bulkUpdateEnvs]
+    openapi: ["PATCH /databases/{uuid}/envs/bulk"]
+  - action: database.backup:create
+    client: [createDatabaseBackup]
+    openapi: ["POST /databases/{uuid}/backups"]
+  - action: database.backup:list
+    client: [fetchDatabaseBackups]
+    openapi: ["GET /databases/{uuid}/backups"]
+  - action: database.backup:history
+    client: [fetchBackupExecutions]
+    openapi: ["GET /databases/{uuid}/backups/{scheduled_backup_uuid}/executions"]
+  - action: database.backup:update
+    client: [updateDatabaseBackup, fetchDatabaseBackups]
+    openapi: ["PATCH /databases/{uuid}/backups/{scheduled_backup_uuid}", "GET /databases/{uuid}/backups"]
+  - action: database.backup:delete
+    client: [deleteDatabaseBackup]
+    openapi: ["DELETE /databases/{uuid}/backups/{scheduled_backup_uuid}"]
+  - action: database.backup:now
+    client: [updateDatabaseBackup]
+    openapi: ["PATCH /databases/{uuid}/backups/{scheduled_backup_uuid}"]
+  - action: deployment.list
+    client: [fetchAppDeployments]
+    openapi: ["GET /deployments/applications/{uuid}"]
+  - action: deployment.get
+    client: [fetchDeployment]
+    openapi: ["GET /deployments/{uuid}"]
+  - action: deployment.cancel
+    client: [cancelDeployment]
+    openapi: ["POST /deployments/{uuid}/cancel"]
+  - action: deployment.watch
+    client: [fetchDeployment]
+    openapi: ["GET /deployments/{uuid}"]
+  - action: diagnose.app
+    client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments]
+    openapi: ["GET /applications/{uuid}", "GET /applications/{uuid}/envs", "GET /deployments/applications/{uuid}"]
+  - action: diagnose.server
+    client: [fetchServer, fetchServerResources, fetchServerDomains, triggerServerValidate]
+    openapi: ["GET /servers/{uuid}", "GET /servers/{uuid}/resources", "GET /servers/{uuid}/domains", "GET /servers/{uuid}/validate"]
+  - action: diagnose.scan
+    client: [fetchServers, fetchResources]
+    openapi: ["GET /servers", "GET /resources"]
+  - action: docs.search
+    client: []
+    openapi: []
+  - action: emergency.stop_all
+    client: [fetchResources, triggerAppStop]
+    openapi: ["GET /resources", "GET /applications/{uuid}/stop"]
+  - action: emergency.redeploy_project
+    client: [fetchProject, fetchResources, triggerDeploy, fetchDeployment]
+    openapi: ["GET /projects/{uuid}", "GET /resources", "GET /deploy", "GET /deployments/{uuid}"]
+  - action: emergency.restart_project
+    client: [fetchResources, triggerAppRestart]
+    openapi: ["GET /resources", "GET /applications/{uuid}/restart"]
+  - action: environment.list
+    client: [fetchEnvironments, fetchProject]
+    openapi: ["GET /projects/{uuid}/environments", "GET /projects/{uuid}"]
+  - action: environment.get
+    client: [fetchEnvironment, fetchProject]
+    openapi: ["GET /projects/{uuid}/{environment_name_or_uuid}", "GET /projects/{uuid}"]
+  - action: environment.create
+    client: [createEnvironment, fetchProject]
+    openapi: ["POST /projects/{uuid}/environments", "GET /projects/{uuid}"]
+  - action: environment.delete
+    client: [deleteEnvironment]
+    openapi: ["DELETE /projects/{uuid}/environments/{environment_name_or_uuid}"]
+  - action: environment.delete_preview
+    client: [fetchResources, fetchProject, fetchEnvironment]
+    openapi: ["GET /resources", "GET /projects/{uuid}", "GET /projects/{uuid}/{environment_name_or_uuid}"]
+  - action: instance.list
+    client: []
+    openapi: []
+  - action: instance.get
+    client: []
+    openapi: []
+  - action: instance.add
+    client: []
+    openapi: []
+  - action: instance.update
+    client: []
+    openapi: []
+  - action: instance.delete
+    client: []
+    openapi: []
+  - action: instance.set-default
+    client: []
+    openapi: []
+  - action: instance.import-env
+    client: []
+    openapi: []
+  - action: instance.cloud-info
+    client: []
+    openapi: []
+  - action: manifest.get
+    client: []
+    openapi: []
+  - action: manifest.upsert
+    client: []
+    openapi: []
+  - action: manifest.set
+    client: []
+    openapi: []
+  - action: manifest.remove
+    client: []
+    openapi: []
+  - action: manifest.clear
+    client: []
+    openapi: []
+  - action: manifest.sync
+    client: [fetchResources, fetchProjects, fetchServers, fetchProject]
+    openapi: ["GET /resources", "GET /projects", "GET /servers", "GET /projects/{uuid}"]
+  - action: manifest.diff
+    client: [fetchResources, fetchProjects, fetchServers, fetchProject]
+    openapi: ["GET /resources", "GET /projects", "GET /servers", "GET /projects/{uuid}"]
+  - action: meta.version
+    client: []
+    openapi: []
+  - action: private_key.list
+    client: [fetchPrivateKeys]
+    openapi: ["GET /security/keys"]
+  - action: private_key.get
+    client: [fetchPrivateKey]
+    openapi: ["GET /security/keys/{uuid}"]
+  - action: private_key.create
+    client: [createPrivateKey, fetchPrivateKey]
+    openapi: ["POST /security/keys", "GET /security/keys/{uuid}"]
+  - action: private_key.update
+    client: [updatePrivateKey]
+    openapi: ["PATCH /security/keys"]
+  - action: private_key.delete
+    client: [fetchServers, deletePrivateKey]
+    openapi: ["GET /servers", "DELETE /security/keys/{uuid}"]
+  - action: private_key.delete_preview
+    client: [fetchServers, fetchPrivateKey]
+    openapi: ["GET /servers", "GET /security/keys/{uuid}"]
+  - action: project.list
+    client: [fetchProjects]
+    openapi: ["GET /projects"]
+  - action: project.get
+    client: [fetchProject]
+    openapi: ["GET /projects/{uuid}"]
+  - action: project.create
+    client: [createProject, fetchEnvironments, createEnvironment]
+    openapi: ["POST /projects", "GET /projects/{uuid}/environments", "POST /projects/{uuid}/environments"]
+  - action: project.update
+    client: [updateProject]
+    openapi: ["PATCH /projects/{uuid}"]
+  - action: project.delete
+    client: [fetchEnvironments, deleteProject]
+    openapi: ["GET /projects/{uuid}/environments", "DELETE /projects/{uuid}"]
+  - action: project.delete_preview
+    client: [fetchEnvironments]
+    openapi: ["GET /projects/{uuid}/environments"]
+  - action: recipe.create-git-app
+    client: [createPublicApplication, triggerDeploy]
+    openapi: ["POST /applications/public", "GET /deploy"]
+  - action: recipe.create-app-db
+    client: [createPostgresqlDatabase, createMysqlDatabase, createMariadbDatabase, createMongodbDatabase, createRedisDatabase, createClickhouseDatabase, createDragonflyDatabase, createKeydbDatabase, triggerDatabaseStart, createPublicApplication, fetchDatabase, bulkUpdateEnvs, triggerDeploy]
+    openapi: ["POST /databases/postgresql", "POST /databases/mysql", "POST /databases/mariadb", "POST /databases/mongodb", "POST /databases/redis", "POST /databases/clickhouse", "POST /databases/dragonfly", "POST /databases/keydb", "GET /databases/{uuid}/start", "POST /applications/public", "GET /databases/{uuid}", "PATCH /applications/{uuid}/envs/bulk", "GET /deploy"]
+  - action: recipe.create-one-click
+    client: [fetchVersion, createService]
+    openapi: ["GET /version", "POST /services"]
+  - action: resource.list
+    client: [fetchResources, fetchServers, fetchProjects]
+    openapi: ["GET /resources", "GET /servers", "GET /projects"]
+  - action: resource.find
+    client: [fetchResources]
+    openapi: ["GET /resources"]
+  - action: server.get
+    client: [fetchServer, fetchPrivateKeys]
+    openapi: ["GET /servers/{uuid}", "GET /security/keys"]
+  - action: server.create
+    client: [createServer, validateServer, pollServerUntilReachable, fetchServer]
+    openapi: ["POST /servers", "GET /servers/{uuid}/validate", "GET /servers/{uuid}"]
+  - action: server.update
+    client: [updateServer]
+    openapi: ["PATCH /servers/{uuid}"]
+  - action: server.delete
+    client: [deleteServer]
+    openapi: ["DELETE /servers/{uuid}"]
+  - action: server.delete_preview
+    client: [fetchServerResources]
+    openapi: ["GET /servers/{uuid}/resources"]
+  - action: server.validate
+    client: [validateServer, pollServerUntilReachable, fetchServer]
+    openapi: ["GET /servers/{uuid}/validate", "GET /servers/{uuid}"]
+  - action: service.get
+    client: [fetchService]
+    openapi: ["GET /services/{uuid}"]
+  - action: service.list-types
+    client: [fetchVersion]
+    openapi: ["GET /version"]
+  - action: service.create
+    client: [createService, triggerServiceStart]
+    openapi: ["POST /services", "GET /services/{uuid}/start"]
+  - action: service.update
+    client: [updateService, fetchService]
+    openapi: ["PATCH /services/{uuid}", "GET /services/{uuid}"]
+  - action: service.delete
+    client: [deleteService]
+    openapi: ["DELETE /services/{uuid}"]
+  - action: service.delete_preview
+    client: [fetchService]
+    openapi: ["GET /services/{uuid}"]
+  - action: service.start
+    client: [triggerServiceStart]
+    openapi: ["GET /services/{uuid}/start"]
+  - action: service.stop
+    client: [triggerServiceStop]
+    openapi: ["GET /services/{uuid}/stop"]
+  - action: service.restart
+    client: [triggerServiceRestart]
+    openapi: ["GET /services/{uuid}/restart"]
+  - action: service.deploy
+    client: [triggerServiceRestart]
+    openapi: ["GET /services/{uuid}/restart"]
+  - action: service.envs:list
+    client: [fetchEnvs]
+    openapi: ["GET /services/{uuid}/envs"]
+  - action: service.envs:get
+    client: [fetchEnvs]
+    openapi: ["GET /services/{uuid}/envs"]
+  - action: service.envs:create
+    client: [createEnv, fetchEnvs]
+    openapi: ["POST /services/{uuid}/envs", "GET /services/{uuid}/envs"]
+  - action: service.envs:update
+    client: [fetchEnvs, updateEnvViaBulk]
+    openapi: ["GET /services/{uuid}/envs", "PATCH /services/{uuid}/envs/bulk"]
+  - action: service.envs:delete
+    client: [deleteEnv]
+    openapi: ["DELETE /services/{uuid}/envs/{env_uuid}"]
+  - action: service.envs:bulk-update
+    client: [bulkUpdateEnvs]
+    openapi: ["PATCH /services/{uuid}/envs/bulk"]
+  - action: setup.preflight
+    client: []
+    openapi: []
+  - action: setup.wire
+    client: [fetchProject, fetchEnvironment, fetchServer, createProject, createEnvironment, createPublicApplication, triggerDeploy, fetchDeployment]
+    openapi: []
+  - action: setup.resume
+    client: []
+    openapi: []
+  - action: system.health
+    client: [fetchHealth]
+    openapi: ["GET /health"]
+  - action: system.version
+    client: [fetchVersion]
+    openapi: ["GET /version"]
+  - action: system.verify
+    client: [fetchVersion]
+    openapi: ["GET /version"]
+  - action: system.infrastructure_overview
+    client: [fetchResources, fetchServers, fetchProjects]
+    openapi: ["GET /resources", "GET /servers", "GET /projects"]

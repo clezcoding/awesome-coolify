@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23
-current_phase_name: openapi-coverage-npm-release
-status: Phase 22 shipped — PR #87
-stopped_at: Phase 22 shipped — proceed to Phase 23
-last_updated: "2026-07-27T02:44:00.000Z"
+status: "Phase 23 shipped — PR #91"
+stopped_at: Completed 23-04-PLAN.md
+last_updated: "2026-07-27T03:15:37.129Z"
 last_activity: 2026-07-27
-last_activity_desc: Completed quick task 260727-4hd: Projektordner aufräumen + .gitignore
+last_activity_desc: Phase 23 shipped — PR #91
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
-  percent: 80
+  completed_phases: 5
+  total_plans: 22
+  completed_plans: 22
+  percent: 100
+current_phase_name: openapi-coverage-npm-release
 ---
 
 # Project State
@@ -24,20 +24,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 23 — openapi-coverage-npm-release
+**Current focus:** v3.1 complete — Phase 23 UAT + security verified
 
 ## Current Position
 
-Phase: 23 (openapi-coverage-npm-release) — NOT STARTED
-Plan: TBD
-Status: Phase 22 shipped — PR #87 (follow-up PR #88 markdownlint)
-Last activity: 2026-07-27 — Phase 22 merged to main
+Phase: 23
+Plan: Not started
+Status: Phase 23 shipped — PR #91
+Last activity: 2026-07-27
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 92
+- Total plans completed: 97
 - Average duration: —
 - Total execution time: —
 
@@ -63,6 +63,7 @@ Last activity: 2026-07-27 — Phase 22 merged to main
 | 19 | 3 | - | - |
 | 20 | 5 | - | - |
 | 21 | 5 | - | - |
+| 23 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -122,6 +123,11 @@ Last activity: 2026-07-27 — Phase 22 merged to main
 | Phase 22-setup-wizard-ide-skills P01 | 3min | 2 tasks | 10 files |
 | Phase 22-setup-wizard-ide-skills P02 | 3min | 2 tasks | 4 files |
 | Phase 22-setup-wizard-ide-skills P03 | 3min | 3 tasks | 11 files |
+| Phase 23-openapi-coverage-npm-release P00 | 2min | 2 tasks | 2 files |
+| Phase 23-openapi-coverage-npm-release P03 | 3min | 2 tasks | 1 files |
+| Phase 23-openapi-coverage-npm-release P01 | 4min | 3 tasks | 10 files |
+| Phase 23-openapi-coverage-npm-release P02 | 6min | 3 tasks | 7 files |
+| Phase 23-openapi-coverage-npm-release P04 | 15min | 4 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -332,6 +338,17 @@ Last activity: 2026-07-27 — Phase 22 merged to main
 - [Phase ?]: Optional push flag on greenfield wire — default false preserves D-12; push:true passes gh --push (22-02 soft deviation)
 - [Phase ?]: Four skills name MCP prompt analog explicitly (new-project, deploy, diagnose, incident)
 - [Phase ?]: install.html hero 18 tools — setup is 18th registerTool per 22-01
+- [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 23 — flip to it in 23-01..23-03
+- [Phase ?]: npm-pack it.fails imports future npm-pack-allowlist.mjs — live tarball already clean
+- [Phase ?]: npm pack allowlist assertions inline in test file per Plan 23-03
+- [Phase ?]: publint retained as supplementary gate; npm pack dry-run authoritative (D-14)
+- [Phase ?]: Static COVERAGE.md footer — byte-compare drift gate must be deterministic
+- [Phase ?]: Scalar dereference on committed coolify_openapi.json — no hand-rolled ref walker
+- [Phase ?]: Tracer map seeds 6 actions; full ~115-action map deferred to Plan 23-02
+- [Phase ?]: manifest.sync/diff out-of-scope per D-05 — local manifest primary surface
+- [Phase ?]: 57 OpenAPI gap rows retained as honest backlog — no new MCP tools in phase 23
+- [Phase ?]: ship-1-0-0 selected — major bump 0.5.0→1.0.0 per locked D-10
+- [Phase ?]: No release.yml changes — existing OIDC contract sufficient (D-12)
 
 ### Pending Todos
 
@@ -394,9 +411,9 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-27T02:44:00.000Z
-**Stopped at:** Phase 22 shipped — proceed to Phase 23
-**Resume file:** None
+Last session: 2026-07-27
+Stopped at: Phase 23 complete — v3.1 milestone phases finished, ready for /gsd-complete-milestone
+Resume file: None
 
 ## Operator Next Steps
 
@@ -415,6 +432,7 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 - timestamp: 2026-07-18T05:45:00.000Z
   kind: manual-reconcile
   section: frontmatter + ## Performance Metrics + ## Session Continuity
-  before: total_plans 15/15, total_phases 9, completed_phases 3, total completed 86, v1 phases 0 plans, stopped_at forensic
-  after: v2.0 scope (6 phases, 2 done, 12 plans), total completed 41 from SUMMARY artifacts, session restored to Phase 10 next
-  reason: forensics drift fix — front matter aligned to v2.0 milestone, metrics from disk SUMMARY count
+
+Last session: 2026-07-27
+Stopped at: Phase 23 complete — v3.1 milestone phases finished, ready for /gsd-complete-milestone
+Resume file: None

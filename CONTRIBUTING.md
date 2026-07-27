@@ -153,6 +153,17 @@ npm publish is intentional and milestone-scoped — not every phase merge trigge
 4. Merge **Version Packages** → `.github/workflows/release.yml` publishes to npm via OIDC (unchanged in this repo).
 5. Prefer one accumulated release at milestone close over leaving Version Packages open for weeks.
 
+#### Trusted Publisher pre-flight (before first 1.0.0)
+
+Before merging **Version Packages** for a milestone npm release, confirm on [npmjs.com → awesome-coolify-mcp → Settings → Trusted Publishers](https://www.npmjs.com/package/awesome-coolify-mcp):
+
+- **Workflow filename:** `release.yml` (not `publish.yml` — legacy release trigger only)
+- **Repository:** `clezcoding/awesome-coolify`
+- **OIDC:** publish uses GitHub Actions OIDC — no `NPM_TOKEN` or `NODE_AUTH_TOKEN` in repo secrets for npm
+- **Docs:** [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers)
+
+`release.yml` already sets `permissions.id-token: write`; the dashboard publisher must match that workflow filename.
+
 ## Issues
 
 - Bug: use the bug report template.

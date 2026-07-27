@@ -45,13 +45,13 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### OpenAPI Coverage
 
-- [ ] **OAPI-01**: Maintainer can run coverage tooling that maps Coolify OpenAPI paths/ops to MCP/client surface
-- [ ] **OAPI-02**: Coverage tooling produces a gap report (committed artifact and/or CI output)
+- [x] **OAPI-01**: Maintainer can run coverage tooling that maps Coolify OpenAPI paths/ops to MCP/client surface
+- [x] **OAPI-02**: Coverage tooling produces a gap report (committed artifact and/or CI output)
 
 ### npm Publish
 
-- [ ] **PUB-01**: Maintainer-triggered Release workflow publishes `awesome-coolify-mcp` to npm (OIDC / trusted publishing)
-- [ ] **PUB-02**: Published tarball excludes UAT harness, secrets, and non-package paths (allowlist verified)
+- [x] **PUB-01**: Maintainer-triggered Release workflow publishes `awesome-coolify-mcp` to npm (OIDC / trusted publishing)
+- [x] **PUB-02**: Published tarball excludes UAT harness, secrets, and non-package paths (allowlist verified)
 
 ## Future Requirements
 
@@ -99,10 +99,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SKILL-02 | Phase 22 | Complete |
 | WATCH-01 | Phase 21 | Complete |
 | WATCH-02 | Phase 21 | Complete |
-| OAPI-01 | Phase 23 | Pending |
-| OAPI-02 | Phase 23 | Pending |
-| PUB-01 | Phase 23 | Pending |
-| PUB-02 | Phase 23 | Pending |
+| OAPI-01 | Phase 23 | Complete |
+| OAPI-02 | Phase 23 | Complete |
+| PUB-01 | Phase 23 | Complete |
+| PUB-02 | Phase 23 | Complete |
 
 **Coverage:**
 
