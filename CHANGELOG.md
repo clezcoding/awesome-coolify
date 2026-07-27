@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 1.0.0
+
+### Major Changes
+
+- 3803740: v3.1 milestone: OpenAPI coverage map, committed COVERAGE.md, npm 1.0.0 release.
+
 ## 0.5.0
 
 ### Minor Changes
