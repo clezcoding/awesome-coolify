@@ -198,10 +198,18 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 23-00-PLAN.md — Wave 0 RED scaffolds (openapi-coverage + npm-pack allowlist it.fails)
 - [ ] 23-01-PLAN.md — Tracer: minimal 3-layer generator → COVERAGE.md → --check (Scalar human-verify)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 23-02-PLAN.md — Full coverage-map + v4.1.2 OpenAPI pin + OPENAPI.md provenance
 - [ ] 23-03-PLAN.md — PUB-02 npm pack --dry-run forbidden-path gate
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 23-04-PLAN.md — PUB-01 milestone Changeset 1.0.0 (decision gate + trusted publisher verify)
 
 ## Progress
@@ -219,7 +227,7 @@ Plans:
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 22 | v3.1 | 4/4 | Complete    | 2026-07-27 |
-| 23 | v3.1 | 0/? | Not started | - |
+| 23 | v3.1 | 0/5 | Not started | - |
 
 **Next:** `/gsd-discuss-phase 23` — OpenAPI Coverage & npm Release
 
