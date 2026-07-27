@@ -195,7 +195,7 @@ Plans:
   3. Maintainer-triggered Release workflow publishes `awesome-coolify-mcp` to npm via OIDC / trusted publishing
   4. Published tarball excludes the UAT harness, secrets, and non-package paths (allowlist verified)
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans executed
 
 Plans:
 **Wave 1**
@@ -210,7 +210,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 23-04-PLAN.md — PUB-01 milestone Changeset 1.0.0 (decision gate + trusted publisher verify)
+- [x] 23-04-PLAN.md — PUB-01 milestone Changeset 1.0.0 (decision gate + trusted publisher verify)
 
 ## Progress
 
@@ -227,7 +227,7 @@ Plans:
 | 20 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 21 | v3.1 | 5/5 | Complete    | 2026-07-25 |
 | 22 | v3.1 | 4/4 | Complete    | 2026-07-27 |
-| 23 | v3.1 | 4/5 | In Progress|  |
+| 23 | v3.1 | 5/5 | In Progress|  |
 
 **Next:** `/gsd-discuss-phase 23` — OpenAPI Coverage & npm Release
 

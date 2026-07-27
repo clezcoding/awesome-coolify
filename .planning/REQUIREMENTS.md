@@ -50,7 +50,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### npm Publish
 
-- [ ] **PUB-01**: Maintainer-triggered Release workflow publishes `awesome-coolify-mcp` to npm (OIDC / trusted publishing)
+- [x] **PUB-01**: Maintainer-triggered Release workflow publishes `awesome-coolify-mcp` to npm (OIDC / trusted publishing)
 - [x] **PUB-02**: Published tarball excludes UAT harness, secrets, and non-package paths (allowlist verified)
 
 ## Future Requirements
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WATCH-02 | Phase 21 | Complete |
 | OAPI-01 | Phase 23 | Complete |
 | OAPI-02 | Phase 23 | Complete |
-| PUB-01 | Phase 23 | Pending |
+| PUB-01 | Phase 23 | Complete |
 | PUB-02 | Phase 23 | Complete |
 
 **Coverage:**

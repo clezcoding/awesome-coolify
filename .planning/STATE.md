@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23
 current_phase_name: openapi-coverage-npm-release
-status: executing
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-07-27T02:26:55.947Z"
+status: verifying
+stopped_at: Completed 23-04-PLAN.md
+last_updated: "2026-07-27T02:35:33.483Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 22
-  completed_plans: 21
-  percent: 80
+  completed_plans: 22
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 23 (openapi-coverage-npm-release) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-27 — Phase 23 execution started
 
 ## Performance Metrics
@@ -126,6 +126,7 @@ Last activity: 2026-07-27 — Phase 23 execution started
 | Phase 23-openapi-coverage-npm-release P03 | 3min | 2 tasks | 1 files |
 | Phase 23-openapi-coverage-npm-release P01 | 4min | 3 tasks | 10 files |
 | Phase 23-openapi-coverage-npm-release P02 | 6min | 3 tasks | 7 files |
+| Phase 23-openapi-coverage-npm-release P04 | 15min | 4 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -345,6 +346,8 @@ Last activity: 2026-07-27 — Phase 23 execution started
 - [Phase ?]: Tracer map seeds 6 actions; full ~115-action map deferred to Plan 23-02
 - [Phase ?]: manifest.sync/diff out-of-scope per D-05 — local manifest primary surface
 - [Phase ?]: 57 OpenAPI gap rows retained as honest backlog — no new MCP tools in phase 23
+- [Phase ?]: ship-1-0-0 selected — major bump 0.5.0→1.0.0 per locked D-10
+- [Phase ?]: No release.yml changes — existing OIDC contract sufficient (D-12)
 
 ### Pending Todos
 
@@ -407,8 +410,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-27T02:26:55.936Z
-**Stopped at:** Completed 23-02-PLAN.md
+**Last session:** 2026-07-27T02:35:33.474Z
+**Stopped at:** Completed 23-04-PLAN.md
 **Resume file:** None
 
 ## Operator Next Steps
