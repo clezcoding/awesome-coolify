@@ -36,7 +36,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### IDE Skills
 
 - [x] **SKILL-01**: Repo ships Coolify skill pack for Cursor, Claude Code, and Codex with consistent workflows
-- [ ] **SKILL-02**: Skills document recipes, deploy watch, prompts, and safety rules (confirm gates, reveal opt-in)
+- [x] **SKILL-02**: Skills document recipes, deploy watch, prompts, and safety rules (confirm gates, reveal opt-in)
 
 ### Deploy Watch
 
@@ -96,7 +96,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SETUP-02 | Phase 22 | Complete |
 | SETUP-03 | Phase 22 | Complete |
 | SKILL-01 | Phase 22 | Complete |
-| SKILL-02 | Phase 22 | Pending |
+| SKILL-02 | Phase 22 | Complete |
 | WATCH-01 | Phase 21 | Complete |
 | WATCH-02 | Phase 21 | Complete |
 | OAPI-01 | Phase 23 | Pending |

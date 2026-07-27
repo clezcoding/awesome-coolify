@@ -1,14 +1,11 @@
 ---
 phase: 22-setup-wizard-ide-skills
-verified: 2026-07-26T02:28:00Z
-status: human_needed
-score: 11/12 must-haves verified
+verified: 2026-07-27T00:22:00Z
+status: passed
+score: 12/12 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-human_verification:
-  - test: "Open docs/en/setup.md in the HTML docs shell (or render setup guide page) with viewport ≤768px; scroll the ordered setup step list"
-    expected: "9 setup steps in `.setup-steps` scroll vertically inside the container; no horizontal page break or overflow breaking the layout"
-    why_human: "Backstop truth `8+ setup steps scroll inside .setup-steps without horizontal page break` — CSS classes exist but layout behavior requires visual confirmation"
+human_verification: []
 behavior_unverified_items: []
 ---
 
@@ -16,9 +13,9 @@ behavior_unverified_items: []
 
 **Phase Goal:** A new user runs one setup flow that verifies `gh`, wires Coolify project/environment/server linkage, and ships consistent Coolify skill packs across Cursor, Claude Code, and Codex.
 
-**Verified:** 2026-07-26T02:28:00Z  
-**Status:** human_needed  
-**Re-verification:** No — initial verification
+**Verified:** 2026-07-27T00:22:00Z  
+**Status:** passed  
+**Re-verification:** Yes — human UAT backstop closed via agent-browser mobile layout check (22-UAT.md test #1)
 
 ## Goal Achievement
 
@@ -37,9 +34,9 @@ behavior_unverified_items: []
 | 9 | Greenfield never auto-pushes git; manual push suggestion only (D-12) | ✓ VERIFIED | `createGhRepo` omits `--push` unless `push:true`; greenfield test asserts `{ push: false }` default + manual push banner; no executed `git push` |
 | 10 | `link-existing` does not call recipe create unless explicit resource params (D-08) | ✓ VERIFIED | `handleLinkExistingWire` never calls `handleRecipeAction`; test `upserts manifest without calling handleRecipeAction` passes |
 | 11 | Docs: setup guide, install skills block, README EN/DE (D-17) | ✓ VERIFIED | `docs/en/setup.md`, `docs/shared.css` (`.notice--pause`, `.setup-steps`, `.skills-command`), `docs/index.html` links; README + README.de.md canonical `npx skills add` command |
-| 12 | 8+ setup steps scroll inside `.setup-steps` without layout break (backstop) | ? UNCERTAIN | HTML/CSS present in `docs/en/setup.md` + `docs/shared.css`; 9 steps listed; visual scroll behavior not programmatically verified |
+| 12 | 8+ setup steps scroll inside `.setup-steps` without layout break (backstop) | ✓ VERIFIED | agent-browser @ 375×812: 9 steps, no horizontal overflow (`page.scrollWidth=375`), vertical scroll OK; `22-UAT.md` test #1 pass 2026-07-27 |
 
-**Score:** 11/12 truths verified (0 present, behavior-unverified)
+**Score:** 12/12 truths verified (0 present, behavior-unverified)
 
 ### Required Artifacts
 
@@ -130,7 +127,7 @@ No orphaned requirements — all five Phase 22 IDs claimed and evidenced.
 
 ### Gaps Summary
 
-No blocking implementation gaps. All five roadmap success criteria and requirement IDs are satisfied in code with passing tests. One backstop layout check remains for human confirmation before treating the phase as fully closed.
+No blocking implementation gaps. All five roadmap success criteria and requirement IDs are satisfied in code with passing tests. Backstop layout check closed via `22-UAT.md` test #1 (agent-browser mobile).
 
 **Intentional deferrals (not gaps):**
 - CLI wrapper `src/cli/setup-wizard.ts` deferred per D-03 (MCP `setup` is sole entry)
@@ -138,5 +135,5 @@ No blocking implementation gaps. All five roadmap success criteria and requireme
 
 ---
 
-_Verified: 2026-07-26T02:28:00Z_  
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-07-27T00:22:00Z_  
+_Verifier: Claude (gsd-verifier + gsd-audit-uat agent-browser)_

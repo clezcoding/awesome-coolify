@@ -4,11 +4,11 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 22
 current_phase_name: setup-wizard-ide-skills
-status: executing
-stopped_at: Completed 22-setup-wizard-ide-skills-02-PLAN.md
-last_updated: "2026-07-26T02:20:38.815Z"
-last_activity: 2026-07-26
-last_activity_desc: Phase 22 execution started
+status: ready_to_ship
+stopped_at: Phase 22 UAT complete — ready for /gsd-ship
+last_updated: "2026-07-27T00:22:00.000Z"
+last_activity: 2026-07-27
+last_activity_desc: Phase 22 UAT test #1 passed via agent-browser mobile layout check
 progress:
   total_phases: 5
   completed_phases: 4
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 ## Current Position
 
-Phase: 22 (setup-wizard-ide-skills) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
-Last activity: 2026-07-26 — Phase 22 execution started
+Phase: 22 (setup-wizard-ide-skills) — READY TO SHIP
+Plan: 4 of 4 complete
+Status: UAT passed (12/12 verification truths)
+Last activity: 2026-07-27 — agent-browser mobile layout UAT pass
 
 ## Performance Metrics
 
@@ -121,6 +121,7 @@ Last activity: 2026-07-26 — Phase 22 execution started
 | Phase 22-setup-wizard-ide-skills P00 | 5min | 3 tasks | 4 files |
 | Phase 22-setup-wizard-ide-skills P01 | 3min | 2 tasks | 10 files |
 | Phase 22-setup-wizard-ide-skills P02 | 3min | 2 tasks | 4 files |
+| Phase 22-setup-wizard-ide-skills P03 | 3min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -329,6 +330,8 @@ Last activity: 2026-07-26 — Phase 22 execution started
 - [Phase ?]: coolify-setup manifest test flipped GREEN; deploy/diagnose/incident remain it.fails until 22-03
 - [Phase ?]: Unified wire action with mode enum — option-a checkpoint resolution (22-02)
 - [Phase ?]: Optional push flag on greenfield wire — default false preserves D-12; push:true passes gh --push (22-02 soft deviation)
+- [Phase ?]: Four skills name MCP prompt analog explicitly (new-project, deploy, diagnose, incident)
+- [Phase ?]: install.html hero 18 tools — setup is 18th registerTool per 22-01
 
 ### Pending Todos
 
@@ -390,15 +393,13 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-26T02:17:33.246Z
-**Stopped at:** Completed 22-setup-wizard-ide-skills-02-PLAN.md
+**Last session:** 2026-07-27T00:22:00.000Z
+**Stopped at:** Phase 22 UAT complete — proceed to `/gsd-ship`
 **Resume file:** None
-
-Last activity: 2026-07-25 - Completed quick task 260725-fx9: Audit/optimize GitHub Actions CI + milestone-only npm
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 22` — Setup Wizard & IDE Skills
+- `/gsd-ship` — open PR for Phase 22
 
 ## Rebuild Log
 
