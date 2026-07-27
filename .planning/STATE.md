@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 23
-status: "Phase 23 shipped — PR #91"
-stopped_at: Phase 23.1 context gathered
-last_updated: "2026-07-27T04:48:11.268Z"
+current_phase: 23.1
+status: "Phase 23.1 planned — 4 plans ready"
+stopped_at: Phase 23.1 planning complete
+last_updated: "2026-07-27T04:56:00.000Z"
 last_activity: 2026-07-27
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 22
+  total_plans: 26
   completed_plans: 22
   percent: 83
-current_phase_name: openapi-coverage-npm-release
-last_activity_desc: "Phase 23.1 inserted (URGENT): set_env + Nyquist validation"
+current_phase_name: address-tech-debt-set-env-nyquist-validation
+last_activity_desc: "Phase 23.1 planned: set_env tracer + Nyquist 19-23 + docs"
 ---
 
 # Project State
