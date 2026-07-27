@@ -6,7 +6,7 @@
 
 **Single public repo** ([`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify)) — npm package + GitHub Pages + source. No dual-repo sync; npm already points here.
 
-Dev-only work stays under `.planning/`, `.cursor/`, `.agents/`, `graphify-out/`, `mcp_features.md` (gitignored where applicable).
+Dev-only work stays under `.planning/`, `.cursor/`, `.agents/`, `graphify-out/`, `.planning/mcp_features.md` (gitignored).
 
 > **Retired (D-07):** The former dual-repo layout with a separate `awesome-coolify-mcp` git remote and `scripts/sync-public-repo.sh` is no longer used.
 
@@ -121,7 +121,7 @@ Types used in repo history: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`
 | Graph analysis | `graphify-out/` | ignored |
 | Env secrets | `.env` | ignored |
 | Env template | `.env.example` | **should be tracked** (currently not) |
-| Dev feature notes | `mcp_features.md` | tracked (dev repo only) |
+| Dev feature notes | `.planning/mcp_features.md` | ignored |
 
 ---
 

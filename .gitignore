@@ -45,9 +45,20 @@ yarn-error.log*
 .agents/
 skills-lock.json
 
-# GSD planning — tracked when commit_docs: true (keep junk local)
+# GSD planning — core artifacts tracked (commit_docs: true); ephemeral local only
 .planning/**/.DS_Store
 .planning/.DS_Store
+.planning/research/.cache/
+.planning/forensics/
+.planning/spikes/
+.planning/sketches/
+.planning/notes/
+.planning/todos/
+.planning/debug/
+.planning/mcp_features.md
+
+# Maintainer dev docs (not npm/GitHub Pages surface)
+dev-docs/
 
 # Generated analysis
 graphify-out/
