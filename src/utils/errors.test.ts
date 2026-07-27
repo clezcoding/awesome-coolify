@@ -381,6 +381,15 @@ describe('wrapMcpError', () => {
   });
 });
 
+describe('COOLIFY_NO_DEPLOYMENTS', () => {
+  it('RECOVERY_HINTS defines COOLIFY_NO_DEPLOYMENTS with deploy and list hints', () => {
+    const hints = RECOVERY_HINTS.COOLIFY_NO_DEPLOYMENTS;
+    expect(hints.length).toBeGreaterThanOrEqual(2);
+    expect(hints.join(' ')).toMatch(/application\.deploy/i);
+    expect(hints.join(' ')).toMatch(/deployment\.list/i);
+  });
+});
+
 describe('deployment watch error codes', () => {
   it('RECOVERY_HINTS defines COOLIFY_WATCH_TIMEOUT with deployment.watch re-call hint', () => {
     const hints = RECOVERY_HINTS.COOLIFY_WATCH_TIMEOUT;
@@ -391,8 +400,7 @@ describe('deployment watch error codes', () => {
   it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_FAILED with non-empty hints', () => {
     const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_FAILED;
     expect(hints.length).toBeGreaterThanOrEqual(1);
-    expect(hints.some((h) => /deployment\.get/i.test(h))).toBe(true);
-    expect(hints.some((h) => /projection:\s*full/i.test(h))).toBe(true);
+    expect(hints.some((h) => /deployment\.logs/i.test(h))).toBe(true);
     expect(hints.join(' ')).not.toMatch(
       /re-call\s+deployment\.watch.*include_logs|deployment\.watch\s+with\s+include_logs/i,
     );
@@ -401,8 +409,7 @@ describe('deployment watch error codes', () => {
   it('RECOVERY_HINTS defines COOLIFY_DEPLOYMENT_CANCELLED with non-empty hints', () => {
     const hints = RECOVERY_HINTS.COOLIFY_DEPLOYMENT_CANCELLED;
     expect(hints.length).toBeGreaterThanOrEqual(1);
-    expect(hints.some((h) => /deployment\.get/i.test(h))).toBe(true);
-    expect(hints.some((h) => /projection:\s*full/i.test(h))).toBe(true);
+    expect(hints.some((h) => /deployment\.logs/i.test(h))).toBe(true);
     expect(hints.join(' ')).not.toMatch(
       /deployment\.watch\s+with\s+include_logs|or\s+deployment\.watch/i,
     );

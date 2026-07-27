@@ -1,4 +1,8 @@
 import { truncateAndGuard } from './formatters.js';
+import {
+  CoolifyApiError,
+  RECOVERY_HINTS,
+} from './errors.js';
 
 export type BuildLogEntry = {
   command: string | null;
@@ -8,6 +12,29 @@ export type BuildLogEntry = {
   hidden: boolean;
   batch: number;
 };
+
+export type DeploymentBuildLogParams = {
+  lines: number;
+  offset: number;
+  include_hidden: boolean;
+  type: 'stdout' | 'stderr' | 'all';
+  max_chars: number;
+};
+
+export type DeploymentBuildLogResult = {
+  deployment_uuid: string;
+  status: string;
+  logs_lines: string[];
+  logs_truncated: boolean;
+  total_lines: number;
+  entries_total: number;
+  entries_hidden: number;
+  entries_shown: number;
+  hint?: string;
+};
+
+const EMPTY_LOGS_HINT =
+  'Deployment exists but build logs are empty — build may still be running or logs were not retained.';
 
 // Semantics: skip first `offset` lines, then return the LAST `lines` lines of the remainder (tail-of-tail).
 export function sliceLogBlob(
@@ -53,4 +80,78 @@ export function parseBuildLogEntries(logs: string): {
   } catch {
     return { parsed: false, entries: [] };
   }
+}
+
+export function processDeploymentBuildLogs(
+  deploymentUuid: string,
+  rec: Record<string, unknown>,
+  params: DeploymentBuildLogParams,
+): DeploymentBuildLogResult {
+  if (typeof rec.logs !== 'string') {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_403_SENSITIVE_REQUIRED',
+      message:
+        'Deployment build logs are not available — the API token lacks the api.sensitive ability required to read deployment logs.',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_403_SENSITIVE_REQUIRED,
+    });
+  }
+
+  const status = String(rec.status ?? 'unknown');
+
+  if (rec.logs.length === 0) {
+    return {
+      deployment_uuid: deploymentUuid,
+      status,
+      logs_lines: [],
+      logs_truncated: false,
+      total_lines: 0,
+      entries_total: 0,
+      entries_hidden: 0,
+      entries_shown: 0,
+      hint: EMPTY_LOGS_HINT,
+    };
+  }
+
+  const { lines, offset, include_hidden: includeHidden, type: logType, max_chars } =
+    params;
+  const { parsed: parsedOk, entries } = parseBuildLogEntries(rec.logs);
+
+  if (!parsedOk) {
+    const allLines = sliceLogBlob(rec.logs, lines, offset);
+    const capped = capLogOutput(allLines.join('\n'), max_chars);
+    const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+
+    return {
+      deployment_uuid: deploymentUuid,
+      status,
+      logs_lines: cappedLines,
+      logs_truncated: capped.truncated,
+      total_lines: allLines.length,
+      entries_total: allLines.length,
+      entries_hidden: 0,
+      entries_shown: cappedLines.length,
+    };
+  }
+
+  const visibleEntries = entries.filter(
+    (e) =>
+      (includeHidden ? true : !e.hidden) &&
+      (logType === 'all' ? true : e.type === logType),
+  );
+  const entriesHidden = entries.filter((e) => e.hidden).length;
+  const flattened = visibleEntries.map((e) => e.output).join('\n');
+  const allLines = sliceLogBlob(flattened, lines, offset);
+  const capped = capLogOutput(allLines.join('\n'), max_chars);
+  const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+
+  return {
+    deployment_uuid: deploymentUuid,
+    status,
+    logs_lines: cappedLines,
+    logs_truncated: capped.truncated,
+    total_lines: allLines.length,
+    entries_total: entries.length,
+    entries_hidden: entriesHidden,
+    entries_shown: cappedLines.length,
+  };
 }

@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.1
-milestone_name: Setup, Skills & DX
-status: milestone_complete
-stopped_at: Milestone v3.1 shipped
-last_updated: "2026-07-27T19:00:00.000Z"
-last_activity: 2026-07-27
-last_activity_desc: Milestone v3.1 complete
+milestone: v3.2
+milestone_name: Observability & DX
+current_phase: 25
+current_phase_name: Application Log Follow
+status: "Phase 24 shipped — PR #98"
+stopped_at: Completed 24-03-PLAN.md
+last_updated: "2026-07-27T23:02:24.572Z"
+last_activity: 2026-07-28
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 27
-  completed_plans: 27
-  percent: 100
-current_phase: null
-current_phase_name: null
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
+  percent: 25
+last_activity_desc: Phase 24 complete, transitioned to Phase 25
 ---
 
 # Project State
@@ -24,20 +24,20 @@ current_phase_name: null
 See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Planning next milestone (`/gsd-new-milestone`)
+**Current focus:** Phase 24 — capabilities-deployment-logs
 
 ## Current Position
 
-Phase: Milestone v3.1 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-27 — Milestone v3.1 completed and archived
+Phase: 25 — Application Log Follow
+Plan: Not started
+Status: Phase 24 shipped — PR #98
+Last activity: 2026-07-28
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 102
+- Total plans completed: 106
 - Average duration: —
 - Total execution time: —
 
@@ -65,6 +65,7 @@ Last activity: 2026-07-27 — Milestone v3.1 completed and archived
 | 21 | 5 | - | - |
 | 23 | 5 | - | - |
 | 23.1 | 5 | - | - |
+| 24 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -135,6 +136,10 @@ Last activity: 2026-07-27 — Milestone v3.1 completed and archived
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P03 | 2min | 2 tasks | 2 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
 | Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
+| Phase 24-capabilities-deployment-logs P00 | 3min | 2 tasks | 6 files |
+| Phase 24-capabilities-deployment-logs P01 | 2min | 3 tasks | 6 files |
+| Phase 24-capabilities-deployment-logs P02 | 4min | 2 tasks | 7 files |
+| Phase 24-capabilities-deployment-logs P03 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -366,6 +371,12 @@ Last activity: 2026-07-27 — Milestone v3.1 completed and archived
 - [Phase ?]: PUB-01 live npm publish stays Manual-Only; five-phase Nyquist inventory 19-23 complete
 - [Phase ?]: Omit conflict_policy on setup set_env envs:sync delegation (CR-01 preferred fix over explicit abort)
 - [Phase ?]: Human retry via application envs:sync with explicit overwrite/keep_remote/abort policy
+- [Phase ?]: Phase 24 Wave 0: it.fails RED scaffolds for husky-green pre-commit; flip to it in 24-01..24-02
+- [Phase ?]: Schema reject tests (both/neither uuid) stay regular it until logs action registered
+- [Phase ?]: rename-coolifyVersion: break legacy { version } field per D-07/D-09
+- [Phase ?]: capabilities on system.version only; meta.version stays { mcpVersion, serverName } (D-06)
+- [Phase ?]: Combined 24-02 tasks in one commit due to lint-staged vitest related on dirty deployment.test.ts
+- [Phase ?]: Reverted unstaged OpenAPI pin drift to restore coverage-map path validation
 
 ### Pending Todos
 
@@ -439,14 +450,14 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T17:11:31.348Z
-Stopped at: Completed 23.1-05-PLAN.md
+Last session: 2026-07-27T21:23:29.885Z
+Stopped at: Completed 24-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
 
-- Merge Version Packages PR → confirm OIDC npm publish `@1.0.0`
-- `/gsd-new-milestone` — define next milestone scope
+- `/gsd-plan-phase 24` — Capabilities & Deployment Logs (CAP-01, CAP-02, OBS-01)
+- Coolify 4.1.2 only — no service/DB logs (deferred v3.3)
 
 ## Rebuild Log
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   capLogOutput,
   parseBuildLogEntries,
+  processDeploymentBuildLogs,
   sliceLogBlob,
 } from './log-helpers.js';
 
@@ -58,5 +59,25 @@ describe('parseBuildLogEntries', () => {
       parsed: false,
       entries: [],
     });
+  });
+});
+
+describe('processDeploymentBuildLogs', () => {
+  it('flattens JSON build log entries into logs_lines envelope fields', () => {
+    const result = processDeploymentBuildLogs(
+      'dep-1',
+      {
+        status: 'finished',
+        logs: JSON.stringify([
+          { output: 'visible', type: 'stdout', hidden: false },
+          { output: 'hidden', type: 'stdout', hidden: true },
+        ]),
+      },
+      { include_hidden: false, type: 'all', lines: 100, offset: 0, max_chars: 20000 },
+    );
+    expect(result.logs_lines).toEqual(['visible']);
+    expect(result.entries_total).toBe(2);
+    expect(result.entries_hidden).toBe(1);
+    expect(result.entries_shown).toBe(1);
   });
 });

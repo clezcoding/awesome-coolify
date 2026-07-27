@@ -1,8 +1,8 @@
 import * as z from 'zod/v4';
 import { createFlatActionSchema } from './shared-read-params.js';
+import { readPackageVersion } from '../../utils/package-version.js';
 
 export const MCP_SERVER_NAME = 'awesome-coolify-mcp';
-export const MCP_VERSION = '0.1.0';
 
 export const metaActionsCatalog = 'Actions: version()';
 
@@ -23,7 +23,7 @@ export async function handleMetaAction(
   switch (args.action) {
     case 'version':
       return {
-        mcpVersion: MCP_VERSION,
+        mcpVersion: readPackageVersion(),
         serverName: MCP_SERVER_NAME,
       };
     default: {

@@ -56,6 +56,7 @@ describe('MCP prompts registration', () => {
 
     expect(content).toContain('application.deploy');
     expect(content).toContain('deployment.watch');
+    expect(content).toContain('deployment.logs');
     expect(content).toMatch(/timeout|re-watch|re-call|watch again/i);
     expect(content).toMatch(/failed|cancelled|clear error|do not treat as success/i);
     expect(content).toMatch(/legacy|wait:\s*true|wait:true/i);

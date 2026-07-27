@@ -116,11 +116,55 @@ describe('handleSystemAction health', () => {
 });
 
 describe('handleSystemAction version', () => {
-  it('returns version string from API', async () => {
+  it('returns coolifyVersion, mcpVersion, serverName, and capabilities', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (!isMcpErrorResult(result)) {
-      expect(result).toEqual({ version: '4.1.0' });
+      expect(result).toMatchObject({
+        coolifyVersion: '4.1.0',
+        serverName: 'awesome-coolify-mcp',
+      });
+      expect(typeof result.mcpVersion).toBe('string');
+      expect(result.mcpVersion.length).toBeGreaterThan(0);
+      expect(result.capabilities).toBeDefined();
+      expect(typeof result.capabilities).toBe('object');
+
+      const json = formatSystemResult(result);
+      expect(json).not.toContain('test-token-value-xyz');
+      expect(json).not.toContain(testEnv.COOLIFY_TOKEN);
+    }
+  });
+});
+
+describe('capabilities', () => {
+  const CAPABILITY_KEYS = [
+    'application_logs',
+    'deployment_logs',
+    'deployment_watch',
+    'deploy_watch',
+  ] as const;
+
+  it('system.version capabilities has exactly four D-03 keys', async () => {
+    const result = await handleSystemAction({ action: 'version' }, testEnv);
+    expect(isMcpErrorResult(result)).toBe(false);
+    if (isMcpErrorResult(result)) return;
+
+    expect(Object.keys(result.capabilities ?? {}).sort()).toEqual(
+      [...CAPABILITY_KEYS].sort(),
+    );
+  });
+
+  it('each capability value has supported boolean and coolify_min_version string', async () => {
+    const result = await handleSystemAction({ action: 'version' }, testEnv);
+    expect(isMcpErrorResult(result)).toBe(false);
+    if (isMcpErrorResult(result)) return;
+
+    for (const key of CAPABILITY_KEYS) {
+      const entry = (result.capabilities as Record<string, unknown>)[key];
+      expect(entry).toMatchObject({
+        supported: expect.any(Boolean),
+        coolify_min_version: expect.any(String),
+      });
     }
   });
 });

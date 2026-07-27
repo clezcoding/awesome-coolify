@@ -611,3 +611,184 @@ describe('deployment watch', () => {
     expect(result.structuredContent.error.code).toBe('COOLIFY_DEPLOYMENT_CANCELLED');
   });
 });
+
+describe('deployment logs', () => {
+  beforeEach(() => {
+    vi.mocked(fetchDeployment).mockReset();
+    vi.mocked(fetchAppDeployments).mockReset();
+  });
+
+  it('schema accepts logs with deployment_uuid only', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'logs',
+      deployment_uuid: 'dep-uuid-1',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('schema accepts logs with application_uuid only', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'logs',
+      application_uuid: 'app-uuid-1',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('schema rejects logs with both deployment_uuid and application_uuid', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'logs',
+      deployment_uuid: 'dep-uuid-1',
+      application_uuid: 'app-uuid-1',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('schema rejects logs with neither deployment_uuid nor application_uuid', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'logs',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('schema rejects logs with format table', () => {
+    const result = deploymentToolSchema.safeParse({
+      action: 'logs',
+      deployment_uuid: 'dep-uuid-1',
+      format: 'table',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('returns logs_lines envelope when fetching by deployment_uuid', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-uuid-1',
+      status: 'finished',
+      logs: JSON.stringify([
+        { output: 'build line 1', type: 'stdout', hidden: false },
+        { output: 'build line 2', type: 'stdout', hidden: false },
+      ]),
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'logs', deployment_uuid: 'dep-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.deployment_uuid).toBe('dep-uuid-1');
+    expect(Array.isArray(data.logs_lines)).toBe(true);
+    expect((data.logs_lines as string[]).length).toBeGreaterThan(0);
+  });
+
+  it('application_uuid resolves newest deployment by created_at (dep-3)', async () => {
+    vi.mocked(fetchAppDeployments).mockResolvedValue(mockDeployments);
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-3',
+      status: 'in_progress',
+      logs: 'line from dep-3',
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'logs', application_uuid: 'app-uuid-1' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect(fetchAppDeployments).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    expect(fetchDeployment).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'dep-3',
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+    const data = result.data as Record<string, unknown>;
+    expect(data.deployment_uuid).toBe('dep-3');
+  });
+
+  it('empty deployments list returns COOLIFY_NO_DEPLOYMENTS error', async () => {
+    vi.mocked(fetchAppDeployments).mockResolvedValue([]);
+
+    const result = await handleDeploymentAction(
+      { action: 'logs', application_uuid: 'app-no-deploys' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(true);
+    if (!isDeploymentErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_NO_DEPLOYMENTS');
+    expect(result.structuredContent.error.recoveryHints?.join(' ')).toMatch(
+      /application\.deploy|deployment\.list/i,
+    );
+  });
+
+  it('empty logs string returns soft OK with empty logs_lines and hint', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-empty-logs',
+      status: 'finished',
+      logs: '',
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'logs', deployment_uuid: 'dep-empty-logs' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.logs_lines).toEqual([]);
+    expect(result._meta?.hint ?? data.hint).toBeTruthy();
+  });
+
+  it('missing logs field returns COOLIFY_403_SENSITIVE_REQUIRED', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-sensitive',
+      status: 'finished',
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'logs', deployment_uuid: 'dep-sensitive' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(true);
+    if (!isDeploymentErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_403_SENSITIVE_REQUIRED',
+    );
+  });
+
+  it('non-string logs field returns COOLIFY_403_SENSITIVE_REQUIRED', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      deployment_uuid: 'dep-bad-logs',
+      status: 'finished',
+      logs: 12345,
+    });
+
+    const result = await handleDeploymentAction(
+      { action: 'logs', deployment_uuid: 'dep-bad-logs' },
+      testEnv,
+    );
+
+    expect(isDeploymentErrorResult(result)).toBe(true);
+    if (!isDeploymentErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_403_SENSITIVE_REQUIRED',
+    );
+  });
+});

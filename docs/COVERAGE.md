@@ -6,7 +6,7 @@
 
 | bucket | count |
 | --- | ---: |
-| covered | 85 |
+| covered | 86 |
 | deferred | 2 |
 | out-of-scope | 31 |
 | gap | 57 |
@@ -55,6 +55,7 @@
 | `deployment.cancel` | cancelDeployment | POST /deployments/{uuid}/cancel | covered | — |
 | `deployment.get` | fetchDeployment | GET /deployments/{uuid} | covered | — |
 | `deployment.list` | fetchAppDeployments | GET /deployments/applications/{uuid} | covered | — |
+| `deployment.logs` | fetchDeployment, fetchAppDeployments | GET /deployments/{uuid}, GET /deployments/applications/{uuid} | covered | — |
 | `deployment.watch` | fetchDeployment | GET /deployments/{uuid} | out-of-scope | Polling orchestration over fetchDeployment |
 | `diagnose.app` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid} | covered | — |
 | `diagnose.scan` | fetchServers, fetchResources | GET /servers, GET /resources | out-of-scope | Cross-resource scan orchestration |
