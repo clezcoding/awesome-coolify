@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
-current_phase: 24
-current_phase_name: capabilities-deployment-logs
-status: verifying
+current_phase: 25
+current_phase_name: Application Log Follow
+status: planning
 stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-07-27T21:23:29.893Z"
+last_updated: "2026-07-27T21:27:27.819Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 24 execution started
+last_activity_desc: Phase 24 complete, transitioned to Phase 25
 progress:
   total_phases: 4
   completed_phases: 1
@@ -28,16 +28,16 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 ## Current Position
 
-Phase: 24 (capabilities-deployment-logs) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-07-27 — Phase 24 execution started
+Phase: 25 — Application Log Follow
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-27 — Phase 24 complete, transitioned to Phase 25
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 102
+- Total plans completed: 106
 - Average duration: —
 - Total execution time: —
 
@@ -65,6 +65,7 @@ Last activity: 2026-07-27 — Phase 24 execution started
 | 21 | 5 | - | - |
 | 23 | 5 | - | - |
 | 23.1 | 5 | - | - |
+| 24 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |

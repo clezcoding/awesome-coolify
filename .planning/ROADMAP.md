@@ -69,7 +69,7 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
 
 **Milestone Goal:** App/deployment log observability, capability discovery, incident flows, and MCP branding — Coolify 4.1.2 only (no service/DB logs).
 
-- [ ] **Phase 24: Capabilities & Deployment Logs** - `system.version` capability flags + `deployment.logs` action
+- [x] **Phase 24: Capabilities & Deployment Logs** - `system.version` capability flags + `deployment.logs` action (completed 2026-07-27)
 - [ ] **Phase 25: Application Log Follow** - Bounded watch-style app log follow + no regression on existing logs
 - [ ] **Phase 26: Diagnose Logs & Incident DX** - `diagnose.logs` + incident prompt + coolify-setup skill updates
 - [ ] **Phase 27: Branding & Docs Stale Fix** - MCP icon workarounds + npm 1.0.1 docs parity
@@ -87,7 +87,7 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
   2. `system.version` returns capability flags for features known on Coolify 4.1.2 (`application_logs`, `deployment_watch`, `deploy_watch`, etc.) so agents skip unsupported APIs
   3. Agent fetches deployment build logs via `deployment.logs` by `deployment_uuid` without routing through `application.logs`
 
-**Plans:** 4/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -159,7 +159,7 @@ Plans:
 | 22 | v3.1 | 4/4 | Complete | 2026-07-27 |
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
-| 24 | v3.2 | 4/4 | In Progress|  |
+| 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
 | 25 | v3.2 | 0/? | Not started | - |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
