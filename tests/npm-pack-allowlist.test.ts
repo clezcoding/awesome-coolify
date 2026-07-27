@@ -11,6 +11,9 @@ export const FORBIDDEN_PREFIXES = [
   /^\.cursor\//,
   /^docs\/coolify_openapi/,
   /^docs\/COVERAGE/,
+  /^docs\/coverage-map/,
+  /^docs\/coverage-overrides/,
+  /^docs\/OPENAPI/,
 ] as const;
 
 /** Parse npm pack --dry-run --json file list (local read-only; no publish). */
