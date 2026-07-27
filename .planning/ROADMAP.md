@@ -90,9 +90,17 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 24-00-PLAN.md — Wave 0 Nyquist RED scaffolds (system/meta/deployment.logs/errors + coverage-map row)
 - [ ] 24-01-PLAN.md — CAP-01/CAP-02: system.version + capabilities + package version (D-07 gate)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 24-02-PLAN.md — OBS-01: deployment.logs + shared build-log processor + NO_DEPLOYMENTS
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 24-03-PLAN.md — Coverage regen + README EN/DE + deploy prompt discovery
 
 ### Phase 25: Application Log Follow
