@@ -5,15 +5,15 @@ milestone_name: Setup, Skills & DX
 current_phase: 23
 current_phase_name: openapi-coverage-npm-release
 status: executing
-stopped_at: Completed 23-01-PLAN.md
-last_updated: "2026-07-27T02:20:32.688Z"
+stopped_at: Completed 23-02-PLAN.md
+last_updated: "2026-07-27T02:26:55.947Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 80
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 23 (openapi-coverage-npm-release) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 23 execution started
 
@@ -125,6 +125,7 @@ Last activity: 2026-07-27 — Phase 23 execution started
 | Phase 23-openapi-coverage-npm-release P00 | 2min | 2 tasks | 2 files |
 | Phase 23-openapi-coverage-npm-release P03 | 3min | 2 tasks | 1 files |
 | Phase 23-openapi-coverage-npm-release P01 | 4min | 3 tasks | 10 files |
+| Phase 23-openapi-coverage-npm-release P02 | 6min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -342,6 +343,8 @@ Last activity: 2026-07-27 — Phase 23 execution started
 - [Phase ?]: Static COVERAGE.md footer — byte-compare drift gate must be deterministic
 - [Phase ?]: Scalar dereference on committed coolify_openapi.json — no hand-rolled ref walker
 - [Phase ?]: Tracer map seeds 6 actions; full ~115-action map deferred to Plan 23-02
+- [Phase ?]: manifest.sync/diff out-of-scope per D-05 — local manifest primary surface
+- [Phase ?]: 57 OpenAPI gap rows retained as honest backlog — no new MCP tools in phase 23
 
 ### Pending Todos
 
@@ -404,8 +407,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-27T02:20:32.679Z
-**Stopped at:** Completed 23-01-PLAN.md
+**Last session:** 2026-07-27T02:26:55.936Z
+**Stopped at:** Completed 23-02-PLAN.md
 **Resume file:** None
 
 ## Operator Next Steps
