@@ -355,7 +355,7 @@ Last activity: 2026-07-27 — Completed 23.1-05 gap closure
 - [Phase ?]: 57 OpenAPI gap rows retained as honest backlog — no new MCP tools in phase 23
 - [Phase ?]: ship-1-0-0 selected — major bump 0.5.0→1.0.0 per locked D-10
 - [Phase ?]: No release.yml changes — existing OIDC contract sufficient (D-12)
-- [Phase ?]: set_env delegates inline to handleApplicationAction envs:sync with confirm:true and conflict_policy:abort
+- [Phase ?]: set_env delegates inline to handleApplicationAction envs:sync with confirm:true; omits conflict_policy (CR-01)
 - [Phase ?]: env step in steps_completed only after successful envs:sync apply per D-07
 - [Phase ?]: Phase 19-21 Nyquist reconciliation: stale VALIDATION rows flipped green after vitest confirm; no new tests needed
 - [Phase ?]: Phase 19 test paths corrected to src/mcp/server.test.ts and src/mcp/tools/shared-read-params.test.ts
@@ -438,8 +438,7 @@ Resume file: None
 
 ## Operator Next Steps
 
-- `/gsd-execute-phase 23.1 --gaps-only` — run 23.1-05 (omit conflict_policy / CR-01)
-- `/gsd-verify-work 23.1` — re-verify D-05/D-07 after execute
+- `/gsd-verify-work 23.1` — re-verify D-05/D-07 after 23.1-05 gap closure
 - `/gsd-complete-milestone v3.1` — after Phase 23.1 passes verification
 
 ## Rebuild Log
