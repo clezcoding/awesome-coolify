@@ -128,15 +128,15 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Setup wizard + IDE skills + set_env delegation — Phases 22, 23.1 (SETUP-*, SKILL-*)
 - ✓ OpenAPI coverage map + npm pack allowlist + milestone Changeset 1.0.0 — Phase 23 (OAPI-01, OAPI-02, PUB-01, PUB-02)
 
-### Active
+### Active (v3.2)
 
-- (none — run `/gsd-new-milestone` to define next milestone requirements)
+- See `.planning/REQUIREMENTS.md` — OBS, CAP, DX, BRND categories
 
 ### Out of Scope
 
-- Service/DB bounded log tail — v1.1 (SVC-04, Coolify API gap)
+- Service/DB bounded log tail — v3.3 (SVC-04, requires Coolify 4.2.0+ stable; 4.1.2 has no endpoints)
 - Own YAML/stack template catalog — Coolify one-click + coolify-examples are source of truth
-- Cursor MCP list icon rendering — client limitation (D-09); server icons already correct
+- Cursor MCP list icon rendering — v3.2 attempts workarounds; may remain client limitation (D-09)
 - Cross-instance fan-out queries — rate limits / security
 - Shared manifest committed to git — leak/merge risk
 - Execute Command in Container — API broken/fehlt in Coolify 4.1.x
@@ -209,4 +209,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-27 after v3.1 milestone*
+*Last updated: 2026-07-27 — milestone v3.2 Observability & DX started*

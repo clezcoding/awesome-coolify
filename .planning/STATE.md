@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
-status: planning
-last_updated: "2026-07-27T20:04:52.275Z"
+status: roadmap_ready
+last_updated: "2026-07-27T20:10:00.000Z"
 last_activity: 2026-07-27
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Planning next milestone (`/gsd-new-milestone`)
+**Current focus:** Phase 24 — Capabilities & Deployment Logs
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 24 of 27 (Capabilities & Deployment Logs)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-27 — Milestone v3.2 started
+Status: Ready to plan
+Last activity: 2026-07-27 — v3.2 roadmap created (Phases 24–27)
 
 ## Performance Metrics
 
@@ -435,14 +435,14 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T17:11:31.348Z
-Stopped at: Completed 23.1-05-PLAN.md
+Last session: 2026-07-27
+Stopped at: v3.2 roadmap created — Phases 24–27 ready for `/gsd-plan-phase 24`
 Resume file: None
 
 ## Operator Next Steps
 
-- Merge Version Packages PR → confirm OIDC npm publish `@1.0.0`
-- `/gsd-new-milestone` — define next milestone scope
+- `/gsd-plan-phase 24` — Capabilities & Deployment Logs (CAP-01, CAP-02, OBS-01)
+- Coolify 4.1.2 only — no service/DB logs (deferred v3.3)
 
 ## Rebuild Log
 

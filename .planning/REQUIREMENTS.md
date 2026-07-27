@@ -72,24 +72,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CAP-01 | — | Pending |
-| CAP-02 | — | Pending |
-| OBS-01 | — | Pending |
-| OBS-02 | — | Pending |
-| OBS-03 | — | Pending |
-| DIAG-01 | — | Pending |
-| PROMPT-01 | — | Pending |
-| SKILL-01 | — | Pending |
-| BRND-01 | — | Pending |
-| BRND-02 | — | Pending |
-| DOC-01 | — | Pending |
+| CAP-01 | Phase 24 | Pending |
+| CAP-02 | Phase 24 | Pending |
+| OBS-01 | Phase 24 | Pending |
+| OBS-02 | Phase 25 | Pending |
+| OBS-03 | Phase 25 | Pending |
+| DIAG-01 | Phase 26 | Pending |
+| PROMPT-01 | Phase 26 | Pending |
+| SKILL-01 | Phase 26 | Pending |
+| BRND-01 | Phase 27 | Pending |
+| BRND-02 | Phase 27 | Pending |
+| DOC-01 | Phase 27 | Pending |
 
 **Coverage:**
 
 - v3.2 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-27*
-*Last updated: 2026-07-27 after milestone v3.2 scoping*
+*Last updated: 2026-07-27 after v3.2 roadmap (Phases 24–27)*
