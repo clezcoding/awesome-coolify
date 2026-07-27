@@ -153,6 +153,58 @@
 
 ---
 
+## Milestone: v3.1 — Setup, Skills & DX
+
+**Shipped:** 2026-07-27
+**Phases:** 6 (19–23 + 23.1) | **Plans:** 27 | **Tasks:** 62
+**Closeout:** `verified_closeout` (audit passed, all phases verified)
+
+### What Was Built
+
+- Flat MCP input schemas + action catalogs across 17 domain tools; 4 MCP prompts (deploy/diagnose/new-project/incident)
+- Dynamic `service.list-types` + `recipe` tool (git-app, app+db, one-click) from Coolify catalog
+- `deployment.watch` with Equal Jitter backoff, bounded timeout, dual-signal errors
+- `setup` tool: headless `gh` preflight, pause/resume, greenfield/link-existing wire, `set_env` → `envs:sync`
+- Four IDE skill packs + setup/install docs for Cursor, Claude Code, Codex
+- OpenAPI coverage generator (`docs/COVERAGE.md`, 115 actions, v4.1.2 pin) + npm pack allowlist + Changeset 1.0.0
+
+### What Worked
+
+- Wave 0 `it.fails` RED scaffolds across all 6 phases — husky stayed green during TDD flips
+- Phase 23.1 insertion closed `set_env` no-op + Nyquist gaps without blocking ship
+- Milestone audit before close (`passed`) — no override_closeout needed unlike v3.0
+- Reusing `envs:sync` for `set_env` delegation — minimal diff, shared conflict semantics
+- Scalar-backed OpenAPI dereference — no hand-rolled ref walker
+
+### What Was Inefficient
+
+- Phase 23.1 required after Phase 23 ship — `set_env` ponytail no-op discovered late
+- README service actions table omits `list-types` (documented under Recipes only)
+- Post-merge maintainer actions (Version Packages PR, live npm publish) not automatable in phase
+
+### Patterns Established
+
+- `createFlatActionSchema` + co-located `actionsCatalog`/`safetyFooter` constants
+- MCP prompts as workflow orchestration over existing atomic tools (not new tool surface)
+- Watch-primary deploy flow; `wait:true` legacy documented in prompt + README
+- Coverage map as committed artifact with `--check` drift gate
+- Nyquist reconciliation phase (23.1) as closure pattern before milestone close
+
+### Key Lessons
+
+1. Run milestone audit after final inserted phase — not after penultimate phase
+2. Delegate setup env writes to existing `envs:sync` — don't duplicate sync logic
+3. npm pack dry-run is authoritative over publint for tarball allowlist (D-14)
+4. OpenAPI gap rows are honest backlog — don't inflate MCP surface to close gaps
+
+### Cost Observations
+
+- Timeline: ~4 days (2026-07-24 → 2026-07-27)
+- 6 phases, 27 plans, 18 MCP tools / ~115 actions
+- yolo mode + phase branches; verified closeout (first clean audit pass at milestone boundary)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -162,6 +214,7 @@
 | v1.0 | 5 | 7 | Vertical MVP slices + action-based tools |
 | v2.0 | 5 | 6 | CRUD + SAF canonical patterns + env/backup layers |
 | v3.0 | 3 | 4 | Multi-instance + cloud + manifest + live UAT harness |
+| v3.1 | 4 | 6 | DX schemas + recipes + watch + setup/skills + OpenAPI coverage |
 
 ### Cumulative Quality
 
@@ -170,6 +223,7 @@
 | v1.0 | 505 | green | 32/32 |
 | v2.0 | 835 | green | optional script passed |
 | v3.0 | ~955+ | green | `npm run uat:live` harness shipped |
+| v3.1 | ~1000+ | green | Nyquist 100% on phases 19–23 |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -178,6 +232,7 @@
 3. Update traceability at phase verify, not milestone close
 4. Reuse SAF reference implementation across CRUD phases
 5. Mid-milestone audits go stale — re-audit before close or accept override
+6. Inserted closure phases (23.1) cheap way to fix tech debt before milestone close
 
 ---
 

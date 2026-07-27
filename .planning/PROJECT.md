@@ -2,31 +2,25 @@
 
 ## What This Is
 
-Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` (v0.2.0), public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, und Live-UAT gegen echte Coolify-Daten.
+Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` (v1.0.0 pending Version Packages merge), public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, Setup-Wizard + IDE-Skills, Recipes, Deploy-Watch, OpenAPI-Coverage-Audit, und Live-UAT gegen echte Coolify-Daten.
 
 ## Core Value
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.1 phases complete — Phase 23 done 2026-07-27)
+## Current State (v3.1 shipped 2026-07-27)
 
 | Metric | Value |
 |--------|-------|
-| Package | `awesome-coolify-mcp` v0.5.0 (Changeset major → 1.0.0 pending Version Packages) |
+| Package | `awesome-coolify-mcp` v0.5.0 → **1.0.0** (Changeset merged; Version Packages PR pending) |
 | Tools / Actions | 18 / ~115 |
 | TypeScript LOC | ~35.6k (`src/`) |
-| Milestone | v3.1 Setup, Skills & DX — all phases 19–23 complete |
+| Milestone | v3.1 Setup, Skills & DX — **shipped** (Phases 19–23 + 23.1) |
 | Repo | Single public `clezcoding/awesome-coolify` |
-| Distribution | OIDC Release path + pack allowlist; 1.0.0 after Version Packages merge |
-| Live UAT | `npm run uat:live` harness shipped (Phase 18) |
+| Distribution | OIDC Release path + pack allowlist verified (PUB-02) |
+| Live UAT | `npm run uat:live` harness (Phase 18) |
 
-**Phase 23 complete:** OpenAPI coverage generator (`pnpm run openapi:coverage`), committed `docs/COVERAGE.md` + `--check` drift gate, Coolify `v4.1.2` spec pin + `docs/OPENAPI.md`, npm pack allowlist (PUB-02), milestone Changeset for `1.0.0` (PUB-01).
-
-**Phase 22 complete:** Setup wizard + IDE skills (shipped earlier).
-
-**Phase 21 complete:** `deployment.watch` with backoff/jitter, bounded timeout sleep clamp, dual-signal errors, deploy-prompt + README Watch docs (WATCH-01/02).
-
-**Phase 20 complete:** Dynamic `service.list-types` + `recipe` tool (`create-git-app`, `create-app-db`, `create-one-click`) from Coolify catalog — no forked YAML.
+**v3.1 shipped:** Flat MCP schemas + action catalogs + 4 MCP prompts; dynamic `service.list-types` + `recipe` tool; `deployment.watch` with jitter/backoff; setup wizard + 4 IDE skill packs; OpenAPI coverage map (`docs/COVERAGE.md`); npm 1.0.0 Changeset; `set_env` → `envs:sync` delegation (Phase 23.1).
 
 **v3.0 shipped:** Multi-instance registry + routing, Coolify Cloud error/branding path, `.coolify/manifest.json` sync + auto-hooks, live UAT CLI harness.
 
@@ -66,24 +60,24 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 </details>
 
-## Current Milestone: v3.1 Setup, Skills & DX
+<details>
+<summary>v3.1 milestone metrics (archived)</summary>
 
-**Goal:** Agent can guided-setup a new Coolify project, use IDE skills, and close DX gaps (schema UX, MCP prompts, OpenAPI coverage, deploy watch, npm release).
+| Metric | Value |
+|--------|-------|
+| Timeline | 2026-07-24 → 2026-07-27 (~4 days) |
+| Phases | 6 (19–23 + 23.1) |
+| Plans / Tasks | 27 / 62 |
+| Requirements | 21/21 validated |
+| Closeout | `verified_closeout` (milestone audit passed) |
 
-**Target features:**
-- Setup wizard — `gh` preflight + Coolify wiring + **recipes** (not a forked template catalog)
-- IDE skills — Cursor, Claude Code, Codex
-- Richer tool descriptions — action catalogs (mitigate Cursor `oneOf` → "No parameters" UI)
-- MCP Prompts — deploy / diagnose / new-project / incident
-- Recipes + `service.list-types` — use Coolify's 200+ one-click catalog + build packs; link coolify-examples as hints only
-- OpenAPI coverage map — map official Coolify OpenAPI → MCP surface / gaps
-- Deploy watch — `deployment.watch` action + skill/prompt
-- Live npm publish — Release workflow, maintainer-triggered
+</details>
 
 ## Next Milestone Goals
 
+- **Post-ship:** Merge Version Packages PR → confirm OIDC npm publish `@1.0.0`
 - **v1.1:** SVC-04 service/DB logs when Coolify API available (v4.1.3+)
-- **Backlog:** Cross-instance fan-out (deferred); Cursor MCP icon render (client limitation)
+- **Backlog:** OpenAPI gap rows in `docs/COVERAGE.md` (~57 paths); cross-instance fan-out (deferred); Cursor MCP icon render (client limitation)
 
 ## Requirements
 
@@ -116,15 +110,15 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 ### Validated (v3.1)
 
-- ✓ Flat schemas + action catalogs + MCP prompts — Phase 19 (DX-01, DX-02, DX-DESC-*, PROMPT-01..04)
+- ✓ Flat schemas + action catalogs + MCP prompts — Phase 19 (DX-01, DX-02, PROMPT-01..04)
 - ✓ Recipes + service.list-types — Phase 20 (RECIPE-01..04)
-- ✓ Deploy watch — Phase 21 (WATCH-01, WATCH-02). Validated in Phase 21: Deploy Watch
-- ✓ Setup wizard + IDE skills — Phase 22 (SETUP-*, SKILL-*)
-- ✓ OpenAPI coverage map + npm pack allowlist + milestone Changeset 1.0.0 — Phase 23 (OAPI-01, OAPI-02, PUB-01, PUB-02). Validated in Phase 23: openapi-coverage-npm-release
+- ✓ Deploy watch — Phase 21 (WATCH-01, WATCH-02)
+- ✓ Setup wizard + IDE skills + set_env delegation — Phases 22, 23.1 (SETUP-*, SKILL-*)
+- ✓ OpenAPI coverage map + npm pack allowlist + milestone Changeset 1.0.0 — Phase 23 (OAPI-01, OAPI-02, PUB-01, PUB-02)
 
-### Active (v3.1)
+### Active
 
-- (none — v3.1 phase work complete; npm `1.0.0` lands after Phase 23 PR → Version Packages → OIDC)
+- (none — run `/gsd-new-milestone` to define next milestone requirements)
 
 ### Out of Scope
 
@@ -181,7 +175,9 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 | Hybrid live UAT (stdio + in-process) | Cover MCP wire + handler paths | ✓ Good — Phase 18 |
 | UAT harness not in npm tarball | Maintainer-only; D-02/D-03 | ✓ Good — Phase 18 |
 | v3.1: recipes over template forks | Coolify 200+ one-click + build packs; avoid stale YAML | ✓ Good — Phase 20 |
-| v3.1: npm publish in-milestone | Release workflow, maintainer-triggered | Active — v3.1 |
+| v3.1: npm publish in-milestone | Release workflow, maintainer-triggered | ✓ Good — Changeset 1.0.0 shipped; OIDC publish on Version Packages merge |
+| v3.1: recipes over template forks | Coolify catalog is source of truth | ✓ Good — Phase 20 |
+| Flat schemas for Cursor UX | Mitigate empty `oneOf` parameter panels | ✓ Good — Phase 19 |
 
 ## Evolution
 
@@ -201,4 +197,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-27 after Phase 23*
+*Last updated: 2026-07-27 after v3.1 milestone*
