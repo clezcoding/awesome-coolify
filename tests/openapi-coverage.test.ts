@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -163,14 +164,16 @@ describe('coverage-map completeness (OAPI-01/OAPI-02)', () => {
 
 describe('assertCoverageFresh', () => {
   it('throws when docs/COVERAGE.md is stale (D-06)', async () => {
-    const { assertCoverageFresh } = await import('../scripts/openapi-coverage.mjs');
-    const original = readFileSync(COVERAGE_PATH, 'utf8');
+    const { assertCoverageFresh, generateCoverageMarkdown } = await import(
+      '../scripts/openapi-coverage.mjs'
+    );
+    const fresh = await generateCoverageMarkdown();
+    const dir = mkdtempSync(join(tmpdir(), 'coverage-fresh-test-'));
+    const stalePath = join(dir, 'COVERAGE.md');
+    writeFileSync(stalePath, `${fresh}\n<!-- stale -->\n`, 'utf8');
 
-    try {
-      writeFileSync(COVERAGE_PATH, `${original}\n<!-- stale -->\n`, 'utf8');
-      await expect(assertCoverageFresh()).rejects.toThrow(/COVERAGE|stale|missing/i);
-    } finally {
-      writeFileSync(COVERAGE_PATH, original, 'utf8');
-    }
+    await expect(assertCoverageFresh({ coveragePath: stalePath })).rejects.toThrow(
+      /COVERAGE|stale|missing/i,
+    );
   });
 });

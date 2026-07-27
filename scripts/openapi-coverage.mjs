@@ -47,11 +47,14 @@ export async function generateCoverageMarkdown() {
 
 /**
  * Regenerate and byte-compare docs/COVERAGE.md. Throws when missing or stale.
+ *
+ * @param {{ coveragePath?: string }} [options]
  */
-export async function assertCoverageFresh() {
+export async function assertCoverageFresh(options = {}) {
+  const outputPath = options.coveragePath ?? OUTPUT_PATH;
   let committed;
   try {
-    committed = readFileSync(OUTPUT_PATH, 'utf8');
+    committed = readFileSync(outputPath, 'utf8');
   } catch {
     throw new Error('docs/COVERAGE.md is missing — run pnpm run openapi:coverage');
   }
