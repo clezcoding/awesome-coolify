@@ -3,11 +3,10 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23
-status: completed
+status: "Phase 23 shipped — PR #91"
 stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-07-27T03:07:41.801Z"
+last_updated: "2026-07-27T03:15:37.129Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 23 complete
 progress:
   total_phases: 5
   completed_phases: 5
@@ -15,6 +14,7 @@ progress:
   completed_plans: 22
   percent: 100
 current_phase_name: openapi-coverage-npm-release
+last_activity_desc: Phase 23 complete
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 23
 Plan: Not started
-Status: Milestone phases complete — ready to archive v3.1
-Last activity: 2026-07-27 — Phase 23 complete
+Status: Phase 23 shipped — PR #91
+Last activity: 2026-07-27
 
 ## Performance Metrics
 
@@ -415,7 +415,6 @@ Last session: 2026-07-27
 Stopped at: Phase 23 complete — v3.1 milestone phases finished, ready for /gsd-complete-milestone
 Resume file: None
 
-
 ## Operator Next Steps
 
 - `/gsd-discuss-phase 23` or `/gsd-plan-phase 23` — OpenAPI Coverage & npm Release
@@ -437,4 +436,3 @@ Resume file: None
 Last session: 2026-07-27
 Stopped at: Phase 23 complete — v3.1 milestone phases finished, ready for /gsd-complete-milestone
 Resume file: None
-
