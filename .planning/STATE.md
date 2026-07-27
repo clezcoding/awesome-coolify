@@ -3,11 +3,10 @@ gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23.1
-status: completed
+status: "Phase 23.1 shipped — PR #95"
 stopped_at: Completed 23.1-05-PLAN.md
-last_updated: "2026-07-27T17:59:49.603Z"
+last_updated: "2026-07-27T18:19:12.545Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 23.1 complete
 progress:
   total_phases: 6
   completed_phases: 6
@@ -15,6 +14,7 @@ progress:
   completed_plans: 27
   percent: 100
 current_phase_name: address-tech-debt-set-env-nyquist-validation
+last_activity_desc: Phase 23.1 complete
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 Phase: 23.1
 Plan: Not started
-Status: All phases complete
-Last activity: 2026-07-27 — Phase 23.1 complete
+Status: Phase 23.1 shipped — PR #95
+Last activity: 2026-07-27
 
 ## Performance Metrics
 
