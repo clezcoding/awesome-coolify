@@ -5,15 +5,15 @@ milestone_name: Setup, Skills & DX
 current_phase: 23
 current_phase_name: openapi-coverage-npm-release
 status: executing
-stopped_at: Completed 23-00-PLAN.md
-last_updated: "2026-07-27T02:12:00.911Z"
+stopped_at: Completed 23-03-PLAN.md
+last_updated: "2026-07-27T02:14:56.270Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
   percent: 80
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 ## Current Position
 
 Phase: 23 (openapi-coverage-npm-release) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-27 — Phase 23 execution started
 
@@ -123,6 +123,7 @@ Last activity: 2026-07-27 — Phase 23 execution started
 | Phase 22-setup-wizard-ide-skills P02 | 3min | 2 tasks | 4 files |
 | Phase 22-setup-wizard-ide-skills P03 | 3min | 3 tasks | 11 files |
 | Phase 23-openapi-coverage-npm-release P00 | 2min | 2 tasks | 2 files |
+| Phase 23-openapi-coverage-npm-release P03 | 3min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -335,6 +336,8 @@ Last activity: 2026-07-27 — Phase 23 execution started
 - [Phase ?]: install.html hero 18 tools — setup is 18th registerTool per 22-01
 - [Phase ?]: Wave 0 it.fails RED scaffolds for Phase 23 — flip to it in 23-01..23-03
 - [Phase ?]: npm-pack it.fails imports future npm-pack-allowlist.mjs — live tarball already clean
+- [Phase ?]: npm pack allowlist assertions inline in test file per Plan 23-03
+- [Phase ?]: publint retained as supplementary gate; npm pack dry-run authoritative (D-14)
 
 ### Pending Todos
 
@@ -397,8 +400,8 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-**Last session:** 2026-07-27T02:12:00.903Z
-**Stopped at:** Completed 23-00-PLAN.md
+**Last session:** 2026-07-27T02:14:56.261Z
+**Stopped at:** Completed 23-03-PLAN.md
 **Resume file:** None
 
 ## Operator Next Steps
