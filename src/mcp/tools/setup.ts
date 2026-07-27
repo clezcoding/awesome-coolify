@@ -43,7 +43,7 @@ import {
 } from './shared-read-params.js';
 
 export const setupActionsCatalog =
-  'Actions: preflight() · wire(mode, ...) · resume(mode?, ...)';
+  'Actions: preflight() · wire(mode, set_env?, env_file?, env_content?, ...) · resume(mode?, set_env?, env_file?, env_content?, ...)';
 
 export const setupSafetyFooter =
   'Safety: optional instance · no auto-push · gh soft-pause';
@@ -134,6 +134,8 @@ export const setupActionSchema = createFlatActionSchema(
     type: z.string().optional().describe('One-click service type'),
     instant_deploy: z.boolean().optional().describe('Instant deploy for recipe create'),
     domains: z.string().optional().describe('Comma-separated domains when include_domains'),
+    env_file: z.string().optional().describe('Local filesystem path to a .env file'),
+    env_content: z.string().optional().describe('Inline .env file content'),
     ...sharedReadParamsFlatShape,
   },
   {
@@ -165,6 +167,8 @@ export const setupActionSchema = createFlatActionSchema(
       'type',
       'instant_deploy',
       'domains',
+      'env_file',
+      'env_content',
       'format',
       'max_chars',
     ],
@@ -195,11 +199,27 @@ export const setupActionSchema = createFlatActionSchema(
       'type',
       'instant_deploy',
       'domains',
+      'env_file',
+      'env_content',
       'format',
       'max_chars',
     ],
   },
   { wire: ['mode'] },
+  (data, ctx) => {
+    if ((data.action === 'wire' || data.action === 'resume') && data.set_env === true) {
+      const hasFile = typeof data.env_file === 'string' && data.env_file.length > 0;
+      const hasContent = typeof data.env_content === 'string' && data.env_content.length > 0;
+      if (hasFile === hasContent) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Exactly one of env_file (local path) or env_content (inline .env text) is required when set_env:true',
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }
+  },
 );
 
 export type SetupAction = z.infer<typeof setupActionSchema>;
@@ -735,7 +755,28 @@ async function runOptionalWireSteps(
   }
 
   if (flagEnabled(parsed.set_env)) {
-    // ponytail: set_env without env_file/env_content is a no-op until env sync params ship
+    if (resource.type !== 'application') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'set_env requires an application resource (not service)',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
+    const syncResult = await handleApplicationAction(
+      {
+        action: 'envs:sync',
+        uuid: resource.uuid,
+        ...(parsed.env_file ? { env_file: parsed.env_file } : { env_content: parsed.env_content }),
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'abort',
+        instance: parsed.instance,
+      },
+      env,
+    );
+    if (isApplicationErrorResult(syncResult)) {
+      rethrowHandlerError(syncResult);
+    }
     stepsCompleted.push('env');
   }
 

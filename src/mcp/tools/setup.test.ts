@@ -380,3 +380,119 @@ describe('handleSetupAction wire deploy_and_watch', () => {
     );
   });
 });
+
+describe('set_env', () => {
+  beforeEach(() => {
+    checkGhAuthMock.mockReset();
+    createGhRepoMock.mockReset();
+    vi.mocked(handleRecipeAction).mockReset();
+    vi.mocked(handleApplicationAction).mockReset();
+    mockLinkageFetch();
+    checkGhAuthMock.mockResolvedValue({ ok: true });
+    vi.mocked(handleRecipeAction).mockResolvedValue({
+      data: { application_uuid: APP_UUID },
+    });
+    vi.mocked(handleApplicationAction).mockResolvedValue({
+      data: { dry_run: false, added: [], updated: [{ key: 'FOO' }] },
+    });
+    testWorkspaceRoot = mkdtempSync(join(tmpdir(), 'coolify-mcp-setup-'));
+    process.env.COOLIFY_MCP_TEST_WORKSPACE = testWorkspaceRoot;
+  });
+
+  afterEach(() => {
+    delete process.env.COOLIFY_MCP_TEST_WORKSPACE;
+    rmSync(testWorkspaceRoot, { recursive: true, force: true });
+  });
+
+  it('link-existing wire delegates envs:sync and marks env step complete', async () => {
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'link-existing',
+        application_uuid: APP_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        server_uuid: SERVER_UUID,
+        skip_gh: true,
+        set_env: true,
+        env_content: 'FOO=bar',
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(false);
+    if (isSetupErrorResult(result)) return;
+
+    expect(handleApplicationAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'envs:sync',
+        uuid: APP_UUID,
+        env_content: 'FOO=bar',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'abort',
+      }),
+      testEnv,
+    );
+    expect(result.data.steps_completed).toContain('env');
+  });
+});
+
+describe('set_env', () => {
+  beforeEach(() => {
+    checkGhAuthMock.mockReset();
+    createGhRepoMock.mockReset();
+    vi.mocked(handleRecipeAction).mockReset();
+    vi.mocked(handleApplicationAction).mockReset();
+    mockLinkageFetch();
+    checkGhAuthMock.mockResolvedValue({ ok: true });
+    vi.mocked(handleRecipeAction).mockResolvedValue({
+      data: { application_uuid: APP_UUID },
+    });
+    vi.mocked(handleApplicationAction).mockResolvedValue({
+      data: { dry_run: false, added: [], updated: [{ key: 'FOO' }] },
+    });
+    testWorkspaceRoot = mkdtempSync(join(tmpdir(), 'coolify-mcp-setup-'));
+    process.env.COOLIFY_MCP_TEST_WORKSPACE = testWorkspaceRoot;
+  });
+
+  afterEach(() => {
+    delete process.env.COOLIFY_MCP_TEST_WORKSPACE;
+    rmSync(testWorkspaceRoot, { recursive: true, force: true });
+  });
+
+  it('link-existing wire delegates envs:sync and marks env step complete', async () => {
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'link-existing',
+        application_uuid: APP_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        server_uuid: SERVER_UUID,
+        skip_gh: true,
+        set_env: true,
+        env_content: 'FOO=bar',
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(false);
+    if (isSetupErrorResult(result)) return;
+
+    expect(handleApplicationAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'envs:sync',
+        uuid: APP_UUID,
+        env_content: 'FOO=bar',
+        dry_run: false,
+        confirm: true,
+        conflict_policy: 'abort',
+      }),
+      testEnv,
+    );
+    expect(result.data.steps_completed).toContain('env');
+  });
+});
