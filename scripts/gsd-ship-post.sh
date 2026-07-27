@@ -61,6 +61,40 @@ fi
 
 echo "==> gsd-ship-post PR #${PR}"
 
+# Branch protection binds required checks to PR HEAD. A tip with [ci skip] / [skip ci]
+# never reports Lint/MegaLinter → Kodiak waits forever (only kodiakhq: skipping).
+ensure_pr_tip_triggers_ci() {
+  local head_msg branch
+  head_msg="$(git log -1 --format=%B 2>/dev/null || true)"
+  if ! grep -qiE '\[(ci skip|skip ci)\]' <<<"$head_msg"; then
+    return 0
+  fi
+  echo "gsd-ship-post: WARN PR tip skips CI ([ci skip] on HEAD) — required checks will not report"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "gsd-ship-post: dry-run would push empty commit to trigger Lint, Test & Build + MegaLinter"
+    return 0
+  fi
+  if [[ "$NO_PUSH" -eq 1 ]]; then
+    echo "gsd-ship-post: --no-push set; fix manually: empty commit without [ci skip] on PR branch" >&2
+    return 1
+  fi
+  branch="$(git branch --show-current 2>/dev/null || true)"
+  if [[ -z "$branch" ]]; then
+    echo "gsd-ship-post: not on a branch; cannot auto-fix ci skip on tip" >&2
+    return 1
+  fi
+  git commit --allow-empty -m "$(cat <<EOF
+ci: trigger required checks
+
+Prior tip had [ci skip]; empty commit so branch protection checks can report.
+EOF
+)"
+  git push -u origin "$branch"
+  echo "gsd-ship-post: pushed empty CI trigger commit on ${branch}"
+}
+
+ensure_pr_tip_triggers_ci || true
+
 DRY_FLAG=()
 if [[ "$DRY_RUN" -eq 1 ]]; then
   DRY_FLAG=(--dry-run)

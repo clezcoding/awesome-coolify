@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 22
-current_phase_name: setup-wizard-ide-skills
-status: ready_to_ship
-stopped_at: Phase 22 UAT complete — ready for /gsd-ship
-last_updated: "2026-07-27T00:22:00.000Z"
+current_phase: 23
+current_phase_name: openapi-coverage-npm-release
+status: Phase 22 shipped — PR #87
+stopped_at: Phase 22 shipped — proceed to Phase 23
+last_updated: "2026-07-27T02:44:00.000Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 22 UAT test #1 passed via agent-browser mobile layout check
+last_activity_desc: Phase 22 shipped — PR #87 (+ follow-up PR #88 markdownlint)
 progress:
   total_phases: 5
   completed_phases: 4
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 22 — setup-wizard-ide-skills
+**Current focus:** Phase 23 — openapi-coverage-npm-release
 
 ## Current Position
 
-Phase: 22 (setup-wizard-ide-skills) — READY TO SHIP
-Plan: 4 of 4 complete
-Status: UAT passed (12/12 verification truths)
-Last activity: 2026-07-27 — agent-browser mobile layout UAT pass
+Phase: 23 (openapi-coverage-npm-release) — NOT STARTED
+Plan: TBD
+Status: Phase 22 shipped — PR #87 (follow-up PR #88 markdownlint)
+Last activity: 2026-07-27 — Phase 22 merged to main
 
 ## Performance Metrics
 
@@ -384,22 +384,23 @@ Items acknowledged and deferred at v3.0 milestone close on 2026-07-23 (`closeout
 
 | Category | Item | Status |
 |----------|------|--------|
-| todo | 2026-07-16-custom-skills-pro-ide-f-r-coolify.md | deferred to v3.1 (SKILL-*) |
+| todo | 2026-07-16-custom-skills-pro-ide-f-r-coolify.md | shipped Phase 22 (SKILL-*) |
 | todo | 2026-07-16-lokale-projekt-manifest-datei-f-r-coolify-metadaten.md | shipped Phase 17 — pending file leftover |
-| todo | 2026-07-16-standard-setup-tool-f-r-neue-coolify-projekte.md | deferred to v3.1 (SETUP-*) |
+| todo | 2026-07-16-standard-setup-tool-f-r-neue-coolify-projekte.md | shipped Phase 22 (SETUP-*) |
 | todo | 2026-07-18-integrate-official-coolify-openapi-specs.md | deferred (OpenAPI coverage integration) |
 
 Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE-AUDIT.md (`gaps_found` from 2026-07-21) superseded by post-ship phase verification (15–18 passed).
 
 ## Session Continuity
 
-**Last session:** 2026-07-27T00:22:00.000Z
-**Stopped at:** Phase 22 UAT complete — proceed to `/gsd-ship`
+**Last session:** 2026-07-27T02:44:00.000Z
+**Stopped at:** Phase 22 shipped — proceed to Phase 23
 **Resume file:** None
 
 ## Operator Next Steps
 
-- `/gsd-ship` — open PR for Phase 22
+- `/gsd-discuss-phase 23` or `/gsd-plan-phase 23` — OpenAPI Coverage & npm Release
+- `/gsd-complete-milestone v3.1` — after Phase 23 ships
 
 ## Rebuild Log
 
