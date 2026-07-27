@@ -779,7 +779,14 @@ async function runOptionalWireSteps(
     stepsCompleted.push('env');
   }
 
-  if (flagEnabled(parsed.deploy_and_watch) && resource.type === 'application') {
+  if (flagEnabled(parsed.deploy_and_watch)) {
+    if (resource.type !== 'application') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_VALIDATION_ERROR',
+        message: 'deploy_and_watch requires an application resource (not service)',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      });
+    }
     const deployResult = await handleApplicationAction(
       {
         action: 'deploy',

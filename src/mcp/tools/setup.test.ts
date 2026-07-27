@@ -380,6 +380,36 @@ describe('handleSetupAction wire deploy_and_watch', () => {
       testEnv,
     );
   });
+
+  it('rejects deploy_and_watch on create-one-click service resource (non-application)', async () => {
+    vi.mocked(handleRecipeAction).mockResolvedValue({
+      data: { service_uuid: SERVICE_UUID },
+    });
+
+    const { handleSetupAction, isSetupErrorResult } = await import('./setup.js');
+    const result = await handleSetupAction(
+      {
+        action: 'wire',
+        mode: 'greenfield',
+        server_uuid: SERVER_UUID,
+        project_uuid: PROJECT_UUID,
+        environment_uuid: ENV_UUID,
+        recipe_type: 'create-one-click',
+        type: 'postgresql',
+        skip_gh: true,
+        deploy_and_watch: true,
+      },
+      testEnv,
+    );
+
+    expect(isSetupErrorResult(result)).toBe(true);
+    if (!isSetupErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+    expect(result.structuredContent.error.message).toMatch(/requires an application resource/i);
+    expect(handleApplicationAction).not.toHaveBeenCalled();
+    expect(handleDeploymentAction).not.toHaveBeenCalled();
+  });
 });
 
 describe('set_env', () => {
