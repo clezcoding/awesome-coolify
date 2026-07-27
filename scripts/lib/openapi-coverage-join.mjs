@@ -110,6 +110,15 @@ export function classifyRows({ operations, map, overrides = [], catalogs = {} })
         actionNames.add(`${tool}.${action}`);
       }
     }
+
+    const missingFromCatalog = map
+      .map((entry) => entry.action)
+      .filter((action) => !actionNames.has(action));
+    if (missingFromCatalog.length) {
+      throw new Error(
+        `coverage-map.yaml actions missing from *ActionsCatalog: ${missingFromCatalog.join(', ')}`,
+      );
+    }
   } else {
     for (const entry of map) actionNames.add(entry.action);
     for (const action of byAction.keys()) actionNames.add(action);
