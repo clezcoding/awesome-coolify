@@ -8,7 +8,7 @@ status: Phase 22 shipped — PR #87
 stopped_at: Phase 22 shipped — proceed to Phase 23
 last_updated: "2026-07-27T02:44:00.000Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 22 shipped — PR #87 (+ follow-up PR #88 markdownlint)
+last_activity_desc: Completed quick task 260727-4hd: Projektordner aufräumen + .gitignore
 progress:
   total_phases: 5
   completed_phases: 4
@@ -360,6 +360,7 @@ Last activity: 2026-07-27 — Phase 22 merged to main
 | 260724-86t | Install recommended next GitHub tools (CODEOWNERS, CodeQL, dependency review, stale, semantic PR) | 2026-07-24 | 5405dc2 | [260724-86t-install-all-recommended-next-from-260724](./quick/260724-86t-install-all-recommended-next-from-260724/) |
 | 260725-8la | Phase 20 review leftovers: recipe Object.hasOwn, deploy.status, allowlist, README 17 tools | 2026-07-25 | 4aed33b | [260725-8la-phase-20-review-leftovers-1-object-hasow](./quick/260725-8la-phase-20-review-leftovers-1-object-hasow/) |
 | 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | a0b6187 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
+| 260727-4hd | Projektordner aufräumen + .gitignore (nur projektrelevante Dateien) | 2026-07-27 | 2b940cb | [260727-4hd-r-ume-den-projektordner-auf-und-sortiere](./quick/260727-4hd-r-ume-den-projektordner-auf-und-sortiere/) |
 
 ## Deferred Items
 
