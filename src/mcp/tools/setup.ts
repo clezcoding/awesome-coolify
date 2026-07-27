@@ -769,7 +769,6 @@ async function runOptionalWireSteps(
         ...(parsed.env_file ? { env_file: parsed.env_file } : { env_content: parsed.env_content }),
         dry_run: false,
         confirm: true,
-        conflict_policy: 'abort',
         instance: parsed.instance,
       },
       env,

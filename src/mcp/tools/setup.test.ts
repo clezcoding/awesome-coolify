@@ -432,10 +432,10 @@ describe('set_env', () => {
         env_content: 'FOO=bar',
         dry_run: false,
         confirm: true,
-        conflict_policy: 'abort',
       }),
       testEnv,
     );
+    expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('conflict_policy');
     expect(result.data.steps_completed).toContain('env');
   });
 
@@ -466,10 +466,10 @@ describe('set_env', () => {
         env_content: 'FOO=bar',
         dry_run: false,
         confirm: true,
-        conflict_policy: 'abort',
       }),
       testEnv,
     );
+    expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('conflict_policy');
     expect(result.data.steps_completed).toContain('env');
   });
 
@@ -558,6 +558,10 @@ describe('set_env', () => {
       expect.objectContaining({ action: 'envs:sync' }),
       testEnv,
     );
+    expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('conflict_policy');
+    if (!isSetupErrorResult(result) && 'steps_completed' in result.data) {
+      expect(result.data.steps_completed).not.toContain('env');
+    }
   });
 
   it('rejects set_env on create-one-click service resource (non-application)', async () => {
@@ -615,10 +619,12 @@ describe('set_env', () => {
         action: 'envs:sync',
         uuid: APP_UUID,
         env_content: 'FOO=bar',
-        conflict_policy: 'abort',
+        dry_run: false,
+        confirm: true,
       }),
       testEnv,
     );
+    expect(handleApplicationAction.mock.calls[0]?.[0]).not.toHaveProperty('conflict_policy');
     expect(result.data.steps_completed).toContain('env');
   });
 });
