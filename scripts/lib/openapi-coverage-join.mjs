@@ -5,6 +5,26 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
+ * @param {string} action
+ * @returns {string}
+ */
+function stripCallParams(action) {
+  const open = action.indexOf('(');
+  if (open === -1) return action.trim();
+
+  let depth = 0;
+  for (let i = open; i < action.length; i++) {
+    if (action[i] === '(') depth++;
+    else if (action[i] === ')') {
+      depth--;
+      if (depth === 0) return action.slice(0, open).trim();
+    }
+  }
+
+  return action.trim();
+}
+
+/**
  * @param {string} catalogText
  * @returns {string[]}
  */
@@ -15,7 +35,7 @@ export function parseCatalogActions(catalogText) {
   return match[1]
     .split('·')
     .map((part) => part.trim())
-    .map((part) => part.replace(/\([^)]*\)/g, '').trim())
+    .map((part) => stripCallParams(part))
     .filter(Boolean);
 }
 
@@ -33,12 +53,11 @@ export function loadActionsCatalogs(toolsDir) {
     const tool = file.replace(/\.ts$/, '');
     const source = readFileSync(join(toolsDir, file), 'utf8');
     const catalogMatch = source.match(
-      /export const \w+ActionsCatalog\s*=\s*([\s\S]*?);/,
+      /export const \w+ActionsCatalog\s*=\s*((?:'[^']*'|"[^"]*"|`[^`]*`|\s*\+\s*)+)\s*;/,
     );
     if (!catalogMatch) continue;
 
-    // ponytail: concat-aware — application/database catalogs span `'...' + '...'` segments
-    const catalogText = [...catalogMatch[1].matchAll(/(['"`])([\s\S]*?)\1/g)]
+    const catalogText = [...catalogMatch[1].matchAll(/(['"])(.*?)\1/g)]
       .map((m) => m[2])
       .join('');
     catalogs[tool] = parseCatalogActions(catalogText);
