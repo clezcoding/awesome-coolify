@@ -33,11 +33,15 @@ export function loadActionsCatalogs(toolsDir) {
     const tool = file.replace(/\.ts$/, '');
     const source = readFileSync(join(toolsDir, file), 'utf8');
     const catalogMatch = source.match(
-      /export const \w+ActionsCatalog\s*=\s*(\n\s*)?(['"`])([\s\S]*?)\2/,
+      /export const \w+ActionsCatalog\s*=\s*([\s\S]*?);/,
     );
     if (!catalogMatch) continue;
 
-    catalogs[tool] = parseCatalogActions(catalogMatch[3]);
+    // ponytail: concat-aware — application/database catalogs span `'...' + '...'` segments
+    const catalogText = [...catalogMatch[1].matchAll(/(['"`])([\s\S]*?)\1/g)]
+      .map((m) => m[2])
+      .join('');
+    catalogs[tool] = parseCatalogActions(catalogText);
   }
 
   return catalogs;

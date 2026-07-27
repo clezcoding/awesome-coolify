@@ -3,6 +3,9 @@ overrides:
   - key: "GET /services/{uuid}/logs"
     bucket: deferred
     reason: "SVC-04 — Coolify 4.1.x has no service log endpoint"
+  - key: "GET /databases/{uuid}/logs"
+    bucket: deferred
+    reason: "SVC-04 — Coolify 4.1.x has no database log endpoint"
   - key: execute_command
     bucket: out-of-scope
     reason: "Absent from OpenAPI per Spike 001 — not in v4.x spec"
@@ -10,16 +13,91 @@ overrides:
 action_overrides:
   - action: manifest.sync
     bucket: out-of-scope
-    reason: "Local workspace file only — no Coolify REST op"
+    reason: "Local workspace file orchestration — REST reads are ancillary"
   - action: manifest.get
     bucket: out-of-scope
     reason: "Local workspace file only — no Coolify REST op"
   - action: manifest.diff
     bucket: out-of-scope
-    reason: "Local workspace file only — no Coolify REST op"
+    reason: "Local workspace diff — REST reads are ancillary"
+  - action: manifest.upsert
+    bucket: out-of-scope
+    reason: "Local .coolify/manifest.json only"
+  - action: manifest.set
+    bucket: out-of-scope
+    reason: "Local manifest file only"
+  - action: manifest.remove
+    bucket: out-of-scope
+    reason: "Local manifest file only"
+  - action: manifest.clear
+    bucket: out-of-scope
+    reason: "Local manifest file only"
   - action: docs.search
     bucket: out-of-scope
     reason: "Local docs index — no Coolify REST op"
   - action: meta.version
     bucket: out-of-scope
     reason: "Package version — not Coolify API"
+  - action: setup.preflight
+    bucket: out-of-scope
+    reason: "GitHub CLI preflight — no Coolify REST op"
+  - action: setup.wire
+    bucket: out-of-scope
+    reason: "Multi-step onboarding orchestration"
+  - action: setup.resume
+    bucket: out-of-scope
+    reason: "Delegates to preflight/wire — no standalone REST op"
+  - action: recipe.create-git-app
+    bucket: out-of-scope
+    reason: "Orchestration wrapper over application.create + deploy"
+  - action: recipe.create-app-db
+    bucket: out-of-scope
+    reason: "Multi-resource orchestration (database + application + env)"
+  - action: recipe.create-one-click
+    bucket: out-of-scope
+    reason: "Orchestration wrapper over service.create"
+  - action: instance.list
+    bucket: out-of-scope
+    reason: "Local InstanceManager registry — no Coolify REST op"
+  - action: instance.get
+    bucket: out-of-scope
+    reason: "Local InstanceManager registry"
+  - action: instance.add
+    bucket: out-of-scope
+    reason: "Local InstanceManager registry"
+  - action: instance.update
+    bucket: out-of-scope
+    reason: "Local InstanceManager registry"
+  - action: instance.delete
+    bucket: out-of-scope
+    reason: "Local InstanceManager registry"
+  - action: instance.set-default
+    bucket: out-of-scope
+    reason: "Local InstanceManager registry"
+  - action: instance.import-env
+    bucket: out-of-scope
+    reason: "Local registry from env vars"
+  - action: instance.cloud-info
+    bucket: out-of-scope
+    reason: "Local inference — no Coolify REST op"
+  - action: emergency.stop_all
+    bucket: out-of-scope
+    reason: "Fan-out orchestration over running applications"
+  - action: emergency.redeploy_project
+    bucket: out-of-scope
+    reason: "Fan-out deploy orchestration"
+  - action: emergency.restart_project
+    bucket: out-of-scope
+    reason: "Fan-out restart orchestration"
+  - action: diagnose.scan
+    bucket: out-of-scope
+    reason: "Cross-resource scan orchestration"
+  - action: application.envs:sync
+    bucket: out-of-scope
+    reason: "File↔remote env reconciliation orchestration"
+  - action: deployment.watch
+    bucket: out-of-scope
+    reason: "Polling orchestration over fetchDeployment"
+  - action: service.list-types
+    bucket: out-of-scope
+    reason: "CDN/GitHub service templates — fetchVersion ancillary only"
