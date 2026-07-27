@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-27T05:26:23.122Z",
+  "phase": "23.1",
+  "phase_name": "address-tech-debt-set-env-nyquist-validation",
+  "phase_dir": ".planning/phases/23.1-address-tech-debt-set-env-nyquist-validation",
+  "plan": 4,
+  "task": 0,
+  "total_tasks": 0,
+  "status": "paused",
+  "execution_status": "all_plans_complete_verification_gaps",
+  "completed_tasks": [
+    {"id": "23.1-01", "name": "set_env → envs:sync delegation", "status": "done", "commit": "b59b40a"},
+    {"id": "23.1-02", "name": "Nyquist validate phases 19-21", "status": "done", "commit": "a9f9c26"},
+    {"id": "23.1-04", "name": "set_env docs + coolify-setup skill", "status": "done", "commit": "a272bb9"},
+    {"id": "23.1-03", "name": "Nyquist validate phases 22-23", "status": "done", "commit": "3ea5fe2"}
+  ],
+  "remaining_tasks": [
+    {"id": "gap-closure", "name": "Fix D-05/D-07 conflict_policy behavior in setup.ts", "status": "not_started"},
+    {"id": "gap-closure", "name": "Fix conflict test to match production path", "status": "not_started"},
+    {"id": "gap-closure", "name": "Re-verify phase 23.1 after gap fix", "status": "not_started"}
+  ],
+  "blockers": [
+    {
+      "description": "setup.ts passes explicit conflict_policy:'abort' — envs:sync partial-applies on conflicts instead of surfacing COOLIFY_CONFIRM_REQUIRED (D-05/D-07)",
+      "type": "technical",
+      "workaround": "Omit conflict_policy on setup delegation OR inspect syncResult aborted/conflicts before pushing 'env' to steps_completed"
+    }
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "All 4 plans executed sequentially on main checkout (USE_WORKTREES=false)",
+      "rationale": "Project config disables worktree isolation on cursor runtime",
+      "phase": "23.1"
+    },
+    {
+      "decision": "Nyquist inventory phases 19-23 all nyquist_compliant: true",
+      "rationale": "Plans 23.1-02 and 23.1-03 validated existing green tests — doc-only reconciliation",
+      "phase": "23.1"
+    },
+    {
+      "decision": "Phase NOT marked complete — verification gaps_found 12/14",
+      "rationale": "SETUP-02 conflict safety contract not met; milestone close blocked",
+      "phase": "23.1"
+    }
+  ],
+  "uncommitted_files": [
+    ".planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/23.1-REVIEW.md",
+    ".planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/23.1-VERIFICATION.md",
+    ".planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/23.1-02-SUMMARY.md",
+    ".planning/v3.1-MILESTONE-AUDIT.md"
+  ],
+  "branch": "gsd/phase-23.1-address-tech-debt-set-env-nyquist-validation",
+  "tests_last_run": "1112 passed (54 files)",
+  "next_action": "/gsd-plan-phase 23.1 --gaps — then /gsd-execute-phase 23.1 --gaps-only",
+  "context_notes": "Execution complete. Verifier + code review both flagged same root cause: conflict_policy:'abort' in setup.ts:770-772. Docs/skill claim stop-on-conflict but code partial-applies. Fix before /gsd-complete-milestone v3.1."
+}
