@@ -416,14 +416,14 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27T04:48:11.255Z
-Stopped at: Phase 23.1 context gathered
-Resume file: .planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/23.1-CONTEXT.md
+Last session: 2026-07-27T04:56:00.000Z
+Stopped at: Phase 23.1 planning complete (4 plans)
+Resume file: .planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/23.1-01-PLAN.md
 
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 23` or `/gsd-plan-phase 23` — OpenAPI Coverage & npm Release
-- `/gsd-complete-milestone v3.1` — after Phase 23 ships
+- `/gsd-execute-phase 23.1` — set_env + Nyquist 19–23
+- `/gsd-complete-milestone v3.1` — after Phase 23.1 ships
 
 ## Rebuild Log
 
