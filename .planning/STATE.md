@@ -4,11 +4,11 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23.1
 current_phase_name: address-tech-debt-set-env-nyquist-validation
-status: verifying
-stopped_at: Completed 23.1-03-PLAN.md
-last_updated: "2026-07-27T05:21:21.548Z"
+status: paused — verification gaps (12/14)
+stopped_at: Phase 23.1 execution complete — gaps_found D-05/D-07 conflict_policy
+last_updated: "2026-07-27T05:26:23.122Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 23.1 execution started
+last_activity_desc: Paused at verification gaps — handoff written
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 ## Current Position
 
-Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — EXECUTING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-07-27 — Phase 23.1 execution started
+Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — PAUSED
+Plan: 4 of 4 complete
+Status: Verification gaps_found — gap closure needed before milestone close
+Last activity: 2026-07-27 — Paused at verification gaps
 
 ## Performance Metrics
 
