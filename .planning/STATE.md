@@ -5,8 +5,8 @@ milestone_name: Observability & DX
 current_phase: 25
 current_phase_name: Application Log Follow
 status: "Phase 24 shipped — PR #98"
-stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-07-27T23:02:24.572Z"
+stopped_at: Phase 25 context gathered
+last_updated: "2026-07-27T23:40:28.824Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 4
@@ -450,9 +450,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T21:23:29.885Z
-Stopped at: Completed 24-03-PLAN.md
-Resume file: None
+Last session: 2026-07-27T23:40:28.812Z
+Stopped at: Phase 25 context gathered
+Resume file: .planning/phases/25-application-log-follow/25-CONTEXT.md
 
 ## Operator Next Steps
 
