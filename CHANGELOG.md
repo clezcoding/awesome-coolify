@@ -1,5 +1,11 @@
 # awesome-coolify-mcp
 
+## 1.0.1
+
+### Patch Changes
+
+- 4adcae8: Phase 23.1: `setup.wire(set_env:true)` delegates to `application envs:sync` with XOR env input, abort-on-conflict semantics, and `deploy_and_watch` application guard.
+
 ## 1.0.0
 
 ### Major Changes
