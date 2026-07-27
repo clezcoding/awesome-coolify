@@ -67,8 +67,9 @@ created: 2026-07-28
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-07-28 | 12 | 12 | 0 | gsd-secure-phase (L1 grep, ASVS L1 short-circuit) |
+| 2026-07-28 | 12 | 12 | 0 | gsd-secure-phase re-run (L1 grep confirm, ASVS L1 short-circuit) |
 
-### Security Audit 2026-07-28
+### Security Audit 2026-07-28 (re-run)
 
 | Metric | Count |
 |--------|-------|
@@ -93,4 +94,4 @@ created: 2026-07-28
 - [x] `threats_open: 0` confirmed
 - [x] `status: verified` set in frontmatter
 
-**Approval:** verified 2026-07-28
+**Approval:** verified 2026-07-28 (re-confirmed)
