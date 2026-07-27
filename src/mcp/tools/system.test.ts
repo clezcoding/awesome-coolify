@@ -144,6 +144,24 @@ describe('capabilities', () => {
     'deploy_watch',
   ] as const;
 
+  const EXPECTED_CAPABILITY_KEYS = [
+    ...CAPABILITY_KEYS,
+    'application_logs_follow',
+  ] as const;
+
+  it.fails(
+    'system.version capabilities has exactly five keys including application_logs_follow',
+    async () => {
+      const result = await handleSystemAction({ action: 'version' }, testEnv);
+      expect(isMcpErrorResult(result)).toBe(false);
+      if (isMcpErrorResult(result)) return;
+
+      expect(Object.keys(result.capabilities ?? {}).sort()).toEqual(
+        [...EXPECTED_CAPABILITY_KEYS].sort(),
+      );
+    },
+  );
+
   it('system.version capabilities has exactly four D-03 keys', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);

@@ -183,13 +183,13 @@ describe('logs-service-db-flow integration', () => {
       expect(isApplicationErrorResult(result)).toBe(true);
     });
 
-    it('rejects follow:true per D-05', () => {
+    it.fails('accepts follow:true on logs action schema', () => {
       const parsed = applicationActionSchema.safeParse({
         action: 'logs',
         uuid: 'x',
         follow: true,
       });
-      expect(parsed.success).toBe(false);
+      expect(parsed.success).toBe(true);
     });
   });
 

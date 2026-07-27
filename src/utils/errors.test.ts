@@ -390,6 +390,20 @@ describe('COOLIFY_NO_DEPLOYMENTS', () => {
   });
 });
 
+describe('application log follow error codes', () => {
+  it.fails(
+    'RECOVERY_HINTS defines COOLIFY_LOG_FOLLOW_TIMEOUT with application.logs re-call hint',
+    () => {
+      const hints = (RECOVERY_HINTS as Record<string, string[]>)[
+        'COOLIFY_LOG_FOLLOW_TIMEOUT'
+      ];
+      expect(hints).toBeDefined();
+      expect(hints!.length).toBeGreaterThanOrEqual(1);
+      expect(hints!.join(' ')).toMatch(/application\.logs/i);
+    },
+  );
+});
+
 describe('deployment watch error codes', () => {
   it('RECOVERY_HINTS defines COOLIFY_WATCH_TIMEOUT with deployment.watch re-call hint', () => {
     const hints = RECOVERY_HINTS.COOLIFY_WATCH_TIMEOUT;

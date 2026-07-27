@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
   applicationActionSchema,
   applicationLogsSchema,
@@ -1084,15 +1084,13 @@ describe('handleApplicationAction logs', () => {
     expect(data.entries_shown).toBe(2);
   });
 
-  it('applicationLogsSchema rejects follow param with unrecognized_keys', () => {
+  it.fails('applicationLogsSchema accepts follow true for runtime uuid', () => {
     const result = applicationLogsSchema.safeParse({
       action: 'logs',
       uuid: 'x',
       follow: true,
     });
-    expect(result.success).toBe(false);
-    if (result.success) return;
-    expect(result.error.issues[0]?.code).toBe('unrecognized_keys');
+    expect(result.success).toBe(true);
   });
 
   it('build logs plain string fallback slices without throw', async () => {
@@ -1338,6 +1336,109 @@ describe('handleApplicationAction logs', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.logs_truncated).toBe(true);
+  });
+
+  describe('application logs follow', () => {
+    it.fails(
+      'returns stopped_reason idle on idle stop without error flag',
+      async () => {
+        vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'static\nline' });
+
+        const result = await handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-idle',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 1,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        expect(isApplicationErrorResult(result)).toBe(false);
+        if (isApplicationErrorResult(result)) return;
+
+        const data = result.data as Record<string, unknown>;
+        expect(data.stopped_reason).toBe('idle');
+      },
+    );
+
+    it.fails(
+      'returns dual-signal timeout with COOLIFY_LOG_FOLLOW_TIMEOUT and partial logs_lines',
+      async () => {
+        vi.useFakeTimers();
+        try {
+          let callCount = 0;
+          vi.mocked(fetchApplicationLogs).mockImplementation(async () => {
+            callCount++;
+            return { logs: `line-${callCount}\n` };
+          });
+
+          const resultPromise = handleApplicationAction(
+            {
+              action: 'logs',
+              uuid: 'app-follow-timeout',
+              follow: true,
+              timeout: 10,
+              idle_timeout: 60,
+              min_interval: 1,
+              max_interval: 1,
+            },
+            testEnv,
+          );
+
+          for (let i = 0; i < 12; i++) {
+            await vi.advanceTimersByTimeAsync(1000);
+          }
+
+          const result = await resultPromise;
+
+          expect(isApplicationErrorResult(result)).toBe(true);
+          if (!isApplicationErrorResult(result)) return;
+
+          expect(result.structuredContent.error.code).toBe(
+            'COOLIFY_LOG_FOLLOW_TIMEOUT',
+          );
+          const errorData = result.structuredContent.error.data as {
+            logs_lines?: string[];
+            stopped_reason?: string;
+            timed_out?: boolean;
+          };
+          expect(errorData.timed_out).toBe(true);
+          expect(errorData.stopped_reason).toBe('timeout');
+          expect(errorData.logs_lines?.length).toBeGreaterThan(0);
+          expect(
+            result.structuredContent.error.recoveryHints?.join(' '),
+          ).toMatch(/application\.logs/i);
+        } finally {
+          vi.useRealTimers();
+        }
+      },
+      15_000,
+    );
+
+    it.fails(
+      'applicationLogsSchema rejects follow true with deployment_uuid as COOLIFY_422',
+      () => {
+        const result = applicationLogsSchema.safeParse({
+          action: 'logs',
+          uuid: 'app-uuid-1',
+          deployment_uuid: 'dep-uuid-1',
+          follow: true,
+        });
+        expect(result.success).toBe(false);
+        if (result.success) return;
+        expect(
+          result.error.issues.some((issue) =>
+            /follow.*deployment_uuid|deployment_uuid.*follow/i.test(
+              issue.message ?? '',
+            ),
+          ),
+        ).toBe(true);
+      },
+    );
   });
 });
 
