@@ -516,17 +516,18 @@ async function handleDeploymentLogs(
     env.COOLIFY_VERIFY_SSL,
   );
   const rec = isRecord(raw) ? raw : {};
+  const maxChars = parsed.max_chars ?? 20000;
   const logPayload = processDeploymentBuildLogs(deploymentUuid, rec, {
     lines: parsed.lines ?? 100,
     offset: parsed.offset ?? 0,
     include_hidden: parsed.include_hidden ?? false,
     type: parsed.type ?? 'all',
-    max_chars: parsed.max_chars ?? 20000,
+    max_chars: maxChars,
   });
 
   return buildReadResponse(logPayload, {
     format: parsed.format,
-    max_chars: parsed.max_chars,
+    max_chars: maxChars,
   });
 }
 
