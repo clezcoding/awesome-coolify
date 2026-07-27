@@ -1,0 +1,20 @@
+# Tracer subset — full map expansion in Plan 23-02
+actions:
+  - action: system.health
+    client: [fetchHealth]
+    openapi: ["GET /health"]
+  - action: system.version
+    client: [fetchVersion]
+    openapi: ["GET /version"]
+  - action: application.deploy
+    client: [triggerDeploy]
+    openapi: ["POST /deploy"]
+  - action: application.get
+    client: [fetchApplication]
+    openapi: ["GET /applications/{uuid}"]
+  - action: deployment.list
+    client: [fetchAppDeployments]
+    openapi: ["GET /deployments/applications/{uuid}"]
+  - action: service.get
+    client: [fetchService]
+    openapi: ["GET /services/{uuid}"]

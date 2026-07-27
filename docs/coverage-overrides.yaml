@@ -1,0 +1,25 @@
+# Intentional deferrals and out-of-scope rows (D-05)
+overrides:
+  - key: "GET /services/{uuid}/logs"
+    bucket: deferred
+    reason: "SVC-04 — Coolify 4.1.x has no service log endpoint"
+  - key: execute_command
+    bucket: out-of-scope
+    reason: "Absent from OpenAPI per Spike 001 — not in v4.x spec"
+
+action_overrides:
+  - action: manifest.sync
+    bucket: out-of-scope
+    reason: "Local workspace file only — no Coolify REST op"
+  - action: manifest.get
+    bucket: out-of-scope
+    reason: "Local workspace file only — no Coolify REST op"
+  - action: manifest.diff
+    bucket: out-of-scope
+    reason: "Local workspace file only — no Coolify REST op"
+  - action: docs.search
+    bucket: out-of-scope
+    reason: "Local docs index — no Coolify REST op"
+  - action: meta.version
+    bucket: out-of-scope
+    reason: "Package version — not Coolify API"
