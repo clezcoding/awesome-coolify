@@ -64,7 +64,7 @@ Do **not** assume a workspace `.env` is auto-detected — pass `env_file` or `en
 
 Works on **greenfield** and **link-existing** when the wired resource is an **application** (`application_uuid` required for link-existing optional flags). Rejects one-click service resources.
 
-Setup apply uses **implicit `confirm: true`** and default **`conflict_policy: abort`**. On `COOLIFY_CONFIRM_REQUIRED` (value conflicts), stop and ask the human; retry with explicit policy via:
+Setup apply uses **implicit `confirm: true`** and **does not pass `conflict_policy`** on the delegated `envs:sync`. On `COOLIFY_CONFIRM_REQUIRED` (value conflicts), stop and ask the human — conflicting keys are not applied until the human chooses a policy. Retry with explicit policy via:
 
 ```javascript
 application({
@@ -72,7 +72,7 @@ application({
   uuid: "<application-uuid>",
   env_content: "FOO=bar",
   confirm: true,
-  conflict_policy: "overwrite", // or keep_remote
+  conflict_policy: "overwrite", // or keep_remote or abort
 })
 ```
 

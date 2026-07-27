@@ -153,7 +153,7 @@ There is **no** auto-detect of a workspace `.env` — you must pass `env_file` o
 
 Works on **greenfield** (after recipe creates an application) and **link-existing** (requires `application_uuid`). Does **not** apply to one-click service resources.
 
-Apply runs with **`confirm` implicit** (opt-in via `set_env: true`) and default **`conflict_policy: abort`**. On remote/local value conflicts, setup stops and surfaces the conflict payload — retry with an explicit policy via `application({ action: "envs:sync", ... })` if the human chooses overwrite or keep-remote.
+Apply runs with **`confirm` implicit** (opt-in via `set_env: true`). Setup **omits `conflict_policy`** on the delegated `envs:sync` call — on remote/local value conflicts, setup stops with **`COOLIFY_CONFIRM_REQUIRED`** (conflicting keys are not applied until the human chooses a policy). Ask the human, then retry via `application({ action: "envs:sync", ..., conflict_policy: "overwrite" | "keep_remote" | "abort" })`.
 
 ```js
 setup({
