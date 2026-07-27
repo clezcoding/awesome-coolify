@@ -2,6 +2,8 @@
  * Render docs/COVERAGE.md markdown (maintainer/CI only).
  */
 
+const ALLOWED_BUCKETS = new Set(['covered', 'deferred', 'out-of-scope', 'gap']);
+
 /**
  * @param {Array<{ action: string, client: string, openapi: string, bucket: string, reason: string }>} rows
  * @returns {string}
@@ -15,7 +17,10 @@ export function renderCoverageMarkdown(rows) {
   };
 
   for (const row of rows) {
-    if (row.bucket in counts) counts[row.bucket] += 1;
+    if (!ALLOWED_BUCKETS.has(row.bucket)) {
+      throw new Error(`Invalid bucket "${row.bucket}" for ${row.action}`);
+    }
+    counts[row.bucket] += 1;
   }
 
   const lines = [
