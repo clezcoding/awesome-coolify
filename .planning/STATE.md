@@ -4,17 +4,17 @@ milestone: v3.1
 milestone_name: Setup, Skills & DX
 current_phase: 23.1
 current_phase_name: address-tech-debt-set-env-nyquist-validation
-status: paused — verification gaps (12/14)
-stopped_at: Phase 23.1 execution complete — gaps_found D-05/D-07 conflict_policy
-last_updated: "2026-07-27T05:26:23.122Z"
+status: ready_to_execute — gap closure plan 05 ready
+stopped_at: Phase 23.1 gap closure planned — 23.1-05-PLAN.md (CR-01 omit conflict_policy)
+last_updated: "2026-07-27T17:08:00.000Z"
 last_activity: 2026-07-27
-last_activity_desc: Paused at verification gaps — handoff written
+last_activity_desc: Gap closure plan 23.1-05 created (D-05/D-07)
 progress:
   total_phases: 6
-  completed_phases: 6
-  total_plans: 26
+  completed_phases: 5
+  total_plans: 27
   completed_plans: 26
-  percent: 100
+  percent: 96
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-25)
 
 ## Current Position
 
-Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — PAUSED
-Plan: 4 of 4 complete
-Status: Verification gaps_found — gap closure needed before milestone close
-Last activity: 2026-07-27 — Paused at verification gaps
+Phase: 23.1 (address-tech-debt-set-env-nyquist-validation) — GAP CLOSURE READY
+Plan: 05 of 05 (gap_closure) — execute next
+Status: 23.1-05-PLAN.md ready — omit conflict_policy + fix conflict test + align docs/skill
+Last activity: 2026-07-27 — Gap closure plan created
 
 ## Performance Metrics
 
@@ -428,14 +428,15 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27T05:21:21.539Z
-Stopped at: Completed 23.1-03-PLAN.md
-Resume file: None
+Last session: 2026-07-27T17:08:00.000Z
+Stopped at: Gap closure plan 23.1-05 created — ready to execute
+Resume file: .planning/phases/23.1-address-tech-debt-set-env-nyquist-validation/.continue-here.md
 
 ## Operator Next Steps
 
-- `/gsd-execute-phase 23.1` — set_env + Nyquist 19–23
-- `/gsd-complete-milestone v3.1` — after Phase 23.1 ships
+- `/gsd-execute-phase 23.1 --gaps-only` — run 23.1-05 (omit conflict_policy / CR-01)
+- `/gsd-verify-work 23.1` — re-verify D-05/D-07 after execute
+- `/gsd-complete-milestone v3.1` — after Phase 23.1 passes verification
 
 ## Rebuild Log
 
