@@ -47,11 +47,34 @@ Primary entry: MCP `setup` tool (`setupActionsCatalog`):
 Pass explicitly only when needed:
 
 - `include_domains` — attach domains after wire (greenfield, or link-existing with `application_uuid`)
-- `set_env` — sync environment variables after wire (greenfield, or link-existing with `application_uuid`)
+- `set_env` — sync environment variables after wire (greenfield, or link-existing with `application_uuid`). When enabled, pass **exactly one** of `env_file` (local `.env` path) or `env_content` (inline `.env` text) — no workspace auto-detect. Application resources only (not one-click services).
 - `deploy_and_watch` — trigger deploy and bounded `deployment.watch` after wire (greenfield, or link-existing with `application_uuid`)
 - `push` — on greenfield only; default `false` omits `gh --push`. Set `push: true` to push after repo create.
 
 When `deploy_and_watch: true`, use `deployment({ action: "watch", deployment_uuid, timeout: 300 })` with bounded timeout (max 1800s). On `COOLIFY_WATCH_TIMEOUT`, re-call watch with the same `deployment_uuid`.
+
+### `set_env` params
+
+When `set_env: true`, provide **exactly one** env source (XOR):
+
+- `env_file` — local filesystem path to a `.env` file
+- `env_content` — inline `.env` text (e.g. `FOO=bar\nBAZ=qux`)
+
+Do **not** assume a workspace `.env` is auto-detected — pass `env_file` or `env_content` explicitly.
+
+Works on **greenfield** and **link-existing** when the wired resource is an **application** (`application_uuid` required for link-existing optional flags). Rejects one-click service resources.
+
+Setup apply uses **implicit `confirm: true`** and **does not pass `conflict_policy`** on the delegated `envs:sync`. On `COOLIFY_CONFIRM_REQUIRED` (value conflicts), stop and ask the human — conflicting keys are not applied until the human chooses a policy. Retry with explicit policy via:
+
+```javascript
+application({
+  action: "envs:sync",
+  uuid: "<application-uuid>",
+  env_content: "FOO=bar",
+  confirm: true,
+  conflict_policy: "overwrite", // or keep_remote or abort
+})
+```
 
 ## Recipe types (greenfield)
 
@@ -91,5 +114,16 @@ setup({
   environment_uuid: "<uuid>",
   server_uuid: "<uuid>",
   application_uuid: "<uuid>",
+})
+
+setup({
+  action: "wire",
+  mode: "link-existing",
+  project_uuid: "<uuid>",
+  environment_uuid: "<uuid>",
+  server_uuid: "<uuid>",
+  application_uuid: "<uuid>",
+  set_env: true,
+  env_content: "FOO=bar\nBAZ=qux",
 })
 ```

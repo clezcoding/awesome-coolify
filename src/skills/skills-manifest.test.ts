@@ -53,4 +53,14 @@ describe('skills manifest', () => {
     const content = readFileSync(join('skills', 'coolify-deploy', 'SKILL.md'), 'utf8');
     expect(content).toMatch(/create-git-app|application\(\{ action: "deploy"/);
   });
+
+  it('coolify-setup documents set_env env_file/env_content XOR params', () => {
+    const content = readFileSync(join('skills', 'coolify-setup', 'SKILL.md'), 'utf8');
+    expect(content).toContain('env_file');
+    expect(content).toContain('env_content');
+    expect(content).toMatch(/exactly one|XOR/i);
+    expect(content).toMatch(/COOLIFY_CONFIRM_REQUIRED/);
+    expect(content).toMatch(/does not pass `conflict_policy`|omits `conflict_policy`/i);
+    expect(content).toMatch(/application_uuid|link-existing/i);
+  });
 });

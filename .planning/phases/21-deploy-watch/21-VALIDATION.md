@@ -1,12 +1,11 @@
 ---
 phase: 21
 slug: deploy-watch
-# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
-# audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-07-25
+validated: 2026-07-27
 ---
 
 # Phase 21 — Validation Strategy
@@ -36,19 +35,30 @@ created: 2026-07-25
 
 ---
 
+## Phase Requirements → Test Map
+
+| Req ID | Behavior | Test Type | Automated Command | File Exists? | Status |
+|--------|----------|-----------|-------------------|-------------|--------|
+| **WATCH-01** | deployment.watch polls with backoff+jitter; timeout/429 dual-signal | Unit | `npx vitest run src/utils/deploy-watch-poll.test.ts src/mcp/tools/deployment.test.ts -t watch` | ✅ | ✅ green |
+| **WATCH-02** | Deploy prompt + README document watch-primary flow | Unit + docs | `npx vitest run tests/mcp/prompts.test.ts -t deploy` | ✅ | ✅ green |
+
+---
+
 ## Per-Task Verification Map
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 21-00-01 | 00 | 0 | WATCH-01 | T-21-01 | Polling bounds prevent API storm | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts` | ❌ W0 | ⬜ pending |
-| 21-00-02 | 00 | 0 | WATCH-01 | T-21-02 | Timeout/fail dual-signal via isError | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "watch"` | ❌ W0 | ⬜ pending |
-| 21-00-03 | 00 | 0 | WATCH-02 | — | Prompt documents watch path | unit | `npx vitest run tests/mcp/prompts.test.ts` | ✅ (update) | ⬜ pending |
-| 21-01-01 | 01 | 1 | WATCH-01 | T-21-01 | Backoff+jitter helper GREEN | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts src/utils/deploy-poll.test.ts` | ❌ W0 | ⬜ pending |
-| 21-01-02 | 01 | 1 | WATCH-01 | T-21-01-02 | toStructuredError 429 retry_after | unit | `npx vitest run src/utils/errors.test.ts -t "429"` | ✅ | ⬜ pending |
-| 21-02-01 | 02 | 2 | WATCH-01 | T-21-02 | Watch error codes + RECOVERY_HINTS | unit | `npx vitest run src/utils/errors.test.ts` | ✅ | ⬜ pending |
-| 21-02-02 | 02 | 2 | WATCH-01 | T-21-02 | watch action dual-signal outcomes | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "watch"` | ❌ W0 | ⬜ pending |
-| 21-03-01 | 03 | 3 | WATCH-02 | — | Deploy prompt watch-primary GREEN | unit | `npx vitest run tests/mcp/prompts.test.ts` | ✅ (update) | ⬜ pending |
-| 21-03-02 | 03 | 3 | WATCH-02 | T-21-03 | README EN/DE Watch section + table | docs | `rg -n "deployment\.watch" README.md && rg -n "Watch" README.md && rg -n "Beobachten" README.de.md && rg -n "300" README.md && rg -n "Phase 22" README.md` | ✅ | ⬜ pending |
+| 21-00-01 | 00 | 0 | WATCH-01 | T-21-01 | Polling bounds prevent API storm | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts` | ✅ | ✅ green |
+| 21-00-02 | 00 | 0 | WATCH-01 | T-21-02 | Timeout/fail dual-signal via isError | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "watch"` | ✅ | ✅ green |
+| 21-00-03 | 00 | 0 | WATCH-02 | — | Prompt documents watch path | unit | `npx vitest run tests/mcp/prompts.test.ts -t deploy` | ✅ | ✅ green |
+| 21-01-01 | 01 | 1 | WATCH-01 | T-21-01 | Backoff+jitter helper GREEN | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts src/utils/deploy-poll.test.ts` | ✅ | ✅ green |
+| 21-01-02 | 01 | 1 | WATCH-01 | T-21-01-02 | toStructuredError 429 retry_after | unit | `npx vitest run src/utils/errors.test.ts -t "429"` | ✅ | ✅ green |
+| 21-02-01 | 02 | 2 | WATCH-01 | T-21-02 | Watch error codes + RECOVERY_HINTS | unit | `npx vitest run src/utils/errors.test.ts` | ✅ | ✅ green |
+| 21-02-02 | 02 | 2 | WATCH-01 | T-21-02 | watch action dual-signal outcomes | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "watch"` | ✅ | ✅ green |
+| 21-03-01 | 03 | 3 | WATCH-02 | — | Deploy prompt watch-primary GREEN | unit | `npx vitest run tests/mcp/prompts.test.ts -t deploy` | ✅ | ✅ green |
+| 21-03-02 | 03 | 3 | WATCH-02 | T-21-03 | README EN/DE Watch section + table | docs | `rg -n "deployment\.watch" README.md && rg -n "Watch" README.md && rg -n "Beobachten" README.de.md` | ✅ | ✅ green |
+| 21-04-01 | 04 | 4 | WATCH-01 | T-21-01 | remainingMs clamp on 429 + normal poll | unit | `npx vitest run src/utils/deploy-watch-poll.test.ts -t "Retry-After exceeds timeoutMs"` | ✅ | ✅ green |
+| 21-04-02 | 04 | 4 | WATCH-01 | — | include_logs success path capped, no raw_deployment | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t "include_logs"` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -56,11 +66,11 @@ created: 2026-07-25
 
 ## Wave 0 Requirements
 
-- [ ] `src/utils/deploy-watch-poll.test.ts` — stubs for backoff bounds, timeout outcome, 429 continue, injectable RNG
-- [ ] `src/mcp/tools/deployment.test.ts` — add `watch` action cases (schema + handler outcomes)
-- [ ] `tests/mcp/prompts.test.ts` — replace "future Phase 21" / get-before-watch ordering assertions
+- [x] `src/utils/deploy-watch-poll.test.ts` — backoff bounds, timeout outcome, 429 continue, injectable RNG
+- [x] `src/mcp/tools/deployment.test.ts` — `watch` action cases (schema + handler outcomes)
+- [x] `tests/mcp/prompts.test.ts` — watch-primary deploy prompt assertions
 
-*Existing `deploy-poll.test.ts` remains the regression gate that `wait:true` helper is untouched.*
+*Existing `deploy-poll.test.ts` remains regression gate that `wait:true` helper is untouched.*
 
 ---
 
@@ -75,11 +85,23 @@ created: 2026-07-25
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated
+
+---
+
+## Validation Audit 2026-07-27
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 11 (all per-task rows pending; wave_0_complete false) |
+| Resolved | 11 |
+| Escalated | 0 |
+
+Nyquist reconciliation (23.1-02): 30 deploy-watch + deployment tests + 6 prompts tests green; WATCH-01/02 COVERED; earned `status: validated` + `nyquist_compliant: true`.

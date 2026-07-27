@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Setup, Skills & DX
-current_phase: 23
-status: "Phase 23 shipped — PR #91"
-stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-07-27T03:15:37.129Z"
+current_phase: 23.1
+status: "Phase 23.1 shipped — PR #95"
+stopped_at: Completed 23.1-05-PLAN.md
+last_updated: "2026-07-27T18:19:12.545Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 23 shipped — PR #91
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 27
+  completed_plans: 27
   percent: 100
-current_phase_name: openapi-coverage-npm-release
+current_phase_name: address-tech-debt-set-env-nyquist-validation
+last_activity_desc: Phase 23.1 complete
 ---
 
 # Project State
@@ -24,20 +24,20 @@ current_phase_name: openapi-coverage-npm-release
 See: .planning/PROJECT.md (updated 2026-07-25)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** v3.1 complete — Phase 23 UAT + security verified
+**Current focus:** Phase 23.1 — address-tech-debt-set-env-nyquist-validation
 
 ## Current Position
 
-Phase: 23
+Phase: 23.1
 Plan: Not started
-Status: Phase 23 shipped — PR #91
+Status: Phase 23.1 shipped — PR #95
 Last activity: 2026-07-27
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 97
+- Total plans completed: 102
 - Average duration: —
 - Total execution time: —
 
@@ -64,6 +64,7 @@ Last activity: 2026-07-27
 | 20 | 5 | - | - |
 | 21 | 5 | - | - |
 | 23 | 5 | - | - |
+| 23.1 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -128,6 +129,12 @@ Last activity: 2026-07-27
 | Phase 23-openapi-coverage-npm-release P01 | 4min | 3 tasks | 10 files |
 | Phase 23-openapi-coverage-npm-release P02 | 6min | 3 tasks | 7 files |
 | Phase 23-openapi-coverage-npm-release P04 | 15min | 4 tasks | 2 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P01 | 5min | 2 tasks | 2 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P02 | 3min | 3 tasks | 3 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P04 | 3min | 2 tasks | 3 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P03 | 2min | 2 tasks | 2 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
+| Phase 23.1-address-tech-debt-set-env-nyquist-validation P05 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -349,6 +356,16 @@ Last activity: 2026-07-27
 - [Phase ?]: 57 OpenAPI gap rows retained as honest backlog — no new MCP tools in phase 23
 - [Phase ?]: ship-1-0-0 selected — major bump 0.5.0→1.0.0 per locked D-10
 - [Phase ?]: No release.yml changes — existing OIDC contract sufficient (D-12)
+- [Phase ?]: set_env delegates inline to handleApplicationAction envs:sync with confirm:true; omits conflict_policy (CR-01)
+- [Phase ?]: env step in steps_completed only after successful envs:sync apply per D-07
+- [Phase ?]: Phase 19-21 Nyquist reconciliation: stale VALIDATION rows flipped green after vitest confirm; no new tests needed
+- [Phase ?]: Phase 19 test paths corrected to src/mcp/server.test.ts and src/mcp/tools/shared-read-params.test.ts
+- [Phase ?]: Docs + coolify-setup skill mirror setup env_file/env_content XOR — no workspace auto-detect
+- [Phase ?]: set_env conflict retry via application envs:sync with explicit conflict_policy after COOLIFY_CONFIRM_REQUIRED
+- [Phase ?]: No nyquist-auditor spawn — phases 22/23 gaps were stale doc rows; tests already green
+- [Phase ?]: PUB-01 live npm publish stays Manual-Only; five-phase Nyquist inventory 19-23 complete
+- [Phase ?]: Omit conflict_policy on setup set_env envs:sync delegation (CR-01 preferred fix over explicit abort)
+- [Phase ?]: Human retry via application envs:sync with explicit overwrite/keep_remote/abort policy
 
 ### Pending Todos
 
@@ -379,6 +396,10 @@ Last activity: 2026-07-27
 | 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | a0b6187 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
 | 260727-4hd | Projektordner aufräumen + .gitignore (nur projektrelevante Dateien) | 2026-07-27 | 2b940cb | [260727-4hd-r-ume-den-projektordner-auf-und-sortiere](./quick/260727-4hd-r-ume-den-projektordner-auf-und-sortiere/) |
 | 260727-codeql | Fix 3 CodeQL alerts in openapi-coverage scripts (ReDoS, logging, markdown escape) | 2026-07-27 | bf91b01 | [260727-codeql-openapi-coverage-fixes](./quick/260727-codeql-openapi-coverage-fixes/) |
+
+### Roadmap Evolution
+
+- Phase 23.1 inserted after Phase 23: Address tech debt: set_env + Nyquist validation (URGENT)
 
 ## Deferred Items
 
@@ -412,14 +433,14 @@ Known verification overrides: 4 (see Deferred Items above). Stale v3.0-MILESTONE
 
 ## Session Continuity
 
-Last session: 2026-07-27
-Stopped at: Phase 23 complete — v3.1 milestone phases finished, ready for /gsd-complete-milestone
+Last session: 2026-07-27T17:11:31.348Z
+Stopped at: Completed 23.1-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 23` or `/gsd-plan-phase 23` — OpenAPI Coverage & npm Release
-- `/gsd-complete-milestone v3.1` — after Phase 23 ships
+- `/gsd-verify-work 23.1` — re-verify D-05/D-07 after 23.1-05 gap closure
+- `/gsd-complete-milestone v3.1` — after Phase 23.1 passes verification
 
 ## Rebuild Log
 
