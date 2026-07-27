@@ -137,6 +137,12 @@ This repo uses [Kodiak](https://kodiakhq.com/) to update PR branches and squash-
 
 Config lives in `.kodiak.toml`. One-time app install + verification: `./scripts/setup-kodiak.sh`. Kodiak will **not** merge PRs with blocking labels such as `status: needs-review` or `gsd: plan`.
 
+**PR stuck on Kodiak (`kodiakhq: skipping`, checks “Expected”)?** Common causes:
+
+1. **`[ci skip]` / `[skip ci]` on the PR tip** — GitHub skips Actions; `Lint, Test & Build` and `MegaLinter` never report, so protected `main` blocks forever. Never put skip markers on commits that are PR HEAD. `./scripts/gsd-ship-post.sh` auto-pushes an empty trigger commit when it detects this. Manual fix: amend or empty commit **without** skip markers, then push.
+2. **Blocking labels** — remove `status: needs-review`, `gsd: plan`, etc., or run `./scripts/gsd-ship-post.sh <pr>` (ship mode strips GSD blockers and sets `automerge`).
+3. **Red CI** — fix lint/test/MegaLinter; Kodiak only merges when required checks pass.
+
 ### Milestone npm release
 
 npm publish is intentional and milestone-scoped — not every phase merge triggers a release.
