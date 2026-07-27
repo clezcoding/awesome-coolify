@@ -187,6 +187,13 @@ export const deploymentToolSchema = createFlatActionSchema(
           params: { code: 'COOLIFY_422' },
         });
       }
+      if (data.format === 'table') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'format table is not supported for logs — use pretty or json',
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
     }
   },
   {
