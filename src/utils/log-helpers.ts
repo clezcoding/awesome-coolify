@@ -129,7 +129,7 @@ export function processDeploymentBuildLogs(
       total_lines: allLines.length,
       entries_total: allLines.length,
       entries_hidden: 0,
-      entries_shown: allLines.length,
+      entries_shown: cappedLines.length,
     };
   }
 
@@ -139,7 +139,6 @@ export function processDeploymentBuildLogs(
       (logType === 'all' ? true : e.type === logType),
   );
   const entriesHidden = entries.filter((e) => e.hidden).length;
-  const entriesShown = visibleEntries.length;
   const flattened = visibleEntries.map((e) => e.output).join('\n');
   const allLines = sliceLogBlob(flattened, lines, offset);
   const capped = capLogOutput(allLines.join('\n'), max_chars);
@@ -153,6 +152,6 @@ export function processDeploymentBuildLogs(
     total_lines: allLines.length,
     entries_total: entries.length,
     entries_hidden: entriesHidden,
-    entries_shown: entriesShown,
+    entries_shown: cappedLines.length,
   };
 }
