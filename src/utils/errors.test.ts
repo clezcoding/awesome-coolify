@@ -382,7 +382,7 @@ describe('wrapMcpError', () => {
 });
 
 describe('COOLIFY_NO_DEPLOYMENTS', () => {
-  it.fails('RECOVERY_HINTS defines COOLIFY_NO_DEPLOYMENTS with deploy and list hints', () => {
+  it('RECOVERY_HINTS defines COOLIFY_NO_DEPLOYMENTS with deploy and list hints', () => {
     const hints = RECOVERY_HINTS.COOLIFY_NO_DEPLOYMENTS;
     expect(hints.length).toBeGreaterThanOrEqual(2);
     expect(hints.join(' ')).toMatch(/application\.deploy/i);

@@ -618,7 +618,7 @@ describe('deployment logs', () => {
     vi.mocked(fetchAppDeployments).mockReset();
   });
 
-  it.fails('schema accepts logs with deployment_uuid only', () => {
+  it('schema accepts logs with deployment_uuid only', () => {
     const result = deploymentToolSchema.safeParse({
       action: 'logs',
       deployment_uuid: 'dep-uuid-1',
@@ -626,7 +626,7 @@ describe('deployment logs', () => {
     expect(result.success).toBe(true);
   });
 
-  it.fails('schema accepts logs with application_uuid only', () => {
+  it('schema accepts logs with application_uuid only', () => {
     const result = deploymentToolSchema.safeParse({
       action: 'logs',
       application_uuid: 'app-uuid-1',
@@ -650,7 +650,7 @@ describe('deployment logs', () => {
     expect(result.success).toBe(false);
   });
 
-  it.fails('returns logs_lines envelope when fetching by deployment_uuid', async () => {
+  it('returns logs_lines envelope when fetching by deployment_uuid', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-uuid-1',
       status: 'finished',
@@ -675,7 +675,7 @@ describe('deployment logs', () => {
     expect((data.logs_lines as string[]).length).toBeGreaterThan(0);
   });
 
-  it.fails('application_uuid resolves newest deployment by created_at (dep-3)', async () => {
+  it('application_uuid resolves newest deployment by created_at (dep-3)', async () => {
     vi.mocked(fetchAppDeployments).mockResolvedValue(mockDeployments);
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-3',
@@ -707,7 +707,7 @@ describe('deployment logs', () => {
     expect(data.deployment_uuid).toBe('dep-3');
   });
 
-  it.fails('empty deployments list returns COOLIFY_NO_DEPLOYMENTS error', async () => {
+  it('empty deployments list returns COOLIFY_NO_DEPLOYMENTS error', async () => {
     vi.mocked(fetchAppDeployments).mockResolvedValue([]);
 
     const result = await handleDeploymentAction(
@@ -724,7 +724,7 @@ describe('deployment logs', () => {
     );
   });
 
-  it.fails('empty logs string returns soft OK with empty logs_lines and hint', async () => {
+  it('empty logs string returns soft OK with empty logs_lines and hint', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-empty-logs',
       status: 'finished',
@@ -744,7 +744,7 @@ describe('deployment logs', () => {
     expect(result._meta?.hint ?? data.hint).toBeTruthy();
   });
 
-  it.fails('missing logs field returns COOLIFY_403_SENSITIVE_REQUIRED', async () => {
+  it('missing logs field returns COOLIFY_403_SENSITIVE_REQUIRED', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-sensitive',
       status: 'finished',
@@ -763,7 +763,7 @@ describe('deployment logs', () => {
     );
   });
 
-  it.fails('non-string logs field returns COOLIFY_403_SENSITIVE_REQUIRED', async () => {
+  it('non-string logs field returns COOLIFY_403_SENSITIVE_REQUIRED', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       deployment_uuid: 'dep-bad-logs',
       status: 'finished',

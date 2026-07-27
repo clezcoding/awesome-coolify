@@ -58,7 +58,7 @@ import {
 } from '../../utils/errors.js';
 import {
   capLogOutput,
-  parseBuildLogEntries,
+  processDeploymentBuildLogs,
   sliceLogBlob,
 } from '../../utils/log-helpers.js';
 import {
@@ -1445,69 +1445,22 @@ async function handleApplicationLogs(
       env.COOLIFY_VERIFY_SSL,
     );
     const rec = isRecord(raw) ? raw : {};
-
-    if (typeof rec.logs !== 'string') {
-      throw new CoolifyApiError({
-        code: 'COOLIFY_403_SENSITIVE_REQUIRED',
-        message:
-          'Deployment build logs are not available — the API token lacks the api.sensitive ability required to read deployment logs.',
-        recoveryHints: RECOVERY_HINTS.COOLIFY_403_SENSITIVE_REQUIRED,
-      });
-    }
-
-    const { parsed: parsedOk, entries } = parseBuildLogEntries(rec.logs);
-
-    if (!parsedOk) {
-      const allLines = sliceLogBlob(rec.logs, lines, offset);
-      const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
-      const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
-
-      return buildReadResponse(
-        {
-          deployment_uuid: parsed.deployment_uuid,
-          status: String(rec.status ?? 'unknown'),
-          logs_lines: cappedLines,
-          logs_truncated: capped.truncated,
-          total_lines: allLines.length,
-          entries_total: allLines.length,
-          entries_hidden: 0,
-          entries_shown: allLines.length,
-        },
-        {
-          format: parsed.format,
-          max_chars: parsed.max_chars,
-        },
-      );
-    }
-
-    const visibleEntries = entries.filter(
-      (e) =>
-        (includeHidden ? true : !e.hidden) &&
-        (logType === 'all' ? true : e.type === logType),
-    );
-    const entriesHidden = entries.filter((e) => e.hidden).length;
-    const entriesShown = visibleEntries.length;
-    const flattened = visibleEntries.map((e) => e.output).join('\n');
-    const allLines = sliceLogBlob(flattened, lines, offset);
-    const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
-    const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
-
-    return buildReadResponse(
+    const logPayload = processDeploymentBuildLogs(
+      parsed.deployment_uuid,
+      rec,
       {
-        deployment_uuid: parsed.deployment_uuid,
-        status: String(rec.status ?? 'unknown'),
-        logs_lines: cappedLines,
-        logs_truncated: capped.truncated,
-        total_lines: allLines.length,
-        entries_total: entries.length,
-        entries_hidden: entriesHidden,
-        entries_shown: entriesShown,
-      },
-      {
-        format: parsed.format,
+        lines,
+        offset,
+        include_hidden: includeHidden,
+        type: logType,
         max_chars: parsed.max_chars,
       },
     );
+
+    return buildReadResponse(logPayload, {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    });
   }
 
   const uuid = await resolveAppMutationUuid(parsed, env);

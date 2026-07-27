@@ -24,16 +24,18 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import { pollDeploymentWithBackoff } from '../../utils/deploy-watch-poll.js';
+import { processDeploymentBuildLogs } from '../../utils/log-helpers.js';
 import {
   createFlatActionSchema,
   parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
+  sharedLogParamsFlatShape,
   sharedReadParamsFlatShape,
 } from './shared-read-params.js';
 
 export const deploymentActionsCatalog =
-  'Actions: list(application_uuid, format?, page?, per_page?) · get(deployment_uuid, format?, projection?, reveal?) · cancel(deployment_uuid, format?, max_chars?) · watch(deployment_uuid, timeout?, min_interval?, max_interval?, include_logs?, format?, max_chars?, instance?)';
+  'Actions: list(application_uuid, format?, page?, per_page?) · get(deployment_uuid, format?, projection?, reveal?) · cancel(deployment_uuid, format?, max_chars?) · watch(deployment_uuid, timeout?, min_interval?, max_interval?, include_logs?, format?, max_chars?, instance?) · logs(deployment_uuid|application_uuid, lines?, offset?, include_hidden?, type?, format?, max_chars?, instance?)';
 
 export const deploymentSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
@@ -59,7 +61,7 @@ const deploymentListReadParamKeys = [
 ] as const;
 
 export const deploymentToolSchema = createFlatActionSchema(
-  ['list', 'get', 'cancel', 'watch'],
+  ['list', 'get', 'cancel', 'watch', 'logs'],
   {
     application_uuid: z
       .string()
@@ -69,6 +71,15 @@ export const deploymentToolSchema = createFlatActionSchema(
       .string()
       .optional()
       .describe('Deployment UUID'),
+    offset: z
+      .number()
+      .int()
+      .min(0)
+      .default(0)
+      .optional()
+      .describe(
+        'Skip first K lines of the FLATTENED log blob before applying lines (build-logs pagination applied AFTER parse+filter+flatten)',
+      ),
     timeout: z
       .number()
       .int()
@@ -96,6 +107,7 @@ export const deploymentToolSchema = createFlatActionSchema(
       .default(false)
       .optional()
       .describe('Attach capped build logs on success (default false)'),
+    ...sharedLogParamsFlatShape,
     ...sharedReadParamsFlatShape,
   },
   {
@@ -110,6 +122,17 @@ export const deploymentToolSchema = createFlatActionSchema(
       'include_logs',
       'format',
       'max_chars',
+    ],
+    logs: [
+      'deployment_uuid',
+      'application_uuid',
+      'lines',
+      'offset',
+      'include_hidden',
+      'type',
+      'format',
+      'max_chars',
+      'instance',
     ],
   },
   {
@@ -142,12 +165,41 @@ export const deploymentToolSchema = createFlatActionSchema(
         });
       }
     }
+
+    if (data.action === 'logs') {
+      const hasDeploymentUuid = !!data.deployment_uuid;
+      const hasApplicationUuid = !!data.application_uuid;
+      if (!hasDeploymentUuid && !hasApplicationUuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Either deployment_uuid or application_uuid must be provided for deployment.logs',
+          path: ['deployment_uuid'],
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (hasDeploymentUuid && hasApplicationUuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Cannot provide both deployment_uuid and application_uuid — choose one for deployment.logs',
+          path: ['deployment_uuid'],
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
   },
   {
     timeout: 300,
     min_interval: 3,
     max_interval: 30,
     include_logs: false,
+    lines: 100,
+    offset: 0,
+    include_hidden: false,
+    type: 'all',
+    format: 'pretty',
+    max_chars: 20000,
   },
 );
 
@@ -157,6 +209,7 @@ type DeploymentListAction = Extract<DeploymentAction, { action: 'list' }>;
 type DeploymentGetAction = Extract<DeploymentAction, { action: 'get' }>;
 type DeploymentCancelAction = Extract<DeploymentAction, { action: 'cancel' }>;
 type DeploymentWatchAction = Extract<DeploymentAction, { action: 'watch' }>;
+type DeploymentLogsAction = Extract<DeploymentAction, { action: 'logs' }>;
 
 export type DeploymentListResult = ReadResponse<DeploymentSummary[]>;
 
@@ -175,15 +228,54 @@ export type DeploymentWatchResult = ReadResponse<
   DeploymentSummary | (DeploymentSummary & { logs?: string })
 >;
 
+export type DeploymentLogsResult = ReadResponse<
+  ReturnType<typeof processDeploymentBuildLogs>
+>;
+
 export type DeploymentActionResult =
   | DeploymentListResult
   | DeploymentGetResult
   | DeploymentCancelResult
   | DeploymentWatchResult
+  | DeploymentLogsResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function resolveLatestDeploymentUuid(deployments: unknown[]): string {
+  const records = deployments.filter(isRecord);
+  if (records.length === 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_NO_DEPLOYMENTS',
+      message:
+        'No deployments found for this application — deploy first or list deployments.',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_NO_DEPLOYMENTS,
+    });
+  }
+
+  const sorted = [...records].sort((a, b) => {
+    const aTime = Date.parse(String(a.created_at ?? ''));
+    const bTime = Date.parse(String(b.created_at ?? ''));
+    if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
+      return bTime - aTime;
+    }
+    return String(b.deployment_uuid ?? b.id ?? '').localeCompare(
+      String(a.deployment_uuid ?? a.id ?? ''),
+    );
+  });
+
+  const newest = sorted[0];
+  const uuid = newest.deployment_uuid ?? newest.id;
+  if (typeof uuid !== 'string' || uuid.length === 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_422',
+      message: 'Latest deployment record is missing deployment_uuid',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_422,
+    });
+  }
+  return uuid;
 }
 
 async function handleDeploymentList(
@@ -382,6 +474,62 @@ async function handleDeploymentWatch(
   });
 }
 
+async function handleDeploymentLogs(
+  parsed: DeploymentLogsAction,
+  env: EnvConfig,
+): Promise<DeploymentLogsResult> {
+  let deploymentUuid = parsed.deployment_uuid;
+
+  if (!deploymentUuid && parsed.application_uuid) {
+    const rawList = await fetchAppDeployments(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      parsed.application_uuid,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const deployments = Array.isArray(rawList) ? rawList : [];
+    if (deployments.length === 0) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_NO_DEPLOYMENTS',
+        message:
+          'No deployments found for this application — deploy first or list deployments.',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_NO_DEPLOYMENTS,
+        data: { application_uuid: parsed.application_uuid },
+      });
+    }
+    deploymentUuid = resolveLatestDeploymentUuid(deployments);
+  }
+
+  if (!deploymentUuid) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_422',
+      message:
+        'Either deployment_uuid or application_uuid must be provided for deployment.logs',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_422,
+    });
+  }
+
+  const raw = await fetchDeployment(
+    env.COOLIFY_URL,
+    env.COOLIFY_TOKEN,
+    deploymentUuid,
+    env.COOLIFY_VERIFY_SSL,
+  );
+  const rec = isRecord(raw) ? raw : {};
+  const logPayload = processDeploymentBuildLogs(deploymentUuid, rec, {
+    lines: parsed.lines ?? 100,
+    offset: parsed.offset ?? 0,
+    include_hidden: parsed.include_hidden ?? false,
+    type: parsed.type ?? 'all',
+    max_chars: parsed.max_chars ?? 20000,
+  });
+
+  return buildReadResponse(logPayload, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 export async function handleDeploymentAction(
   args: DeploymentAction,
   env: EnvConfig,
@@ -399,6 +547,8 @@ export async function handleDeploymentAction(
         return await handleDeploymentCancel(parsed, routingEnv);
       case 'watch':
         return await handleDeploymentWatch(parsed, routingEnv);
+      case 'logs':
+        return await handleDeploymentLogs(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown deployment action: ${String(_exhaustive)}`);

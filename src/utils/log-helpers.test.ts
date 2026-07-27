@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   capLogOutput,
   parseBuildLogEntries,
+  processDeploymentBuildLogs,
   sliceLogBlob,
 } from './log-helpers.js';
 
@@ -62,14 +63,17 @@ describe('parseBuildLogEntries', () => {
 });
 
 describe('processDeploymentBuildLogs', () => {
-  it.fails('flattens JSON build log entries into logs_lines envelope fields', async () => {
-    const { processDeploymentBuildLogs } = await import('./log-helpers.js');
+  it('flattens JSON build log entries into logs_lines envelope fields', () => {
     const result = processDeploymentBuildLogs(
-      JSON.stringify([
-        { output: 'visible', type: 'stdout', hidden: false },
-        { output: 'hidden', type: 'stdout', hidden: true },
-      ]),
-      { include_hidden: false, type: 'all', lines: 100, offset: 0 },
+      'dep-1',
+      {
+        status: 'finished',
+        logs: JSON.stringify([
+          { output: 'visible', type: 'stdout', hidden: false },
+          { output: 'hidden', type: 'stdout', hidden: true },
+        ]),
+      },
+      { include_hidden: false, type: 'all', lines: 100, offset: 0, max_chars: 20000 },
     );
     expect(result.logs_lines).toEqual(['visible']);
     expect(result.entries_total).toBe(2);
