@@ -243,7 +243,15 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 23.1-01-PLAN.md — Tracer: set_env → envs:sync + green tests (SETUP-02)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 23.1-02-PLAN.md — Nyquist validate-phase 19→21 (DX/PROMPT/RECIPE/WATCH)
-- [ ] 23.1-03-PLAN.md — Nyquist validate-phase 22→23 (SETUP/SKILL/OAPI/PUB)
 - [ ] 23.1-04-PLAN.md — Docs/skills: env_file XOR env_content for set_env
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 23.1-03-PLAN.md — Nyquist validate-phase 22→23 (SETUP/SKILL/OAPI/PUB)
