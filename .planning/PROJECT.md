@@ -73,11 +73,23 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 </details>
 
-## Next Milestone Goals
+## Current Milestone: v3.2 Observability & DX
 
-- **Post-ship:** Merge Version Packages PR → confirm OIDC npm publish `@1.0.0`
-- **v1.1:** SVC-04 service/DB logs when Coolify API available (v4.1.3+)
-- **Backlog:** OpenAPI gap rows in `docs/COVERAGE.md` (~57 paths); cross-instance fan-out (deferred); Cursor MCP icon render (client limitation)
+**Goal:** App/deployment log observability, capability discovery, incident flows, and MCP branding — compatible with Coolify 4.1.2 (no 4.2.0 service/DB log APIs).
+
+**Target features:**
+- `deployment.logs` action on deployment tool
+- Application log follow/stream (watch-style polling on `application.logs`)
+- `diagnose.logs` shortcut (application-only)
+- `system.version` extended with MCP + Coolify capability flags (4.1.2 set)
+- `incident` MCP prompt + `coolify-setup` skill updates
+- MCP icon workarounds (data URI, multi-size, dev + npm re-verify)
+- Docs/npm stale fixes (package at 1.0.1)
+
+## Next Milestone Goals (backlog)
+
+- **v3.3:** SVC-04 service/DB logs when Coolify 4.2.0+ is stable installable
+- **Backlog:** OpenAPI gap rows in `docs/COVERAGE.md` (~57 paths); cross-instance fan-out (deferred)
 
 ## Requirements
 
