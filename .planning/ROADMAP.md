@@ -195,7 +195,14 @@ Plans:
   3. Maintainer-triggered Release workflow publishes `awesome-coolify-mcp` to npm via OIDC / trusted publishing
   4. Published tarball excludes the UAT harness, secrets, and non-package paths (allowlist verified)
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 23-00-PLAN.md — Wave 0 RED scaffolds (openapi-coverage + npm-pack allowlist it.fails)
+- [ ] 23-01-PLAN.md — Tracer: minimal 3-layer generator → COVERAGE.md → --check (Scalar human-verify)
+- [ ] 23-02-PLAN.md — Full coverage-map + v4.1.2 OpenAPI pin + OPENAPI.md provenance
+- [ ] 23-03-PLAN.md — PUB-02 npm pack --dry-run forbidden-path gate
+- [ ] 23-04-PLAN.md — PUB-01 milestone Changeset 1.0.0 (decision gate + trusted publisher verify)
 
 ## Progress
 
