@@ -148,7 +148,26 @@ Plans:
   2. MCP prompt `incident` documents `deployment.logs`, application log follow, and `diagnose.logs` (application-only; no service/DB log steps)
   3. `coolify-setup` skill documents app log troubleshooting, capability discovery via `system.version`, and links to incident/deploy/diagnose skills
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 26-00-PLAN.md — Wave 0 Nyquist RED scaffolds (diagnose.logs, incident, capabilities, coverage-map)
+- [ ] 26-01-PLAN.md — DIAG-01 tracer: diagnose.logs handler + log-helpers extraction
+- [ ] 26-02-PLAN.md — PROMPT-01 + D-14 capability + incident prompt + README/coverage
+- [ ] 26-03-PLAN.md — SKILL-01 coolify-setup troubleshooting + OBS-03 regression lock
+
+**Wave 0** *(Nyquist RED — blocks Wave 1)*
+
+- [ ] 26-00-PLAN.md — RED scaffolds for diagnose.logs, incident prompt, six-key capabilities, coverage row
+
+**Wave 1** *(blocked on Wave 0)*
+
+- [ ] 26-01-PLAN.md — diagnose.logs composite handler + buildRuntimeLogPayload extraction
+
+**Wave 2** *(blocked on Wave 1; 26-02 and 26-03 parallel)*
+
+- [ ] 26-02-PLAN.md — incident prompt rewrite + diagnose_logs capability + README/coverage
+- [ ] 26-03-PLAN.md — coolify-setup App log troubleshooting + manifest test
 
 ### Phase 27: Branding & Docs Stale Fix
 
