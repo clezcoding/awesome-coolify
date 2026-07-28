@@ -81,3 +81,25 @@ describe('processDeploymentBuildLogs', () => {
     expect(result.entries_shown).toBe(1);
   });
 });
+
+describe('buildRuntimeLogPayload', () => {
+  it(
+    'returns slice/cap envelope with uuid, logs_lines, logs_truncated, total_lines',
+    async () => {
+      const { buildRuntimeLogPayload } = await import('./log-helpers.js');
+      const result = buildRuntimeLogPayload('app-uuid-1', 'line1\nline2\nline3', {
+        lines: 2,
+        offset: 0,
+        max_chars: 20000,
+      });
+      expect(result).toMatchObject({
+        uuid: 'app-uuid-1',
+        logs_lines: expect.any(Array),
+        logs_truncated: expect.any(Boolean),
+        total_lines: expect.any(Number),
+      });
+      expect(result.logs_lines).toEqual(['line2', 'line3']);
+      expect(result.total_lines).toBe(2);
+    },
+  );
+});

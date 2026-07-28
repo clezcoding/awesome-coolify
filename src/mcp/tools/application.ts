@@ -58,6 +58,7 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  buildRuntimeLogPayload,
   capLogOutput,
   processDeploymentBuildLogs,
   sliceLogBlob,
@@ -1662,22 +1663,16 @@ async function handleApplicationLogs(
   );
   const logsStr =
     isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
-  const allLines = sliceLogBlob(logsStr, lines, offset);
-  const capped = capLogOutput(allLines.join('\n'), parsed.max_chars);
-  const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+  const logPayload = buildRuntimeLogPayload(uuid, logsStr, {
+    lines,
+    offset,
+    max_chars: parsed.max_chars,
+  });
 
-  return buildReadResponse(
-    {
-      uuid,
-      logs_lines: cappedLines,
-      logs_truncated: capped.truncated,
-      total_lines: allLines.length,
-    },
-    {
-      format: parsed.format,
-      max_chars: parsed.max_chars,
-    },
-  );
+  return buildReadResponse(logPayload, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
 }
 
 function isFollowRetryableRateLimit(

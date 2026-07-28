@@ -143,9 +143,10 @@ describe('capabilities', () => {
     'deployment_logs',
     'deployment_watch',
     'deploy_watch',
+    'diagnose_logs',
   ] as const;
 
-  it('system.version capabilities has exactly five keys including application_logs_follow', async () => {
+  it('system.version capabilities has exactly six keys including diagnose_logs', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;
@@ -153,6 +154,14 @@ describe('capabilities', () => {
     expect(Object.keys(result.capabilities ?? {}).sort()).toEqual(
       [...CAPABILITY_KEYS].sort(),
     );
+
+    const diagnoseLogs = (result.capabilities as Record<string, unknown>)
+      .diagnose_logs;
+    expect(diagnoseLogs).toMatchObject({
+      supported: true,
+      coolify_min_version: '4.1.2',
+      note: expect.any(String),
+    });
   });
 
   it('each capability value has supported boolean and coolify_min_version string', async () => {

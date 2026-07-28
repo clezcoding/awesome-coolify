@@ -8,14 +8,14 @@ Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Clou
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.2 in progress — Phase 25 complete 2026-07-28)
+## Current State (v3.2 in progress — Phase 26 complete 2026-07-28)
 
 | Metric | Value |
 |--------|-------|
 | Package | `awesome-coolify-mcp` **1.0.1** |
 | Tools / Actions | 18 / ~115 |
 | TypeScript LOC | ~35.6k (`src/`) |
-| Milestone | v3.2 Observability & DX — **in progress** (Phases 24–25 complete; 26–27 pending) |
+| Milestone | v3.2 Observability & DX — **in progress** (Phases 24–26 complete; 27 pending) |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | OIDC Release path + pack allowlist verified (PUB-02) |
 | Live UAT | `npm run uat:live` harness (Phase 18) |
@@ -128,9 +128,15 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Setup wizard + IDE skills + set_env delegation — Phases 22, 23.1 (SETUP-*, SKILL-*)
 - ✓ OpenAPI coverage map + npm pack allowlist + milestone Changeset 1.0.0 — Phase 23 (OAPI-01, OAPI-02, PUB-01, PUB-02)
 
+### Validated (v3.2 — partial)
+
+- ✓ Capabilities + deployment.logs — Phase 24 (CAP-01, CAP-02, OBS-01)
+- ✓ Application log follow — Phase 25 (OBS-02, OBS-03)
+- ✓ diagnose.logs + incident prompt + coolify-setup troubleshooting — Phase 26 (DIAG-01, PROMPT-01, SKILL-01)
+
 ### Active (v3.2)
 
-- See `.planning/REQUIREMENTS.md` — OBS, CAP, DX, BRND categories
+- See `.planning/REQUIREMENTS.md` — remaining BRND / docs-stale (Phase 27)
 
 ### Out of Scope
 
@@ -209,6 +215,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-**v3.2 in progress:** Phase 25 shipped `application.logs` follow mode (bounded polling, idle/timeout, capability `application_logs_follow`); OBS-03 one-shot paths unchanged.
+**v3.2 in progress:** Phase 26 shipped `diagnose.logs` (triage + bounded tail), incident prompt rewrite, `diagnose_logs` capability, coolify-setup App log troubleshooting. Phase 27 next (branding & docs stale fix).
 
-*Last updated: 2026-07-28 — Phase 25 application-log-follow complete*
+*Last updated: 2026-07-28 — Phase 26 diagnose-logs-incident-dx complete*

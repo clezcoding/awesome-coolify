@@ -63,4 +63,12 @@ describe('skills manifest', () => {
     expect(content).toMatch(/does not pass `conflict_policy`|omits `conflict_policy`/i);
     expect(content).toMatch(/application_uuid|link-existing/i);
   });
+
+  it('coolify-setup documents app log troubleshooting and diagnose.logs', () => {
+    const content = readFileSync(join('skills', 'coolify-setup', 'SKILL.md'), 'utf8');
+    expect(content).toContain('App log troubleshooting');
+    expect(content).toMatch(/diagnose\.logs|action: "logs"/);
+    expect(content).toMatch(/system\.version|action: "version"/);
+    expect(content).toContain('coolify-incident');
+  });
 });

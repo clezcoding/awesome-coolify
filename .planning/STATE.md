@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
-current_phase: 26
-current_phase_name: Diagnose Logs & Incident DX
-status: "Phase 25 shipped — PR #99"
-stopped_at: Completed 25-05-PLAN.md
-last_updated: "2026-07-28T02:25:21.531Z"
+current_phase: 27
+current_phase_name: Branding & Docs Stale Fix
+status: "Phase 26 shipped — PR #100"
+stopped_at: Completed 26-03-PLAN.md
+last_updated: "2026-07-28T03:43:36.425Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 10
-  completed_plans: 10
-  percent: 50
-last_activity_desc: Phase 25 complete, transitioned to Phase 26
+  completed_phases: 3
+  total_plans: 14
+  completed_plans: 14
+  percent: 75
+last_activity_desc: Phase 26 complete, transitioned to Phase 27
 ---
 
 # Project State
@@ -24,20 +24,20 @@ last_activity_desc: Phase 25 complete, transitioned to Phase 26
 See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 25 — application-log-follow
+**Current focus:** Phase 27 — Branding & Docs Stale Fix
 
 ## Current Position
 
-Phase: 26 — Diagnose Logs & Incident DX
+Phase: 27 — Branding & Docs Stale Fix
 Plan: Not started
-Status: Phase 25 shipped — PR #99
+Status: Phase 26 shipped — PR #100
 Last activity: 2026-07-28
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 112
+- Total plans completed: 116
 - Average duration: —
 - Total execution time: —
 
@@ -67,6 +67,7 @@ Last activity: 2026-07-28
 | 23.1 | 5 | - | - |
 | 24 | 4 | - | - |
 | 25 | 6 | - | - |
+| 26 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -147,6 +148,10 @@ Last activity: 2026-07-28
 | Phase 25-application-log-follow P03 | 3min | 2 tasks | 7 files |
 | Phase 25-application-log-follow P04 | 2min | 2 tasks | 2 files |
 | Phase 25-application-log-follow P05 | 5min | 2 tasks | 4 files |
+| Phase 26-diagnose-logs-incident-dx P00 | 3min | 2 tasks | 5 files |
+| Phase 26-diagnose-logs-incident-dx P01 | 4min | 2 tasks | 5 files |
+| Phase 26-diagnose-logs-incident-dx P02 | 5min | 3 tasks | 7 files |
+| Phase 26-diagnose-logs-incident-dx P03 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -397,6 +402,14 @@ Last activity: 2026-07-28
 - [Phase ?]: WR-03 nested schema tests co-committed with WR-01 handler test in same application.test.ts commit
 - [Phase ?]: applicationActionMcpSchema omits superRefine — MCP SDK passes follow+deployment_uuid to handler throwValidationError (25-05)
 - [Phase ?]: buildApplicationActionSchema factory avoids duplicating createFlatActionSchema shape block (25-05)
+- [Phase ?]: Phase 26 Wave 0: it.fails RED scaffolds for diagnose.logs; flip to it in 26-01..26-03
+- [Phase ?]: Schema reject scaffolds assert logs-specific refine messages — enum-only rejection passes too early under it.fails
+- [Phase ?]: Zod .default() on diagnose.logs mode/lines/max_chars — max_chars after sharedReadParamsFlatShape spread
+- [Phase ?]: Single feat commit for 26-01 — lint-staged vitest related blocks partial it.fails flips
+- [Phase ?]: Incident prompt composite triage via diagnose.logs mode full; deployment.logs conditional on build/deploy suspicion
+- [Phase ?]: diagnose_logs sixth capability key published — soft guidance only, no Zod hard-block
+- [Phase ?]: diagnose.logs catalog notation in coolify-setup step 2 alongside action: logs call
+- [Phase ?]: App-only guardrail in setup troubleshooting intro — no service/DB log claims
 
 ### Pending Todos
 
@@ -470,8 +483,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T01:15:17.330Z
-Stopped at: Completed 25-05-PLAN.md
+Last session: 2026-07-28T03:13:58.951Z
+Stopped at: Completed 26-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

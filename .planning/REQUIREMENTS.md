@@ -21,15 +21,15 @@ Requirements for this milestone. Each maps to roadmap phases. Scoped to **Coolif
 
 ### Diagnose
 
-- [ ] **DIAG-01**: Agent can call `diagnose.logs` for an application — combines app diagnose triage with a bounded log tail in one action
+- [x] **DIAG-01**: Agent can call `diagnose.logs` for an application — combines app diagnose triage with a bounded log tail in one action
 
 ### MCP Prompts
 
-- [ ] **PROMPT-01**: `incident` MCP prompt documents `deployment.logs`, application log follow, and `diagnose.logs` (application-only; no service/DB log steps)
+- [x] **PROMPT-01**: `incident` MCP prompt documents `deployment.logs`, application log follow, and `diagnose.logs` (application-only; no service/DB log steps)
 
 ### IDE Skills
 
-- [ ] **SKILL-01**: `coolify-setup` skill documents app log troubleshooting, capability discovery via `system.version`, and links to incident/deploy/diagnose skills
+- [x] **SKILL-01**: `coolify-setup` skill documents app log troubleshooting, capability discovery via `system.version`, and links to incident/deploy/diagnose skills
 
 ### Branding
 
@@ -77,9 +77,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBS-01 | Phase 24 | Complete |
 | OBS-02 | Phase 25 | Complete |
 | OBS-03 | Phase 25 | Complete |
-| DIAG-01 | Phase 26 | Pending |
-| PROMPT-01 | Phase 26 | Pending |
-| SKILL-01 | Phase 26 | Pending |
+| DIAG-01 | Phase 26 | Complete |
+| PROMPT-01 | Phase 26 | Complete |
+| SKILL-01 | Phase 26 | Complete |
 | BRND-01 | Phase 27 | Pending |
 | BRND-02 | Phase 27 | Pending |
 | DOC-01 | Phase 27 | Pending |

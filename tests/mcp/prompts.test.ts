@@ -101,7 +101,7 @@ describe('MCP prompts registration', () => {
     expect(content).not.toContain('type: "project"');
   });
 
-  it('incident prompt mentions diagnose, logs, restart, and emergency redeploy', async () => {
+  it('incident prompt mentions diagnose.logs, deployment.logs, follow, and app-only guardrail', async () => {
     const server = new McpServer({ name: 'test-server', version: '1.0.0' });
     registerCoolifyPrompts(server);
     const result = await getRegisteredPrompts(server).incident.handler({
@@ -109,9 +109,17 @@ describe('MCP prompts registration', () => {
       project_uuid: 'proj-1',
     });
     const content = assistantContent(result);
-    expect(content).toContain('diagnose({ action: "app"');
-    expect(content).toContain('application({ action: "logs"');
+
+    expect(content).toContain('diagnose({ action: "logs"');
+    expect(content).toContain('mode: "full"');
+    expect(content).toContain('deployment({ action: "logs"');
+    expect(content).toMatch(/follow:\s*true/);
+    expect(content).toMatch(/application_logs_follow/);
+    expect(content).toMatch(/service|database|DB/i);
     expect(content).toContain('application({ action: "restart"');
     expect(content).toContain('emergency({ action: "redeploy_project"');
+    expect(content).not.toMatch(
+      /diagnose\(\{ action: "app".*application\(\{ action: "logs"/s,
+    );
   });
 });
