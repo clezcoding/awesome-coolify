@@ -1258,6 +1258,42 @@ describe('handleApplicationAction logs', () => {
     expect(result.success).toBe(true);
   });
 
+  it('applicationLogsSchema rejects max_interval below default min_interval when only max_interval set (WR-03)', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      max_interval: 2,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('applicationLogsSchema rejects min_interval above default max_interval when only min_interval set (WR-03)', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      min_interval: 31,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it('build logs plain string fallback slices without throw', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       status: 'finished',
@@ -1527,6 +1563,34 @@ describe('handleApplicationAction logs', () => {
 
         const data = result.data as Record<string, unknown>;
         expect(data.stopped_reason).toBe('idle');
+      },
+    );
+
+    it(
+      'returns stopped_reason idle on quiet app with perpetually empty runtime logs (WR-01)',
+      async () => {
+        vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: '' });
+
+        const result = await handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-empty',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 1,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        expect(isApplicationErrorResult(result)).toBe(false);
+        if (isApplicationErrorResult(result)) return;
+
+        const data = result.data as Record<string, unknown>;
+        expect(data.stopped_reason).toBe('idle');
+        expect(data.logs_lines).toEqual([]);
+        expect(data.total_lines).toBe(0);
       },
     );
 
