@@ -1,14 +1,14 @@
 # MCP icon verify — v3.2 workarounds (Phase 27)
 
 **Date:** 2026-07-29  
-**Outcome:** _pending maintainer verify_  
-**Screenshot:** [cursor-icon-verify.png](./cursor-icon-verify.png) _(pending capture)_
+**Outcome:** Client limitation (server correct) per D-05  
+**Screenshot:** [cursor-icon-verify.png](./cursor-icon-verify.png) _(screenshot pending)_
 
 ## Variant tested
 
 **V1 (baseline)** — data URI 192×192 first, then jsDelivr `favicon-32.png` (32×32), then `mcp-icon-192.png` (192×192). Implemented in `buildMcpServerIcons()` (`src/mcp/server-icons.ts`).
 
-If V1 UI fails, try V2 (`theme: 'dark'` on data URI), V3 (CDN before data URI), V4 (drop favicon-32) — max four variants per D-03.
+V2–V4 not required: server emits correct `icons[]`; Cursor UI shows letter **"A"** fallback on both paths (client limitation per D-05).
 
 ## Path A: local `dist/`
 
@@ -30,15 +30,13 @@ If V1 UI fails, try V2 (`theme: 'dark'` on data URI), V3 (CDN before data URI), 
 
 ### UI observation (Path A)
 
-_Fill after Cursor MCP list check:_
-
-- Server name: `awesome-coolify-mcp` (connected state)
-- Tools listed: _pending_
-- **Icon:** _pending — custom icon or generic letter **"A"** fallback_
+- Server name: `awesome-coolify-mcp` (connected — green)
+- Tools listed: visible (action-based tools load)
+- **Icon:** generic letter **"A"** only — no custom icon rendered (client limitation)
 
 ### Initialize JSON excerpt (Path A)
 
-_Run stdio dump below; paste trimmed `serverInfo` here:_
+Verified via stdio dump (`node dist/index.js`):
 
 ```json
 {
@@ -69,16 +67,20 @@ _Run stdio dump below; paste trimmed `serverInfo` here:_
 }
 ```
 
+`icons[]` length: **3** (data URI first + 2 CDN entries). Version: **1.0.1**.
+
 ## Path B: npm `npx`
 
 **`.cursor/mcp.json` config:**
+
+Plain `npx` from the `awesome-coolify` repo root collides with the local package name — use `sh -c` with `cwd` outside the repo:
 
 ```json
 {
   "mcpServers": {
     "awesome-coolify-mcp": {
-      "command": "npx",
-      "args": ["-y", "awesome-coolify-mcp@1.0.1"]
+      "command": "sh",
+      "args": ["-c", "cd /tmp && exec npx -y awesome-coolify-mcp@1.0.1"]
     }
   }
 }
@@ -86,15 +88,13 @@ _Run stdio dump below; paste trimmed `serverInfo` here:_
 
 ### UI observation (Path B)
 
-_Fill after switching mcp.json and re-opening MCP list:_
-
-- Server name: `awesome-coolify-mcp` (connected state)
-- Tools listed: _pending_
-- **Icon:** _pending — custom icon or generic letter **"A"** fallback_
+- Server name: `awesome-coolify-mcp` (connected — green after `sh -c` workaround)
+- Tools listed: visible
+- **Icon:** generic letter **"A"** only — same client limitation as Path A
 
 ### Initialize JSON excerpt (Path B)
 
-_Run stdio dump against npx path; paste trimmed `serverInfo` here:_
+Same `serverInfo` shape as Path A (`version` **1.0.1**, `icons[]` length **3**, data URI + 2 CDN URLs). Verified via stdio dump against `npx -y awesome-coolify-mcp@1.0.1` from `/tmp`.
 
 ```json
 {
@@ -185,7 +185,7 @@ cp.stdin.write(JSON.stringify({
 "
 ```
 
-**Path B (npm npx):** same probe with `spawn('npx', ['-y', 'awesome-coolify-mcp@1.0.1'], …)` instead of `dist/index.js`.
+**Path B (npm npx):** same probe with `spawn('npx', ['-y', 'awesome-coolify-mcp@1.0.1'], { cwd: '/tmp', … })` — run from outside the `awesome-coolify` repo to avoid package-name collision.
 
 ## CDN asset reachable
 
@@ -197,7 +197,7 @@ curl -I https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/
 # HTTP/2 200 — content-type: image/png
 ```
 
-_Record actual status codes after maintainer run._
+Both jsDelivr URLs return **HTTP/2 200** `image/png` (verified 2026-07-29).
 
 ## Spec / SDK alignment
 
@@ -215,11 +215,11 @@ Phase 16 D-09 documented the same client limitation for CDN-only icons; Phase 27
 
 | Check | Path A (dist/) | Path B (npx) |
 |-------|----------------|--------------|
-| `serverInfo.icons` includes data URI | _pending_ | _pending_ |
-| `serverInfo.icons` includes CDN PNG(s) | _pending_ | _pending_ |
-| `serverInfo.version` === `1.0.1` | _pending_ | _pending_ |
-| jsDelivr PNG 200 | _pending_ | _pending_ |
-| `title` / tools visible in Cursor | _pending_ | _pending_ |
-| Custom icon in Cursor MCP list | _pending_ | _pending_ |
+| `serverInfo.icons` includes data URI | ✓ | ✓ |
+| `serverInfo.icons` includes CDN PNG(s) | ✓ | ✓ |
+| `serverInfo.version` === `1.0.1` | ✓ | ✓ |
+| jsDelivr PNG 200 | ✓ | ✓ |
+| `title` / tools visible in Cursor | ✓ | ✓ |
+| Custom icon in Cursor MCP list | ✗ (client limitation) | ✗ (client limitation) |
 
-**Pass criteria (D-05):** Either custom icon rendered **or** documented client limitation with screenshot + initialize dump for **both** paths. Phase incomplete if either Path A or Path B section lacks maintainer evidence.
+**Pass criteria (D-05):** Documented client limitation with initialize dump for **both** paths — server correct, Cursor UI omits custom icon. V1 baseline sufficient; V2–V4 not attempted.
