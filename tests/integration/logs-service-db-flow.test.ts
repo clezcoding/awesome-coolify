@@ -191,6 +191,28 @@ describe('logs-service-db-flow integration', () => {
       });
       expect(parsed.success).toBe(true);
     });
+
+    it('runtime one-shot logs without follow key unchanged', async () => {
+      const result = await handleApplicationAction(
+        { action: 'logs', uuid: 'app-uuid-1', lines: 50 },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      if (isApplicationErrorResult(result)) return;
+
+      expect(result.ok).toBe(true);
+      expect(fetchApplicationLogs).toHaveBeenCalledWith(
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        'app-uuid-1',
+        50,
+        testEnv.COOLIFY_VERIFY_SSL,
+      );
+      expect(
+        (result.data as Record<string, unknown>).stopped_reason,
+      ).toBeUndefined();
+    });
   });
 
   describe('APP-11 build logs', () => {

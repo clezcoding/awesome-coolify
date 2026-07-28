@@ -113,6 +113,89 @@ describe('applicationActionSchema', () => {
       applicationActionSchema.safeParse({ action: 'list' }).success,
     ).toBe(false);
   });
+
+  it('accepts follow true on logs action with runtime uuid', () => {
+    expect(
+      applicationActionSchema.safeParse({
+        action: 'logs',
+        uuid: 'app-uuid-1',
+        follow: true,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects follow true with deployment_uuid on applicationActionSchema', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      deployment_uuid: 'dep-uuid-1',
+      follow: true,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /follow.*deployment_uuid|deployment_uuid.*follow/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects follow true on deploy action', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'deploy',
+      uuid: 'app-uuid-1',
+      follow: true,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues.some((issue) => issue.path.includes('follow'))).toBe(
+      true,
+    );
+  });
+
+  it('strips follow false phantom default on deploy action', () => {
+    expect(
+      applicationActionSchema.safeParse({
+        action: 'deploy',
+        uuid: 'app-uuid-1',
+        follow: false,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects min_interval greater than max_interval when follow true on logs', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      min_interval: 30,
+      max_interval: 3,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects offset with follow true on applicationLogsSchema', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      offset: 5,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues.some((issue) => /offset/i.test(issue.message ?? ''))).toBe(
+      true,
+    );
+  });
 });
 
 describe('handleApplicationAction get', () => {
@@ -1061,6 +1144,42 @@ describe('handleApplicationAction logs', () => {
       100,
       testEnv.COOLIFY_VERIFY_SSL,
     );
+  });
+
+  it('runtime logs follow false uses identical fetchApplicationLogs args as omit follow', async () => {
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'a\nb' });
+
+    await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+    const omitArgs = vi.mocked(fetchApplicationLogs).mock.calls[0];
+
+    vi.mocked(fetchApplicationLogs).mockClear();
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'a\nb' });
+
+    await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1', follow: false },
+      testEnv,
+    );
+    const falseArgs = vi.mocked(fetchApplicationLogs).mock.calls[0];
+
+    expect(falseArgs).toEqual(omitArgs);
+  });
+
+  it('build logs path calls fetchDeployment not fetchApplicationLogs', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: buildLogsFixture,
+    });
+
+    await handleApplicationAction(
+      { action: 'logs', deployment_uuid: 'dep-uuid-1' },
+      testEnv,
+    );
+
+    expect(fetchDeployment).toHaveBeenCalled();
+    expect(fetchApplicationLogs).not.toHaveBeenCalled();
   });
 
   it('build logs default include_hidden:false filters hidden entries', async () => {
