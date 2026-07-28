@@ -379,16 +379,11 @@ npx --yes awesome-coolify-mcp@1.0.1  # same stdio probe after connect
 | A2 | `favicon-32.png` acceptable as small CDN size entry vs exact 48×48 | Pattern 3 V2 | Low — spec allows any WxH in `sizes` |
 | A3 | ~42 KB base64 in bundle acceptable for MCP stdio | Pattern 2 | Low — initialize payload only |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **README tool counts (17 vs 18) in DOC-01 scope?**
-   - What we know: README/cloud.md still say 16–17 tools; package is 18 tools / ~115 actions.
-   - What's unclear: DOC-01 text targets "pending Version Packages" specifically.
-   - Recommendation: Fix locked stale strings first; tool-count refresh only if editing README branding section (discretion), not blocking DOC-01.
+1. **README tool counts (17 vs 18) in DOC-01 scope?** → **RESOLVED: Out of DOC-01 scope** unless branding section touched. README/cloud.md tool-count drift (16–17 vs 18) is adjacent only — Plan **27-03** fixes locked stale Version Packages / 1.0.1 wording; broad tool-count refresh deferred unless already editing README `### 🎨 Branding` (27-03 prohibition enforces).
 
-2. **Commit generated `mcp-icon-data.ts` or gitignore + generate in CI?**
-   - What we know: Husky runs tests on commit; generated file must exist before `tsc`/vitest.
-   - Recommendation: Generate in `build` script; **commit** generated file OR generate in `prepare`/`prebuild` — planner picks; prefer `build` hook to avoid 42 KB hand-edits.
+2. **Commit generated `mcp-icon-data.ts` or gitignore + generate in CI?** → **RESOLVED: Commit generated file via build hook.** Plan **27-01** tracer wires `node scripts/generate-mcp-icon-data.mjs` into `package.json` `build` before tsup; executor runs `npm run build` then **commits** `src/mcp/mcp-icon-data.ts` so vitest/husky see the constant without CI-only generation.
 
 ## Environment Availability
 
@@ -432,11 +427,12 @@ npx --yes awesome-coolify-mcp@1.0.1  # same stdio probe after connect
 
 ### Wave 0 Gaps
 
-- [ ] Extend `src/mcp/server.test.ts` — data URI prefix + multi-size CDN assertions (replace CDN-only BRND-03 checks)
-- [ ] Optional `src/mcp/server-icons.test.ts` — `buildMcpServerIcons()` unit tests
-- [ ] Optional initialize integration test via `InMemoryTransport` (SDK pattern)
-- [ ] `scripts/generate-mcp-icon-data.mjs` + `package.json` build script wire-up
-- [ ] DOC-01: `.planning/PROJECT.md` L5 stale opener fix
+- [ ] Extend `src/mcp/server.test.ts` — data URI prefix + multi-size CDN assertions (replace CDN-only BRND-03 checks) — **Plan 27-00 RED**
+- [ ] `src/mcp/server-icons.test.ts` — `buildMcpServerIcons()` unit RED scaffolds — **Plan 27-00**
+- [ ] `tests/integration/doc-version-parity.test.ts` — PROJECT opener stale-string RED gate — **Plan 27-00**
+- [ ] Optional initialize integration test via `InMemoryTransport` (SDK pattern) — discretion, not blocking
+- [ ] `scripts/generate-mcp-icon-data.mjs` + `package.json` build script wire-up — **Plan 27-01** (not Wave 0)
+- [ ] DOC-01: `.planning/PROJECT.md` L5 stale opener fix — **Plan 27-03** (flip doc-version-parity GREEN)
 
 ## Security Domain
 

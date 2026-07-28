@@ -184,9 +184,17 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 27-00-PLAN.md — Wave 0 RED scaffolds (BRND-01 + DOC-01 tests)
 - [ ] 27-01-PLAN.md — Tracer: dual icons build pipeline + D-08 version parity
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 27-02-PLAN.md — BRND-02 maintainer verify doc + Cursor UI gate
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 27-03-PLAN.md — DOC-01 public docs parity (PROJECT, README EN/DE)
 
 ## Progress
