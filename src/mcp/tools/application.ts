@@ -245,6 +245,29 @@ export const applicationLogsSchema = z
         params: { code: 'COOLIFY_422' },
       });
     }
+    if (data.follow === true && data.offset > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'offset is not supported when follow:true — use lines per poll instead',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow === true) {
+      const minInterval = data.min_interval;
+      const maxInterval = data.max_interval;
+      if (
+        minInterval !== undefined &&
+        maxInterval !== undefined &&
+        minInterval > maxInterval
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'min_interval must be less than or equal to max_interval',
+          path: ['min_interval'],
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
   });
 
 function requireProjectAndEnvironment(
@@ -329,7 +352,8 @@ const envBulkEntrySchema = z
 
 export const applicationActionsCatalog =
   'Actions: get(uuid, format?, projection?, reveal?) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid, force?) · ' +
-  'logs(uuid, lines?) · create(source_type, server_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · ' +
+  'logs(uuid, lines?, follow?, timeout?, idle_timeout?, min_interval?, max_interval?) — follow runtime only; check system.version capabilities.application_logs_follow · ' +
+  'create(source_type, server_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · ' +
   'envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · ' +
   'envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm) · ' +
   'envs:sync(uuid, env_file?, env_content?, dry_run?, confirm?, conflict_policy?)';
@@ -753,6 +777,29 @@ export const applicationActionSchema = createFlatActionSchema(
           params: { code: 'COOLIFY_422' },
         });
       }
+      if (data.follow === true && (data.offset ?? 0) > 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'offset is not supported when follow:true — use lines per poll instead',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (data.follow === true) {
+        const minInterval = data.min_interval;
+        const maxInterval = data.max_interval;
+        if (
+          minInterval !== undefined &&
+          maxInterval !== undefined &&
+          minInterval > maxInterval
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'min_interval must be less than or equal to max_interval',
+            path: ['min_interval'],
+            params: { code: 'COOLIFY_422' },
+          });
+        }
+      }
       if (data.format === 'table') {
         ctx.addIssue({
           code: 'custom',
@@ -849,6 +896,7 @@ export const applicationActionSchema = createFlatActionSchema(
       }
     }
   },
+  { follow: false },
 );
 
 
