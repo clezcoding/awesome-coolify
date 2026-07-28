@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
-current_phase: 26
-current_phase_name: Diagnose Logs & Incident DX
-status: planning
-stopped_at: Completed 25-04-PLAN.md
-last_updated: "2026-07-28T00:39:43.066Z"
+current_phase: 25
+current_phase_name: application-log-follow
+status: executing
+stopped_at: Completed 25-05-PLAN.md
+last_updated: "2026-07-28T01:15:17.340Z"
 last_activity: 2026-07-28
-last_activity_desc: Phase 25 complete, transitioned to Phase 26
+last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 10
+  completed_plans: 10
   percent: 50
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 ## Current Position
 
-Phase: 26 — Diagnose Logs & Incident DX
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-28 — Phase 25 complete, transitioned to Phase 26
+Phase: 25 (application-log-follow) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-07-28 — Phase 25 execution started
 
 ## Performance Metrics
 
@@ -146,6 +146,7 @@ Last activity: 2026-07-28 — Phase 25 complete, transitioned to Phase 26
 | Phase 25-application-log-follow P02 | 3min | 2 tasks | 3 files |
 | Phase 25-application-log-follow P03 | 3min | 2 tasks | 7 files |
 | Phase 25-application-log-follow P04 | 2min | 2 tasks | 2 files |
+| Phase 25-application-log-follow P05 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -394,6 +395,8 @@ Last activity: 2026-07-28 — Phase 25 complete, transitioned to Phase 26
 - [Phase ?]: application_logs_follow soft guidance only — no Zod capability gate (D-19)
 - [Phase ?]: Verify-only gap closure — no production edits; REVIEW-FIX commits c303118/6519440 confirmed via tests
 - [Phase ?]: WR-03 nested schema tests co-committed with WR-01 handler test in same application.test.ts commit
+- [Phase ?]: applicationActionMcpSchema omits superRefine — MCP SDK passes follow+deployment_uuid to handler throwValidationError (25-05)
+- [Phase ?]: buildApplicationActionSchema factory avoids duplicating createFlatActionSchema shape block (25-05)
 
 ### Pending Todos
 
@@ -467,8 +470,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T00:37:04.569Z
-Stopped at: Completed 25-04-PLAN.md
+Last session: 2026-07-28T01:15:17.330Z
+Stopped at: Completed 25-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

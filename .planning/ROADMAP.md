@@ -114,9 +114,12 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans:** 5/5 plans complete
+**Plans:** 6/6 plans executed
 
 Plans:
+
+- [x] 25-05-PLAN.md
+
 **Wave 0**
 
 - [x] 25-00-PLAN.md — Wave 0 Nyquist RED scaffolds (log-follow-poll + follow handler + capabilities)
@@ -178,7 +181,7 @@ Plans:
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
-| 25 | v3.2 | 5/5 | Complete    | 2026-07-28 |
+| 25 | v3.2 | 6/6 | In Progress|  |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
 
