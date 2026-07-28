@@ -114,7 +114,7 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans:** 4/4 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 **Wave 0**
@@ -129,6 +129,10 @@ Plans:
 
 - [x] 25-02-PLAN.md — OBS-02/OBS-03: flat schema wiring + one-shot regression lock
 - [x] 25-03-PLAN.md — OBS-02: application_logs_follow capability + coverage + README EN/DE
+
+**Wave 3** *(gap closure — blocked on Wave 2 completion)*
+
+- [ ] 25-04-PLAN.md — Close VERIFICATION gaps WR-01/WR-03: idle-on-empty + one-bound interval tests + re-verify
 
 ### Phase 26: Diagnose Logs & Incident DX
 

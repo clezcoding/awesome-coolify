@@ -4,15 +4,15 @@ milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 25
 current_phase_name: application-log-follow
-status: verifying
+status: executing
 stopped_at: Completed 25-03-PLAN.md
-last_updated: "2026-07-28T00:07:16.901Z"
+last_updated: "2026-07-28T00:31:44.033Z"
 last_activity: 2026-07-28
 last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 8
+  total_plans: 9
   completed_plans: 8
   percent: 50
 ---
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 Phase: 25 (application-log-follow) — EXECUTING
 Plan: 4 of 4
-Status: Phase complete — ready for verification
+Status: Ready to execute
 Last activity: 2026-07-28 — Phase 25 execution started
 
 ## Performance Metrics
