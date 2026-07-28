@@ -31,6 +31,7 @@ import {
   type ReadResponse,
 } from '../../utils/formatters.js';
 import { wrapMcpError, CoolifyApiError, toStructuredError, type McpErrorResult } from '../../utils/errors.js';
+import { redactSecrets } from '../../utils/redact.js';
 import {
   createFlatActionSchema,
   parseReadParams,
@@ -543,7 +544,10 @@ async function handleDiagnoseLogs(
     } catch (err) {
       const envelope =
         err instanceof CoolifyApiError ? err.envelope : toStructuredError(err);
-      diagnose_failed = { code: envelope.code, message: envelope.message };
+      diagnose_failed = {
+        code: envelope.code,
+        message: redactSecrets(envelope.message),
+      };
     }
   }
 
