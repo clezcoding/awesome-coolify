@@ -393,10 +393,10 @@ export const applicationActionSchema = createFlatActionSchema(
     timeout: z
       .number()
       .int()
-      .min(10)
+      .min(1)
       .max(1800)
       .optional()
-      .describe('Wait-mode timeout in seconds'),
+      .describe('Wait-mode timeout in seconds (deploy wait min 10; follow logs min 1)'),
     deployment_uuid: z.string().optional().describe('Deployment UUID for build logs'),
     follow: z
       .boolean()
@@ -747,6 +747,18 @@ export const applicationActionSchema = createFlatActionSchema(
           code: 'custom',
           message:
             'At least one identifier (uuid|name|fqdn|uuids|tags|tag) required for action deploy',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (
+        data.wait === true &&
+        data.timeout !== undefined &&
+        data.timeout < 10
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'timeout must be at least 10 seconds for deploy wait mode',
+          path: ['timeout'],
           params: { code: 'COOLIFY_422' },
         });
       }

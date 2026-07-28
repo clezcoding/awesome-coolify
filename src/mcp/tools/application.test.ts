@@ -183,6 +183,34 @@ describe('applicationActionSchema', () => {
     ).toBe(true);
   });
 
+  it('accepts follow timeout under 10 seconds on flat schema', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      timeout: 5,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects deploy wait timeout under 10 seconds on flat schema', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'deploy',
+      uuid: 'app-uuid-1',
+      wait: true,
+      timeout: 5,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /timeout must be at least 10 seconds for deploy wait mode/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it('rejects offset with follow true on applicationLogsSchema', () => {
     const result = applicationLogsSchema.safeParse({
       action: 'logs',
