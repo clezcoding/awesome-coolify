@@ -18,6 +18,7 @@ actions:
   - action: application.logs
     client: [fetchApplicationLogs, fetchDeployment]
     openapi: ["GET /applications/{uuid}/logs", "GET /deployments/{uuid}"]
+    # MCP-side follow:true bounded polling on runtime logs (OBS-02); check capabilities.application_logs_follow
   - action: application.create
     client: [createPublicApplication, createPrivateDeployKeyApplication, createPrivateGithubAppApplication, createDockerfileApplication, createDockerimageApplication, triggerDeploy]
     openapi: ["POST /applications/public", "POST /applications/private-deploy-key", "POST /applications/private-github-app", "POST /applications/dockerfile", "POST /applications/dockerimage", "GET /deploy"]

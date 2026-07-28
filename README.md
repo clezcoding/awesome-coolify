@@ -729,7 +729,7 @@ The server is stable and actively used for day-2 operations against real Coolify
 | Capability discovery via `system.version` | ✅ Shipped |
 | Deployment build logs via `deployment.logs` | ✅ Shipped |
 
-> **Capability discovery & build logs:** `system({ action: "version" })` returns `coolifyVersion` (replacing the legacy `version` field), `mcpVersion`, and a `capabilities` map of Coolify 4.1.2 feature flags. For deployment **build** logs, prefer `deployment({ action: "logs", deployment_uuid: "..." })` (or `application_uuid` to resolve the newest deployment). The `application.logs` path with `deployment_uuid` still works for back-compat.
+> **Capability discovery & build logs:** `system({ action: "version" })` returns `coolifyVersion` (replacing the legacy `version` field), `mcpVersion`, and a `capabilities` map of Coolify 4.1.2 feature flags. For deployment **build** logs, prefer `deployment({ action: "logs", deployment_uuid: "..." })` (or `application_uuid` to resolve the newest deployment). The `application.logs` path with `deployment_uuid` still works for back-compat. For **runtime** log follow, use `application({ action: "logs", uuid: "...", follow: true })` — bounded MCP polling until idle or timeout; check `capabilities.application_logs_follow` via `system.version`.
 
 Service/database log tailing is temporarily on hold — Coolify 4.1.x's REST API doesn't expose a `/services/{uuid}/logs` or `/databases/{uuid}/logs` endpoint yet (the fix has merged upstream but isn't backported to 4.1.x). It'll ship the moment the endpoint is reachable, with no half-working stub in the meantime.
 

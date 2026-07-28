@@ -729,7 +729,7 @@ Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4
 | Capability-Discovery via `system.version` | ✅ Shipped |
 | Deployment-Build-Logs via `deployment.logs` | ✅ Shipped |
 
-> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar.
+> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
 
 Service-/Database-Log-Tailing pausiert aktuell — Coolifys 4.1.x-REST-API bietet noch keinen `/services/{uuid}/logs`- oder `/databases/{uuid}/logs`-Endpoint (der Fix ist upstream gemerged, aber noch nicht nach 4.1.x zurückportiert). Es kommt, sobald der Endpoint erreichbar ist — kein halbfunktionierender Stub in der Zwischenzeit.
 
