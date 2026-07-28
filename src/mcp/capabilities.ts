@@ -19,6 +19,11 @@ export const COOLIFY_412_CAPABILITIES = {
     coolify_min_version: '4.1.0',
     note: 'Legacy sync polling via application.deploy wait:true (prefer deployment.watch)',
   },
+  application_logs_follow: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'Bounded runtime log follow via application.logs follow:true (MCP polling on GET /applications/{uuid}/logs)',
+  },
 } as const satisfies Record<
   string,
   { supported: boolean; coolify_min_version: string; note?: string }
