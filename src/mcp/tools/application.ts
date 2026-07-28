@@ -52,6 +52,7 @@ import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js'
 import {
   CoolifyApiError,
   RECOVERY_HINTS,
+  toStructuredError,
   wrapMcpError,
   type CoolifyErrorCode,
   type McpErrorResult,
@@ -61,6 +62,7 @@ import {
   processDeploymentBuildLogs,
   sliceLogBlob,
 } from '../../utils/log-helpers.js';
+import { followApplicationLogs } from '../../utils/log-follow-poll.js';
 import {
   createFlatActionSchema,
   mutationResponseParamsFlatShape,
@@ -183,6 +185,37 @@ export const applicationLogsSchema = z
       .describe(
         'Skip first K lines of the FLATTENED log blob before applying lines (build-logs pagination applied AFTER parse+filter+flatten)',
       ),
+    follow: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        'Poll runtime logs until idle or timeout; returns deduped aggregate (runtime uuid/name/fqdn only)',
+      ),
+    timeout: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow budget in seconds when follow:true (default 120)'),
+    idle_timeout: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Stop after this many seconds with no new deduped lines (default 60)'),
+    min_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Minimum poll interval in seconds when follow:true (default 3)'),
+    max_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Maximum poll interval in seconds when follow:true (default 30)'),
     ...sharedLogParamsSchema,
   })
   .strict()
@@ -201,6 +234,14 @@ export const applicationLogsSchema = z
         code: 'custom',
         message:
           'Cannot provide both uuid and deployment_uuid — choose runtime OR build logs',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow === true && data.deployment_uuid) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'follow:true cannot be used with deployment_uuid — runtime application logs only',
         params: { code: 'COOLIFY_422' },
       });
     }
@@ -333,6 +374,28 @@ export const applicationActionSchema = createFlatActionSchema(
       .optional()
       .describe('Wait-mode timeout in seconds'),
     deployment_uuid: z.string().optional().describe('Deployment UUID for build logs'),
+    follow: z
+      .boolean()
+      .optional()
+      .describe('Poll runtime logs until idle or timeout (runtime identity only)'),
+    idle_timeout: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow idle stop in seconds (default 60 when follow:true)'),
+    min_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow min poll interval in seconds (default 3 when follow:true)'),
+    max_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow max poll interval in seconds (default 30 when follow:true)'),
     offset: z.number().int().min(0).optional().describe('Skip first K log lines'),
     lines: sharedLogParamsFlatShape.lines,
     include_hidden: sharedLogParamsFlatShape.include_hidden,
@@ -453,6 +516,11 @@ export const applicationActionSchema = createFlatActionSchema(
       'name',
       'fqdn',
       'deployment_uuid',
+      'follow',
+      'timeout',
+      'idle_timeout',
+      'min_interval',
+      'max_interval',
       'offset',
       'lines',
       'max_chars',
@@ -677,6 +745,14 @@ export const applicationActionSchema = createFlatActionSchema(
           params: { code: 'COOLIFY_422' },
         });
       }
+      if (data.follow === true && data.deployment_uuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'follow:true cannot be used with deployment_uuid — runtime application logs only',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
       if (data.format === 'table') {
         ctx.addIssue({
           code: 'custom',
@@ -879,6 +955,8 @@ export type ApplicationLogsResult = ReadResponse<{
   entries_total?: number;
   entries_hidden?: number;
   entries_shown?: number;
+  stopped_reason?: 'idle' | 'timeout';
+  poll_count?: number;
 }>;
 
 export type ApplicationCreateResult = ReadResponse<{
@@ -1432,6 +1510,10 @@ async function handleApplicationLogs(
   parsed: LogsAction,
   env: EnvConfig,
 ): Promise<ApplicationLogsResult> {
+  if (parsed.follow === true) {
+    return handleApplicationLogsFollow(parsed, env);
+  }
+
   const lines = parsed.lines ?? 100;
   const includeHidden = parsed.include_hidden ?? false;
   const offset = parsed.offset ?? 0;
@@ -1483,6 +1565,119 @@ async function handleApplicationLogs(
       logs_lines: cappedLines,
       logs_truncated: capped.truncated,
       total_lines: allLines.length,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+function isFollowRetryableRateLimit(
+  err: unknown,
+): { retryAfterMs?: number } | null {
+  const envelope =
+    err instanceof CoolifyApiError ? err.envelope : toStructuredError(err);
+  if (envelope.httpStatus === 429) {
+    const retryAfter = envelope.data?.retry_after;
+    return {
+      retryAfterMs: typeof retryAfter === 'number' ? retryAfter : undefined,
+    };
+  }
+  return null;
+}
+
+async function handleApplicationLogsFollow(
+  parsed: LogsAction,
+  env: EnvConfig,
+): Promise<ApplicationLogsResult> {
+  const linesPerPoll = parsed.lines ?? 100;
+  const maxChars = parsed.max_chars ?? 20000;
+  const timeoutSec = parsed.timeout ?? 120;
+  const idleTimeoutSec = parsed.idle_timeout ?? 60;
+  const minIntervalSec = parsed.min_interval ?? 3;
+  const maxIntervalSec = parsed.max_interval ?? 30;
+
+  const uuid = await resolveAppMutationUuid(parsed, env);
+
+  const fetchSnapshot = async (): Promise<string[]> => {
+    const raw = await fetchApplicationLogs(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      uuid,
+      linesPerPoll,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const logsStr =
+      isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
+    let split = logsStr.split('\n');
+    if (split.length > 0 && split[split.length - 1] === '') {
+      split = split.slice(0, -1);
+    }
+    return split;
+  };
+
+  let outcome;
+  try {
+    outcome = await followApplicationLogs({
+      fetchSnapshot,
+      timeoutMs: timeoutSec * 1000,
+      idleTimeoutMs: idleTimeoutSec * 1000,
+      minIntervalMs: minIntervalSec * 1000,
+      maxIntervalMs: maxIntervalSec * 1000,
+      isRetryableRateLimit: isFollowRetryableRateLimit,
+    });
+  } catch (err) {
+    if (err instanceof CoolifyApiError) {
+      const partialLines = Array.isArray(err.envelope.data?.logs_lines)
+        ? (err.envelope.data.logs_lines as string[])
+        : [];
+      const capped = capLogOutput(partialLines.join('\n'), maxChars);
+      const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+      throw new CoolifyApiError({
+        ...err.envelope,
+        data: {
+          ...err.envelope.data,
+          uuid,
+          logs_lines: cappedLines,
+          logs_truncated: capped.truncated,
+          total_lines: partialLines.length,
+        },
+      });
+    }
+    throw err;
+  }
+
+  const capped = capLogOutput(outcome.aggregate.join('\n'), maxChars);
+  const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+
+  if (outcome.stoppedReason === 'timeout') {
+    const elapsedSeconds = Math.round(outcome.elapsedMs / 1000);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_LOG_FOLLOW_TIMEOUT',
+      message: `Application log follow timed out after ${elapsedSeconds}s.`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_LOG_FOLLOW_TIMEOUT,
+      data: {
+        uuid,
+        logs_lines: cappedLines,
+        logs_truncated: capped.truncated,
+        total_lines: outcome.aggregate.length,
+        stopped_reason: 'timeout',
+        timed_out: true,
+        elapsed_seconds: elapsedSeconds,
+        poll_count: outcome.pollCount,
+      },
+    });
+  }
+
+  return buildReadResponse(
+    {
+      uuid,
+      logs_lines: cappedLines,
+      logs_truncated: capped.truncated,
+      total_lines: outcome.aggregate.length,
+      stopped_reason: 'idle',
+      poll_count: outcome.pollCount,
     },
     {
       format: parsed.format,

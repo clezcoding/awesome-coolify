@@ -24,6 +24,7 @@ export type CoolifyErrorCode =
   | 'COOLIFY_NOT_IMPLEMENTED'
   | 'COOLIFY_RECIPE_PARTIAL_FAILURE'
   | 'COOLIFY_WATCH_TIMEOUT'
+  | 'COOLIFY_LOG_FOLLOW_TIMEOUT'
   | 'COOLIFY_SETUP_PAUSED'
   | 'COOLIFY_DEPLOYMENT_FAILED'
   | 'COOLIFY_DEPLOYMENT_CANCELLED'
@@ -137,6 +138,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_WATCH_TIMEOUT: [
     'Re-call deployment.watch with the same deployment_uuid to continue polling.',
     'Optionally increase timeout (seconds, max 1800) if the build typically runs longer than the default 300s.',
+  ],
+  COOLIFY_LOG_FOLLOW_TIMEOUT: [
+    'Re-call application.logs with the same application uuid (or name/fqdn) and follow:true to continue tailing.',
+    'Optionally increase timeout (seconds) if logs typically run longer than the default 120s follow budget.',
   ],
   COOLIFY_SETUP_PAUSED: [
     'Install GitHub CLI: https://cli.github.com/ (or brew install gh)',

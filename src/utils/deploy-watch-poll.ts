@@ -13,7 +13,8 @@ export type WatchPollOutcome =
 const DEFAULT_MIN_INTERVAL_MS = 3000;
 const DEFAULT_MAX_INTERVAL_MS = 30000;
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 function isTerminalStatus(status: unknown): boolean {
   return (
@@ -22,7 +23,7 @@ function isTerminalStatus(status: unknown): boolean {
   );
 }
 
-function nextDelayMs(
+export function nextDelayMs(
   attempt: number,
   minIntervalMs: number,
   maxIntervalMs: number,
