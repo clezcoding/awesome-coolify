@@ -114,7 +114,7 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 0**
@@ -123,7 +123,7 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0 completion)*
 
-- [ ] 25-01-PLAN.md — OBS-02 tracer: log-follow-poll + handleApplicationLogsFollow idle/timeout paths
+- [x] 25-01-PLAN.md — OBS-02 tracer: log-follow-poll + handleApplicationLogsFollow idle/timeout paths
 
 **Wave 2** *(blocked on Wave 1 completion; 25-02 and 25-03 parallel)*
 
@@ -174,7 +174,7 @@ Plans:
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
-| 25 | v3.2 | 1/4 | In Progress|  |
+| 25 | v3.2 | 2/4 | In Progress|  |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
 

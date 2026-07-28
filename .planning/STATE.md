@@ -5,15 +5,15 @@ milestone_name: Observability & DX
 current_phase: 25
 current_phase_name: application-log-follow
 status: executing
-stopped_at: Completed 25-00-PLAN.md
-last_updated: "2026-07-27T23:55:34.816Z"
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-07-28T00:01:07.740Z"
 last_activity: 2026-07-28
 last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 ## Current Position
 
 Phase: 25 (application-log-follow) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-07-28 — Phase 25 execution started
 
@@ -141,6 +141,7 @@ Last activity: 2026-07-28 — Phase 25 execution started
 | Phase 24-capabilities-deployment-logs P02 | 4min | 2 tasks | 7 files |
 | Phase 24-capabilities-deployment-logs P03 | 3 | 2 tasks | 5 files |
 | Phase 25-application-log-follow P00 | 2min | 2 tasks | 5 files |
+| Phase 25-application-log-follow P01 | 5min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -380,6 +381,9 @@ Last activity: 2026-07-28 — Phase 25 execution started
 - [Phase ?]: Reverted unstaged OpenAPI pin drift to restore coverage-map path validation
 - [Phase ?]: Phase 25 Wave 0: it.fails RED scaffolds for follow contract; production untouched until 25-01/25-02
 - [Phase ?]: follow+deployment_uuid scaffold uses schema-level follow-specific refine message — handler XOR already passes today
+- [Phase ?]: Handler defaults follow timeout 120s and idle_timeout 60s when omitted (D-13/D-06)
+- [Phase ?]: Suffix-overlap appendDedupedLines for tail snapshot dedup per RESEARCH Pattern 3
+- [Phase ?]: Non-429 API errors attach capped partial logs_lines in CoolifyApiError data (D-07)
 
 ### Pending Todos
 
@@ -453,8 +457,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T23:55:34.807Z
-Stopped at: Completed 25-00-PLAN.md
+Last session: 2026-07-28T00:01:07.732Z
+Stopped at: Completed 25-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
