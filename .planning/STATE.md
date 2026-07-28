@@ -4,16 +4,16 @@ milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 25
 current_phase_name: application-log-follow
-status: executing
-stopped_at: Completed 25-03-PLAN.md
-last_updated: "2026-07-28T00:31:44.033Z"
+status: complete
+stopped_at: Completed 25-04-PLAN.md
+last_updated: "2026-07-28T00:37:04.579Z"
 last_activity: 2026-07-28
-last_activity_desc: Phase 25 execution started
+last_activity_desc: Phase 25 plan 04 gap closure complete — VERIFICATION 10/10
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 50
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 ## Current Position
 
-Phase: 25 (application-log-follow) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-07-28 — Phase 25 execution started
+Phase: 25 (application-log-follow) — COMPLETE
+Plan: 5 of 5
+Status: All plans executed; VERIFICATION passed 10/10
+Last activity: 2026-07-28 — Phase 25 plan 04 gap closure complete
 
 ## Performance Metrics
 
@@ -144,6 +144,7 @@ Last activity: 2026-07-28 — Phase 25 execution started
 | Phase 25-application-log-follow P01 | 5min | 2 tasks | 8 files |
 | Phase 25-application-log-follow P02 | 3min | 2 tasks | 3 files |
 | Phase 25-application-log-follow P03 | 3min | 2 tasks | 7 files |
+| Phase 25-application-log-follow P04 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -390,6 +391,8 @@ Last activity: 2026-07-28 — Phase 25 execution started
 - [Phase ?]: Schema rejects offset with follow:true — no silent ignore
 - [Phase ?]: application.logs OBS-02 reason via coverage-overrides action_overrides + openapi:coverage regen
 - [Phase ?]: application_logs_follow soft guidance only — no Zod capability gate (D-19)
+- [Phase ?]: Verify-only gap closure — no production edits; REVIEW-FIX commits c303118/6519440 confirmed via tests
+- [Phase ?]: WR-03 nested schema tests co-committed with WR-01 handler test in same application.test.ts commit
 
 ### Pending Todos
 
@@ -463,8 +466,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T00:07:16.892Z
-Stopped at: Completed 25-03-PLAN.md
+Last session: 2026-07-28T00:37:04.569Z
+Stopped at: Completed 25-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

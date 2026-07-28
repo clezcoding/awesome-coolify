@@ -114,7 +114,7 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans executed
 
 Plans:
 **Wave 0**
@@ -132,7 +132,7 @@ Plans:
 
 **Wave 3** *(gap closure — blocked on Wave 2 completion)*
 
-- [ ] 25-04-PLAN.md — Close VERIFICATION gaps WR-01/WR-03: idle-on-empty + one-bound interval tests + re-verify
+- [x] 25-04-PLAN.md — Close VERIFICATION gaps WR-01/WR-03: idle-on-empty + one-bound interval tests + re-verify
 
 ### Phase 26: Diagnose Logs & Incident DX
 
@@ -178,7 +178,7 @@ Plans:
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
-| 25 | v3.2 | 4/4 | In Progress|  |
+| 25 | v3.2 | 5/5 | In Progress|  |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
 
