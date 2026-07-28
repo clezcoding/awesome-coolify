@@ -5,15 +5,15 @@ milestone_name: Observability & DX
 current_phase: 27
 current_phase_name: Branding & Docs Stale Fix
 status: executing
-stopped_at: Completed 27-01-PLAN.md
-last_updated: "2026-07-28T23:01:20.331Z"
+stopped_at: Completed 27-02-PLAN.md
+last_updated: "2026-07-28T23:47:20.255Z"
 last_activity: 2026-07-29
 last_activity_desc: Phase 27 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 75
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 ## Current Position
 
 Phase: 27 (Branding & Docs Stale Fix) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-29 — Phase 27 execution started
 
@@ -154,6 +154,7 @@ Last activity: 2026-07-29 — Phase 27 execution started
 | Phase 26-diagnose-logs-incident-dx P03 | 4min | 2 tasks | 2 files |
 | Phase 27-branding-docs-stale-fix P00 | 3min | 3 tasks | 3 files |
 | Phase 27-branding-docs-stale-fix P01 | 5min | 4 tasks | 7 files |
+| Phase 27-branding-docs-stale-fix P02 | 15min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -416,6 +417,8 @@ Last activity: 2026-07-29 — Phase 27 execution started
 - [Phase ?]: Phase 27 Wave 0: it.fails RED scaffolds lock icon contract + DOC opener; production untouched
 - [Phase ?]: D-01 proceed-d01: dual icons[] data URI + jsDelivr CDN multi-size in serverInfo.icons
 - [Phase ?]: D-08 proceed-d08: McpServer version via readPackageVersion() matching package.json 1.0.1
+- [Phase ?]: D-04 proceed-d04: dual-path dist/ + npx verify completed
+- [Phase ?]: D-05: client limitation accepted — server correct, Cursor UI letter A only
 
 ### Pending Todos
 
@@ -489,8 +492,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T23:01:20.321Z
-Stopped at: Completed 27-01-PLAN.md
+Last session: 2026-07-28T23:47:20.245Z
+Stopped at: Completed 27-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

@@ -34,7 +34,7 @@ Requirements for this milestone. Each maps to roadmap phases. Scoped to **Coolif
 ### Branding
 
 - [x] **BRND-01**: MCP `initialize` advertises icons via spec-compliant workarounds (data URI and/or multi-size PNG entries)
-- [ ] **BRND-02**: Maintainer re-verify gate documents outcome for Cursor dev (`dist/`) and npm (`npx awesome-coolify-mcp`) paths; client limitation accepted if UI still omits custom icon
+- [x] **BRND-02**: Maintainer re-verify gate documents outcome for Cursor dev (`dist/`) and npm (`npx awesome-coolify-mcp`) paths; client limitation accepted if UI still omits custom icon
 
 ### Docs
 
@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROMPT-01 | Phase 26 | Complete |
 | SKILL-01 | Phase 26 | Complete |
 | BRND-01 | Phase 27 | Complete |
-| BRND-02 | Phase 27 | Pending |
+| BRND-02 | Phase 27 | Complete |
 | DOC-01 | Phase 27 | Complete |
 
 **Coverage:**

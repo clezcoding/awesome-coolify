@@ -181,7 +181,7 @@ Plans:
   2. Maintainer re-verify gate documents outcome for Cursor `dist/` and npm (`npx awesome-coolify-mcp`) paths; client limitation accepted if UI still omits custom icon
   3. PROJECT.md and README EN/DE reflect npm `1.0.1` shipped state (no stale “pending Version Packages” wording)
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -191,7 +191,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 27-02-PLAN.md — BRND-02 maintainer verify doc + Cursor UI gate
+- [x] 27-02-PLAN.md — BRND-02 maintainer verify doc + Cursor UI gate
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -217,7 +217,7 @@ Plans:
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
 | 25 | v3.2 | 6/6 | Complete    | 2026-07-28 |
 | 26 | v3.2 | 4/4 | Complete    | 2026-07-28 |
-| 27 | v3.2 | 2/4 | In Progress|  |
+| 27 | v3.2 | 3/4 | In Progress|  |
 
 **Next:** `/gsd-plan-phase 24`
 
