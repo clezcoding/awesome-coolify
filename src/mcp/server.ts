@@ -2,6 +2,7 @@ import * as z from 'zod/v4';
 import { McpServer } from '@modelcontextprotocol/server';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
 import type { EnvConfig } from '../config/env.js';
+import { readPackageVersion } from '../utils/package-version.js';
 import { buildMcpServerIcons } from './server-icons.js';
 import { withInstanceRoutingSchema } from './tools/shared-read-params.js';
 import {
@@ -795,7 +796,7 @@ export async function createAndConnectServer(
 ): Promise<McpServer> {
   const server = new McpServer({
     name: 'awesome-coolify-mcp',
-    version: '0.1.0',
+    version: readPackageVersion(),
     title: 'Awesome Coolify',
     description:
       'MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools',

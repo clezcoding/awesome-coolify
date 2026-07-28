@@ -411,7 +411,7 @@ describe('McpServer branding metadata', () => {
     expect(block).toContain('icons: buildMcpServerIcons()');
   });
 
-  it.fails(
+  it(
     'constructor block uses version: readPackageVersion() not literal 0.1.0 (D-08)',
     () => {
       const block = mcpServerConstructorBlock(readServerSource());
@@ -420,6 +420,14 @@ describe('McpServer branding metadata', () => {
       expect(readPackageVersion()).not.toBe('0.1.0');
     },
   );
+
+  it('readPackageVersion() matches package.json version field (D-08)', () => {
+    const pkgVersion = JSON.parse(
+      readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'),
+    ).version as string;
+    expect(readPackageVersion()).toBe(pkgVersion);
+    expect(readPackageVersion()).toBe('1.0.1');
+  });
 
   it(
     'buildMcpServerIcons output has data URI first and jsDelivr mcp-icon-192 (BRND-01, D-01, D-02)',
