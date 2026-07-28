@@ -39,11 +39,19 @@ const EMPTY_LOGS_HINT =
 export const EMPTY_RUNTIME_LOGS_HINT =
   'Application exists but runtime logs are empty — container may be idle or logs not yet available.';
 
+export type RuntimeLogPayload = {
+  uuid: string;
+  logs_lines: string[];
+  logs_truncated: boolean;
+  total_lines: number;
+  hint?: string;
+};
+
 export function buildRuntimeLogPayload(
   uuid: string,
   logsStr: string,
   params: { lines: number; offset: number; max_chars: number },
-) {
+): RuntimeLogPayload {
   const allLines = sliceLogBlob(logsStr, params.lines, params.offset);
   const capped = capLogOutput(allLines.join('\n'), params.max_chars);
   const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
