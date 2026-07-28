@@ -93,6 +93,14 @@ const diagnoseReadParamKeys = [
   'reveal',
 ] as const;
 
+const diagnoseLogsReadParamKeys = [
+  'format',
+  'projection',
+  'include_full',
+  'max_chars',
+  'reveal',
+] as const;
+
 export const diagnoseToolSchema = createFlatActionSchema(
   ['app', 'server', 'scan', 'logs'],
   {
@@ -177,7 +185,7 @@ export const diagnoseToolSchema = createFlatActionSchema(
       'offset',
       'include_hidden',
       'type',
-      ...diagnoseReadParamKeys,
+      ...diagnoseLogsReadParamKeys,
     ],
   },
   undefined,
