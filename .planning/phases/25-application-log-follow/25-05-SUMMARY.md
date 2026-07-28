@@ -129,6 +129,13 @@ None - no external service configuration required.
 - G-25-1 handler path closed; manual UAT test 5 re-run recommended to confirm live MCP envelope
 - Plan 25-06 (if any) can proceed; follow poll loop behavior untouched
 
+## Self-Check: PASSED
+
+- FOUND: src/mcp/tools/application.ts
+- FOUND: .planning/phases/25-application-log-follow/25-05-SUMMARY.md
+- FOUND: commit af10595 (task 1)
+- FOUND: commit d71c01b (task 2)
+
 ---
 *Phase: 25-application-log-follow*
 *Completed: 2026-07-28*

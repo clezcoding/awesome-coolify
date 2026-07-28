@@ -114,7 +114,7 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans:** 6/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 
@@ -181,7 +181,7 @@ Plans:
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
-| 25 | v3.2 | 6/6 | In Progress|  |
+| 25 | v3.2 | 6/6 | Complete    | 2026-07-28 |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
 

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
+  applicationActionMcpSchema,
   applicationActionSchema,
   applicationLogsSchema,
   handleApplicationAction,
@@ -138,6 +139,16 @@ describe('applicationActionSchema', () => {
           issue.message ?? '',
         ),
       ),
+    ).toBe(true);
+  });
+
+  it('applicationActionMcpSchema accepts follow true with deployment_uuid for handler COOLIFY_422 path', () => {
+    expect(
+      applicationActionMcpSchema.safeParse({
+        action: 'logs',
+        deployment_uuid: 'dep-uuid-1',
+        follow: true,
+      }).success,
     ).toBe(true);
   });
 

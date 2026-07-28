@@ -1,59 +1,75 @@
 ---
 phase: 25-application-log-follow
-reviewed: 2026-07-28T00:40:00Z
+reviewed: 2026-07-28T01:16:00Z
 depth: quick
-files_reviewed: 15
+files_reviewed: 3
 files_reviewed_list:
-  - src/utils/log-follow-poll.ts
-  - src/utils/log-follow-poll.test.ts
-  - src/utils/deploy-watch-poll.ts
-  - src/utils/errors.ts
-  - src/utils/errors.test.ts
   - src/mcp/tools/application.ts
+  - src/mcp/server.ts
   - src/mcp/tools/application.test.ts
-  - src/mcp/tools/system.test.ts
-  - tests/integration/logs-service-db-flow.test.ts
-  - src/mcp/capabilities.ts
-  - docs/coverage-map.yaml
-  - docs/coverage-overrides.yaml
-  - docs/COVERAGE.md
-  - README.md
-  - README.de.md
 findings:
   critical: 0
-  warning: 0
-  info: 1
-  total: 1
+  warning: 1
+  info: 2
+  total: 3
 status: issues_found
 ---
 
 # Phase 25: Code Review Report
 
-**Reviewed:** 2026-07-28T00:40:00Z
+**Reviewed:** 2026-07-28T01:16:00Z
 **Depth:** quick
-**Files Reviewed:** 15 (plans 25-00 through 25-04)
+**Files Reviewed:** 3 (25-05 gap closure)
 **Status:** issues_found
 
 ## Summary
 
-Quick pattern scan across all phase 25 source files (implementation, tests, docs). Checked: hardcoded secrets, dangerous functions (`eval`, `exec`, `innerHTML`, etc.), debug artifacts (`console.log`, `debugger`, `TODO`/`FIXME`), and empty catch blocks.
+Quick pattern scan plus targeted read of 25-05 gap-closure changes: MCP boundary vs handler schema split (`applicationActionMcpSchema` / `applicationActionSchema`), `server.ts` wiring, and handler regression test for `follow:true + deployment_uuid`.
 
-**Pattern scan:** no matches in any scoped file.
+**Pattern scan (all three files):** no hardcoded secrets, dangerous functions, debug artifacts, or empty catch blocks.
 
-**Prior standard review (2026-07-28):** WR-01, WR-02, WR-03 fixed in `25-REVIEW-FIX.md` (commits c303118, 76a325b, 6519440). Plan 25-04 added regression backstop tests for WR-01 and WR-03. IN-02 (missing empty-snapshot idle test) closed in 25-04.
+**25-05 assessment:** Split matches plan G-25-1 — MCP registers structural schema; `parseApplicationAction` still uses full `applicationActionSchema` with `applicationExtraRefine` and `throwValidationError` COOLIFY_422 mapping. Handler test locks follow+deployment_uuid envelope. No security bypass: validation runs before any API call.
 
-One informational contract gap remains (IN-01). No blockers or warnings at quick depth.
+One maintainability warning (missing MCP-boundary contract test). Two info items (duplicate refine call, parallel validation blocks).
+
+## Warnings
+
+### WR-01: No test locks MCP boundary accepting follow+deployment_uuid
+
+**File:** `src/mcp/tools/application.test.ts`
+**Issue:** 25-05 adds `applicationActionMcpSchema` without `applicationExtraRefine` so MCP SDK passes structurally valid `follow:true + deployment_uuid` to the handler. Handler test covers rejection, but nothing asserts `applicationActionMcpSchema.safeParse(...)` succeeds for that combo. Re-merging `extraRefine` into the MCP schema would silently regress G-25-1 (generic SDK validation error instead of COOLIFY_422).
+**Fix:** Add a test beside the handler case:
+
+```typescript
+import { applicationActionMcpSchema } from './application.js';
+
+it('applicationActionMcpSchema accepts follow true with deployment_uuid at MCP boundary', () => {
+  expect(
+    applicationActionMcpSchema.safeParse({
+      action: 'logs',
+      follow: true,
+      deployment_uuid: 'dep-x',
+    }).success,
+  ).toBe(true);
+});
+```
 
 ## Info
 
-### IN-01: `timeout` on one-shot `logs` (no follow) is accepted but ignored
+### IN-01: Duplicate `rejectDockercomposeBuildPack` on create
 
-**File:** `src/mcp/tools/application.ts:538-541,1600-1625`
-**Issue:** `timeout` is on the logs action allow-list for follow mode, but the one-shot `handleApplicationLogs` path never reads `parsed.timeout`. Agents may pass `timeout` on non-follow calls expecting behavior change.
-**Fix:** Reject `timeout` when `follow !== true` in the logs schema refine, or document in the tool catalog that `timeout` applies only with `follow:true`.
+**File:** `src/mcp/tools/application.ts:491-493`
+**Issue:** `applicationExtraRefine` calls `rejectDockercomposeBuildPack` unconditionally, then again inside `if (data.build_pack === 'dockercompose')`. Duplicate Zod issues when `build_pack === 'dockercompose'`.
+**Fix:** Remove the redundant inner `if` block; keep the single unconditional call at line 491.
+
+### IN-02: Parallel logs validation in `applicationLogsSchema` and `applicationExtraRefine`
+
+**File:** `src/mcp/tools/application.ts:157-275,420-479`
+**Issue:** Follow/XOR/timeout/interval guards are duplicated between standalone `applicationLogsSchema` and flat-schema `applicationExtraRefine`. Runtime parsing uses only `applicationActionSchema`; `applicationLogsSchema` feeds `LogsAction` type and tests. Future edits to one block can drift from the other.
+**Fix:** Long-term, derive nested schema refine from shared helper used by both paths; short-term, document the mirror requirement in a comment above `applicationExtraRefine` logs block.
 
 ---
 
-_Reviewed: 2026-07-28T00:40:00Z_
+_Reviewed: 2026-07-28T01:16:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: quick_
