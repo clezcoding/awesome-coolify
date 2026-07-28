@@ -1699,6 +1699,25 @@ describe('handleApplicationAction logs', () => {
       },
     );
 
+    it('handleApplicationAction follow true with deployment_uuid returns COOLIFY_422', async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'logs',
+          follow: true,
+          deployment_uuid: 'dep-x',
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(true);
+      if (!isApplicationErrorResult(result)) return;
+
+      expect(result.structuredContent.error.code).toBe('COOLIFY_422');
+      expect(result.structuredContent.error.message).toMatch(
+        /follow.*deployment_uuid|deployment_uuid.*follow/i,
+      );
+    });
+
     it('returns logs_truncated when follow aggregate exceeds max_chars', async () => {
       vi.useFakeTimers();
       try {

@@ -29,7 +29,7 @@ import {
 import {
   handleApplicationAction,
   isApplicationErrorResult,
-  applicationActionSchema,
+  applicationActionMcpSchema,
   applicationActionsCatalog,
   applicationSafetyFooter,
 } from './tools/application.js';
@@ -327,7 +327,7 @@ export function registerCoolifyTools(
         applicationActionsCatalog,
         applicationSafetyFooter,
       ),
-      inputSchema: withInstanceRoutingSchema(applicationActionSchema),
+      inputSchema: withInstanceRoutingSchema(applicationActionMcpSchema),
       outputSchema: toolOutputSchema,
       annotations: { openWorldHint: true },
     },
