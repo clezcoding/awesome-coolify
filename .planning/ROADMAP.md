@@ -70,7 +70,7 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
 **Milestone Goal:** App/deployment log observability, capability discovery, incident flows, and MCP branding — Coolify 4.1.2 only (no service/DB logs).
 
 - [x] **Phase 24: Capabilities & Deployment Logs** - `system.version` capability flags + `deployment.logs` action (completed 2026-07-27)
-- [ ] **Phase 25: Application Log Follow** - Bounded watch-style app log follow + no regression on existing logs
+- [x] **Phase 25: Application Log Follow** - Bounded watch-style app log follow + no regression on existing logs (completed 2026-07-28)
 - [ ] **Phase 26: Diagnose Logs & Incident DX** - `diagnose.logs` + incident prompt + coolify-setup skill updates
 - [ ] **Phase 27: Branding & Docs Stale Fix** - MCP icon workarounds + npm 1.0.1 docs parity
 
@@ -114,7 +114,7 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans:** 5/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 0**
@@ -178,7 +178,7 @@ Plans:
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
-| 25 | v3.2 | 5/5 | In Progress|  |
+| 25 | v3.2 | 5/5 | Complete    | 2026-07-28 |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
 

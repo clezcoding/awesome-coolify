@@ -8,14 +8,14 @@ Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Clou
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.1 shipped 2026-07-27)
+## Current State (v3.2 in progress — Phase 25 complete 2026-07-28)
 
 | Metric | Value |
 |--------|-------|
-| Package | `awesome-coolify-mcp` v0.5.0 → **1.0.0** (Changeset merged; Version Packages PR pending) |
+| Package | `awesome-coolify-mcp` **1.0.1** |
 | Tools / Actions | 18 / ~115 |
 | TypeScript LOC | ~35.6k (`src/`) |
-| Milestone | v3.1 Setup, Skills & DX — **shipped** (Phases 19–23 + 23.1) |
+| Milestone | v3.2 Observability & DX — **in progress** (Phases 24–25 complete; 26–27 pending) |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | OIDC Release path + pack allowlist verified (PUB-02) |
 | Live UAT | `npm run uat:live` harness (Phase 18) |
@@ -209,4 +209,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-27 — milestone v3.2 Observability & DX started*
+**v3.2 in progress:** Phase 25 shipped `application.logs` follow mode (bounded polling, idle/timeout, capability `application_logs_follow`); OBS-03 one-shot paths unchanged.
+
+*Last updated: 2026-07-28 — Phase 25 application-log-follow complete*

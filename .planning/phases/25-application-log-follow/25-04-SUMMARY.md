@@ -96,7 +96,7 @@ Each task was committed atomically:
 1. **Task 1: Lock WR-01 empty-snapshot idle stop** - `1d935fa` (test)
 2. **Task 2: Lock WR-03 nested schema interval guard + re-verify** - `d6779a5` (test/docs)
 
-**Plan metadata:** `22bbef3` (docs: complete plan)
+**Plan metadata:** `6d49886` (docs: complete plan)
 
 ## Files Created/Modified
 
