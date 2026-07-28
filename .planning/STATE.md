@@ -4,17 +4,17 @@ milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 25
 current_phase_name: application-log-follow
-status: executing
-stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-07-28T00:03:37.320Z"
+status: verifying
+stopped_at: Completed 25-03-PLAN.md
+last_updated: "2026-07-28T00:07:16.901Z"
 last_activity: 2026-07-28
 last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 25
+  completed_plans: 8
+  percent: 50
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 Phase: 25 (application-log-follow) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-28 — Phase 25 execution started
 
 ## Performance Metrics
@@ -143,6 +143,7 @@ Last activity: 2026-07-28 — Phase 25 execution started
 | Phase 25-application-log-follow P00 | 2min | 2 tasks | 5 files |
 | Phase 25-application-log-follow P01 | 5min | 2 tasks | 8 files |
 | Phase 25-application-log-follow P02 | 3min | 2 tasks | 3 files |
+| Phase 25-application-log-follow P03 | 3min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -387,6 +388,8 @@ Last activity: 2026-07-28 — Phase 25 execution started
 - [Phase ?]: Non-429 API errors attach capped partial logs_lines in CoolifyApiError data (D-07)
 - [Phase ?]: zodDefaultFields follow:false only on applicationActionSchema — deploy wait timeout unchanged
 - [Phase ?]: Schema rejects offset with follow:true — no silent ignore
+- [Phase ?]: application.logs OBS-02 reason via coverage-overrides action_overrides + openapi:coverage regen
+- [Phase ?]: application_logs_follow soft guidance only — no Zod capability gate (D-19)
 
 ### Pending Todos
 
@@ -460,8 +463,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T00:03:37.311Z
-Stopped at: Completed 25-02-PLAN.md
+Last session: 2026-07-28T00:07:16.892Z
+Stopped at: Completed 25-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
