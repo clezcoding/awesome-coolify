@@ -5,15 +5,15 @@ milestone_name: Observability & DX
 current_phase: 25
 current_phase_name: application-log-follow
 status: executing
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-07-28T00:01:07.740Z"
+stopped_at: Completed 25-02-PLAN.md
+last_updated: "2026-07-28T00:03:37.320Z"
 last_activity: 2026-07-28
 last_activity_desc: Phase 25 execution started
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 ## Current Position
 
 Phase: 25 (application-log-follow) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-07-28 — Phase 25 execution started
 
@@ -142,6 +142,7 @@ Last activity: 2026-07-28 — Phase 25 execution started
 | Phase 24-capabilities-deployment-logs P03 | 3 | 2 tasks | 5 files |
 | Phase 25-application-log-follow P00 | 2min | 2 tasks | 5 files |
 | Phase 25-application-log-follow P01 | 5min | 2 tasks | 8 files |
+| Phase 25-application-log-follow P02 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -384,6 +385,8 @@ Last activity: 2026-07-28 — Phase 25 execution started
 - [Phase ?]: Handler defaults follow timeout 120s and idle_timeout 60s when omitted (D-13/D-06)
 - [Phase ?]: Suffix-overlap appendDedupedLines for tail snapshot dedup per RESEARCH Pattern 3
 - [Phase ?]: Non-429 API errors attach capped partial logs_lines in CoolifyApiError data (D-07)
+- [Phase ?]: zodDefaultFields follow:false only on applicationActionSchema — deploy wait timeout unchanged
+- [Phase ?]: Schema rejects offset with follow:true — no silent ignore
 
 ### Pending Todos
 
@@ -457,8 +460,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T00:01:07.732Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-07-28T00:03:37.311Z
+Stopped at: Completed 25-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
