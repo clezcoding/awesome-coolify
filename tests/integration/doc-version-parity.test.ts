@@ -10,7 +10,7 @@ const ROOT = resolve(import.meta.dirname, '../..');
 const PROJECT_MD = resolve(ROOT, '.planning/PROJECT.md');
 
 describe('doc version parity', () => {
-  it.fails(
+  it(
     'PROJECT.md opener reflects 1.0.1 shipped state not pending Version Packages (DOC-01, D-07)',
     () => {
       const content = readFileSync(PROJECT_MD, 'utf8');

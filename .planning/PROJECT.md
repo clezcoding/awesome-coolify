@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` (v1.0.0 pending Version Packages merge), public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, Setup-Wizard + IDE-Skills, Recipes, Deploy-Watch, OpenAPI-Coverage-Audit, und Live-UAT gegen echte Coolify-Daten.
+Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` **1.0.1** shipped, public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, Setup-Wizard + IDE-Skills, Recipes, Deploy-Watch, OpenAPI-Coverage-Audit, und Live-UAT gegen echte Coolify-Daten.
 
 ## Core Value
 
