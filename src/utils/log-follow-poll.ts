@@ -73,7 +73,9 @@ export async function followApplicationLogs(options: {
       const hadNewLines = newAggregate.length > aggregate.length;
       aggregate = newAggregate;
 
-      if (hadNewLines) {
+      if (pollCount === 1 && !hadNewLines && lastNewLineTime === null) {
+        lastNewLineTime = Date.now();
+      } else if (hadNewLines) {
         lastNewLineTime = Date.now();
       } else if (
         lastNewLineTime !== null &&

@@ -42,6 +42,32 @@ describe('followApplicationLogs', () => {
   );
 
   it(
+    'stops idle when snapshots stay empty',
+    async () => {
+      const { followApplicationLogs } = await import('./log-follow-poll.js');
+
+      const fetchSnapshot = vi.fn().mockResolvedValue([]);
+
+      const resultPromise = followApplicationLogs({
+        fetchSnapshot,
+        timeoutMs: 120_000,
+        idleTimeoutMs: 5000,
+        minIntervalMs: 1000,
+        maxIntervalMs: 1000,
+        random: () => 0,
+      });
+
+      await vi.advanceTimersByTimeAsync(1000);
+      await vi.advanceTimersByTimeAsync(5000);
+
+      const outcome = await resultPromise;
+
+      expect(outcome.stoppedReason).toBe('idle');
+      expect(outcome.aggregate).toEqual([]);
+    },
+  );
+
+  it(
     'stops with stoppedReason idle when no new deduped lines for idleTimeoutMs',
     async () => {
       const { followApplicationLogs } = await import('./log-follow-poll.js');
