@@ -4,17 +4,17 @@ milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 26
 current_phase_name: Diagnose Logs & Incident DX
-status: planning
+status: "Phase 25 shipped — PR #99"
 stopped_at: Completed 25-05-PLAN.md
-last_updated: "2026-07-28T01:49:56.392Z"
+last_updated: "2026-07-28T02:25:21.531Z"
 last_activity: 2026-07-28
-last_activity_desc: Phase 25 complete, transitioned to Phase 26
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 10
   completed_plans: 10
   percent: 50
+last_activity_desc: Phase 25 complete, transitioned to Phase 26
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 Phase: 26 — Diagnose Logs & Incident DX
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-28 — Phase 25 complete, transitioned to Phase 26
+Status: Phase 25 shipped — PR #99
+Last activity: 2026-07-28
 
 ## Performance Metrics
 
