@@ -29,7 +29,7 @@ Requirements for this milestone. Each maps to roadmap phases. Scoped to **Coolif
 
 ### IDE Skills
 
-- [ ] **SKILL-01**: `coolify-setup` skill documents app log troubleshooting, capability discovery via `system.version`, and links to incident/deploy/diagnose skills
+- [x] **SKILL-01**: `coolify-setup` skill documents app log troubleshooting, capability discovery via `system.version`, and links to incident/deploy/diagnose skills
 
 ### Branding
 
@@ -79,7 +79,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBS-03 | Phase 25 | Complete |
 | DIAG-01 | Phase 26 | Complete |
 | PROMPT-01 | Phase 26 | Complete |
-| SKILL-01 | Phase 26 | Pending |
+| SKILL-01 | Phase 26 | Complete |
 | BRND-01 | Phase 27 | Pending |
 | BRND-02 | Phase 27 | Pending |
 | DOC-01 | Phase 27 | Pending |
