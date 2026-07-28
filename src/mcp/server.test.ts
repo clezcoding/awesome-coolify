@@ -381,11 +381,12 @@ describe('McpServer branding metadata', () => {
   );
 
   it(
-    'McpServer constructor block contains mimeType image/png and sizes 192x192 (BRND-03)',
-    () => {
-      const block = mcpServerConstructorBlock(readServerSource());
-      expect(block).toContain("mimeType: 'image/png'");
-      expect(block).toContain("sizes: ['192x192']");
+    'buildMcpServerIcons includes mimeType image/png and sizes 192x192 (BRND-03)',
+    async () => {
+      const { buildMcpServerIcons } = await import('./server-icons.js');
+      const icons = buildMcpServerIcons();
+      expect(icons.every((i) => i.mimeType === 'image/png')).toBe(true);
+      expect(icons.some((i) => i.sizes?.includes('192x192'))).toBe(true);
     },
   );
 
@@ -396,7 +397,7 @@ describe('McpServer branding metadata', () => {
     },
   );
 
-  it.fails(
+  it(
     'source imports buildMcpServerIcons from ./server-icons.js (BRND-01, D-01)',
     () => {
       expect(readServerSource()).toMatch(
@@ -405,7 +406,7 @@ describe('McpServer branding metadata', () => {
     },
   );
 
-  it.fails('constructor block calls icons: buildMcpServerIcons() (BRND-01)', () => {
+  it('constructor block calls icons: buildMcpServerIcons() (BRND-01)', () => {
     const block = mcpServerConstructorBlock(readServerSource());
     expect(block).toContain('icons: buildMcpServerIcons()');
   });
@@ -420,7 +421,7 @@ describe('McpServer branding metadata', () => {
     },
   );
 
-  it.fails(
+  it(
     'buildMcpServerIcons output has data URI first and jsDelivr mcp-icon-192 (BRND-01, D-01, D-02)',
     async () => {
       const { buildMcpServerIcons } = await import('./server-icons.js');

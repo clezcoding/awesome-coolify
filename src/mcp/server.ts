@@ -2,6 +2,7 @@ import * as z from 'zod/v4';
 import { McpServer } from '@modelcontextprotocol/server';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
 import type { EnvConfig } from '../config/env.js';
+import { buildMcpServerIcons } from './server-icons.js';
 import { withInstanceRoutingSchema } from './tools/shared-read-params.js';
 import {
   formatMetaResult,
@@ -799,13 +800,7 @@ export async function createAndConnectServer(
     description:
       'MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools',
     websiteUrl: 'https://github.com/clezcoding/awesome-coolify',
-    icons: [
-      {
-        src: 'https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png',
-        mimeType: 'image/png',
-        sizes: ['192x192'],
-      },
-    ],
+    icons: buildMcpServerIcons(),
   });
   registerCoolifyTools(server, env);
   registerCoolifyPrompts(server);
