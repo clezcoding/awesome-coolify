@@ -25,7 +25,7 @@ Requirements for this milestone. Each maps to roadmap phases. Scoped to **Coolif
 
 ### MCP Prompts
 
-- [ ] **PROMPT-01**: `incident` MCP prompt documents `deployment.logs`, application log follow, and `diagnose.logs` (application-only; no service/DB log steps)
+- [x] **PROMPT-01**: `incident` MCP prompt documents `deployment.logs`, application log follow, and `diagnose.logs` (application-only; no service/DB log steps)
 
 ### IDE Skills
 
@@ -78,7 +78,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBS-02 | Phase 25 | Complete |
 | OBS-03 | Phase 25 | Complete |
 | DIAG-01 | Phase 26 | Complete |
-| PROMPT-01 | Phase 26 | Pending |
+| PROMPT-01 | Phase 26 | Complete |
 | SKILL-01 | Phase 26 | Pending |
 | BRND-01 | Phase 27 | Pending |
 | BRND-02 | Phase 27 | Pending |

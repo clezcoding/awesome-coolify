@@ -148,13 +148,13 @@ Plans:
   2. MCP prompt `incident` documents `deployment.logs`, application log follow, and `diagnose.logs` (application-only; no service/DB log steps)
   3. `coolify-setup` skill documents app log troubleshooting, capability discovery via `system.version`, and links to incident/deploy/diagnose skills
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 
 - [x] 26-00-PLAN.md — Wave 0 Nyquist RED scaffolds (diagnose.logs, incident, capabilities, coverage-map)
 - [x] 26-01-PLAN.md — DIAG-01 tracer: diagnose.logs handler + log-helpers extraction
-- [ ] 26-02-PLAN.md — PROMPT-01 + D-14 capability + incident prompt + README/coverage
+- [x] 26-02-PLAN.md — PROMPT-01 + D-14 capability + incident prompt + README/coverage
 - [ ] 26-03-PLAN.md — SKILL-01 coolify-setup troubleshooting + OBS-03 regression lock
 
 **Wave 0** *(Nyquist RED — blocks Wave 1)*
@@ -163,7 +163,7 @@ Plans:
 
 **Wave 1** *(blocked on Wave 0)*
 
-- [ ] 26-01-PLAN.md — diagnose.logs composite handler + buildRuntimeLogPayload extraction
+- [x] 26-01-PLAN.md — diagnose.logs composite handler + buildRuntimeLogPayload extraction
 
 **Wave 2** *(blocked on Wave 1; 26-02 and 26-03 parallel)*
 
@@ -202,7 +202,7 @@ Plans:
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
 | 25 | v3.2 | 6/6 | Complete    | 2026-07-28 |
-| 26 | v3.2 | 2/4 | In Progress|  |
+| 26 | v3.2 | 3/4 | In Progress|  |
 | 27 | v3.2 | 0/? | Not started | - |
 
 **Next:** `/gsd-plan-phase 24`
