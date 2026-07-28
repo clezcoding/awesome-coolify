@@ -391,7 +391,7 @@ describe('COOLIFY_NO_DEPLOYMENTS', () => {
 });
 
 describe('application log follow error codes', () => {
-  it.fails(
+  it(
     'RECOVERY_HINTS defines COOLIFY_LOG_FOLLOW_TIMEOUT with application.logs re-call hint',
     () => {
       const hints = (RECOVERY_HINTS as Record<string, string[]>)[

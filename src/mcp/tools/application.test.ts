@@ -1084,7 +1084,7 @@ describe('handleApplicationAction logs', () => {
     expect(data.entries_shown).toBe(2);
   });
 
-  it.fails('applicationLogsSchema accepts follow true for runtime uuid', () => {
+  it('applicationLogsSchema accepts follow true for runtime uuid', () => {
     const result = applicationLogsSchema.safeParse({
       action: 'logs',
       uuid: 'x',
@@ -1339,7 +1339,7 @@ describe('handleApplicationAction logs', () => {
   });
 
   describe('application logs follow', () => {
-    it.fails(
+    it(
       'returns stopped_reason idle on idle stop without error flag',
       async () => {
         vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'static\nline' });
@@ -1365,7 +1365,7 @@ describe('handleApplicationAction logs', () => {
       },
     );
 
-    it.fails(
+    it(
       'returns dual-signal timeout with COOLIFY_LOG_FOLLOW_TIMEOUT and partial logs_lines',
       async () => {
         vi.useFakeTimers();
@@ -1419,7 +1419,7 @@ describe('handleApplicationAction logs', () => {
       15_000,
     );
 
-    it.fails(
+    it(
       'applicationLogsSchema rejects follow true with deployment_uuid as COOLIFY_422',
       () => {
         const result = applicationLogsSchema.safeParse({
@@ -1439,6 +1439,91 @@ describe('handleApplicationAction logs', () => {
         ).toBe(true);
       },
     );
+
+    it('returns logs_truncated when follow aggregate exceeds max_chars', async () => {
+      vi.useFakeTimers();
+      try {
+        const longLine = 'x'.repeat(10_001);
+        vi.mocked(fetchApplicationLogs).mockResolvedValue({
+          logs: `${longLine}\n${longLine}`,
+        });
+
+        const resultPromise = handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-trunc',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 1,
+            min_interval: 1,
+            max_interval: 1,
+            max_chars: 20_000,
+          },
+          testEnv,
+        );
+
+        await vi.advanceTimersByTimeAsync(1000);
+        await vi.advanceTimersByTimeAsync(1000);
+
+        const result = await resultPromise;
+
+        expect(isApplicationErrorResult(result)).toBe(false);
+        if (isApplicationErrorResult(result)) return;
+
+        const data = result.data as Record<string, unknown>;
+        expect(data.logs_truncated).toBe(true);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('returns partial logs_lines on non-429 API error during follow', async () => {
+      vi.useFakeTimers();
+      try {
+        let callCount = 0;
+        vi.mocked(fetchApplicationLogs).mockImplementation(async () => {
+          callCount++;
+          if (callCount === 1) {
+            return { logs: 'partial-line-1\npartial-line-2' };
+          }
+          throw new CoolifyApiError({
+            code: 'COOLIFY_500',
+            message: 'Upstream failure',
+            recoveryHints: [],
+            httpStatus: 500,
+          });
+        });
+
+        const resultPromise = handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-api-err',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 60,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        await vi.advanceTimersByTimeAsync(1000);
+        await vi.advanceTimersByTimeAsync(1000);
+
+        const result = await resultPromise;
+
+        expect(isApplicationErrorResult(result)).toBe(true);
+        if (!isApplicationErrorResult(result)) return;
+
+        expect(result.structuredContent.error.code).toBe('COOLIFY_500');
+        const errorData = result.structuredContent.error.data as {
+          logs_lines?: string[];
+        };
+        expect(errorData.logs_lines).toEqual(['partial-line-1', 'partial-line-2']);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });
 

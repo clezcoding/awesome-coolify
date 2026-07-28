@@ -183,7 +183,7 @@ describe('logs-service-db-flow integration', () => {
       expect(isApplicationErrorResult(result)).toBe(true);
     });
 
-    it.fails('accepts follow:true on logs action schema', () => {
+    it('accepts follow:true on logs action schema', () => {
       const parsed = applicationActionSchema.safeParse({
         action: 'logs',
         uuid: 'x',
