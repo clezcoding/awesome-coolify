@@ -181,7 +181,13 @@ Plans:
   2. Maintainer re-verify gate documents outcome for Cursor `dist/` and npm (`npx awesome-coolify-mcp`) paths; client limitation accepted if UI still omits custom icon
   3. PROJECT.md and README EN/DE reflect npm `1.0.1` shipped state (no stale “pending Version Packages” wording)
 
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 27-00-PLAN.md — Wave 0 RED scaffolds (BRND-01 + DOC-01 tests)
+- [ ] 27-01-PLAN.md — Tracer: dual icons build pipeline + D-08 version parity
+- [ ] 27-02-PLAN.md — BRND-02 maintainer verify doc + Cursor UI gate
+- [ ] 27-03-PLAN.md — DOC-01 public docs parity (PROJECT, README EN/DE)
 
 ## Progress
 
