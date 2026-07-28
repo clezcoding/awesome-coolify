@@ -183,6 +183,24 @@ describe('applicationActionSchema', () => {
     ).toBe(true);
   });
 
+  it('rejects max_interval below default min_interval when only max_interval set', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      max_interval: 2,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it('accepts follow timeout under 10 seconds on flat schema', () => {
     const result = applicationActionSchema.safeParse({
       action: 'logs',

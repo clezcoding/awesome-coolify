@@ -253,13 +253,9 @@ export const applicationLogsSchema = z
       });
     }
     if (data.follow === true) {
-      const minInterval = data.min_interval;
-      const maxInterval = data.max_interval;
-      if (
-        minInterval !== undefined &&
-        maxInterval !== undefined &&
-        minInterval > maxInterval
-      ) {
+      const minInterval = data.min_interval ?? 3;
+      const maxInterval = data.max_interval ?? 30;
+      if (minInterval > maxInterval) {
         ctx.addIssue({
           code: 'custom',
           message: 'min_interval must be less than or equal to max_interval',
@@ -797,13 +793,9 @@ export const applicationActionSchema = createFlatActionSchema(
         });
       }
       if (data.follow === true) {
-        const minInterval = data.min_interval;
-        const maxInterval = data.max_interval;
-        if (
-          minInterval !== undefined &&
-          maxInterval !== undefined &&
-          minInterval > maxInterval
-        ) {
+        const minInterval = data.min_interval ?? 3;
+        const maxInterval = data.max_interval ?? 30;
+        if (minInterval > maxInterval) {
           ctx.addIssue({
             code: 'custom',
             message: 'min_interval must be less than or equal to max_interval',
