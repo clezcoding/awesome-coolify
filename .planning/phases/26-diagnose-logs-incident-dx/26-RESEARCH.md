@@ -470,16 +470,15 @@ const EMPTY_RUNTIME_LOGS_HINT =
 
 **If assumptions A2/A3 need user confirmation:** Planner can add `checkpoint:human-verify` on envelope field names and `deployment_uuid`-only calls.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should `coolify-incident` skill mirror prompt rewrite in the same phase?**
+1. **Should `coolify-incident` skill mirror prompt rewrite in the same phase?** — **RESOLVED (planner discretion)**
    - What we know: SKILL-01 scopes `coolify-setup` only; `coolify-incident/SKILL.md` still documents separate diagnose + logs steps [VERIFIED: `skills/coolify-incident/SKILL.md:22-32`].
-   - What's unclear: Whether prompt/skill parity is implicit for PROMPT-01.
-   - Recommendation: Update `incident` MCP prompt (required). Optionally sync `coolify-incident` skill in same phase for consistency — flag as planner discretion, not locked in CONTEXT.
+   - **Planner decision:** Update `incident` MCP prompt in Plan 26-02 (required per PROMPT-01/D-10). Do **not** sync `coolify-incident` skill in Phase 26 — out of locked CONTEXT scope; optional follow-up outside this phase. Discretion default from CONTEXT: prompt-only parity.
 
-2. **Coverage override for `diagnose.logs`?**
+2. **Coverage override for `diagnose.logs`?** — **RESOLVED (planner decision)**
    - What we know: `docs/coverage-map.yaml` has `diagnose.app|server|scan` rows; no `diagnose.logs` yet [VERIFIED: grep].
-   - Recommendation: Add row with `client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchApplicationLogs]` or `[..., fetchDeployment]` when build path included; run `npm run openapi:coverage`.
+   - **Planner decision:** Add `diagnose.logs` row in Plan 26-00 Wave 0 with `client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchApplicationLogs, fetchDeployment]` and matching OpenAPI GET paths per `26-PATTERNS.md`. Regenerate `docs/COVERAGE.md` via `npm run openapi:coverage` in Plan 26-02 when prompt/capability docs land (D-17).
 
 ## Environment Availability
 
