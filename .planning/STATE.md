@@ -4,16 +4,16 @@ milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 27
 current_phase_name: Branding & Docs Stale Fix
-status: "Phase 26 shipped — PR #100"
-stopped_at: Session resumed — ready to execute Phase 27
-last_updated: "2026-07-28T04:22:06.732Z"
-last_activity: 2026-07-28
-last_activity_desc: Phase 27 planning complete
+status: executing
+stopped_at: Completed 27-00-PLAN.md
+last_updated: "2026-07-28T22:58:43.921Z"
+last_activity: 2026-07-29
+last_activity_desc: Phase 27 execution started
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 18
-  completed_plans: 14
+  completed_plans: 15
   percent: 75
 ---
 
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 ## Current Position
 
-Phase: 27 — Branding & Docs Stale Fix
-Plan: Not started
-Status: Phase 26 shipped — PR #100
-Last activity: 2026-07-28 — Phase 27 planning complete
+Phase: 27 (Branding & Docs Stale Fix) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-07-29 — Phase 27 execution started
 
 ## Performance Metrics
 
@@ -152,6 +152,7 @@ Last activity: 2026-07-28 — Phase 27 planning complete
 | Phase 26-diagnose-logs-incident-dx P01 | 4min | 2 tasks | 5 files |
 | Phase 26-diagnose-logs-incident-dx P02 | 5min | 3 tasks | 7 files |
 | Phase 26-diagnose-logs-incident-dx P03 | 4min | 2 tasks | 2 files |
+| Phase 27-branding-docs-stale-fix P00 | 3min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -410,6 +411,8 @@ Last activity: 2026-07-28 — Phase 27 planning complete
 - [Phase ?]: diagnose_logs sixth capability key published — soft guidance only, no Zod hard-block
 - [Phase ?]: diagnose.logs catalog notation in coolify-setup step 2 alongside action: logs call
 - [Phase ?]: App-only guardrail in setup troubleshooting intro — no service/DB log claims
+- [Phase ?]: BRND-03 jsDelivr test accepts inline URL or buildMcpServerIcons() — survives 27-01 refactor
+- [Phase ?]: Phase 27 Wave 0: it.fails RED scaffolds lock icon contract + DOC opener; production untouched
 
 ### Pending Todos
 
@@ -483,9 +486,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T04:05:46.506Z
-Stopped at: Phase 27 context gathered
-Resume file: .planning/phases/27-branding-docs-stale-fix/27-CONTEXT.md
+Last session: 2026-07-28T22:58:43.911Z
+Stopped at: Completed 27-00-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
