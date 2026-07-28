@@ -11,6 +11,8 @@ vi.mock('../../api/client.js', () => ({
   fetchApplication: vi.fn(),
   fetchApplicationEnvs: vi.fn(),
   fetchAppDeployments: vi.fn(),
+  fetchApplicationLogs: vi.fn(),
+  fetchDeployment: vi.fn(),
   fetchResources: vi.fn(),
   fetchServer: vi.fn(),
   fetchServerResources: vi.fn(),
@@ -23,6 +25,8 @@ import {
   fetchApplication,
   fetchApplicationEnvs,
   fetchAppDeployments,
+  fetchApplicationLogs,
+  fetchDeployment,
   fetchResources,
   fetchServer,
   fetchServerResources,
@@ -1070,5 +1074,179 @@ describe('handleDiagnoseAction scan', () => {
     expect(result._meta.max_chars).toBe(1000);
     expect(result._meta.truncated).toBe(true);
     expect(result._formattedText.length).toBeLessThanOrEqual(1000);
+  });
+});
+
+describe('diagnose logs', () => {
+  beforeEach(() => {
+    vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchApplicationEnvs).mockReset();
+    vi.mocked(fetchAppDeployments).mockReset();
+    vi.mocked(fetchApplicationLogs).mockReset();
+    vi.mocked(fetchDeployment).mockReset();
+    vi.mocked(fetchResources).mockReset();
+
+    vi.mocked(fetchApplication).mockResolvedValue(mockHealthyApp);
+    vi.mocked(fetchApplicationEnvs).mockResolvedValue(mockMixedAppEnvs);
+    vi.mocked(fetchAppDeployments).mockResolvedValue(mockMixedAppDeployments);
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'runtime line 1\nruntime line 2' });
+    vi.mocked(fetchResources).mockResolvedValue(mockMixedResources);
+  });
+
+  it.fails('schema parses logs action with uuid and defaults mode full, lines 100, max_chars 20000', () => {
+    const result = diagnoseToolSchema.safeParse({ action: 'logs', uuid: 'app-1' });
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    if (result.data.action === 'logs') {
+      expect(result.data.mode).toBe('full');
+      expect(result.data.lines).toBe(100);
+      expect(result.data.max_chars).toBe(20000);
+    }
+  });
+
+  it.fails('schema rejects logs action without identifier', () => {
+    const result = diagnoseToolSchema.safeParse({ action: 'logs' });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /At least one identifier \(query\|uuid\|name\|domain\) required for action logs/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it.fails(
+    'schema rejects deployment_uuid combined with runtime identifiers (XOR)',
+    () => {
+      const result = diagnoseToolSchema.safeParse({
+        action: 'logs',
+        uuid: 'app-1',
+        deployment_uuid: 'dep-1',
+      });
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(
+        result.error.issues.some((issue) =>
+          /Cannot provide both.*deployment_uuid.*runtime|choose runtime OR build logs/i.test(
+            issue.message ?? '',
+          ),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.fails(
+    'mode full returns nested diagnose and logs without top-level isError',
+    async () => {
+      const result = await handleDiagnoseAction(
+        { action: 'logs', uuid: 'app-unhealthy', mode: 'full' },
+        testEnv,
+      );
+
+      expect(isDiagnoseErrorResult(result)).toBe(false);
+      if (isDiagnoseErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      expect(data.diagnose).toBeDefined();
+      expect(data.logs).toBeDefined();
+      const logs = data.logs as Record<string, unknown>;
+      expect(Array.isArray(logs.logs_lines)).toBe(true);
+      expect((logs.logs_lines as string[]).length).toBeGreaterThan(0);
+    },
+  );
+
+  it.fails('mode logs-only omits diagnose key', async () => {
+    const result = await handleDiagnoseAction(
+      { action: 'logs', uuid: 'app-unhealthy', mode: 'logs-only' },
+      testEnv,
+    );
+
+    expect(isDiagnoseErrorResult(result)).toBe(false);
+    if (isDiagnoseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data).not.toHaveProperty('diagnose');
+    expect(data.logs).toBeDefined();
+  });
+
+  it.fails(
+    'deployment_uuid fetches build logs only via processDeploymentBuildLogs path',
+    async () => {
+      vi.mocked(fetchDeployment).mockResolvedValue({
+        deployment_uuid: 'dep-build-1',
+        status: 'finished',
+        logs: JSON.stringify([
+          { output: 'build step 1', type: 'stdout', hidden: false },
+        ]),
+      });
+
+      const result = await handleDiagnoseAction(
+        { action: 'logs', deployment_uuid: 'dep-build-1' },
+        testEnv,
+      );
+
+      expect(isDiagnoseErrorResult(result)).toBe(false);
+      if (isDiagnoseErrorResult(result)) return;
+
+      expect(fetchDeployment).toHaveBeenCalledWith(
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        'dep-build-1',
+        testEnv.COOLIFY_VERIFY_SSL,
+      );
+      expect(fetchApplicationLogs).not.toHaveBeenCalled();
+
+      const data = result.data as Record<string, unknown>;
+      expect(data).not.toHaveProperty('diagnose');
+      const logs = data.logs as Record<string, unknown>;
+      expect(Array.isArray(logs.logs_lines)).toBe(true);
+      expect((logs.logs_lines as string[]).length).toBeGreaterThan(0);
+    },
+  );
+
+  it.fails(
+    'mode full returns diagnose_failed but still includes logs when diagnose throws',
+    async () => {
+      vi.mocked(fetchApplication).mockRejectedValueOnce(
+        new CoolifyApiError({
+          code: 'COOLIFY_500',
+          message: 'Coolify API returned HTTP 500',
+          recoveryHints: ['Retry later'],
+          httpStatus: 500,
+        }),
+      );
+      vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'err line\n' });
+
+      const result = await handleDiagnoseAction(
+        { action: 'logs', uuid: 'app-unhealthy', mode: 'full' },
+        testEnv,
+      );
+
+      expect(isDiagnoseErrorResult(result)).toBe(false);
+      if (isDiagnoseErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      expect(data.diagnose_failed).toMatchObject({ code: expect.any(String) });
+      expect((data.logs as { logs_lines: string[] }).logs_lines.length).toBeGreaterThan(0);
+    },
+  );
+
+  it.fails('empty runtime logs returns soft OK with hint on logs object', async () => {
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: '' });
+
+    const result = await handleDiagnoseAction(
+      { action: 'logs', uuid: 'app-unhealthy' },
+      testEnv,
+    );
+
+    expect(isDiagnoseErrorResult(result)).toBe(false);
+    if (isDiagnoseErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const logs = data.logs as Record<string, unknown>;
+    expect(logs.logs_lines).toEqual([]);
+    expect(logs.hint ?? result._meta?.hint).toBeTruthy();
   });
 });
