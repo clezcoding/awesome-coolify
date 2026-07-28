@@ -71,7 +71,7 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
 
 - [x] **Phase 24: Capabilities & Deployment Logs** - `system.version` capability flags + `deployment.logs` action (completed 2026-07-27)
 - [x] **Phase 25: Application Log Follow** - Bounded watch-style app log follow + no regression on existing logs (completed 2026-07-28)
-- [ ] **Phase 26: Diagnose Logs & Incident DX** - `diagnose.logs` + incident prompt + coolify-setup skill updates
+- [x] **Phase 26: Diagnose Logs & Incident DX** - `diagnose.logs` + incident prompt + coolify-setup skill updates (completed 2026-07-28)
 - [ ] **Phase 27: Branding & Docs Stale Fix** - MCP icon workarounds + npm 1.0.1 docs parity
 
 ## Phase Details
@@ -168,7 +168,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1; 26-02 and 26-03 parallel)*
 
 - [x] 26-02-PLAN.md — incident prompt rewrite + diagnose_logs capability + README/coverage
-- [ ] 26-03-PLAN.md — coolify-setup App log troubleshooting + manifest test
+- [x] 26-03-PLAN.md — coolify-setup App log troubleshooting + manifest test
 
 ### Phase 27: Branding & Docs Stale Fix
 
@@ -202,7 +202,7 @@ Plans:
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
 | 25 | v3.2 | 6/6 | Complete    | 2026-07-28 |
-| 26 | v3.2 | 4/4 | In Progress|  |
+| 26 | v3.2 | 4/4 | Complete    | 2026-07-28 |
 | 27 | v3.2 | 0/? | Not started | - |
 
 **Next:** `/gsd-plan-phase 24`
