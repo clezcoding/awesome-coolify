@@ -24,6 +24,11 @@ export const COOLIFY_412_CAPABILITIES = {
     coolify_min_version: '4.1.2',
     note: 'Bounded runtime log follow via application.logs follow:true (MCP polling on GET /applications/{uuid}/logs)',
   },
+  diagnose_logs: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'One-shot app diagnose + bounded log tail via diagnose.logs (MCP composite; not a Coolify REST endpoint)',
+  },
 } as const satisfies Record<
   string,
   { supported: boolean; coolify_min_version: string; note?: string }
