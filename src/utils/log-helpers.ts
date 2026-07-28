@@ -36,6 +36,25 @@ export type DeploymentBuildLogResult = {
 const EMPTY_LOGS_HINT =
   'Deployment exists but build logs are empty — build may still be running or logs were not retained.';
 
+export const EMPTY_RUNTIME_LOGS_HINT =
+  'Application exists but runtime logs are empty — container may be idle or logs not yet available.';
+
+export function buildRuntimeLogPayload(
+  uuid: string,
+  logsStr: string,
+  params: { lines: number; offset: number; max_chars: number },
+) {
+  const allLines = sliceLogBlob(logsStr, params.lines, params.offset);
+  const capped = capLogOutput(allLines.join('\n'), params.max_chars);
+  const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+  return {
+    uuid,
+    logs_lines: cappedLines,
+    logs_truncated: capped.truncated,
+    total_lines: allLines.length,
+  };
+}
+
 // Semantics: skip first `offset` lines, then return the LAST `lines` lines of the remainder (tail-of-tail).
 export function sliceLogBlob(
   logs: string,

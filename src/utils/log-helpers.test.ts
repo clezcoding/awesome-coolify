@@ -83,7 +83,7 @@ describe('processDeploymentBuildLogs', () => {
 });
 
 describe('buildRuntimeLogPayload', () => {
-  it.fails(
+  it(
     'returns slice/cap envelope with uuid, logs_lines, logs_truncated, total_lines',
     async () => {
       const { buildRuntimeLogPayload } = await import('./log-helpers.js');

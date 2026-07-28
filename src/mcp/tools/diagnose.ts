@@ -3,7 +3,9 @@ import type { EnvConfig } from '../../config/env.js';
 import {
   fetchApplication,
   fetchApplicationEnvs,
+  fetchApplicationLogs,
   fetchAppDeployments,
+  fetchDeployment,
   fetchResources,
   fetchServer,
   fetchServerDomains,
@@ -28,15 +30,22 @@ import {
   paginateArray,
   type ReadResponse,
 } from '../../utils/formatters.js';
-import { wrapMcpError, type McpErrorResult } from '../../utils/errors.js';
+import { wrapMcpError, CoolifyApiError, toStructuredError, type McpErrorResult } from '../../utils/errors.js';
 import {
   createFlatActionSchema,
   parseReadParams,
   parseWithInstanceRouting,
   rejectTableFormatOnFullProjection,
   resolveRoutingEnv,
+  sharedLogParamsFlatShape,
+  sharedLogParamsSchema,
   sharedReadParamsFlatShape,
 } from './shared-read-params.js';
+import {
+  buildRuntimeLogPayload,
+  EMPTY_RUNTIME_LOGS_HINT,
+  processDeploymentBuildLogs,
+} from '../../utils/log-helpers.js';
 import {
   FIND_MATCH_CAP,
   matchesExplicitFields,
@@ -68,7 +77,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export const diagnoseActionsCatalog =
-  'Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?)';
+  'Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?) · logs(query?, uuid?, name?, domain?, mode?, deployment_uuid?, lines?, offset?, include_hidden?, type?, format?, max_chars?, instance?)';
 
 export const diagnoseSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
@@ -84,7 +93,7 @@ const diagnoseReadParamKeys = [
 ] as const;
 
 export const diagnoseToolSchema = createFlatActionSchema(
-  ['app', 'server', 'scan'],
+  ['app', 'server', 'scan', 'logs'],
   {
     query: z
       .string()
@@ -108,7 +117,42 @@ export const diagnoseToolSchema = createFlatActionSchema(
       .boolean()
       .optional()
       .describe('Triggers non-blocking server verification (D-10)'),
+    mode: z
+      .enum(['full', 'logs-only'])
+      .optional()
+      .default('full')
+      .describe('full = diagnose triage + logs (default); logs-only = skip diagnose'),
+    deployment_uuid: z
+      .string()
+      .optional()
+      .describe('Fetch build logs for this deployment only (XOR with runtime identifiers)'),
+    offset: z
+      .number()
+      .int()
+      .min(0)
+      .optional()
+      .default(0)
+      .describe(
+        'Skip first K lines of the log blob before applying lines (runtime or build)',
+      ),
+    ...sharedLogParamsFlatShape,
+    lines: z
+      .number()
+      .int()
+      .min(1)
+      .max(1000)
+      .optional()
+      .default(100)
+      .describe(sharedLogParamsSchema.lines.description),
     ...sharedReadParamsFlatShape,
+    max_chars: z
+      .number()
+      .int()
+      .min(1000)
+      .max(100000)
+      .optional()
+      .default(20000)
+      .describe(sharedLogParamsSchema.max_chars.description),
   },
   {
     app: ['query', 'uuid', 'name', 'domain', 'limit', ...diagnoseReadParamKeys],
@@ -121,6 +165,19 @@ export const diagnoseToolSchema = createFlatActionSchema(
       ...diagnoseReadParamKeys,
     ],
     scan: [...diagnoseReadParamKeys],
+    logs: [
+      'query',
+      'uuid',
+      'name',
+      'domain',
+      'mode',
+      'deployment_uuid',
+      'lines',
+      'offset',
+      'include_hidden',
+      'type',
+      ...diagnoseReadParamKeys,
+    ],
   },
   undefined,
   (data, ctx) => {
@@ -144,6 +201,41 @@ export const diagnoseToolSchema = createFlatActionSchema(
         });
       }
     }
+    if (data.action === 'logs') {
+      const hasRuntimeId = hasAtLeastOneIdentifier(data, APP_IDENTIFIER_FIELDS);
+      if (!hasRuntimeId && !data.deployment_uuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'At least one identifier (query|uuid|name|domain) required for action logs',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (hasRuntimeId && data.deployment_uuid) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'Cannot provide both uuid/name/domain/query and deployment_uuid — choose runtime OR build logs',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (data.format === 'table') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'format table is not supported for logs — use pretty or json',
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }
+  },
+  {
+    mode: 'full',
+    lines: 100,
+    offset: 0,
+    include_hidden: false,
+    type: 'all',
+    format: 'pretty',
+    max_chars: 20000,
   },
 );
 
@@ -152,6 +244,17 @@ export type DiagnoseAction = z.infer<typeof diagnoseToolSchema>;
 type DiagnoseAppAction = Extract<DiagnoseAction, { action: 'app' }>;
 type DiagnoseServerAction = Extract<DiagnoseAction, { action: 'server' }>;
 type DiagnoseScanAction = Extract<DiagnoseAction, { action: 'scan' }>;
+type DiagnoseLogsAction = Extract<DiagnoseAction, { action: 'logs' }>;
+
+type DiagnoseAppIdentifierParams = Pick<
+  DiagnoseAppAction,
+  'query' | 'uuid' | 'name' | 'domain'
+>;
+
+type DiagnoseAppCoreParams = Pick<
+  DiagnoseAppAction,
+  'limit' | 'projection' | 'include_full' | 'max_chars' | 'reveal' | 'format'
+>;
 
 export type DiagnoseMatchResult = ReadResponse<{
   matches: FindableResource[];
@@ -172,15 +275,24 @@ export type DiagnoseScanResult = ReadResponse<{
   info: ScanIssue[];
 }>;
 
+export type DiagnoseLogsResult = ReadResponse<{
+  diagnose?: ReturnType<typeof projectAppDiagnose>;
+  diagnose_failed?: { code: string; message: string };
+  logs:
+    | ReturnType<typeof buildRuntimeLogPayload>
+    | ReturnType<typeof processDeploymentBuildLogs>;
+}>;
+
 export type DiagnoseActionResult =
   | DiagnoseMatchResult
   | DiagnoseAppResult
   | DiagnoseServerResult
   | DiagnoseScanResult
+  | DiagnoseLogsResult
   | McpErrorResult;
 
 async function resolveAppUuid(
-  parsed: DiagnoseAppAction,
+  parsed: DiagnoseAppIdentifierParams,
   env: EnvConfig,
 ): Promise<
   | { kind: 'single'; uuid: string }
@@ -286,30 +398,14 @@ async function resolveServerUuid(
   return { kind: 'single', uuid: ranked[0].uuid };
 }
 
-async function handleDiagnoseApp(
-  parsed: DiagnoseAppAction,
+async function runDiagnoseAppCore(
+  appUuid: string,
+  parsed: DiagnoseAppCoreParams,
   env: EnvConfig,
-): Promise<DiagnoseMatchResult | DiagnoseAppResult> {
+): Promise<ReturnType<typeof projectAppDiagnose>> {
   const projection = resolveProjection(parsed.projection, parsed.include_full);
   rejectTableFormatOnFullProjection(parsed.format, projection);
 
-  const resolution = await resolveAppUuid(parsed, env);
-
-  if (resolution.kind === 'zero') {
-    return buildReadResponse(
-      { matches: [], hint: MULTI_MATCH_HINT },
-      { format: parsed.format, max_chars: parsed.max_chars },
-    );
-  }
-
-  if (resolution.kind === 'multi') {
-    return buildReadResponse(
-      { matches: resolution.matches, hint: MULTI_MATCH_HINT },
-      { format: parsed.format, max_chars: parsed.max_chars },
-    );
-  }
-
-  const appUuid = resolution.uuid;
   const deploymentLimit = parsed.limit ?? 10;
 
   const basePromise = fetchApplication(
@@ -369,10 +465,145 @@ async function handleDiagnoseApp(
     data.health_check_status,
   );
 
+  return data;
+}
+
+async function handleDiagnoseApp(
+  parsed: DiagnoseAppAction,
+  env: EnvConfig,
+): Promise<DiagnoseMatchResult | DiagnoseAppResult> {
+  const projection = resolveProjection(parsed.projection, parsed.include_full);
+  rejectTableFormatOnFullProjection(parsed.format, projection);
+
+  const resolution = await resolveAppUuid(parsed, env);
+
+  if (resolution.kind === 'zero') {
+    return buildReadResponse(
+      { matches: [], hint: MULTI_MATCH_HINT },
+      { format: parsed.format, max_chars: parsed.max_chars },
+    );
+  }
+
+  if (resolution.kind === 'multi') {
+    return buildReadResponse(
+      { matches: resolution.matches, hint: MULTI_MATCH_HINT },
+      { format: parsed.format, max_chars: parsed.max_chars },
+    );
+  }
+
+  const appUuid = resolution.uuid;
+  const data = await runDiagnoseAppCore(appUuid, parsed, env);
+
   return buildReadResponse(data, {
     format: parsed.format,
     max_chars: parsed.max_chars,
   });
+}
+
+async function handleDiagnoseLogs(
+  parsed: DiagnoseLogsAction,
+  env: EnvConfig,
+): Promise<DiagnoseMatchResult | DiagnoseLogsResult> {
+  const lines = parsed.lines ?? 100;
+  const offset = parsed.offset ?? 0;
+  const includeHidden = parsed.include_hidden ?? false;
+  const logType = parsed.type ?? 'all';
+  const maxChars = parsed.max_chars ?? 20000;
+  const mode = parsed.mode ?? 'full';
+  const hasRuntimeId = hasAtLeastOneIdentifier(parsed, APP_IDENTIFIER_FIELDS);
+
+  let appUuid: string | undefined;
+
+  if (hasRuntimeId) {
+    const resolution = await resolveAppUuid(parsed, env);
+
+    if (resolution.kind === 'zero') {
+      return buildReadResponse(
+        { matches: [], hint: MULTI_MATCH_HINT },
+        { format: parsed.format, max_chars: maxChars },
+      );
+    }
+
+    if (resolution.kind === 'multi') {
+      return buildReadResponse(
+        { matches: resolution.matches, hint: MULTI_MATCH_HINT },
+        { format: parsed.format, max_chars: maxChars },
+      );
+    }
+
+    appUuid = resolution.uuid;
+  }
+
+  let diagnose: ReturnType<typeof projectAppDiagnose> | undefined;
+  let diagnose_failed: { code: string; message: string } | undefined;
+
+  if (mode !== 'logs-only' && appUuid) {
+    try {
+      diagnose = await runDiagnoseAppCore(appUuid, parsed, env);
+    } catch (err) {
+      const envelope =
+        err instanceof CoolifyApiError ? err.envelope : toStructuredError(err);
+      diagnose_failed = { code: envelope.code, message: envelope.message };
+    }
+  }
+
+  let logs:
+    | ReturnType<typeof buildRuntimeLogPayload>
+    | ReturnType<typeof processDeploymentBuildLogs>;
+
+  if (parsed.deployment_uuid) {
+    const raw = await fetchDeployment(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      parsed.deployment_uuid,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const rec = isRecord(raw) ? raw : {};
+    logs = processDeploymentBuildLogs(parsed.deployment_uuid, rec, {
+      lines,
+      offset,
+      include_hidden: includeHidden,
+      type: logType,
+      max_chars: maxChars,
+    });
+  } else {
+    if (!appUuid) {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_422',
+        message:
+          'Runtime logs require an application identifier (query|uuid|name|domain)',
+        recoveryHints: [],
+      });
+    }
+
+    const raw = await fetchApplicationLogs(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      appUuid,
+      lines + offset,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const logsStr =
+      isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
+    logs = buildRuntimeLogPayload(appUuid, logsStr, {
+      lines,
+      offset,
+      max_chars: maxChars,
+    });
+
+    if (!logs.logs_lines.length) {
+      logs = { ...logs, hint: EMPTY_RUNTIME_LOGS_HINT };
+    }
+  }
+
+  return buildReadResponse(
+    {
+      ...(diagnose ? { diagnose } : {}),
+      ...(diagnose_failed ? { diagnose_failed } : {}),
+      logs,
+    },
+    { format: parsed.format, max_chars: maxChars },
+  );
 }
 
 async function handleDiagnoseServer(
@@ -515,6 +746,8 @@ export async function handleDiagnoseAction(
         return await handleDiagnoseServer(parsed, routingEnv);
       case 'scan':
         return await handleDiagnoseScan(parsed, routingEnv);
+      case 'logs':
+        return await handleDiagnoseLogs(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown diagnose action: ${String(_exhaustive)}`);

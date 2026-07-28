@@ -1093,7 +1093,7 @@ describe('diagnose logs', () => {
     vi.mocked(fetchResources).mockResolvedValue(mockMixedResources);
   });
 
-  it.fails('schema parses logs action with uuid and defaults mode full, lines 100, max_chars 20000', () => {
+  it('schema parses logs action with uuid and defaults mode full, lines 100, max_chars 20000', () => {
     const result = diagnoseToolSchema.safeParse({ action: 'logs', uuid: 'app-1' });
     expect(result.success).toBe(true);
     if (!result.success) return;
@@ -1104,7 +1104,7 @@ describe('diagnose logs', () => {
     }
   });
 
-  it.fails('schema rejects logs action without identifier', () => {
+  it('schema rejects logs action without identifier', () => {
     const result = diagnoseToolSchema.safeParse({ action: 'logs' });
     expect(result.success).toBe(false);
     if (result.success) return;
@@ -1117,7 +1117,7 @@ describe('diagnose logs', () => {
     ).toBe(true);
   });
 
-  it.fails(
+  it(
     'schema rejects deployment_uuid combined with runtime identifiers (XOR)',
     () => {
       const result = diagnoseToolSchema.safeParse({
@@ -1137,7 +1137,7 @@ describe('diagnose logs', () => {
     },
   );
 
-  it.fails(
+  it(
     'mode full returns nested diagnose and logs without top-level isError',
     async () => {
       const result = await handleDiagnoseAction(
@@ -1157,7 +1157,7 @@ describe('diagnose logs', () => {
     },
   );
 
-  it.fails('mode logs-only omits diagnose key', async () => {
+  it('mode logs-only omits diagnose key', async () => {
     const result = await handleDiagnoseAction(
       { action: 'logs', uuid: 'app-unhealthy', mode: 'logs-only' },
       testEnv,
@@ -1171,7 +1171,7 @@ describe('diagnose logs', () => {
     expect(data.logs).toBeDefined();
   });
 
-  it.fails(
+  it(
     'deployment_uuid fetches build logs only via processDeploymentBuildLogs path',
     async () => {
       vi.mocked(fetchDeployment).mockResolvedValue({
@@ -1206,7 +1206,7 @@ describe('diagnose logs', () => {
     },
   );
 
-  it.fails(
+  it(
     'mode full returns diagnose_failed but still includes logs when diagnose throws',
     async () => {
       vi.mocked(fetchApplication).mockRejectedValueOnce(
@@ -1233,7 +1233,7 @@ describe('diagnose logs', () => {
     },
   );
 
-  it.fails('empty runtime logs returns soft OK with hint on logs object', async () => {
+  it('empty runtime logs returns soft OK with hint on logs object', async () => {
     vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: '' });
 
     const result = await handleDiagnoseAction(
