@@ -6,7 +6,7 @@
 
 | bucket | count |
 | --- | ---: |
-| covered | 86 |
+| covered | 87 |
 | deferred | 2 |
 | out-of-scope | 31 |
 | gap | 57 |
@@ -58,6 +58,7 @@
 | `deployment.logs` | fetchDeployment, fetchAppDeployments | GET /deployments/{uuid}, GET /deployments/applications/{uuid} | covered | — |
 | `deployment.watch` | fetchDeployment | GET /deployments/{uuid} | out-of-scope | Polling orchestration over fetchDeployment |
 | `diagnose.app` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid} | covered | — |
+| `diagnose.logs` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchApplicationLogs, fetchDeployment | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid}, GET /applications/{uuid}/logs, GET /deployments/{uuid} | covered | — |
 | `diagnose.scan` | fetchServers, fetchResources | GET /servers, GET /resources | out-of-scope | Cross-resource scan orchestration |
 | `diagnose.server` | fetchServer, fetchServerResources, fetchServerDomains, triggerServerValidate | GET /servers/{uuid}, GET /servers/{uuid}/resources, GET /servers/{uuid}/domains, GET /servers/{uuid}/validate | covered | — |
 | `docs.search` | — | — | out-of-scope | Local docs index — no Coolify REST op |

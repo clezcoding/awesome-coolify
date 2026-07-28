@@ -89,6 +89,7 @@ Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deploymen
 
 2. Application path — call \`diagnose\` with action \`app\`:
    diagnose({ action: "app", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
+   For app triage + bounded log tail in one call, prefer \`diagnose.logs\` with \`mode: "full"\`.
 
 3. Server path — call \`diagnose\` with action \`server\`:
    diagnose({ action: "server", uuid: "${uuid ?? '<server-uuid>'}"${instanceSuffix} })
