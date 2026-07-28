@@ -1,23 +1,23 @@
 ---
 phase: 25-application-log-follow
-fixed_at: 2026-07-28T00:19:00Z
+fixed_at: 2026-07-28T00:43:00Z
 review_path: .planning/phases/25-application-log-follow/25-REVIEW.md
-iteration: 1
-findings_in_scope: 3
-fixed: 3
+iteration: 2
+findings_in_scope: 4
+fixed: 4
 skipped: 0
 status: all_fixed
 ---
 
 # Phase 25: Code Review Fix Report
 
-**Fixed at:** 2026-07-28T00:19:00Z
+**Fixed at:** 2026-07-28T00:43:00Z
 **Source review:** `.planning/phases/25-application-log-follow/25-REVIEW.md`
-**Iteration:** 1
+**Iteration:** 2
 
 **Summary:**
-- Findings in scope: 3
-- Fixed: 3
+- Findings in scope: 4
+- Fixed: 4
 - Skipped: 0
 
 ## Fixed Issues
@@ -40,8 +40,14 @@ status: all_fixed
 **Commit:** 6519440
 **Applied fix:** Compare resolved defaults (`?? 3` / `?? 30`) in both nested and flat logs refines. Added test for `max_interval:2` only.
 
+### IN-01: `timeout` on one-shot `logs` (no follow) is accepted but ignored
+
+**Files modified:** `src/mcp/tools/application.ts`, `src/mcp/tools/application.test.ts`
+**Commit:** 893fbae
+**Applied fix:** Reject `timeout` when `follow !== true` in `applicationLogsSchema` and flat `applicationActionSchema` logs refine (`timeout applies only when follow:true`). Added schema tests for both schemas (IN-01).
+
 ---
 
-_Fixed: 2026-07-28T00:19:00Z_
+_Fixed: 2026-07-28T00:43:00Z_
 _Fixer: Claude (gsd-code-fixer)_
-_Iteration: 1_
+_Iteration: 2_
