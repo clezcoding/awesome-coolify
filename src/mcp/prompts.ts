@@ -180,20 +180,25 @@ Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deploymen
 
 1. Resolve application UUID${uuid ? ` (${uuid})` : ''} from args, \`.coolify/manifest.json\`, or ask the user.${manifestSoftNote(Boolean(uuid))}
 
-2. Triage with \`diagnose\` — start with action \`app\`:
-   diagnose({ action: "app", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
+2. Triage + logs in one call — \`diagnose.logs\` with \`mode: "full"\`:
+   diagnose({ action: "logs", mode: "full", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
+   Check \`capabilities.diagnose_logs\` via \`system({ action: "version" })\` when unsure.
 
-3. Pull recent logs via \`application.logs\`:
-   application({ action: "logs", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
+3. If a live symptom persists, follow runtime logs (check \`capabilities.application_logs_follow\`):
+   application({ action: "logs", uuid: "${uuid ?? '<uuid>'}", follow: true${instanceSuffix} })
 
-4. Attempt non-destructive recovery — \`application\` restart:
+4. On build/deploy suspicion or after failed \`deployment.watch\`, fetch build logs:
+   deployment({ action: "logs", deployment_uuid: "<deployment-uuid>"${instanceSuffix} })
+   App-only: do not attempt service/DB log tools — unavailable on Coolify 4.1.2.
+
+5. Attempt non-destructive recovery — \`application\` restart:
    application({ action: "restart", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
 
-5. If restart is insufficient, ask the human before destructive actions. Preview then confirm emergency redeploy:
+6. If restart is insufficient, ask the human before destructive actions. Preview then confirm emergency redeploy:
    emergency({ action: "redeploy_project", project_uuid: "${project_uuid ?? '<project-uuid>'}", confirm: false${instanceSuffix} })
    Retry with \`confirm: true\` only after explicit human approval.
 
-6. Report incident status, actions taken, and recommended follow-up.`,
+7. Report incident status, actions taken, and recommended follow-up.`,
           },
         ],
       };
