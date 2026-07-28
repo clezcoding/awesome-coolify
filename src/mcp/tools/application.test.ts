@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
+  applicationActionMcpSchema,
   applicationActionSchema,
   applicationLogsSchema,
   handleApplicationAction,
@@ -112,6 +113,160 @@ describe('applicationActionSchema', () => {
     expect(
       applicationActionSchema.safeParse({ action: 'list' }).success,
     ).toBe(false);
+  });
+
+  it('accepts follow true on logs action with runtime uuid', () => {
+    expect(
+      applicationActionSchema.safeParse({
+        action: 'logs',
+        uuid: 'app-uuid-1',
+        follow: true,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects follow true with deployment_uuid on applicationActionSchema', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      deployment_uuid: 'dep-uuid-1',
+      follow: true,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /follow.*deployment_uuid|deployment_uuid.*follow/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('applicationActionMcpSchema accepts follow true with deployment_uuid for handler COOLIFY_422 path', () => {
+    expect(
+      applicationActionMcpSchema.safeParse({
+        action: 'logs',
+        deployment_uuid: 'dep-uuid-1',
+        follow: true,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects follow true on deploy action', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'deploy',
+      uuid: 'app-uuid-1',
+      follow: true,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues.some((issue) => issue.path.includes('follow'))).toBe(
+      true,
+    );
+  });
+
+  it('strips follow false phantom default on deploy action', () => {
+    expect(
+      applicationActionSchema.safeParse({
+        action: 'deploy',
+        uuid: 'app-uuid-1',
+        follow: false,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects min_interval greater than max_interval when follow true on logs', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      min_interval: 30,
+      max_interval: 3,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects max_interval below default min_interval when only max_interval set', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      max_interval: 2,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('accepts follow timeout under 10 seconds on flat schema', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      timeout: 5,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects timeout on logs when follow is not true (IN-01)', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      timeout: 60,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /timeout applies only when follow:true/i.test(issue.message ?? ''),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects deploy wait timeout under 10 seconds on flat schema', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'deploy',
+      uuid: 'app-uuid-1',
+      wait: true,
+      timeout: 5,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /timeout must be at least 10 seconds for deploy wait mode/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects offset with follow true on applicationLogsSchema', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      offset: 5,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues.some((issue) => /offset/i.test(issue.message ?? ''))).toBe(
+      true,
+    );
   });
 });
 
@@ -1063,6 +1218,42 @@ describe('handleApplicationAction logs', () => {
     );
   });
 
+  it('runtime logs follow false uses identical fetchApplicationLogs args as omit follow', async () => {
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'a\nb' });
+
+    await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1' },
+      testEnv,
+    );
+    const omitArgs = vi.mocked(fetchApplicationLogs).mock.calls[0];
+
+    vi.mocked(fetchApplicationLogs).mockClear();
+    vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'a\nb' });
+
+    await handleApplicationAction(
+      { action: 'logs', uuid: 'app-uuid-1', follow: false },
+      testEnv,
+    );
+    const falseArgs = vi.mocked(fetchApplicationLogs).mock.calls[0];
+
+    expect(falseArgs).toEqual(omitArgs);
+  });
+
+  it('build logs path calls fetchDeployment not fetchApplicationLogs', async () => {
+    vi.mocked(fetchDeployment).mockResolvedValue({
+      status: 'finished',
+      logs: buildLogsFixture,
+    });
+
+    await handleApplicationAction(
+      { action: 'logs', deployment_uuid: 'dep-uuid-1' },
+      testEnv,
+    );
+
+    expect(fetchDeployment).toHaveBeenCalled();
+    expect(fetchApplicationLogs).not.toHaveBeenCalled();
+  });
+
   it('build logs default include_hidden:false filters hidden entries', async () => {
     vi.mocked(fetchDeployment).mockResolvedValue({
       status: 'finished',
@@ -1084,15 +1275,64 @@ describe('handleApplicationAction logs', () => {
     expect(data.entries_shown).toBe(2);
   });
 
-  it('applicationLogsSchema rejects follow param with unrecognized_keys', () => {
+  it('applicationLogsSchema accepts follow true for runtime uuid', () => {
     const result = applicationLogsSchema.safeParse({
       action: 'logs',
       uuid: 'x',
       follow: true,
     });
+    expect(result.success).toBe(true);
+  });
+
+  it('applicationLogsSchema rejects timeout when follow is not true (IN-01)', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      timeout: 60,
+    });
     expect(result.success).toBe(false);
     if (result.success) return;
-    expect(result.error.issues[0]?.code).toBe('unrecognized_keys');
+    expect(
+      result.error.issues.some((issue) =>
+        /timeout applies only when follow:true/i.test(issue.message ?? ''),
+      ),
+    ).toBe(true);
+  });
+
+  it('applicationLogsSchema rejects max_interval below default min_interval when only max_interval set (WR-03)', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      max_interval: 2,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('applicationLogsSchema rejects min_interval above default max_interval when only min_interval set (WR-03)', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      follow: true,
+      min_interval: 31,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /min_interval must be less than or equal to max_interval/i.test(
+          issue.message ?? '',
+        ),
+      ),
+    ).toBe(true);
   });
 
   it('build logs plain string fallback slices without throw', async () => {
@@ -1338,6 +1578,241 @@ describe('handleApplicationAction logs', () => {
 
     const data = result.data as Record<string, unknown>;
     expect(data.logs_truncated).toBe(true);
+  });
+
+  describe('application logs follow', () => {
+    it(
+      'returns stopped_reason idle on idle stop without error flag',
+      async () => {
+        vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: 'static\nline' });
+
+        const result = await handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-idle',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 1,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        expect(isApplicationErrorResult(result)).toBe(false);
+        if (isApplicationErrorResult(result)) return;
+
+        const data = result.data as Record<string, unknown>;
+        expect(data.stopped_reason).toBe('idle');
+      },
+    );
+
+    it(
+      'returns stopped_reason idle on quiet app with perpetually empty runtime logs (WR-01)',
+      async () => {
+        vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: '' });
+
+        const result = await handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-empty',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 1,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        expect(isApplicationErrorResult(result)).toBe(false);
+        if (isApplicationErrorResult(result)) return;
+
+        const data = result.data as Record<string, unknown>;
+        expect(data.stopped_reason).toBe('idle');
+        expect(data.logs_lines).toEqual([]);
+        expect(data.total_lines).toBe(0);
+      },
+    );
+
+    it(
+      'returns dual-signal timeout with COOLIFY_LOG_FOLLOW_TIMEOUT and partial logs_lines',
+      async () => {
+        vi.useFakeTimers();
+        try {
+          let callCount = 0;
+          vi.mocked(fetchApplicationLogs).mockImplementation(async () => {
+            callCount++;
+            return { logs: `line-${callCount}\n` };
+          });
+
+          const resultPromise = handleApplicationAction(
+            {
+              action: 'logs',
+              uuid: 'app-follow-timeout',
+              follow: true,
+              timeout: 10,
+              idle_timeout: 60,
+              min_interval: 1,
+              max_interval: 1,
+            },
+            testEnv,
+          );
+
+          for (let i = 0; i < 12; i++) {
+            await vi.advanceTimersByTimeAsync(1000);
+          }
+
+          const result = await resultPromise;
+
+          expect(isApplicationErrorResult(result)).toBe(true);
+          if (!isApplicationErrorResult(result)) return;
+
+          expect(result.structuredContent.error.code).toBe(
+            'COOLIFY_LOG_FOLLOW_TIMEOUT',
+          );
+          const errorData = result.structuredContent.error.data as {
+            logs_lines?: string[];
+            stopped_reason?: string;
+            timed_out?: boolean;
+          };
+          expect(errorData.timed_out).toBe(true);
+          expect(errorData.stopped_reason).toBe('timeout');
+          expect(errorData.logs_lines?.length).toBeGreaterThan(0);
+          expect(
+            result.structuredContent.error.recoveryHints?.join(' '),
+          ).toMatch(/application\.logs/i);
+        } finally {
+          vi.useRealTimers();
+        }
+      },
+      15_000,
+    );
+
+    it(
+      'applicationLogsSchema rejects follow true with deployment_uuid as COOLIFY_422',
+      () => {
+        const result = applicationLogsSchema.safeParse({
+          action: 'logs',
+          uuid: 'app-uuid-1',
+          deployment_uuid: 'dep-uuid-1',
+          follow: true,
+        });
+        expect(result.success).toBe(false);
+        if (result.success) return;
+        expect(
+          result.error.issues.some((issue) =>
+            /follow.*deployment_uuid|deployment_uuid.*follow/i.test(
+              issue.message ?? '',
+            ),
+          ),
+        ).toBe(true);
+      },
+    );
+
+    it('handleApplicationAction follow true with deployment_uuid returns COOLIFY_422', async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'logs',
+          follow: true,
+          deployment_uuid: 'dep-x',
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(true);
+      if (!isApplicationErrorResult(result)) return;
+
+      expect(result.structuredContent.error.code).toBe('COOLIFY_422');
+      expect(result.structuredContent.error.message).toMatch(
+        /follow.*deployment_uuid|deployment_uuid.*follow/i,
+      );
+    });
+
+    it('returns logs_truncated when follow aggregate exceeds max_chars', async () => {
+      vi.useFakeTimers();
+      try {
+        const longLine = 'x'.repeat(10_001);
+        vi.mocked(fetchApplicationLogs).mockResolvedValue({
+          logs: `${longLine}\n${longLine}`,
+        });
+
+        const resultPromise = handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-trunc',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 1,
+            min_interval: 1,
+            max_interval: 1,
+            max_chars: 20_000,
+          },
+          testEnv,
+        );
+
+        await vi.advanceTimersByTimeAsync(1000);
+        await vi.advanceTimersByTimeAsync(1000);
+
+        const result = await resultPromise;
+
+        expect(isApplicationErrorResult(result)).toBe(false);
+        if (isApplicationErrorResult(result)) return;
+
+        const data = result.data as Record<string, unknown>;
+        expect(data.logs_truncated).toBe(true);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('returns partial logs_lines on non-429 API error during follow', async () => {
+      vi.useFakeTimers();
+      try {
+        let callCount = 0;
+        vi.mocked(fetchApplicationLogs).mockImplementation(async () => {
+          callCount++;
+          if (callCount === 1) {
+            return { logs: 'partial-line-1\npartial-line-2' };
+          }
+          throw new CoolifyApiError({
+            code: 'COOLIFY_500',
+            message: 'Upstream failure',
+            recoveryHints: [],
+            httpStatus: 500,
+          });
+        });
+
+        const resultPromise = handleApplicationAction(
+          {
+            action: 'logs',
+            uuid: 'app-follow-api-err',
+            follow: true,
+            timeout: 120,
+            idle_timeout: 60,
+            min_interval: 1,
+            max_interval: 1,
+          },
+          testEnv,
+        );
+
+        await vi.advanceTimersByTimeAsync(1000);
+        await vi.advanceTimersByTimeAsync(1000);
+
+        const result = await resultPromise;
+
+        expect(isApplicationErrorResult(result)).toBe(true);
+        if (!isApplicationErrorResult(result)) return;
+
+        expect(result.structuredContent.error.code).toBe('COOLIFY_500');
+        const errorData = result.structuredContent.error.data as {
+          logs_lines?: string[];
+        };
+        expect(errorData.logs_lines).toEqual(['partial-line-1', 'partial-line-2']);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });
 

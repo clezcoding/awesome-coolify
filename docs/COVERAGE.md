@@ -27,7 +27,7 @@
 | `application.envs:sync` | fetchEnvs, createEnv, updateEnvViaBulk, deleteEnv | GET /applications/{uuid}/envs, POST /applications/{uuid}/envs, PATCH /applications/{uuid}/envs/bulk, DELETE /applications/{uuid}/envs/{env_uuid} | out-of-scope | File↔remote env reconciliation orchestration |
 | `application.envs:update` | fetchEnvs, updateEnvViaBulk | GET /applications/{uuid}/envs, PATCH /applications/{uuid}/envs/bulk | covered | — |
 | `application.get` | fetchApplication | GET /applications/{uuid} | covered | — |
-| `application.logs` | fetchApplicationLogs, fetchDeployment | GET /applications/{uuid}/logs, GET /deployments/{uuid} | covered | — |
+| `application.logs` | fetchApplicationLogs, fetchDeployment | GET /applications/{uuid}/logs, GET /deployments/{uuid} | covered | MCP-side follow:true bounded runtime polling (OBS-02); check capabilities.application_logs_follow |
 | `application.restart` | triggerAppRestart | GET /applications/{uuid}/restart | covered | — |
 | `application.start` | triggerAppStart | GET /applications/{uuid}/start | covered | — |
 | `application.stop` | triggerAppStop | GET /applications/{uuid}/stop | covered | — |

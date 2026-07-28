@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
-current_phase: 25
-current_phase_name: Application Log Follow
-status: "Phase 24 shipped — PR #98"
-stopped_at: Completed 24-03-PLAN.md
-last_updated: "2026-07-27T23:02:24.572Z"
+current_phase: 26
+current_phase_name: Diagnose Logs & Incident DX
+status: "Phase 25 shipped — PR #99"
+stopped_at: Completed 25-05-PLAN.md
+last_updated: "2026-07-28T02:25:21.531Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 25
-last_activity_desc: Phase 24 complete, transitioned to Phase 25
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 10
+  percent: 50
+last_activity_desc: Phase 25 complete, transitioned to Phase 26
 ---
 
 # Project State
@@ -24,20 +24,20 @@ last_activity_desc: Phase 24 complete, transitioned to Phase 25
 See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 24 — capabilities-deployment-logs
+**Current focus:** Phase 25 — application-log-follow
 
 ## Current Position
 
-Phase: 25 — Application Log Follow
+Phase: 26 — Diagnose Logs & Incident DX
 Plan: Not started
-Status: Phase 24 shipped — PR #98
+Status: Phase 25 shipped — PR #99
 Last activity: 2026-07-28
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 106
+- Total plans completed: 112
 - Average duration: —
 - Total execution time: —
 
@@ -66,6 +66,7 @@ Last activity: 2026-07-28
 | 23 | 5 | - | - |
 | 23.1 | 5 | - | - |
 | 24 | 4 | - | - |
+| 25 | 6 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -140,6 +141,12 @@ Last activity: 2026-07-28
 | Phase 24-capabilities-deployment-logs P01 | 2min | 3 tasks | 6 files |
 | Phase 24-capabilities-deployment-logs P02 | 4min | 2 tasks | 7 files |
 | Phase 24-capabilities-deployment-logs P03 | 3 | 2 tasks | 5 files |
+| Phase 25-application-log-follow P00 | 2min | 2 tasks | 5 files |
+| Phase 25-application-log-follow P01 | 5min | 2 tasks | 8 files |
+| Phase 25-application-log-follow P02 | 3min | 2 tasks | 3 files |
+| Phase 25-application-log-follow P03 | 3min | 2 tasks | 7 files |
+| Phase 25-application-log-follow P04 | 2min | 2 tasks | 2 files |
+| Phase 25-application-log-follow P05 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -377,6 +384,19 @@ Last activity: 2026-07-28
 - [Phase ?]: capabilities on system.version only; meta.version stays { mcpVersion, serverName } (D-06)
 - [Phase ?]: Combined 24-02 tasks in one commit due to lint-staged vitest related on dirty deployment.test.ts
 - [Phase ?]: Reverted unstaged OpenAPI pin drift to restore coverage-map path validation
+- [Phase ?]: Phase 25 Wave 0: it.fails RED scaffolds for follow contract; production untouched until 25-01/25-02
+- [Phase ?]: follow+deployment_uuid scaffold uses schema-level follow-specific refine message — handler XOR already passes today
+- [Phase ?]: Handler defaults follow timeout 120s and idle_timeout 60s when omitted (D-13/D-06)
+- [Phase ?]: Suffix-overlap appendDedupedLines for tail snapshot dedup per RESEARCH Pattern 3
+- [Phase ?]: Non-429 API errors attach capped partial logs_lines in CoolifyApiError data (D-07)
+- [Phase ?]: zodDefaultFields follow:false only on applicationActionSchema — deploy wait timeout unchanged
+- [Phase ?]: Schema rejects offset with follow:true — no silent ignore
+- [Phase ?]: application.logs OBS-02 reason via coverage-overrides action_overrides + openapi:coverage regen
+- [Phase ?]: application_logs_follow soft guidance only — no Zod capability gate (D-19)
+- [Phase ?]: Verify-only gap closure — no production edits; REVIEW-FIX commits c303118/6519440 confirmed via tests
+- [Phase ?]: WR-03 nested schema tests co-committed with WR-01 handler test in same application.test.ts commit
+- [Phase ?]: applicationActionMcpSchema omits superRefine — MCP SDK passes follow+deployment_uuid to handler throwValidationError (25-05)
+- [Phase ?]: buildApplicationActionSchema factory avoids duplicating createFlatActionSchema shape block (25-05)
 
 ### Pending Todos
 
@@ -450,8 +470,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-27T21:23:29.885Z
-Stopped at: Completed 24-03-PLAN.md
+Last session: 2026-07-28T01:15:17.330Z
+Stopped at: Completed 25-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

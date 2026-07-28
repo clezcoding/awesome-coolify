@@ -70,7 +70,7 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
 **Milestone Goal:** App/deployment log observability, capability discovery, incident flows, and MCP branding — Coolify 4.1.2 only (no service/DB logs).
 
 - [x] **Phase 24: Capabilities & Deployment Logs** - `system.version` capability flags + `deployment.logs` action (completed 2026-07-27)
-- [ ] **Phase 25: Application Log Follow** - Bounded watch-style app log follow + no regression on existing logs
+- [x] **Phase 25: Application Log Follow** - Bounded watch-style app log follow + no regression on existing logs (completed 2026-07-28)
 - [ ] **Phase 26: Diagnose Logs & Incident DX** - `diagnose.logs` + incident prompt + coolify-setup skill updates
 - [ ] **Phase 27: Branding & Docs Stale Fix** - MCP icon workarounds + npm 1.0.1 docs parity
 
@@ -114,7 +114,28 @@ Plans:
   2. Existing `application.logs` runtime path (by app uuid) still returns bounded logs unchanged
   3. Existing `application.logs` build path (by `deployment_uuid`) still returns build logs unchanged
 
-**Plans**: TBD
+**Plans:** 6/6 plans complete
+
+Plans:
+
+- [x] 25-05-PLAN.md
+
+**Wave 0**
+
+- [x] 25-00-PLAN.md — Wave 0 Nyquist RED scaffolds (log-follow-poll + follow handler + capabilities)
+
+**Wave 1** *(blocked on Wave 0 completion)*
+
+- [x] 25-01-PLAN.md — OBS-02 tracer: log-follow-poll + handleApplicationLogsFollow idle/timeout paths
+
+**Wave 2** *(blocked on Wave 1 completion; 25-02 and 25-03 parallel)*
+
+- [x] 25-02-PLAN.md — OBS-02/OBS-03: flat schema wiring + one-shot regression lock
+- [x] 25-03-PLAN.md — OBS-02: application_logs_follow capability + coverage + README EN/DE
+
+**Wave 3** *(gap closure — blocked on Wave 2 completion)*
+
+- [x] 25-04-PLAN.md — Close VERIFICATION gaps WR-01/WR-03: idle-on-empty + one-bound interval tests + re-verify
 
 ### Phase 26: Diagnose Logs & Incident DX
 
@@ -160,7 +181,7 @@ Plans:
 | 23 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 23.1 | v3.1 | 5/5 | Complete | 2026-07-27 |
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
-| 25 | v3.2 | 0/? | Not started | - |
+| 25 | v3.2 | 6/6 | Complete    | 2026-07-28 |
 | 26 | v3.2 | 0/? | Not started | - |
 | 27 | v3.2 | 0/? | Not started | - |
 

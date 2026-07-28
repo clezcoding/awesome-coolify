@@ -183,13 +183,35 @@ describe('logs-service-db-flow integration', () => {
       expect(isApplicationErrorResult(result)).toBe(true);
     });
 
-    it('rejects follow:true per D-05', () => {
+    it('accepts follow:true on logs action schema', () => {
       const parsed = applicationActionSchema.safeParse({
         action: 'logs',
         uuid: 'x',
         follow: true,
       });
-      expect(parsed.success).toBe(false);
+      expect(parsed.success).toBe(true);
+    });
+
+    it('runtime one-shot logs without follow key unchanged', async () => {
+      const result = await handleApplicationAction(
+        { action: 'logs', uuid: 'app-uuid-1', lines: 50 },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      if (isApplicationErrorResult(result)) return;
+
+      expect(result.ok).toBe(true);
+      expect(fetchApplicationLogs).toHaveBeenCalledWith(
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        'app-uuid-1',
+        50,
+        testEnv.COOLIFY_VERIFY_SSL,
+      );
+      expect(
+        (result.data as Record<string, unknown>).stopped_reason,
+      ).toBeUndefined();
     });
   });
 

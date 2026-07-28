@@ -93,7 +93,7 @@ describe('MCP server tool registration', () => {
       'systemActionSchema',
       'resourceActionSchema',
       'diagnoseToolSchema',
-      'applicationActionSchema',
+      'applicationActionMcpSchema',
       'emergencyToolSchema',
       'deploymentToolSchema',
       'serviceActionSchema',

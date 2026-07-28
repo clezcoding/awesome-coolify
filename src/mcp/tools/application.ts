@@ -52,6 +52,7 @@ import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js'
 import {
   CoolifyApiError,
   RECOVERY_HINTS,
+  toStructuredError,
   wrapMcpError,
   type CoolifyErrorCode,
   type McpErrorResult,
@@ -61,6 +62,7 @@ import {
   processDeploymentBuildLogs,
   sliceLogBlob,
 } from '../../utils/log-helpers.js';
+import { followApplicationLogs } from '../../utils/log-follow-poll.js';
 import {
   createFlatActionSchema,
   mutationResponseParamsFlatShape,
@@ -183,6 +185,37 @@ export const applicationLogsSchema = z
       .describe(
         'Skip first K lines of the FLATTENED log blob before applying lines (build-logs pagination applied AFTER parse+filter+flatten)',
       ),
+    follow: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        'Poll runtime logs until idle or timeout; returns deduped aggregate (runtime uuid/name/fqdn only)',
+      ),
+    timeout: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow budget in seconds when follow:true (default 120)'),
+    idle_timeout: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Stop after this many seconds with no new deduped lines (default 60)'),
+    min_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Minimum poll interval in seconds when follow:true (default 3)'),
+    max_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Maximum poll interval in seconds when follow:true (default 30)'),
     ...sharedLogParamsSchema,
   })
   .strict()
@@ -203,6 +236,41 @@ export const applicationLogsSchema = z
           'Cannot provide both uuid and deployment_uuid — choose runtime OR build logs',
         params: { code: 'COOLIFY_422' },
       });
+    }
+    if (data.follow === true && data.deployment_uuid) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'follow:true cannot be used with deployment_uuid — runtime application logs only',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow === true && data.offset > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'offset is not supported when follow:true — use lines per poll instead',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow !== true && data.timeout !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'timeout applies only when follow:true',
+        path: ['timeout'],
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow === true) {
+      const minInterval = data.min_interval ?? 3;
+      const maxInterval = data.max_interval ?? 30;
+      if (minInterval > maxInterval) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'min_interval must be less than or equal to max_interval',
+          path: ['min_interval'],
+          params: { code: 'COOLIFY_422' },
+        });
+      }
     }
   });
 
@@ -288,7 +356,8 @@ const envBulkEntrySchema = z
 
 export const applicationActionsCatalog =
   'Actions: get(uuid, format?, projection?, reveal?) · start(uuid) · stop(uuid) · restart(uuid) · deploy(uuid, force?) · ' +
-  'logs(uuid, lines?) · create(source_type, server_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · ' +
+  'logs(uuid, lines?, follow?, timeout?, idle_timeout?, min_interval?, max_interval?) — follow runtime only; check system.version capabilities.application_logs_follow · ' +
+  'create(source_type, server_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · ' +
   'envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · ' +
   'envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm) · ' +
   'envs:sync(uuid, env_file?, env_content?, dry_run?, confirm?, conflict_policy?)';
@@ -296,7 +365,236 @@ export const applicationActionsCatalog =
 export const applicationSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
 
-export const applicationActionSchema = createFlatActionSchema(
+function applicationExtraRefine(
+  data: Record<string, unknown> & { action: string },
+  ctx: z.RefinementCtx,
+): void {
+  const mutationIdActions = [
+    'start',
+    'stop',
+    'restart',
+    'update',
+    'delete',
+    'delete_preview',
+    'envs:list',
+    'envs:get',
+    'envs:create',
+    'envs:update',
+    'envs:delete',
+    'envs:bulk-update',
+    'envs:sync',
+  ] as const;
+  if (
+    (mutationIdActions as readonly string[]).includes(data.action) &&
+    !hasAtLeastOneIdentifier(data, MUTATION_IDENTIFIER_FIELDS)
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      message: `At least one identifier (uuid|name|fqdn) required for action ${data.action}`,
+      params: { code: 'COOLIFY_422' },
+    });
+  }
+  if (data.action === 'deploy') {
+    if (!hasAtLeastOneIdentifier(data, DEPLOY_IDENTIFIER_FIELDS)) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'At least one identifier (uuid|name|fqdn|uuids|tags|tag) required for action deploy',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (
+      data.wait === true &&
+      data.timeout !== undefined &&
+      typeof data.timeout === 'number' &&
+      data.timeout < 10
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'timeout must be at least 10 seconds for deploy wait mode',
+        path: ['timeout'],
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+  }
+  if (data.action === 'logs') {
+    const hasRuntimeId = !!(data.uuid || data.name || data.fqdn);
+    if (!hasRuntimeId && !data.deployment_uuid) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Either uuid (runtime logs) or deployment_uuid (build logs) must be provided',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (hasRuntimeId && data.deployment_uuid) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Cannot provide both uuid and deployment_uuid — choose runtime OR build logs',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow === true && data.deployment_uuid) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'follow:true cannot be used with deployment_uuid — runtime application logs only',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow === true && (typeof data.offset === 'number' ? data.offset : 0) > 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'offset is not supported when follow:true — use lines per poll instead',
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow !== true && data.timeout !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'timeout applies only when follow:true',
+        path: ['timeout'],
+        params: { code: 'COOLIFY_422' },
+      });
+    }
+    if (data.follow === true) {
+      const minInterval = typeof data.min_interval === 'number' ? data.min_interval : 3;
+      const maxInterval = typeof data.max_interval === 'number' ? data.max_interval : 30;
+      if (minInterval > maxInterval) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'min_interval must be less than or equal to max_interval',
+          path: ['min_interval'],
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
+    if (data.format === 'table') {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'format table is not supported for logs — use pretty or json',
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+  }
+  if (data.action === 'create') {
+    requireProjectAndEnvironment(
+      data as {
+        project_uuid?: string;
+        project_name?: string;
+        environment_name?: string;
+        environment_uuid?: string;
+      },
+      ctx,
+    );
+    rejectDockercomposeBuildPack(data as { build_pack?: string }, ctx);
+    if (data.build_pack === 'dockercompose') {
+      rejectDockercomposeBuildPack(data as { build_pack?: string }, ctx);
+    }
+    const source = data.source_type;
+    if (!source) {
+      ctx.addIssue({
+        code: 'custom',
+        message: "Action 'create' requires field 'source_type'",
+        path: ['source_type'],
+      });
+    } else if (
+      source === 'public_git' ||
+      source === 'private_deploy_key' ||
+      source === 'private_github_app'
+    ) {
+      if (!data.git_repository) {
+        ctx.addIssue({ code: 'custom', message: 'git_repository is required', path: ['git_repository'] });
+      }
+      if (!data.git_branch) {
+        ctx.addIssue({ code: 'custom', message: 'git_branch is required', path: ['git_branch'] });
+      }
+      if (!data.build_pack) {
+        ctx.addIssue({ code: 'custom', message: 'build_pack is required', path: ['build_pack'] });
+      }
+      if (source === 'private_deploy_key' && !data.private_key_uuid) {
+        ctx.addIssue({ code: 'custom', message: 'private_key_uuid is required', path: ['private_key_uuid'] });
+      }
+      if (source === 'private_github_app' && !data.github_app_uuid) {
+        ctx.addIssue({ code: 'custom', message: 'github_app_uuid is required', path: ['github_app_uuid'] });
+      }
+    } else if (source === 'dockerfile') {
+      if (!data.dockerfile) {
+        ctx.addIssue({ code: 'custom', message: 'dockerfile is required', path: ['dockerfile'] });
+      }
+    } else if (source === 'dockerimage') {
+      if (!data.docker_registry_image_name) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'docker_registry_image_name is required',
+          path: ['docker_registry_image_name'],
+        });
+      }
+    }
+  }
+  if (data.action === 'update' && data.build_pack === 'dockercompose') {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        "build_pack='dockercompose' is not supported on application update — use service.update (Phase 11)",
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+  if (data.action === 'envs:get') {
+    requireEnvUuidOrKey(
+      data as { env_uuid?: string; key?: string },
+      ctx,
+      'envs:get',
+    );
+  }
+  if (data.action === 'envs:update') {
+    requireEnvUuidOrKey(
+      data as { env_uuid?: string; key?: string },
+      ctx,
+      'envs:update',
+    );
+  }
+  if (
+    data.action === 'envs:bulk-update' &&
+    Array.isArray(data.entries) &&
+    data.entries.length > 100
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
+      path: ['entries'],
+      params: { code: 'COOLIFY_VALIDATION_ERROR' },
+    });
+  }
+  if (data.action === 'envs:sync') {
+    const hasFile = typeof data.env_file === 'string' && data.env_file.length > 0;
+    const hasContent = typeof data.env_content === 'string' && data.env_content.length > 0;
+    if (hasFile === hasContent) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Exactly one of env_file (local path) or env_content (inline .env text) is required for envs:sync',
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+    const needsConfirm = data.dry_run === false || data.prune === true;
+    if (needsConfirm && data.confirm !== true) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          "Action 'envs:sync' requires confirm:true when applying (dry_run:false) or when prune:true",
+        params: { code: 'COOLIFY_CONFIRM_REQUIRED' },
+      });
+    }
+  }
+}
+
+function buildApplicationActionSchema(
+  extraRefine?: typeof applicationExtraRefine,
+) {
+  return createFlatActionSchema(
   [
     'get',
     'start',
@@ -328,11 +626,33 @@ export const applicationActionSchema = createFlatActionSchema(
     timeout: z
       .number()
       .int()
-      .min(10)
+      .min(1)
       .max(1800)
       .optional()
-      .describe('Wait-mode timeout in seconds'),
+      .describe('Wait-mode timeout in seconds (deploy wait min 10; follow logs min 1)'),
     deployment_uuid: z.string().optional().describe('Deployment UUID for build logs'),
+    follow: z
+      .boolean()
+      .optional()
+      .describe('Poll runtime logs until idle or timeout (runtime identity only)'),
+    idle_timeout: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow idle stop in seconds (default 60 when follow:true)'),
+    min_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow min poll interval in seconds (default 3 when follow:true)'),
+    max_interval: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe('Follow max poll interval in seconds (default 30 when follow:true)'),
     offset: z.number().int().min(0).optional().describe('Skip first K log lines'),
     lines: sharedLogParamsFlatShape.lines,
     include_hidden: sharedLogParamsFlatShape.include_hidden,
@@ -453,6 +773,11 @@ export const applicationActionSchema = createFlatActionSchema(
       'name',
       'fqdn',
       'deployment_uuid',
+      'follow',
+      'timeout',
+      'idle_timeout',
+      'min_interval',
+      'max_interval',
       'offset',
       'lines',
       'max_chars',
@@ -623,157 +948,15 @@ export const applicationActionSchema = createFlatActionSchema(
     'envs:delete': ['env_uuid'],
     'envs:bulk-update': ['entries'],
   },
-  (data, ctx) => {
-    const mutationIdActions = [
-      'start',
-      'stop',
-      'restart',
-      'update',
-      'delete',
-      'delete_preview',
-      'envs:list',
-      'envs:get',
-      'envs:create',
-      'envs:update',
-      'envs:delete',
-      'envs:bulk-update',
-      'envs:sync',
-    ] as const;
-    if (
-      (mutationIdActions as readonly string[]).includes(data.action) &&
-      !hasAtLeastOneIdentifier(data, MUTATION_IDENTIFIER_FIELDS)
-    ) {
-      ctx.addIssue({
-        code: 'custom',
-        message: `At least one identifier (uuid|name|fqdn) required for action ${data.action}`,
-        params: { code: 'COOLIFY_422' },
-      });
-    }
-    if (data.action === 'deploy') {
-      if (!hasAtLeastOneIdentifier(data, DEPLOY_IDENTIFIER_FIELDS)) {
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            'At least one identifier (uuid|name|fqdn|uuids|tags|tag) required for action deploy',
-          params: { code: 'COOLIFY_422' },
-        });
-      }
-    }
-    if (data.action === 'logs') {
-      const hasRuntimeId = !!(data.uuid || data.name || data.fqdn);
-      if (!hasRuntimeId && !data.deployment_uuid) {
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            'Either uuid (runtime logs) or deployment_uuid (build logs) must be provided',
-          params: { code: 'COOLIFY_422' },
-        });
-      }
-      if (hasRuntimeId && data.deployment_uuid) {
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            'Cannot provide both uuid and deployment_uuid — choose runtime OR build logs',
-          params: { code: 'COOLIFY_422' },
-        });
-      }
-      if (data.format === 'table') {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'format table is not supported for logs — use pretty or json',
-          params: { code: 'COOLIFY_VALIDATION_ERROR' },
-        });
-      }
-    }
-    if (data.action === 'create') {
-      requireProjectAndEnvironment(data, ctx);
-      rejectDockercomposeBuildPack(data, ctx);
-      if (data.build_pack === 'dockercompose') {
-        rejectDockercomposeBuildPack(data, ctx);
-      }
-      const source = data.source_type;
-      if (!source) {
-        ctx.addIssue({
-          code: 'custom',
-          message: "Action 'create' requires field 'source_type'",
-          path: ['source_type'],
-        });
-      } else if (source === 'public_git' || source === 'private_deploy_key' || source === 'private_github_app') {
-        if (!data.git_repository) {
-          ctx.addIssue({ code: 'custom', message: 'git_repository is required', path: ['git_repository'] });
-        }
-        if (!data.git_branch) {
-          ctx.addIssue({ code: 'custom', message: 'git_branch is required', path: ['git_branch'] });
-        }
-        if (!data.build_pack) {
-          ctx.addIssue({ code: 'custom', message: 'build_pack is required', path: ['build_pack'] });
-        }
-        if (source === 'private_deploy_key' && !data.private_key_uuid) {
-          ctx.addIssue({ code: 'custom', message: 'private_key_uuid is required', path: ['private_key_uuid'] });
-        }
-        if (source === 'private_github_app' && !data.github_app_uuid) {
-          ctx.addIssue({ code: 'custom', message: 'github_app_uuid is required', path: ['github_app_uuid'] });
-        }
-      } else if (source === 'dockerfile') {
-        if (!data.dockerfile) {
-          ctx.addIssue({ code: 'custom', message: 'dockerfile is required', path: ['dockerfile'] });
-        }
-      } else if (source === 'dockerimage') {
-        if (!data.docker_registry_image_name) {
-          ctx.addIssue({
-            code: 'custom',
-            message: 'docker_registry_image_name is required',
-            path: ['docker_registry_image_name'],
-          });
-        }
-      }
-    }
-    if (data.action === 'update' && data.build_pack === 'dockercompose') {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          "build_pack='dockercompose' is not supported on application update — use service.update (Phase 11)",
-        params: { code: 'COOLIFY_VALIDATION_ERROR' },
-      });
-    }
-    if (data.action === 'envs:get') {
-      requireEnvUuidOrKey(data, ctx, 'envs:get');
-    }
-    if (data.action === 'envs:update') {
-      requireEnvUuidOrKey(data, ctx, 'envs:update');
-    }
-    if (data.action === 'envs:bulk-update' && data.entries && data.entries.length > 100) {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'envs:bulk-update accepts at most 100 entries per call — batch into multiple requests',
-        path: ['entries'],
-        params: { code: 'COOLIFY_VALIDATION_ERROR' },
-      });
-    }
-    if (data.action === 'envs:sync') {
-      const hasFile = typeof data.env_file === 'string' && data.env_file.length > 0;
-      const hasContent = typeof data.env_content === 'string' && data.env_content.length > 0;
-      if (hasFile === hasContent) {
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            'Exactly one of env_file (local path) or env_content (inline .env text) is required for envs:sync',
-          params: { code: 'COOLIFY_VALIDATION_ERROR' },
-        });
-      }
-      const needsConfirm = data.dry_run === false || data.prune === true;
-      if (needsConfirm && data.confirm !== true) {
-        ctx.addIssue({
-          code: 'custom',
-          message:
-            "Action 'envs:sync' requires confirm:true when applying (dry_run:false) or when prune:true",
-          params: { code: 'COOLIFY_CONFIRM_REQUIRED' },
-        });
-      }
-    }
-  },
-);
+  extraRefine,
+  { follow: false },
+  );
+}
+
+/** MCP SDK boundary — structural/action allowlist only; no handler superRefine guards. */
+export const applicationActionMcpSchema = buildApplicationActionSchema();
+/** Handler parse — full superRefine including COOLIFY_422 params for throwValidationError. */
+export const applicationActionSchema = buildApplicationActionSchema(applicationExtraRefine);
 
 
 const UPDATE_CURATED_FIELD_KEYS = [
@@ -879,6 +1062,8 @@ export type ApplicationLogsResult = ReadResponse<{
   entries_total?: number;
   entries_hidden?: number;
   entries_shown?: number;
+  stopped_reason?: 'idle' | 'timeout';
+  poll_count?: number;
 }>;
 
 export type ApplicationCreateResult = ReadResponse<{
@@ -1432,6 +1617,10 @@ async function handleApplicationLogs(
   parsed: LogsAction,
   env: EnvConfig,
 ): Promise<ApplicationLogsResult> {
+  if (parsed.follow === true) {
+    return handleApplicationLogsFollow(parsed, env);
+  }
+
   const lines = parsed.lines ?? 100;
   const includeHidden = parsed.include_hidden ?? false;
   const offset = parsed.offset ?? 0;
@@ -1483,6 +1672,119 @@ async function handleApplicationLogs(
       logs_lines: cappedLines,
       logs_truncated: capped.truncated,
       total_lines: allLines.length,
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+function isFollowRetryableRateLimit(
+  err: unknown,
+): { retryAfterMs?: number } | null {
+  const envelope =
+    err instanceof CoolifyApiError ? err.envelope : toStructuredError(err);
+  if (envelope.httpStatus === 429) {
+    const retryAfter = envelope.data?.retry_after;
+    return {
+      retryAfterMs: typeof retryAfter === 'number' ? retryAfter : undefined,
+    };
+  }
+  return null;
+}
+
+async function handleApplicationLogsFollow(
+  parsed: LogsAction,
+  env: EnvConfig,
+): Promise<ApplicationLogsResult> {
+  const linesPerPoll = parsed.lines ?? 100;
+  const maxChars = parsed.max_chars ?? 20000;
+  const timeoutSec = parsed.timeout ?? 120;
+  const idleTimeoutSec = parsed.idle_timeout ?? 60;
+  const minIntervalSec = parsed.min_interval ?? 3;
+  const maxIntervalSec = parsed.max_interval ?? 30;
+
+  const uuid = await resolveAppMutationUuid(parsed, env);
+
+  const fetchSnapshot = async (): Promise<string[]> => {
+    const raw = await fetchApplicationLogs(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      uuid,
+      linesPerPoll,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const logsStr =
+      isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
+    let split = logsStr.split('\n');
+    if (split.length > 0 && split[split.length - 1] === '') {
+      split = split.slice(0, -1);
+    }
+    return split;
+  };
+
+  let outcome;
+  try {
+    outcome = await followApplicationLogs({
+      fetchSnapshot,
+      timeoutMs: timeoutSec * 1000,
+      idleTimeoutMs: idleTimeoutSec * 1000,
+      minIntervalMs: minIntervalSec * 1000,
+      maxIntervalMs: maxIntervalSec * 1000,
+      isRetryableRateLimit: isFollowRetryableRateLimit,
+    });
+  } catch (err) {
+    if (err instanceof CoolifyApiError) {
+      const partialLines = Array.isArray(err.envelope.data?.logs_lines)
+        ? (err.envelope.data.logs_lines as string[])
+        : [];
+      const capped = capLogOutput(partialLines.join('\n'), maxChars);
+      const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+      throw new CoolifyApiError({
+        ...err.envelope,
+        data: {
+          ...err.envelope.data,
+          uuid,
+          logs_lines: cappedLines,
+          logs_truncated: capped.truncated,
+          total_lines: partialLines.length,
+        },
+      });
+    }
+    throw err;
+  }
+
+  const capped = capLogOutput(outcome.aggregate.join('\n'), maxChars);
+  const cappedLines = capped.text.split('\n').filter((l) => l.length > 0);
+
+  if (outcome.stoppedReason === 'timeout') {
+    const elapsedSeconds = Math.round(outcome.elapsedMs / 1000);
+    throw new CoolifyApiError({
+      code: 'COOLIFY_LOG_FOLLOW_TIMEOUT',
+      message: `Application log follow timed out after ${elapsedSeconds}s.`,
+      recoveryHints: RECOVERY_HINTS.COOLIFY_LOG_FOLLOW_TIMEOUT,
+      data: {
+        uuid,
+        logs_lines: cappedLines,
+        logs_truncated: capped.truncated,
+        total_lines: outcome.aggregate.length,
+        stopped_reason: 'timeout',
+        timed_out: true,
+        elapsed_seconds: elapsedSeconds,
+        poll_count: outcome.pollCount,
+      },
+    });
+  }
+
+  return buildReadResponse(
+    {
+      uuid,
+      logs_lines: cappedLines,
+      logs_truncated: capped.truncated,
+      total_lines: outcome.aggregate.length,
+      stopped_reason: 'idle',
+      poll_count: outcome.pollCount,
     },
     {
       format: parsed.format,

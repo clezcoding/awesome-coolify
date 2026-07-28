@@ -95,6 +95,9 @@ action_overrides:
   - action: application.envs:sync
     bucket: out-of-scope
     reason: "File↔remote env reconciliation orchestration"
+  - action: application.logs
+    bucket: covered
+    reason: "MCP-side follow:true bounded runtime polling (OBS-02); check capabilities.application_logs_follow"
   - action: deployment.watch
     bucket: out-of-scope
     reason: "Polling orchestration over fetchDeployment"

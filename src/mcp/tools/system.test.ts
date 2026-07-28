@@ -139,12 +139,13 @@ describe('handleSystemAction version', () => {
 describe('capabilities', () => {
   const CAPABILITY_KEYS = [
     'application_logs',
+    'application_logs_follow',
     'deployment_logs',
     'deployment_watch',
     'deploy_watch',
   ] as const;
 
-  it('system.version capabilities has exactly four D-03 keys', async () => {
+  it('system.version capabilities has exactly five keys including application_logs_follow', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;
