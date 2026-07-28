@@ -1,36 +1,20 @@
 ---
 phase: 25-application-log-follow
-verified: 2026-07-28T00:12:00Z
-status: gaps_found
-score: 8/10 must-haves verified
+verified: 2026-07-28T00:36:30Z
+status: passed
+score: 10/10 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "Idle stop fires when polls return no new log lines (including never-empty snapshots)"
-    status: failed
-    reason: "lastNewLineTime stays null until deduped lines appear; empty snapshots never satisfy idle branch — follow runs full budget and returns COOLIFY_LOG_FOLLOW_TIMEOUT instead of stopped_reason idle success (D-05, D-11; REVIEW WR-01)"
-    artifacts:
-      - path: src/utils/log-follow-poll.ts
-        issue: "Idle branch requires lastNewLineTime !== null; never set when every snapshot is empty"
-    missing:
-      - "Start idle clock after first poll when no new lines (e.g. pollCount === 1 && !hadNewLines)"
-      - "Unit test: fetchSnapshot always [] → stoppedReason idle after idleTimeoutMs"
-  - truth: "Resolved min_interval/max_interval bounds reject invalid combinations when only one bound is provided"
-    status: partial
-    reason: "Schema refine compares min_interval and max_interval only when both are set; handler defaults missing bound to 3s/30s — follow:true,max_interval:2 yields minIntervalMs=3000,maxIntervalMs=2000 (REVIEW WR-03)"
-    artifacts:
-      - path: src/mcp/tools/application.ts
-        issue: "applicationLogsSchema and applicationActionSchema extraRefine skip default-resolved ordering check"
-    missing:
-      - "Compare (min_interval ?? 3) vs (max_interval ?? 30) when follow:true in both refines"
+gaps: []
+re-verification: Yes
 ---
 
 # Phase 25: Application Log Follow Verification Report
 
 **Phase Goal:** Agent can follow application runtime logs with bounded polling (watch-style) while existing `application.logs` paths stay unchanged
-**Verified:** 2026-07-28T00:12:00Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Verified:** 2026-07-28T00:36:30Z
+**Status:** passed
+**Re-verification:** Yes — gap closure plan 25-04 after REVIEW-FIX commits c303118 (WR-01) and 6519440 (WR-03)
 
 ## Goal Achievement
 
@@ -38,8 +22,8 @@ gaps:
 
 | # | Truth | Status | Evidence |
 | --- | ------- | ---------- | -------------- |
-| 1 | Agent follows application logs with bounded polling until timeout or terminal condition (OBS-02, roadmap SC1) | ✓ VERIFIED | `handleApplicationLogsFollow` + `followApplicationLogs`; tests for dedup, idle (with lines), timeout dual-signal, 429 backoff pass |
-| 2 | Idle stop when no new lines for idle window (D-05, D-11) | ✗ FAILED | `log-follow-poll.ts:76-87` — `lastNewLineTime` only set when `hadNewLines`; perpetual empty snapshots never idle-stop |
+| 1 | Agent follows application logs with bounded polling until timeout or terminal condition (OBS-02, roadmap SC1) | ✓ VERIFIED | `handleApplicationLogsFollow` + `followApplicationLogs`; tests for dedup, idle, timeout dual-signal, 429 backoff pass |
+| 2 | Idle stop when no new lines for idle window (D-05, D-11) | ✓ VERIFIED | `log-follow-poll.ts:76` — `pollCount === 1 && !hadNewLines` starts idle clock; unit test `stops idle when snapshots stay empty`; handler test `returns stopped_reason idle on quiet app with perpetually empty runtime logs (WR-01)` |
 | 3 | Existing `application.logs` runtime path unchanged (OBS-03, roadmap SC2) | ✓ VERIFIED | `handleApplicationLogs` one-shot branch when `follow !== true`; golden tests `runtime logs follow false uses identical fetchApplicationLogs args` pass |
 | 4 | Existing `application.logs` build path unchanged (OBS-03, roadmap SC3) | ✓ VERIFIED | Build path uses `fetchDeployment` / `processDeploymentBuildLogs`; no follow branch; `build logs path calls fetchDeployment not fetchApplicationLogs` passes |
 | 5 | `follow:true` + `deployment_uuid` rejected COOLIFY_422 (D-02) | ✓ VERIFIED | `applicationLogsSchema` + `applicationActionSchema` refines; tests pass |
@@ -49,7 +33,7 @@ gaps:
 | 9 | `system.version` includes `application_logs_follow` supported true, min 4.1.2 (D-17, D-18) | ✓ VERIFIED | `capabilities.ts:22-26`; `system.test.ts` five-key test passes |
 | 10 | Soft capability guidance — no Zod hard-block on follow (D-19) | ✓ VERIFIED | No `safeParse`/`refine` gate on `application_logs_follow` in `application.ts` |
 
-**Score:** 8/10 truths verified (2 present, behavior-unverified: 0)
+**Score:** 10/10 truths verified (0 present, behavior-unverified: 0)
 
 ### Required Artifacts
 
@@ -84,10 +68,12 @@ gaps:
 
 | Behavior | Command | Result | Status |
 | -------- | ------- | ------ | ------ |
-| Follow idle + timeout + dedup + 429 tests | `npx vitest run src/utils/log-follow-poll.test.ts` | 4 passed | ✓ PASS |
+| Follow idle + timeout + dedup + 429 tests | `npx vitest run src/utils/log-follow-poll.test.ts` | 5 passed | ✓ PASS |
 | Follow handler + OBS-03 golden | `npx vitest run src/mcp/tools/application.test.ts -t "follow\|runtime logs\|build logs"` | 32 passed | ✓ PASS |
 | Five capability keys | `npx vitest run src/mcp/tools/system.test.ts -t capabilities` | passed | ✓ PASS |
 | Integration follow schema + one-shot | `npx vitest run tests/integration/logs-service-db-flow.test.ts -t "follow\|runtime one-shot"` | 2 passed | ✓ PASS |
+| WR-01 empty-snapshot idle (unit + handler) | `npx vitest run src/utils/log-follow-poll.test.ts -t "stops idle when snapshots stay empty"` + handler WR-01 it | passed | ✓ PASS |
+| WR-03 nested schema interval guard | `applicationLogsSchema` one-bound min/max tests | passed | ✓ PASS |
 
 ### Probe Execution
 
@@ -97,7 +83,7 @@ Step 7c: SKIPPED — no phase-declared `scripts/*/tests/probe-*.sh` for Phase 25
 
 | Requirement | Source Plan(s) | Description | Status | Evidence |
 | ----------- | ---------- | ----------- | ------ | -------- |
-| OBS-02 | 25-00..25-03 | Bounded watch-style app log follow until timeout/terminal | ⚠️ PARTIAL | Core follow shipped; idle-on-empty-snapshot gap (gap #1) |
+| OBS-02 | 25-00..25-04 | Bounded watch-style app log follow until timeout/terminal | ✓ SATISFIED | Core follow shipped; idle-on-empty-snapshot gap closed by c303118 + WR-01 handler test |
 | OBS-03 | 25-00, 25-02, 25-03 | Runtime/build one-shot paths unchanged | ✓ SATISFIED | Golden + integration regression tests green |
 
 No orphaned requirement IDs — both OBS-02 and OBS-03 appear in plan frontmatter.
@@ -119,19 +105,19 @@ No orphaned requirement IDs — both OBS-02 and OBS-03 appear in plan frontmatte
 
 ### Human Verification Required
 
-None — idle-on-empty failure is deterministically observable from code and REVIEW WR-01; no runtime-only ambiguity.
+None — all gaps closed with automated regression tests.
 
 ### Gaps Summary
 
-Phase 25 delivers the core OBS-02 vertical slice: `application.logs` + `follow:true`, dedup polling, timeout dual-signal, API partial aggregate, capability flag, docs, and OBS-03 regression locks all verified in code and tests.
+**All verification gaps closed (25-04):**
 
-**Blocking gap:** Quiet apps that never emit log lines do not idle-stop per D-05/D-11 — they exhaust the follow budget and surface `COOLIFY_LOG_FOLLOW_TIMEOUT` (error) instead of `stopped_reason: idle` (success). Code review WR-01; no unit test covers empty snapshots.
+1. **Gap #1 (WR-01) — RESOLVED:** Empty snapshots now idle-stop per D-05/D-11. Fix: c303118 (`pollCount === 1 && !hadNewLines` idle clock). Tests: `log-follow-poll.test.ts` unit + `application.test.ts` handler backstop for perpetually empty API logs.
 
-**Secondary gap:** Interval bound validation incomplete when only `min_interval` or `max_interval` is set (WR-03) — can silently violate user max bound.
+2. **Gap #2 (WR-03) — RESOLVED:** One-bound interval ordering validated with resolved defaults (3s/30s). Fix: 6519440 (`min_interval ?? 3` vs `max_interval ?? 30` in both `applicationLogsSchema` and `applicationActionSchema`). Tests: flat schema test + new `applicationLogsSchema` one-bound tests.
 
-**Info (non-blocking):** Flat `applicationActionSchema.timeout` `.min(10)` prevents sub-10s follow budgets via MCP entry path while nested schema allows `.min(1)` (WR-02). `timeout` on one-shot logs accepted but ignored (IN-01).
+**Informational only (non-blocking):** Flat `applicationActionSchema.timeout` `.min(10)` prevents sub-10s follow budgets via MCP entry path while nested schema allows `.min(1)` (WR-02, fixed 76a325b). `timeout` on one-shot logs accepted but ignored (IN-01).
 
 ---
 
-_Verified: 2026-07-28T00:12:00Z_
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-07-28T00:36:30Z_
+_Verifier: GSD executor (25-04 gap closure)_
