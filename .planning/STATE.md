@@ -5,8 +5,8 @@ milestone_name: Observability & DX
 current_phase: 26
 current_phase_name: Diagnose Logs & Incident DX
 status: "Phase 25 shipped — PR #99"
-stopped_at: Completed 25-05-PLAN.md
-last_updated: "2026-07-28T02:25:21.531Z"
+stopped_at: Phase 26 context gathered
+last_updated: "2026-07-28T02:44:41.175Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 4
@@ -470,9 +470,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T01:15:17.330Z
-Stopped at: Completed 25-05-PLAN.md
-Resume file: None
+Last session: 2026-07-28T02:44:41.163Z
+Stopped at: Phase 26 context gathered
+Resume file: .planning/phases/26-diagnose-logs-incident-dx/26-CONTEXT.md
 
 ## Operator Next Steps
 
