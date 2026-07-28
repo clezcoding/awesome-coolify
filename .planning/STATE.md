@@ -5,8 +5,8 @@ milestone_name: Observability & DX
 current_phase: 27
 current_phase_name: Branding & Docs Stale Fix
 status: "Phase 26 shipped — PR #100"
-stopped_at: Completed 26-03-PLAN.md
-last_updated: "2026-07-28T03:43:36.425Z"
+stopped_at: Phase 27 context gathered
+last_updated: "2026-07-28T04:05:46.519Z"
 last_activity: 2026-07-28
 progress:
   total_phases: 4
@@ -483,9 +483,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T03:13:58.951Z
-Stopped at: Completed 26-03-PLAN.md
-Resume file: None
+Last session: 2026-07-28T04:05:46.506Z
+Stopped at: Phase 27 context gathered
+Resume file: .planning/phases/27-branding-docs-stale-fix/27-CONTEXT.md
 
 ## Operator Next Steps
 
