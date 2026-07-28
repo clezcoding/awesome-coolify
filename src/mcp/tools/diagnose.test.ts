@@ -1110,7 +1110,7 @@ describe('diagnose logs', () => {
     if (result.success) return;
     expect(
       result.error.issues.some((issue) =>
-        /At least one identifier \(query\|uuid\|name\|domain\) required for action logs/i.test(
+        /Provide a runtime identifier \(query\|uuid\|name\|domain\) or deployment_uuid for action logs/i.test(
           issue.message ?? '',
         ),
       ),

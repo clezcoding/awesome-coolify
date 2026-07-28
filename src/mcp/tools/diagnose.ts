@@ -208,7 +208,7 @@ export const diagnoseToolSchema = createFlatActionSchema(
         ctx.addIssue({
           code: 'custom',
           message:
-            'At least one identifier (query|uuid|name|domain) required for action logs',
+            'Provide a runtime identifier (query|uuid|name|domain) or deployment_uuid for action logs',
           params: { code: 'COOLIFY_422' },
         });
       }
