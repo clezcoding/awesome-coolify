@@ -38,6 +38,9 @@ https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/<file>
 
 MCP server list icon (`serverInfo.icons`):
 
+- **Primary:** build-time embedded PNG data URI from `mcp-icon-192.png` (shipped in npm tarball via `src/mcp/mcp-icon-data.ts`)
+- **CDN:** jsDelivr multi-size entries — `mcp-icon-192.png` (192×192) and `favicon-32.png` (32×32)
+
 ```text
 https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png
 ```

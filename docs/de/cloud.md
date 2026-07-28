@@ -2,7 +2,7 @@
 
 Nutze **awesome-coolify-mcp** mit [Coolify Cloud](https://app.coolify.io) — dieselben **16 Domänen-Tools** und **~87 Actions** wie bei Self-Hosted, mit team-scoped Tokens und strukturierten Cloud-Fehlercodes.
 
-> **Branding:** Das MCP-Serverlisten-Icon wird über jsDelivr ausgeliefert — siehe [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png) und [`docs/assets/README.md`](../assets/README.md).
+> **Branding:** Icons via `serverInfo.icons` — eingebettete Data-URI (primär) + jsDelivr-CDN-Einträge (`mcp-icon-192.png`, `favicon-32.png`). Siehe [`docs/assets/README.md`](../assets/README.md) und [Maintainer-Verifizierung](../assets/cursor-icon-verify.md).
 
 Zurück zur Haupt-Installationsanleitung: [README.de — Installation](../../README.de.md#-installation).
 
@@ -100,7 +100,7 @@ Bei Erfolg JSON-Version erwarten; `401` bedeutet Token neu erzeugen.
 
 ## Branding
 
-Das MCP-Client-Listen-Icon kommt aus **`serverInfo.icons`** — ausgeliefert über jsDelivr unter [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png). Das ist nur ein Cursor/MCP-Listen-Anzeigepfad; kein Coolify-API-Call.
+Der MCP-Server bewirbt Icons in `initialize` via eingebetteter PNG-Data-URI (primär) und jsDelivr-CDN-URLs für `mcp-icon-192.png` und `favicon-32.png`. Cursor kann weiterhin einen Buchstaben-Fallback anzeigen — siehe [Maintainer-Verifizierung](../assets/cursor-icon-verify.md). Das ist nur ein Cursor/MCP-Listen-Anzeigepfad; kein Coolify-API-Call.
 
 ---
 
