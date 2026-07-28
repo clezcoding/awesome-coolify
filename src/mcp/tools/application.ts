@@ -252,6 +252,14 @@ export const applicationLogsSchema = z
         params: { code: 'COOLIFY_422' },
       });
     }
+    if (data.follow !== true && data.timeout !== undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'timeout applies only when follow:true',
+        path: ['timeout'],
+        params: { code: 'COOLIFY_422' },
+      });
+    }
     if (data.follow === true) {
       const minInterval = data.min_interval ?? 3;
       const maxInterval = data.max_interval ?? 30;
@@ -789,6 +797,14 @@ export const applicationActionSchema = createFlatActionSchema(
         ctx.addIssue({
           code: 'custom',
           message: 'offset is not supported when follow:true — use lines per poll instead',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (data.follow !== true && data.timeout !== undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'timeout applies only when follow:true',
+          path: ['timeout'],
           params: { code: 'COOLIFY_422' },
         });
       }

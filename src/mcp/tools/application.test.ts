@@ -211,6 +211,21 @@ describe('applicationActionSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('rejects timeout on logs when follow is not true (IN-01)', () => {
+    const result = applicationActionSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      timeout: 60,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /timeout applies only when follow:true/i.test(issue.message ?? ''),
+      ),
+    ).toBe(true);
+  });
+
   it('rejects deploy wait timeout under 10 seconds on flat schema', () => {
     const result = applicationActionSchema.safeParse({
       action: 'deploy',
@@ -1256,6 +1271,21 @@ describe('handleApplicationAction logs', () => {
       follow: true,
     });
     expect(result.success).toBe(true);
+  });
+
+  it('applicationLogsSchema rejects timeout when follow is not true (IN-01)', () => {
+    const result = applicationLogsSchema.safeParse({
+      action: 'logs',
+      uuid: 'app-uuid-1',
+      timeout: 60,
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(
+      result.error.issues.some((issue) =>
+        /timeout applies only when follow:true/i.test(issue.message ?? ''),
+      ),
+    ).toBe(true);
   });
 
   it('applicationLogsSchema rejects max_interval below default min_interval when only max_interval set (WR-03)', () => {
