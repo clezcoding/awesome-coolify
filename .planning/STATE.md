@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-27)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 26 — diagnose-logs-incident-dx
+**Current focus:** Phase 27 — Branding & Docs Stale Fix
 
 ## Current Position
 
