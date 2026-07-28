@@ -133,7 +133,7 @@ setup({
 After setup/wire, use MCP tools for application log triage (not part of the setup wizard). **Application-only** — Coolify 4.1.2 has no service or database log tools.
 
 1. **Capability check** — `system({ action: "version" })` → inspect `capabilities.diagnose_logs` and `capabilities.application_logs_follow`
-2. **One-shot triage + tail** — `diagnose({ action: "logs", mode: "full", uuid: "<uuid>" })`
+2. **One-shot triage + tail** — `diagnose.logs` via `diagnose({ action: "logs", mode: "full", uuid: "<uuid>" })`
 3. **Live symptom** — `application({ action: "logs", uuid: "<uuid>", follow: true })` when `application_logs_follow` is supported
 4. **Build/deploy logs** — `deployment({ action: "logs", deployment_uuid: "<uuid>" })` on deploy suspicion
 
