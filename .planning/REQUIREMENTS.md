@@ -21,7 +21,7 @@ Requirements for this milestone. Each maps to roadmap phases. Scoped to **Coolif
 
 ### Diagnose
 
-- [ ] **DIAG-01**: Agent can call `diagnose.logs` for an application — combines app diagnose triage with a bounded log tail in one action
+- [x] **DIAG-01**: Agent can call `diagnose.logs` for an application — combines app diagnose triage with a bounded log tail in one action
 
 ### MCP Prompts
 
@@ -77,7 +77,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBS-01 | Phase 24 | Complete |
 | OBS-02 | Phase 25 | Complete |
 | OBS-03 | Phase 25 | Complete |
-| DIAG-01 | Phase 26 | Pending |
+| DIAG-01 | Phase 26 | Complete |
 | PROMPT-01 | Phase 26 | Pending |
 | SKILL-01 | Phase 26 | Pending |
 | BRND-01 | Phase 27 | Pending |
