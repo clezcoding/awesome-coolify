@@ -453,6 +453,7 @@ Last activity: 2026-07-29 — Completed quick task 260729-6pb: public documentat
 | 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | a0b6187 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
 | 260727-4hd | Projektordner aufräumen + .gitignore (nur projektrelevante Dateien) | 2026-07-27 | 2b940cb | [260727-4hd-r-ume-den-projektordner-auf-und-sortiere](./quick/260727-4hd-r-ume-den-projektordner-auf-und-sortiere/) |
 | 260727-codeql | Fix 3 CodeQL alerts in openapi-coverage scripts (ReDoS, logging, markdown escape) | 2026-07-27 | bf91b01 | [260727-codeql-openapi-coverage-fixes](./quick/260727-codeql-openapi-coverage-fixes/) |
+| 260729-6el | Rewrite bilingual README with current product truth, polished formatting, assets, and badges | 2026-07-29 | 46c1e7a | [260729-6el-fixe-und-berarbeite-die-readme-des-proje](./quick/260729-6el-fixe-und-berarbeite-die-readme-des-proje/) |
 | 260729-6pb | Refresh all public non-README documentation, guides, templates, and skill runbooks | 2026-07-29 | 6b9fc7d | [260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli](./quick/260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli/) |
 
 ### Roadmap Evolution

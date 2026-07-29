@@ -5,8 +5,8 @@
 <h1 align="center">awesome-coolify-mcp</h1>
 
 <p align="center">
-  <strong>Ein MCP-Server. Jede self-hosted Coolify-Instanz, die du betreibst.</strong><br />
-  Connectivity prüfen, Fleet entdecken, deployen, Logs verfolgen, Incidents diagnostizieren und gated Emergency-Ops ausführen — über eine oder viele Coolify-Instanzen, inklusive Coolify Cloud —<br />
+  <strong>Coolify direkt aus deinem Coding-Agenten betreiben.</strong><br />
+  Connectivity prüfen, Infrastruktur entdecken, Workloads erstellen, deployen, Logs verfolgen, Incidents diagnostizieren und gegatete Emergency-Ops ausführen — über eine oder viele self-hosted oder Cloud-Instanzen —<br />
   direkt aus Cursor, Claude, VS Code, Windsurf oder jedem MCP-fähigen Agenten.
 </p>
 
@@ -26,9 +26,10 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D24-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 24" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
-  <img src="https://img.shields.io/badge/MCP-17%20Tools%20·%20~91%20Actions-181818?style=flat-square" alt="17 Domänen-Tools, ~91 Actions" />
+  <img src="https://img.shields.io/badge/MCP-18%20tools-181818?style=flat-square" alt="18 tools" />
+  <a href="https://github.com/clezcoding/awesome-coolify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/clezcoding/awesome-coolify/ci.yml?branch=main&style=flat-square&label=CI&color=6b16ed" alt="CI-Status" /></a>
+  <a href="https://github.com/clezcoding/awesome-coolify/releases/latest"><img src="https://img.shields.io/github/v/release/clezcoding/awesome-coolify?style=flat-square&color=6b16ed" alt="Aktuelles GitHub-Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Lizenz-MIT-fcd34d?style=flat-square" alt="MIT Lizenz" /></a>
-  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-6b16ed?style=flat-square" alt="PRs willkommen" /></a>
 </p>
 
 <p align="center">
@@ -93,7 +94,7 @@
 
 Self-hosted [Coolify](https://coolify.io) ist eine der besten Open-Source-Alternativen zu Heroku- oder Vercel-artigen PaaS-Plattformen — aber die Anbindung an einen AI-Coding-Agenten bedeutete bisher oft, mehrere kleine, überlappende Community-MCP-Integrationen zusammenzustecken, jede mit eigenem Schema, eigenem Fehlerformat und eigener Vorstellung davon, was „sicher" bedeutet.
 
-**awesome-coolify-mcp** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent Domänen-Tools mit einem `action`-Feld auf:
+**awesome-coolify-mcp** **1.0.1** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eines von **18 tools** mit einem `action`-Feld auf:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: false })
@@ -114,12 +115,12 @@ Unter der Haube läuft jeder Call durch dieselbe Pipeline: Zod-validierte Eingab
 | Typisches Setup ohne awesome-coolify-mcp | Mit awesome-coolify-mcp |
 |--------------------------------------------|--------------------------|
 | Mehrere überlappende Community-MCP-Tools, jedes mit eigenem Schema | **Ein Server, ein konsistentes Schema** |
-| Dutzende granulare Einzeltools pro Ressource | **17 Domänen-Tools** × `action`-Discriminator (~91 Actions insgesamt) |
+| Dutzende granulare Einzeltools pro Ressource | **18 tools** mit konsistenten `action`-Discriminators |
 | Ad-hoc Fehlermeldungen, die der Agent selbst deuten muss | Strukturierte Codes (`COOLIFY_401`, `COOLIFY_404`, …) + maschinenlesbare Recovery-Hints |
 | Secrets können direkt im Agent-Kontext landen | Default-Maskierung + Confirm-Gates auf destruktiven Actions |
 | Rohes JSON durchwühlen, um zu sehen, was sich geändert hat | Begrenzte, paginierte Projektionen, abgestimmt auf LLM-Context-Fenster |
 
-Der Fokus umfasst **Day-2-Operations** plus wachsendes **Infrastruktur-CRUD**: Connectivity prüfen, Fleet entdecken, deployen, Logs ziehen, diagnostizieren, Emergency-Ops — und SSH Keys, Server, Projekte sowie Environments anlegen und verwalten. Volles CRUD für Applications, Services und Datenbanken ist als Nächstes dran — siehe [Demnächst](#-demnächst).
+Die ausgelieferte Oberfläche deckt Day-2-Operations und Infrastruktur-Erstellung ab: Connectivity prüfen, Fleets entdecken, Deployments starten und beobachten, begrenzte Logs lesen, Incidents diagnostizieren, gegatete Emergency-Ops ausführen sowie Applications, Services, Databases, SSH-Keys, Server, Projekte, Environments, Backups und Umgebungsvariablen verwalten.
 
 ---
 
@@ -129,14 +130,15 @@ Der Fokus umfasst **Day-2-Operations** plus wachsendes **Infrastruktur-CRUD**: C
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/features.png" alt="Feature-Highlights: aktionsbasierte Tools, Safety Gates, Diagnose, Deploy und Logs" width="100%" />
 </p>
 
-- **Aktionsbasierte Tools in 16 Domänen** — z. B. `application({ action: "deploy", uuid })` statt Dutzende Tool-Namen zu durchsuchen. Domänen decken Ops (`system`, `resource`, `diagnose`, `application`, `deployment`, `service`, `database`, `emergency`, `instance`, `manifest`), Infrastruktur-CRUD (`private_key`, `server`, `project`, `environment`) sowie `docs` und `meta` ab.
+- **18 aktionsbasierte Tools** — z. B. `application({ action: "deploy", uuid })` statt Dutzende granulare Tool-Namen zu durchsuchen. Registriert sind `system`, `meta`, `resource`, `diagnose`, `application`, `emergency`, `deployment`, `service`, `database`, `private_key`, `instance`, `manifest`, `server`, `project`, `environment`, `docs`, `recipe` und `setup`.
 - **Multi-Instance-Registry & Routing** — jede Coolify-Instanz in `~/.coolify-mcp/instances.json` via `instance`-Tool registrieren; Credential-Auflösung pro Call ohne Cross-Instance-Leaks.
 - **Coolify-Cloud-fähig** — `instance({ action: "cloud-info" })` für lokale Discovery, team-scoped Tokens und strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`).
 - **Lokaler Manifest-Cache** — `.coolify/manifest.json`-Sync via `manifest({ action: "sync" })`, Best-Effort-Auto-Hooks bei App/Service/DB-Mutationen und `_meta.manifestWarning` bei veraltetem Cache.
 - **Server-Branding** — MCP-Listen-Icon via `serverInfo.icons` (eingebettete Data-URI + jsDelivr-CDN-Einträge aus `docs/assets/`).
 - **Ops-Workflows, die echte Incidents abbilden** — ein `system.infrastructure_overview`-Call für den Gesamtüberblick, Fuzzy-`resource.find`, wenn du nur noch einen Namen oder eine Domain im Kopf hast, `diagnose.app` / `diagnose.server` für einen konkreten Verdächtigen und `diagnose.scan`, wenn du nur weißt, dass irgendetwas fleet-weit nicht stimmt.
-- **Deploy-Lifecycle, den Agenten wirklich steuern können** — Start/Stop/Restart, Deploy mit optionalem Wait-and-Poll oder Force-Rebuild, Deployment list/get/cancel und begrenzte Runtime- oder Build-Logs, die dein Context-Fenster nicht sprengen.
-- **Service- & Database-Lifecycle** — Start/Stop/Restart/Get, plus Service-Redeploy mit optionalem frischem Image-Pull.
+- **Deploy-Lifecycle, den Agenten steuern können** — Start/Stop/Restart, Force-Rebuild, `deployment.watch` mit begrenztem Backoff, `deployment.logs` für Builds, begrenzte `application.logs` und Runtime-Follow mit Idle-/Gesamt-Timeout.
+- **Volle Workload-CRUD** — Applications, Services und Databases erstellen, lesen, aktualisieren, löschen und betreiben; gültige One-Click-IDs live mit `service.list-types` ermitteln.
+- **Recipes und geführtes Setup** — Git-Apps, App-plus-Datenbank-Stacks und One-Click-Services erstellen; `setup.preflight`, `setup.wire` oder `setup.resume` ausführen; vier passende IDE-Workflow-Skills installieren.
 - **Safety by default, nicht per Konvention** — Emergency-Mutationen brauchen explizit `confirm: true`; sensible Keys (`password`, `token`, `secret`, `private`, `env`) erscheinen als `***`, außer du aktivierst `reveal: true`.
 - **Agent-freundliche Fehlerfälle** — jeder Fehler ist ein parsebares Envelope mit `code`, menschenlesbarer `message` und `recoveryHints`; transiente Netzwerk-/429-/5xx-Fehler werden automatisch mit exponentiellem Backoff wiederholt.
 - **Breite Client-Abdeckung von Anfang an** — Cursor, VS Code / GitHub Copilot, Claude Desktop, Claude Code, Windsurf und 15+ weitere über den [Install-Konfigurator](https://clezcoding.github.io/awesome-coolify/install.html).
@@ -153,7 +155,7 @@ Der Fokus umfasst **Day-2-Operations** plus wachsendes **Infrastruktur-CRUD**: C
 MCP-Client (Cursor / Claude / VS Code / …)
         │  stdio MCP
         ▼
-awesome-coolify-mcp  (16 Domänen-Tools + action-Discriminator)
+awesome-coolify-mcp  (18 tools + action-Discriminator)
         │  optional ~/.coolify-mcp/instances.json-Auflösung
         │  HTTPS + Bearer-Token
         ▼
@@ -287,7 +289,7 @@ Nach MCP-Install `setup({ action: "preflight" })` ausführen oder den **[Setup-G
 Der **[Install-Konfigurator](https://clezcoding.github.io/awesome-coolify/install.html)** deckt eine deutlich breitere Matrix ab — OpenCode, Codex CLI, Gemini CLI, Cline, Kilo Code, Goose, LM Studio, Hermes Agent, Kimi Code, Google Antigravity, OpenClaw und mehr — jeweils mit der passenden Config-Form.
 
 > [!NOTE]
-> Claude Desktop läuft derzeit nur über manuelles JSON / Konfigurator-Output — ein dediziertes `.mcpb`-Bundle steht auf der Roadmap (siehe [Demnächst](#-demnächst)).
+> Claude Desktop nutzt derzeit manuelles JSON oder den Konfigurator-Output.
 
 ---
 
@@ -309,7 +311,7 @@ Credentials werden aus der Prozess-Umgebung gelesen (dem `env`-Block deiner IDE-
 
 ## ☁️ Coolify Cloud
 
-**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben 17 Tools — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
+**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben **18 tools** — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
 
 Rufe `instance({ action: "cloud-info" })` vor deiner ersten Cloud-Session auf — liefert `isCloud`, aufgelöste `url`, Credential-`source` (`registry` | `env` | `infer`), `knownLimits` und Docs-Link. **Kein Live-API-Call.**
 
@@ -378,6 +380,7 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `app` | App-Status, Health, Anzahl Env-Vars und letzte Deployments |
 | `server` | Server-Ressourcen, Domains und Erreichbarkeit |
 | `scan` | Fleet-weite Issues nach Severity gruppiert — der „Was brennt gerade"-Button |
+| `logs` | Application auflösen, Triage-Kontext liefern und optional begrenzte Runtime- oder Deployment-Logs einbeziehen |
 
 ### 🚀 `application` — App-Ops
 
@@ -386,7 +389,7 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `get` | Detaillierte Application-Konfiguration |
 | `start` / `stop` / `restart` | Container-Lifecycle-Kontrolle |
 | `deploy` | Deploy auslösen, optional mit `force`-Rebuild; empfohlen: `wait: false` + `deployment.watch`, legacy: `wait: true` |
-| `logs` | Paginierte Runtime- oder Build-Logs, begrenzt, damit sie dein Context-Fenster nicht sprengen |
+| `logs` | Begrenzte Runtime-Logs oder begrenzter Follow-Modus mit Idle- und Gesamt-Timeout |
 | `envs:list` / `envs:get` | Env-Vars auflisten oder abrufen (Werte als `***` maskiert, außer mit `reveal: true`) |
 | `envs:create` / `envs:update` | Einzelne Env-Vars anlegen oder aktualisieren (Flags: `is_preview`, `is_literal`, `is_multiline`, `is_shown_once`) |
 | `envs:delete` | Eine Env-Var löschen — **erfordert `confirm: true`** |
@@ -400,7 +403,8 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `list` | Deployments einer bestimmten Application |
 | `get` | Status, Commit und Timing-Details eines Deployments |
 | `watch` | Bis Terminalstatus pollen mit begrenztem Timeout, Backoff und Jitter |
-| `cancel` | Laufendes Deployment saubär abbrechen |
+| `cancel` | Laufendes Deployment sauber abbrechen |
+| `logs` | Begrenzte Build-Logs per Deployment-UUID oder vom neuesten Deployment einer Application |
 
 ### ⏱️ Beobachten — begrenztes Deploy-Monitoring
 
@@ -419,13 +423,13 @@ application({ action: "deploy", uuid: "<app-uuid>", wait: false })
 deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
 ```
 
-> **Phase 22 (SKILL-02):** IDE-Skill-Packs für Cursor / Claude Code müssen `deployment.watch` (Timeout, kein ewiges Blockieren, Recovery) dokumentieren — in diesem Repo noch nicht enthalten.
+Die ausgelieferten IDE-Skill-Packs verwenden denselben begrenzten Watch-Flow und dokumentieren Timeout-Recovery.
 
 ### 🧩 `service` / `database` — Sidecar-Lifecycle
 
 | Tool | Actions |
 |------|---------|
-| `service` | `get`, `start`, `stop`, `restart`, `deploy`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
+| `service` | `get`, `list-types`, `create`, `update`, `delete`, `delete_preview`, `start`, `stop`, `restart`, `deploy`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` |
 | `database` | `get`, `start`, `stop`, `restart`, `create` (8 Engines), `update`, `delete`, `delete_preview`, `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `backup:create`, `backup:list`, `backup:update`, `backup:delete`, `backup:now`, `backup:history` |
 
 ### 🍳 `recipe` — Multi-Ressourcen-Orchestrierung
@@ -596,6 +600,16 @@ manifest({ action: "diff" })
 > [!NOTE]
 > Best-Effort-Auto-Hooks aktualisieren das Manifest nach App/Service/DB-Mutationen. Veraltete UUID-404s anderswo liefern `_meta.manifestWarning` — `manifest({ action: "sync" })` zum Abgleichen ausführen.
 
+### 🧭 `setup` — geführte Projekt-Verdrahtung
+
+| Action | Zweck |
+|--------|-------|
+| `preflight` | GitHub CLI und Workspace-Voraussetzungen prüfen, ohne das Projekt zu ändern |
+| `wire` | Bestehenden Workload verknüpfen oder Greenfield-Projekt provisionieren; optional mit Domains, Env-Sync, Recipe, Manifest und Deploy-Watch |
+| `resume` | Pausiertes Setup nach Authentifizierung oder anderer behebbarer Voraussetzung fortsetzen |
+
+`wire` pusht nie automatisch. Fehlt `gh`-Authentifizierung, pausiert der Setup-Flow sauber und setzt bei den bereits abgeschlossenen Schritten fort.
+
 ### 🎨 Branding (`serverInfo.icons`)
 
 Der MCP-Server bewirbt Icons in `initialize` via eingebetteter PNG-Data-URI (primär) und jsDelivr-CDN-URLs für `mcp-icon-192.png` und `favicon-32.png`. Cursor kann weiterhin einen Buchstaben-Fallback anzeigen — siehe [Maintainer-Verifizierung](docs/assets/cursor-icon-verify.md). Kein Coolify-API-Call.
@@ -704,7 +718,7 @@ system({ action: "verify" })
 
 ## ✅ Status heute
 
-Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4.1.x-Instanzen eingesetzt — **17 Tools, ~91 Actions**:
+Paket **1.0.1** liefert **18 tools** und vier MCP-Prompts für Coolify API **4.1.x**:
 
 | Fähigkeit | Status |
 |-----------|--------|
@@ -713,8 +727,11 @@ Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4
 | Diagnose: App, Server, Fleet-weiter Scan + Follow-Up-Hints | ✅ Shipped |
 | Deploy-Lifecycle: Start/Stop/Restart, Deploy mit Wait-Mode + Force-Rebuild | ✅ Shipped |
 | Deployment-Tracking: List / Get / Cancel | ✅ Shipped |
-| App-Logs: Runtime + Build, begrenzt und paginiert | ✅ Shipped |
-| Service- & Database-Lifecycle | ✅ Shipped |
+| Deployment-Watch und begrenzte Build-Logs | ✅ Shipped |
+| Application-Runtime-Logs, begrenzter Follow und `diagnose.logs` | ✅ Shipped |
+| Application-, Service- und Database-CRUD | ✅ Shipped |
+| Dynamische One-Click-Type-Discovery und Recipes | ✅ Shipped |
+| Setup-Wizard und vier IDE-Workflow-Skills | ✅ Shipped |
 | Emergency-Ops: Stop-All, Projekt-Redeploy/Restart, hinter Confirm-Gate | ✅ Shipped |
 | SSH-Key-CRUD (`private_key`) mit PEM-Maskierung | ✅ Shipped |
 | Server-CRUD + Validierung (`server`) | ✅ Shipped |
@@ -731,29 +748,20 @@ Der Server ist stabil und wird aktiv für Day-2-Operations gegen echte Coolify-4
 
 > **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für **App-Triage + begrenzten Runtime-Tail** in einem Aufruf: `diagnose({ action: "logs", mode: "full", uuid: "..." })` — prüfe `capabilities.diagnose_logs`. Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
 
-Service-/Database-Log-Tailing pausiert aktuell — Coolifys 4.1.x-REST-API bietet noch keinen `/services/{uuid}/logs`- oder `/databases/{uuid}/logs`-Endpoint (der Fix ist upstream gemerged, aber noch nicht nach 4.1.x zurückportiert). Es kommt, sobald der Endpoint erreichbar ist — kein halbfunktionierender Stub in der Zwischenzeit.
+> [!WARNING]
+> Coolify 4.1.x bietet keine stabilen Service- oder Database-Log-Endpunkte. Dieser Server behauptet oder registriert deshalb keine Service-/Database-Log-Actions. Nutze Application-Runtime-Logs und Deployment-Build-Logs, bis kompatible Upstream-APIs verfügbar sind.
 
 ---
 
 ## 🔮 Demnächst
 
-<p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/coming-soon.png" alt="Das Maskottchen skizziert eine Roadmap kommender Features: Datenbanken, Scheduled Tasks, Private Keys, Teams und Cloud-Provisioning" width="100%" />
-</p>
+Künftige Arbeit bleibt auf prüfbare Upstream- und Repository-Grenzen beschränkt:
 
-Der nächste Meilenstein dreht sich um **Erschaffen für Workloads**, tiefere Observability und Polish — awesome-coolify-mcp soll neue Applications, Services und Datenbanken von Grund auf aufbauen können, nicht nur Bestehendes verwalten. Geplante Bereiche, grob nach Priorität:
+- Service-/Database-Logs ergänzen, sobald kompatible Coolify-APIs stabil und verfügbar sind.
+- Nachgewiesene REST-Mappings aus [`docs/COVERAGE.md`](docs/COVERAGE.md) schließen, wenn sie nützliche Agent-Workflows ermöglichen.
+- Cross-Instance-Fan-out erst mit expliziten Rate-Limit- und Credential-Isolation-Garantien neu bewerten.
 
-- **Vollständiges CRUD** für Applications, Services und Datenbanken — anlegen, ändern und löschen, nicht nur Start/Stop/Deploy
-- **One-Click-Services** — vollständiger Service-Katalog mit Compose-YAML, Storage- und Env-Konfiguration
-- **Scheduled Tasks** — Cron-Job-CRUD, Execution-History, Run-Once-Trigger
-- **Teams & Multi-Tenancy** — Teams und Mitglieder listen/abrufen, projekt-scoped Tokens
-- **Cloud-Provider-Tokens** — Hetzner-/DigitalOcean-Provisioning-Credentials (SSH Keys bereits shipped)
-- **GitHub-App-Integration** — Repo-/Branch-Discovery, Enterprise-URLs
-- **Claude Desktop `.mcpb`-Packaging** — echtes One-Click-Install, kein manuelles JSON
-- **Tiefere Observability** — Container-Level-Metriken, Traefik-Insight, Live-Event-Streams, Log-Suche
-- **Setup-Wizard & IDE-Skills** — geführtes Onboarding für neue Instanzen
-
-Hast du einen Use Case, der hier fehlt? Öffne ein Issue — die Roadmap richtet sich danach, worauf die Community tatsächlich stößt.
+Diese Grenzen enthalten weder Release-Datum noch Kompatibilitätsversprechen. Konkrete Wünsche gehören in [GitHub Issues](https://github.com/clezcoding/awesome-coolify/issues).
 
 ---
 
@@ -762,10 +770,10 @@ Hast du einen Use Case, der hier fehlt? Öffne ein Issue — die Roadmap richtet
 ```bash
 git clone https://github.com/clezcoding/awesome-coolify.git
 cd awesome-coolify
-npm install
-npm run build    # tsup → dist/
-npm test         # vitest
-npm run dev      # Watch-Modus
+pnpm install
+pnpm run build    # tsup → dist/
+pnpm test         # vitest
+pnpm run dev      # Watch-Modus
 ```
 
 Logs gehen ausschließlich auf **stderr** — stdout ist für das MCP-Protokoll reserviert.
@@ -789,4 +797,6 @@ Der Maintainer-Publish-Flow (`build` → `pack --dry-run` → `publish`) ist in 
 | MCP-Spezifikation | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
 | Issues & Feature-Requests | [GitHub Issues](https://github.com/clezcoding/awesome-coolify/issues) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |
+| Security-Policy | [SECURITY.md](SECURITY.md) |
 | Lizenz | [MIT](LICENSE) |
