@@ -37,6 +37,16 @@ Related skills: [coolify-setup](../coolify-setup/SKILL.md) · [coolify-diagnose]
 
 > **Legacy:** `application.deploy wait:true` is back-compat only. Prefer `deployment.watch` for bounded polling with backoff.
 
+## Logs and capabilities
+
+Check `system({ action: "version" })` before relying on optional capability flags.
+
+- Fetch build/deployment output with `deployment.logs`:
+  `deployment({ action: "logs", deployment_uuid: "<deployment_uuid>" })`.
+- Fetch or follow application runtime output with `application.logs`:
+  `application({ action: "logs", uuid: "<uuid>", follow: true })`.
+- Coolify 4.1.x has no service/database log endpoints.
+
 ## Recipe shortcuts
 
 Greenfield provisioning uses the `recipe` tool (`recipeActionsCatalog`):

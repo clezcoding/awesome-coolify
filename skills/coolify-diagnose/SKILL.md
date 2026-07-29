@@ -20,7 +20,7 @@ Related skills: [coolify-setup](../coolify-setup/SKILL.md) · [coolify-deploy](.
 Primary entry: MCP `diagnose` tool (`diagnoseActionsCatalog`):
 
 ```text
-Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?)
+Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?) · logs(uuid, mode?, lines?, max_chars?)
 ```
 
 ## Workflow
@@ -45,9 +45,20 @@ Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, nam
    diagnose({ action: "scan" })
    ```
 
-5. **Summarize** findings by severity and recommend the next remediation step.
+5. **Application logs path:**
 
-6. **If remediation requires redeploy** — use [coolify-deploy](../coolify-deploy/SKILL.md) watch-primary flow:
+   ```javascript
+   system({ action: "version" })
+   diagnose({ action: "logs", mode: "full", uuid: "<uuid>" })
+   ```
+
+   `logs` combines application diagnosis with a bounded runtime tail. It is
+   application-only in Coolify 4.1.x; service/database logs are unavailable because
+   those REST endpoints do not exist.
+
+6. **Summarize** findings by severity and recommend the next remediation step.
+
+7. **If remediation requires redeploy** — use [coolify-deploy](../coolify-deploy/SKILL.md) `deployment.watch` flow:
 
    ```javascript
    deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300 })
@@ -74,4 +85,6 @@ diagnose({ action: "app", uuid: "<uuid>" })
 diagnose({ action: "server", uuid: "<server-uuid>", trigger_validate: true })
 
 diagnose({ action: "scan", per_page: 20 })
+
+diagnose({ action: "logs", mode: "full", uuid: "<uuid>" })
 ```

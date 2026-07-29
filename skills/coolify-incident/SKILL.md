@@ -19,25 +19,40 @@ Related skills: [coolify-diagnose](../coolify-diagnose/SKILL.md) · [coolify-dep
 
 1. **Resolve application UUID** — from args, `.coolify/manifest.json`, or ask the user.
 
-2. **Triage with diagnose:**
+2. **Check capabilities:**
 
    ```javascript
-   diagnose({ action: "app", uuid: "<uuid>" })
+   system({ action: "version" })
    ```
 
-3. **Pull recent logs:**
+3. **Triage and tail application logs:**
 
    ```javascript
-   application({ action: "logs", uuid: "<uuid>" })
+   diagnose({ action: "logs", mode: "full", uuid: "<uuid>" })
    ```
 
-4. **Non-destructive recovery — restart:**
+4. **Follow a live application symptom when supported:**
+
+   ```javascript
+   application({ action: "logs", uuid: "<uuid>", follow: true })
+   ```
+
+5. **On build or deploy suspicion, inspect deployment logs:**
+
+   ```javascript
+   deployment({ action: "logs", deployment_uuid: "<deployment-uuid>" })
+   ```
+
+   Coolify 4.1.x supports application runtime and deployment logs. Service/database
+   logs are unavailable because their REST endpoints do not exist.
+
+6. **Attempt least-destructive recovery — restart:**
 
    ```javascript
    application({ action: "restart", uuid: "<uuid>" })
    ```
 
-5. **If restart is insufficient** — ask the human before destructive actions. Preview emergency redeploy:
+7. **If restart is insufficient** — ask the human before destructive actions. Preview emergency redeploy:
 
    ```javascript
    emergency({ action: "redeploy_project", project_uuid: "<project-uuid>", confirm: false })
@@ -45,7 +60,7 @@ Related skills: [coolify-diagnose](../coolify-diagnose/SKILL.md) · [coolify-dep
 
    Retry with `confirm: true` only after explicit human approval.
 
-6. **Report** incident status, actions taken, and recommended follow-up.
+8. **Report** incident status, actions taken, and recommended follow-up.
 
 ## Deploy watch after recovery
 
@@ -75,13 +90,11 @@ For net-new resources during incident recovery:
 ## Example calls
 
 ```javascript
-diagnose({ action: "app", uuid: "<uuid>" })
+system({ action: "version" })
 
-application({ action: "logs", uuid: "<uuid>" })
+diagnose({ action: "logs", mode: "full", uuid: "<uuid>" })
 
-application({ action: "restart", uuid: "<uuid>" })
+application({ action: "logs", uuid: "<uuid>", follow: true })
 
-emergency({ action: "redeploy_project", project_uuid: "<project-uuid>", confirm: false })
-// After human approval:
-emergency({ action: "redeploy_project", project_uuid: "<project-uuid>", confirm: true })
+deployment({ action: "logs", deployment_uuid: "<deployment-uuid>" })
 ```

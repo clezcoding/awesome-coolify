@@ -71,6 +71,17 @@ function localReferences(content: string): string[] {
   );
 }
 
+function proseLines(content: string): string[] {
+  let fenced = false;
+  return content.split('\n').filter((line) => {
+    if (/^```/.test(line)) {
+      fenced = !fenced;
+      return false;
+    }
+    return !fenced;
+  });
+}
+
 describe('public documentation integrity', () => {
   it('has exact final public inventory and no Cursor draft residue', () => {
     expect(PUBLIC_DOCS).toHaveLength(20);
@@ -192,6 +203,95 @@ describe('public documentation integrity', () => {
     ]) {
       expect(read(path)).toMatch(/token|credential/i);
       expect(read(path)).toMatch(/security advisor|security advisories/i);
+    }
+  });
+
+  it('keeps public skills synchronized with prompt and tool contracts', () => {
+    const setup = read('skills/coolify-setup/SKILL.md');
+    const deploy = read('skills/coolify-deploy/SKILL.md');
+    const diagnose = read('skills/coolify-diagnose/SKILL.md');
+    const incident = read('skills/coolify-incident/SKILL.md');
+
+    for (const [content, prompt] of [
+      [setup, 'new-project'],
+      [deploy, 'deploy'],
+      [diagnose, 'diagnose'],
+      [incident, 'incident'],
+    ]) {
+      expect(content).toContain(`MCP prompt analog:** \`${prompt}\``);
+      expect(content).toContain('deployment.watch');
+      expect(content).toContain('confirm');
+    }
+    for (const sibling of [
+      '../coolify-setup/SKILL.md',
+      '../coolify-deploy/SKILL.md',
+      '../coolify-diagnose/SKILL.md',
+      '../coolify-incident/SKILL.md',
+    ]) {
+      expect([setup, deploy, diagnose, incident].some((content) => content.includes(sibling))).toBe(
+        true,
+      );
+    }
+
+    expect(setup).toMatch(/exactly one|XOR/i);
+    expect(setup).toContain('COOLIFY_CONFIRM_REQUIRED');
+    expect(deploy).toContain('wait: false');
+    expect(deploy).toContain('deployment.logs');
+    expect(deploy).toContain('application.logs');
+    expect(diagnose).toMatch(/Actions:.*logs\(/s);
+    expect(diagnose).toMatch(/service\/database.*(?:unavailable|limitation)/i);
+
+    const order = [
+      'system({ action: "version" })',
+      'diagnose({ action: "logs"',
+      'application({ action: "logs"',
+      'deployment({ action: "logs"',
+      'application({ action: "restart"',
+      'confirm: false',
+      'confirm: true',
+    ];
+    let cursor = -1;
+    for (const marker of order) {
+      const next = incident.indexOf(marker);
+      expect(next, marker).toBeGreaterThan(cursor);
+      cursor = next;
+    }
+  });
+
+  it('keeps public Markdown lint-compatible', () => {
+    for (const path of MARKDOWN_DOCS) {
+      const content = read(path);
+      const prose = proseLines(content);
+      if (!path.startsWith('.github/')) {
+        expect(prose.filter((line) => /^#\s+/.test(line)), `${path}: one H1`).toHaveLength(1);
+      }
+      expect(content, `${path}: trailing whitespace`).not.toMatch(/[ \t]+$/m);
+      expect(content, `${path}: empty link`).not.toMatch(/\[[^\]]*]\(\s*\)/);
+      expect(content.match(/^```/gm)?.length ?? 0, `${path}: fenced blocks`).toSatisfy(
+        (count: number) => count % 2 === 0,
+      );
+      if (path !== 'CHANGELOG.md') {
+        expect(prose.join('\n'), `${path}: unresolved marker`).not.toMatch(/\b(?:TODO|FIXME)\b/);
+      }
+      expect(content, `${path}: decorative badge`).not.toMatch(
+        /^\s*\[!\[[^\]]*]\([^)]*\)]\([^)]*\)/m,
+      );
+
+      let previous = 0;
+      for (const line of prose) {
+        const match = line.match(/^(#{1,6})\s+/);
+        if (!match) continue;
+        const depth = match[1].length;
+        if (previous) expect(depth, `${path}: heading depth`).toBeLessThanOrEqual(previous + 1);
+        previous = depth;
+      }
+
+      const explicitIds = [...content.matchAll(/\sid=["']([^"']+)["']/g)].map(
+        (match) => match[1],
+      );
+      expect(new Set(explicitIds).size, `${path}: duplicate explicit anchor`).toBe(
+        explicitIds.length,
+      );
     }
   });
 });
