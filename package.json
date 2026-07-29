@@ -7,7 +7,7 @@
     "awesome-coolify-mcp": "dist/index.js"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "node scripts/generate-mcp-icon-data.mjs && tsup",
     "dev": "tsup --watch",
     "start": "node scripts/run-mcp.mjs",
     "mcp": "node scripts/run-mcp.mjs",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { readPackageVersion } from '../utils/package-version.js';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { EnvConfig } from '../config/env.js';
 import { registerCoolifyTools } from './server.js';
@@ -366,20 +367,26 @@ describe('McpServer branding metadata', () => {
   it(
     'McpServer constructor block contains icons with jsDelivr PNG URL (BRND-03)',
     () => {
-      const block = mcpServerConstructorBlock(readServerSource());
+      const source = readServerSource();
+      const block = mcpServerConstructorBlock(source);
       expect(block).toMatch(/\bicons:/);
-      expect(block).toContain(
+      const hasInlineJsDelivr = block.includes(
         'https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png',
       );
+      const hasBuildMcpServerIcons =
+        block.includes('icons: buildMcpServerIcons()') &&
+        /import\s+\{\s*buildMcpServerIcons\s*\}/.test(source);
+      expect(hasInlineJsDelivr || hasBuildMcpServerIcons).toBe(true);
     },
   );
 
   it(
-    'McpServer constructor block contains mimeType image/png and sizes 192x192 (BRND-03)',
-    () => {
-      const block = mcpServerConstructorBlock(readServerSource());
-      expect(block).toContain("mimeType: 'image/png'");
-      expect(block).toContain("sizes: ['192x192']");
+    'buildMcpServerIcons includes mimeType image/png and sizes 192x192 (BRND-03)',
+    async () => {
+      const { buildMcpServerIcons } = await import('./server-icons.js');
+      const icons = buildMcpServerIcons();
+      expect(icons.every((i) => i.mimeType === 'image/png')).toBe(true);
+      expect(icons.some((i) => i.sizes?.includes('192x192'))).toBe(true);
     },
   );
 
@@ -387,6 +394,53 @@ describe('McpServer branding metadata', () => {
     'package.json description appears verbatim in server.ts source (BRND-03)',
     () => {
       expect(readServerSource()).toContain(packageDescription);
+    },
+  );
+
+  it(
+    'source imports buildMcpServerIcons from ./server-icons.js (BRND-01, D-01)',
+    () => {
+      expect(readServerSource()).toMatch(
+        /import\s+\{\s*buildMcpServerIcons\s*\}\s+from\s+['"]\.\/server-icons\.js['"]/,
+      );
+    },
+  );
+
+  it('constructor block calls icons: buildMcpServerIcons() (BRND-01)', () => {
+    const block = mcpServerConstructorBlock(readServerSource());
+    expect(block).toContain('icons: buildMcpServerIcons()');
+  });
+
+  it(
+    'constructor block uses version: readPackageVersion() not literal 0.1.0 (D-08)',
+    () => {
+      const block = mcpServerConstructorBlock(readServerSource());
+      expect(block).toContain('version: readPackageVersion()');
+      expect(block).not.toContain("version: '0.1.0'");
+      expect(readPackageVersion()).not.toBe('0.1.0');
+    },
+  );
+
+  it('readPackageVersion() matches package.json version field (D-08)', () => {
+    const pkgVersion = JSON.parse(
+      readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'),
+    ).version as string;
+    expect(readPackageVersion()).toBe(pkgVersion);
+    expect(readPackageVersion()).toBe('1.0.1');
+  });
+
+  it(
+    'buildMcpServerIcons output has data URI first and jsDelivr mcp-icon-192 (BRND-01, D-01, D-02)',
+    async () => {
+      const { buildMcpServerIcons } = await import('./server-icons.js');
+      const icons = buildMcpServerIcons();
+      expect(icons[0].src).toMatch(/^data:image\/png;base64,/);
+      expect(
+        icons.some((i) => {
+          const { hostname, pathname } = new URL(i.src);
+          return hostname === 'cdn.jsdelivr.net' && pathname.endsWith('/mcp-icon-192.png');
+        }),
+      ).toBe(true);
     },
   );
 });

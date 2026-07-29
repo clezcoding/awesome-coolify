@@ -133,7 +133,7 @@ Today, the focus covers **day-2 operations** plus growing **infrastructure CRUD*
 - **Multi-instance registry & routing** — register every Coolify instance you own in `~/.coolify-mcp/instances.json` via the `instance` tool; per-call credential resolution with no cross-instance leakage.
 - **Coolify Cloud aware** — `instance({ action: "cloud-info" })` for local discovery, team-scoped tokens, and structured cloud error codes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`).
 - **Local manifest cache** — `.coolify/manifest.json` sync via `manifest({ action: "sync" })`, best-effort auto-hooks on app/service/DB mutations, and `_meta.manifestWarning` when the cache is stale.
-- **Server branding** — MCP list icon via `serverInfo.icons`, served from jsDelivr (`docs/assets/mcp-icon-192.png`).
+- **Server branding** — MCP list icon via `serverInfo.icons` (embedded data URI + jsDelivr CDN entries from `docs/assets/`).
 - **Ops workflows that mirror real incidents** — a single `system.infrastructure_overview` call for the big picture, fuzzy `resource.find` when you only remember a name or domain, `diagnose.app` / `diagnose.server` for a specific suspect, and `diagnose.scan` when you just know *something* is wrong fleet-wide.
 - **Deploy lifecycle that agents can actually drive** — start/stop/restart, deploy with optional wait-and-poll or force rebuild, list/get/cancel deployments, and bounded runtime or build logs that won't blow your context window.
 - **Service & database lifecycle** — start/stop/restart/get, plus service redeploy with an optional fresh image pull.
@@ -598,7 +598,7 @@ manifest({ action: "diff" })
 
 ### 🎨 Branding (`serverInfo.icons`)
 
-The MCP server list icon is served from jsDelivr — [`docs/assets/mcp-icon-192.png`](docs/assets/mcp-icon-192.png). This is a Cursor/MCP-list client display path via `serverInfo.icons`, not a Coolify API call.
+The MCP server advertises icons in `initialize` via an embedded PNG data URI (primary) and jsDelivr CDN URLs for `mcp-icon-192.png` and `favicon-32.png`. Cursor may still show a letter fallback — see [maintainer verify record](docs/assets/cursor-icon-verify.md). Not a Coolify API call.
 
 ---
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -63,18 +63,29 @@ describe('resolveProjectRoot', () => {
   );
 
   it('throws COOLIFY_VALIDATION_ERROR when no marker found (fail closed)', async () => {
-    const { resolveProjectRoot } = await loadProjectRoot();
     const { nested } = buildNestedTree('none');
-    expect(() => resolveProjectRoot(nested)).toThrow(
-      /Could not resolve project root/,
-    );
+    // ponytail: $HOME/package.json breaks walk-up isolation — mock fs for this case only
+    vi.doMock('node:fs', async (importOriginal) => {
+      const mod = await importOriginal<typeof import('node:fs')>();
+      return { ...mod, existsSync: () => false };
+    });
+    vi.resetModules();
     try {
-      resolveProjectRoot(nested);
-      expect.fail('expected COOLIFY_VALIDATION_ERROR');
-    } catch (error) {
-      expect(error).toMatchObject({
-        envelope: { code: 'COOLIFY_VALIDATION_ERROR' },
-      });
+      const { resolveProjectRoot } = await import('./project-root.js');
+      expect(() => resolveProjectRoot(nested)).toThrow(
+        /Could not resolve project root/,
+      );
+      try {
+        resolveProjectRoot(nested);
+        expect.fail('expected COOLIFY_VALIDATION_ERROR');
+      } catch (error) {
+        expect(error).toMatchObject({
+          envelope: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    } finally {
+      vi.doUnmock('node:fs');
+      vi.resetModules();
     }
   });
 

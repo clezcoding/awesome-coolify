@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
 current_phase: 27
-current_phase_name: Branding & Docs Stale Fix
-status: "Phase 26 shipped — PR #100"
-stopped_at: Completed 26-03-PLAN.md
-last_updated: "2026-07-28T03:43:36.425Z"
-last_activity: 2026-07-28
+status: "Phase 27 shipped — PR #101"
+stopped_at: Completed 27-03-PLAN.md
+last_updated: "2026-07-29T02:05:54.482Z"
+last_activity: 2026-07-29
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 14
-  completed_plans: 14
-  percent: 75
-last_activity_desc: Phase 26 complete, transitioned to Phase 27
+  completed_phases: 4
+  total_plans: 18
+  completed_plans: 18
+  percent: 100
+current_phase_name: Branding & Docs Stale Fix
+last_activity_desc: Phase 27 complete
 ---
 
 # Project State
@@ -28,16 +28,16 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 
 ## Current Position
 
-Phase: 27 — Branding & Docs Stale Fix
+Phase: 27
 Plan: Not started
-Status: Phase 26 shipped — PR #100
-Last activity: 2026-07-28
+Status: Phase 27 shipped — PR #101
+Last activity: 2026-07-29
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 116
+- Total plans completed: 120
 - Average duration: —
 - Total execution time: —
 
@@ -68,6 +68,7 @@ Last activity: 2026-07-28
 | 24 | 4 | - | - |
 | 25 | 6 | - | - |
 | 26 | 4 | - | - |
+| 27 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -152,6 +153,10 @@ Last activity: 2026-07-28
 | Phase 26-diagnose-logs-incident-dx P01 | 4min | 2 tasks | 5 files |
 | Phase 26-diagnose-logs-incident-dx P02 | 5min | 3 tasks | 7 files |
 | Phase 26-diagnose-logs-incident-dx P03 | 4min | 2 tasks | 2 files |
+| Phase 27-branding-docs-stale-fix P00 | 3min | 3 tasks | 3 files |
+| Phase 27-branding-docs-stale-fix P01 | 5min | 4 tasks | 7 files |
+| Phase 27-branding-docs-stale-fix P02 | 15min | 3 tasks | 1 files |
+| Phase 27-branding-docs-stale-fix P03 | 5min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -410,6 +415,14 @@ Last activity: 2026-07-28
 - [Phase ?]: diagnose_logs sixth capability key published — soft guidance only, no Zod hard-block
 - [Phase ?]: diagnose.logs catalog notation in coolify-setup step 2 alongside action: logs call
 - [Phase ?]: App-only guardrail in setup troubleshooting intro — no service/DB log claims
+- [Phase ?]: BRND-03 jsDelivr test accepts inline URL or buildMcpServerIcons() — survives 27-01 refactor
+- [Phase ?]: Phase 27 Wave 0: it.fails RED scaffolds lock icon contract + DOC opener; production untouched
+- [Phase ?]: D-01 proceed-d01: dual icons[] data URI + jsDelivr CDN multi-size in serverInfo.icons
+- [Phase ?]: D-08 proceed-d08: McpServer version via readPackageVersion() matching package.json 1.0.1
+- [Phase ?]: D-04 proceed-d04: dual-path dist/ + npx verify completed
+- [Phase ?]: D-05: client limitation accepted — server correct, Cursor UI letter A only
+- [Phase ?]: D-07: PROJECT opener 1.0.1 shipped wording aligned with table L15
+- [Phase ?]: D-09: CHANGELOG and milestone archives untouched during DOC-01 sweep
 
 ### Pending Todos
 
@@ -483,8 +496,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T03:13:58.951Z
-Stopped at: Completed 26-03-PLAN.md
+Last session: 2026-07-28T23:49:00.369Z
+Stopped at: Completed 27-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

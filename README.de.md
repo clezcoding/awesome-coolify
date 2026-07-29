@@ -133,7 +133,7 @@ Der Fokus umfasst **Day-2-Operations** plus wachsendes **Infrastruktur-CRUD**: C
 - **Multi-Instance-Registry & Routing** — jede Coolify-Instanz in `~/.coolify-mcp/instances.json` via `instance`-Tool registrieren; Credential-Auflösung pro Call ohne Cross-Instance-Leaks.
 - **Coolify-Cloud-fähig** — `instance({ action: "cloud-info" })` für lokale Discovery, team-scoped Tokens und strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`).
 - **Lokaler Manifest-Cache** — `.coolify/manifest.json`-Sync via `manifest({ action: "sync" })`, Best-Effort-Auto-Hooks bei App/Service/DB-Mutationen und `_meta.manifestWarning` bei veraltetem Cache.
-- **Server-Branding** — MCP-Listen-Icon via `serverInfo.icons`, ausgeliefert über jsDelivr (`docs/assets/mcp-icon-192.png`).
+- **Server-Branding** — MCP-Listen-Icon via `serverInfo.icons` (eingebettete Data-URI + jsDelivr-CDN-Einträge aus `docs/assets/`).
 - **Ops-Workflows, die echte Incidents abbilden** — ein `system.infrastructure_overview`-Call für den Gesamtüberblick, Fuzzy-`resource.find`, wenn du nur noch einen Namen oder eine Domain im Kopf hast, `diagnose.app` / `diagnose.server` für einen konkreten Verdächtigen und `diagnose.scan`, wenn du nur weißt, dass irgendetwas fleet-weit nicht stimmt.
 - **Deploy-Lifecycle, den Agenten wirklich steuern können** — Start/Stop/Restart, Deploy mit optionalem Wait-and-Poll oder Force-Rebuild, Deployment list/get/cancel und begrenzte Runtime- oder Build-Logs, die dein Context-Fenster nicht sprengen.
 - **Service- & Database-Lifecycle** — Start/Stop/Restart/Get, plus Service-Redeploy mit optionalem frischem Image-Pull.
@@ -598,7 +598,7 @@ manifest({ action: "diff" })
 
 ### 🎨 Branding (`serverInfo.icons`)
 
-Das MCP-Serverlisten-Icon wird über jsDelivr ausgeliefert — [`docs/assets/mcp-icon-192.png`](docs/assets/mcp-icon-192.png). Das ist ein Cursor/MCP-Listen-Anzeigepfad via `serverInfo.icons`, kein Coolify-API-Call.
+Der MCP-Server bewirbt Icons in `initialize` via eingebetteter PNG-Data-URI (primär) und jsDelivr-CDN-URLs für `mcp-icon-192.png` und `favicon-32.png`. Cursor kann weiterhin einen Buchstaben-Fallback anzeigen — siehe [Maintainer-Verifizierung](docs/assets/cursor-icon-verify.md). Kein Coolify-API-Call.
 
 ---
 

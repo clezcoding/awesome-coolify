@@ -2,7 +2,7 @@
 
 Use **awesome-coolify-mcp** with [Coolify Cloud](https://app.coolify.io) — the same **16 domain tools** and **~87 actions** as self-hosted, with team-scoped tokens and structured cloud error codes.
 
-> **Branding:** The MCP server list icon is served from jsDelivr — see [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png) and [`docs/assets/README.md`](../assets/README.md).
+> **Branding:** Icons via `serverInfo.icons` — embedded data URI (primary) + jsDelivr CDN entries (`mcp-icon-192.png`, `favicon-32.png`). See [`docs/assets/README.md`](../assets/README.md) and [maintainer verify record](../assets/cursor-icon-verify.md).
 
 Back to the main install walkthrough: [README — Install](../../README.md#-install).
 
@@ -100,7 +100,7 @@ Expect a JSON version payload on success; `401` means regenerate the token.
 
 ## Branding
 
-The MCP client list icon comes from **`serverInfo.icons`** — served from jsDelivr at [`docs/assets/mcp-icon-192.png`](../assets/mcp-icon-192.png). This is a Cursor/MCP-list display path only; it does not call the Coolify API.
+The MCP server advertises icons in `initialize` via an embedded PNG data URI (primary) and jsDelivr CDN URLs for `mcp-icon-192.png` and `favicon-32.png`. Cursor may still show a letter fallback — see [maintainer verify record](../assets/cursor-icon-verify.md). This is a Cursor/MCP-list display path only; it does not call the Coolify API.
 
 ---
 
