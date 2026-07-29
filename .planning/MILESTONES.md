@@ -1,5 +1,35 @@
 # Milestones
 
+## v3.2 Observability & DX (Shipped: 2026-07-29)
+
+**Closeout:** `verified_closeout` — artifact audit clear; all 4 phases verified; 11/11 requirements complete.
+**Phases completed:** 4 phases (24–27), 18 plans, 43 tasks
+**Timeline:** 2026-07-27 → 2026-07-29 (~3 days)
+**Code delta (src/docs/scripts):** ~42 files, +3.3k / −0.4k LOC
+
+**Key accomplishments:**
+
+- 14 it.fails RED targets lock CAP-01/CAP-02/OBS-01 acceptance before implementation; production handlers untouched
+- system.version exposes coolifyVersion + package-backed mcpVersion + static 4.1.2 capability flags; meta.version shares package identity without capabilities
+- deployment.logs on deployment tool with shared processDeploymentBuildLogs, XOR uuid resolution, and COOLIFY_NO_DEPLOYMENTS structured errors
+- Coverage CI green with deployment.logs; bilingual README + deploy prompt steer agents to capabilities and build logs
+- 11 it.fails RED targets lock OBS-02 follow contract and OBS-03 one-shot regression before log-follow-poll implementation
+- application.logs follow:true ships deduped aggregate polling with idle stop, COOLIFY_LOG_FOLLOW_TIMEOUT dual-signal, and partial logs on API failure
+- Flat applicationActionSchema follow wiring with zodDefaultFields strip, XOR guards, and golden one-shot runtime/build regression tests
+- Fifth `application_logs_follow` capability on system.version with README/coverage OBS-02 discovery docs
+- WR-01 empty-snapshot idle and WR-03 one-bound interval guards locked in regression tests; VERIFICATION report 10/10 passed
+- Split application MCP boundary vs handler Zod schemas so follow+deployment_uuid reaches throwValidationError and returns structured COOLIFY_422
+- Ten it.fails scaffolds lock diagnose.logs, buildRuntimeLogPayload, incident prompt, and diagnose_logs capability contracts before Plan 26-01 implementation
+- Composite `diagnose.logs` handler with shared `buildRuntimeLogPayload`, soft-partial triage failures, and full DIAG-01 test coverage
+- Incident prompt + diagnose_logs capability + README/coverage aligned with shipped diagnose.logs composite
+- Post-wizard App log troubleshooting in coolify-setup with capability discovery, diagnose.logs steps, sibling skill links, and OBS-03 regression lock
+- Ten it.fails scaffolds lock BRND-01 icon contract (buildMcpServerIcons, data URI first, readPackageVersion) and DOC-01 PROJECT opener gate before Plan 27-01 implementation
+- Build-time mcp-icon-192 base64 embed, buildMcpServerIcons dual data URI + jsDelivr CDN, readPackageVersion in McpServer constructor — BRND-01 tracer slice GREEN
+- Dual-path Cursor MCP verify documented — server emits data URI + CDN icons at 1.0.1; client shows letter A fallback only (D-05)
+- PROJECT.md opener + README EN/DE + cloud.md reflect npm 1.0.1 shipped; dual-icon branding copy per UI-SPEC; doc-version-parity gate GREEN
+
+---
+
 ## v3.1 Setup, Skills & DX (Shipped: 2026-07-27)
 
 **Closeout:** `verified_closeout` — milestone audit passed; all 6 phases verified; 21/21 requirements complete.

@@ -2,36 +2,36 @@
 gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Observability & DX
-current_phase: 27
-status: "Phase 27 shipped — PR #101"
+status: Awaiting next milestone
 stopped_at: Completed 27-03-PLAN.md
-last_updated: "2026-07-29T02:05:54.482Z"
+last_updated: "2026-07-29T02:23:55.054Z"
 last_activity: 2026-07-29
+last_activity_desc: Milestone v3.2 completed and archived
 progress:
   total_phases: 4
   completed_phases: 4
   total_plans: 18
   completed_plans: 18
   percent: 100
+current_phase: 27
 current_phase_name: Branding & Docs Stale Fix
-last_activity_desc: Phase 27 complete
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-27)
+See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 27 — Branding & Docs Stale Fix
+**Current focus:** Planning next milestone (v3.3 service/DB logs)
 
 ## Current Position
 
-Phase: 27
-Plan: Not started
-Status: Phase 27 shipped — PR #101
-Last activity: 2026-07-29
+Phase: Milestone v3.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-29 — Milestone v3.2 completed and archived
 
 ## Performance Metrics
 
@@ -502,8 +502,7 @@ Resume file: None
 
 ## Operator Next Steps
 
-- `/gsd-plan-phase 24` — Capabilities & Deployment Logs (CAP-01, CAP-02, OBS-01)
-- Coolify 4.1.2 only — no service/DB logs (deferred v3.3)
+- Start the next milestone with /gsd-new-milestone
 
 ## Rebuild Log
 
