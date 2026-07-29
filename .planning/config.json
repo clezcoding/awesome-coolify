@@ -121,7 +121,7 @@
   "parallelization": true,
   "search_gitignored": true,
   "brave_search": true,
-  "firecrawl": false,
+  "firecrawl": true,
   "exa_search": true,
   "git": {
     "branching_strategy": "phase",

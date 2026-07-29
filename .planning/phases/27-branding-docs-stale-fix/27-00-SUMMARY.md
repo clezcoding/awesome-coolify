@@ -91,7 +91,7 @@ Each task was committed atomically:
 2. **Task 2: RED server-icons.test.ts buildMcpServerIcons shape scaffolds** - `70ab28d` (test)
 3. **Task 3: RED DOC-01 PROJECT opener stale-string gate** - `bc30cd9` (test)
 
-**Plan metadata:** pending (docs commit)
+**Plan metadata:** `fb1878a` (docs: complete plan)
 
 ## Files Created/Modified
 

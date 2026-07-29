@@ -72,7 +72,7 @@ Full phase details: [milestones/v3.1-ROADMAP.md](milestones/v3.1-ROADMAP.md)
 - [x] **Phase 24: Capabilities & Deployment Logs** - `system.version` capability flags + `deployment.logs` action (completed 2026-07-27)
 - [x] **Phase 25: Application Log Follow** - Bounded watch-style app log follow + no regression on existing logs (completed 2026-07-28)
 - [x] **Phase 26: Diagnose Logs & Incident DX** - `diagnose.logs` + incident prompt + coolify-setup skill updates (completed 2026-07-28)
-- [ ] **Phase 27: Branding & Docs Stale Fix** - MCP icon workarounds + npm 1.0.1 docs parity
+- [x] **Phase 27: Branding & Docs Stale Fix** - MCP icon workarounds + npm 1.0.1 docs parity (completed 2026-07-29)
 
 ## Phase Details
 
@@ -181,7 +181,7 @@ Plans:
   2. Maintainer re-verify gate documents outcome for Cursor `dist/` and npm (`npx awesome-coolify-mcp`) paths; client limitation accepted if UI still omits custom icon
   3. PROJECT.md and README EN/DE reflect npm `1.0.1` shipped state (no stale “pending Version Packages” wording)
 
-**Plans:** 4/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -217,7 +217,7 @@ Plans:
 | 24 | v3.2 | 4/4 | Complete    | 2026-07-27 |
 | 25 | v3.2 | 6/6 | Complete    | 2026-07-28 |
 | 26 | v3.2 | 4/4 | Complete    | 2026-07-28 |
-| 27 | v3.2 | 4/4 | In Progress|  |
+| 27 | v3.2 | 4/4 | Complete    | 2026-07-29 |
 
 **Next:** `/gsd-plan-phase 24`
 
