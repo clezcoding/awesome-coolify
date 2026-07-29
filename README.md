@@ -5,8 +5,8 @@
 <h1 align="center">awesome-coolify-mcp</h1>
 
 <p align="center">
-  <strong>One MCP server. Every self-hosted Coolify instance you own.</strong><br />
-  Verify connectivity, discover your fleet, deploy, tail logs, diagnose incidents, and run gated emergency ops — across one or many Coolify instances, including Coolify Cloud —<br />
+  <strong>Operate Coolify from your coding agent.</strong><br />
+  Verify connectivity, discover infrastructure, create workloads, deploy, follow logs, diagnose incidents, and run gated emergency ops — across one or many self-hosted or Cloud instances —<br />
   straight from Cursor, Claude, VS Code, Windsurf, or any MCP-speaking agent.
 </p>
 

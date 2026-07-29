@@ -5,8 +5,8 @@
 <h1 align="center">awesome-coolify-mcp</h1>
 
 <p align="center">
-  <strong>Ein MCP-Server. Jede self-hosted Coolify-Instanz, die du betreibst.</strong><br />
-  Connectivity prüfen, Fleet entdecken, deployen, Logs verfolgen, Incidents diagnostizieren und gated Emergency-Ops ausführen — über eine oder viele Coolify-Instanzen, inklusive Coolify Cloud —<br />
+  <strong>Coolify direkt aus deinem Coding-Agenten betreiben.</strong><br />
+  Connectivity prüfen, Infrastruktur entdecken, Workloads erstellen, deployen, Logs verfolgen, Incidents diagnostizieren und gegatete Emergency-Ops ausführen — über eine oder viele self-hosted oder Cloud-Instanzen —<br />
   direkt aus Cursor, Claude, VS Code, Windsurf oder jedem MCP-fähigen Agenten.
 </p>
 
@@ -403,7 +403,7 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `list` | Deployments einer bestimmten Application |
 | `get` | Status, Commit und Timing-Details eines Deployments |
 | `watch` | Bis Terminalstatus pollen mit begrenztem Timeout, Backoff und Jitter |
-| `cancel` | Laufendes Deployment saubär abbrechen |
+| `cancel` | Laufendes Deployment sauber abbrechen |
 | `logs` | Begrenzte Build-Logs per Deployment-UUID oder vom neuesten Deployment einer Application |
 
 ### ⏱️ Beobachten — begrenztes Deploy-Monitoring
