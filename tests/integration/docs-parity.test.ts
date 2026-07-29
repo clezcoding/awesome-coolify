@@ -1,7 +1,7 @@
 /**
  * docs-parity — README.md / README.de.md structural + content invariants.
  * Decisions: D-11 (structural parity), D-13 (no .planning links), D-14 (fix stale claims), D-09 (full action inventory).
- * Updated for the redesigned README (icons/badges/hero banner, status-not-versioned framing, "Coming soon" roadmap section).
+ * Updated for the shipped 18-tool surface and four MCP prompts.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -37,11 +37,67 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   system: ['health', 'version', 'verify', 'infrastructure_overview'],
   meta: ['version'],
   resource: ['list', 'find'],
-  diagnose: ['app', 'server', 'scan'],
-  application: ['start', 'stop', 'restart', 'deploy', 'logs', 'get'],
-  deployment: ['list', 'get', 'cancel'],
-  service: ['start', 'stop', 'restart', 'deploy', 'get'],
-  database: ['start', 'stop', 'restart', 'get'],
+  diagnose: ['app', 'server', 'scan', 'logs'],
+  application: [
+    'get',
+    'start',
+    'stop',
+    'restart',
+    'deploy',
+    'logs',
+    'create',
+    'update',
+    'delete',
+    'delete_preview',
+    'envs:list',
+    'envs:get',
+    'envs:create',
+    'envs:update',
+    'envs:delete',
+    'envs:bulk-update',
+    'envs:sync',
+  ],
+  deployment: ['list', 'get', 'cancel', 'watch', 'logs'],
+  service: [
+    'get',
+    'list-types',
+    'create',
+    'update',
+    'delete',
+    'delete_preview',
+    'start',
+    'stop',
+    'restart',
+    'deploy',
+    'envs:list',
+    'envs:get',
+    'envs:create',
+    'envs:update',
+    'envs:delete',
+    'envs:bulk-update',
+  ],
+  database: [
+    'get',
+    'start',
+    'stop',
+    'restart',
+    'create',
+    'update',
+    'delete',
+    'delete_preview',
+    'envs:list',
+    'envs:get',
+    'envs:create',
+    'envs:update',
+    'envs:delete',
+    'envs:bulk-update',
+    'backup:create',
+    'backup:list',
+    'backup:history',
+    'backup:update',
+    'backup:delete',
+    'backup:now',
+  ],
   private_key: ['list', 'get', 'create', 'update', 'delete', 'delete_preview'],
   server: ['get', 'create', 'update', 'delete', 'delete_preview', 'validate'],
   project: ['list', 'get', 'create', 'update', 'delete', 'delete_preview'],
@@ -50,6 +106,8 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   emergency: ['stop_all', 'redeploy_project', 'restart_project'],
   instance: ['list', 'get', 'add', 'update', 'delete', 'set-default', 'import-env', 'cloud-info'],
   manifest: ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff'],
+  recipe: ['create-git-app', 'create-app-db', 'create-one-click'],
+  setup: ['preflight', 'wire', 'resume'],
 };
 
 const STALE_COOLIFY_MCP = /(?<![\w.-])coolify-mcp(?![\w-])/g;
@@ -100,23 +158,42 @@ describe('docs parity (Wave 0)', () => {
     }
   });
 
-  it('D-09: full action inventory — all 16 tools and action literals in both READMEs', () => {
-    let enActionCount = 0;
-    let deActionCount = 0;
-
+  it('D-09: full action inventory — all 18 tools and high-value action literals in both READMEs', () => {
     for (const [tool, actions] of Object.entries(TOOL_ACTIONS)) {
       expect(en).toContain(tool);
       expect(de).toContain(tool);
       for (const action of actions) {
         expect(en).toContain(action);
         expect(de).toContain(action);
-        enActionCount++;
-        deActionCount++;
       }
     }
+  });
 
-    expect(enActionCount).toBeGreaterThanOrEqual(70);
-    expect(deActionCount).toBeGreaterThanOrEqual(70);
+  it('documents current package, API, tool, and prompt facts without stale counts', () => {
+    const staleClaims = [
+      '17 tools',
+      '17 Tools',
+      '~91 actions',
+      '~91 Actions',
+      '16 domain tools',
+      '16 Domänen-Tools',
+    ];
+
+    for (const content of [en, de]) {
+      expect(content).toContain('awesome-coolify-mcp');
+      expect(content).toContain('1.0.1');
+      expect(content).toContain('Node.js');
+      expect(content).toContain('24');
+      expect(content).toContain('Coolify API');
+      expect(content).toContain('4.1.x');
+      expect(content).toContain('18 tools');
+      for (const prompt of ['`deploy`', '`diagnose`', '`new-project`', '`incident`']) {
+        expect(content).toContain(prompt);
+      }
+      for (const stale of staleClaims) {
+        expect(content).not.toContain(stale);
+      }
+    }
   });
 
   it('D-11: Safety/Sicherheit section contains confirm and reveal in both locales', () => {
