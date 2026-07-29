@@ -455,7 +455,7 @@ Last activity: 2026-07-29 — Completed quick task 260729-7mc: workspace deep-cl
 | 260727-codeql | Fix 3 CodeQL alerts in openapi-coverage scripts (ReDoS, logging, markdown escape) | 2026-07-27 | bf91b01 | [260727-codeql-openapi-coverage-fixes](./quick/260727-codeql-openapi-coverage-fixes/) |
 | 260729-6el | Rewrite bilingual README with current product truth, polished formatting, assets, and badges | 2026-07-29 | 46c1e7a | [260729-6el-fixe-und-berarbeite-die-readme-des-proje](./quick/260729-6el-fixe-und-berarbeite-die-readme-des-proje/) |
 | 260729-6pb | Refresh all public non-README documentation, guides, templates, and skill runbooks | 2026-07-29 | 6b9fc7d | [260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli](./quick/260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli/) |
-| 260729-7mc | Bereinige lokalen Projektordner + GitHub Repo, .gitignore, stale branches, Dependabot | 2026-07-29 | — | [260729-7mc-bereinige-den-lokalen-projektordner-und-](./quick/260729-7mc-bereinige-den-lokalen-projektordner-und-/) |
+| 260729-7mc | Bereinige lokalen Projektordner + GitHub Repo, .gitignore, stale branches, Dependabot | 2026-07-29 | 831864d | [260729-7mc-bereinige-den-lokalen-projektordner-und-](./quick/260729-7mc-bereinige-den-lokalen-projektordner-und-/) |
 
 ### Roadmap Evolution
 
