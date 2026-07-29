@@ -42,11 +42,27 @@ function read(path: string): string {
   return readFileSync(resolve(ROOT, path), 'utf8');
 }
 
+function stripInlineHtml(text: string): string {
+  let out = '';
+  let inTag = false;
+  for (const ch of text) {
+    if (ch === '<') {
+      inTag = true;
+      continue;
+    }
+    if (ch === '>') {
+      inTag = false;
+      continue;
+    }
+    if (!inTag) out += ch;
+  }
+  return out;
+}
+
 function slugify(heading: string): string {
-  return heading
+  return stripInlineHtml(heading)
     .trim()
     .toLowerCase()
-    .replace(/<[^>]+>/g, '')
     .replace(/[^\p{L}\p{N}\s-]/gu, '')
     .replace(/\s+/g, '-');
 }
@@ -89,9 +105,9 @@ describe('public documentation integrity', () => {
     expect(existsSync(resolve(ROOT, 'CURSOR-SETUP-GUIDE.md.draft.md'))).toBe(false);
   });
 
-  it('keeps protected files byte-identical to HEAD', () => {
+  it('keeps protected files byte-identical to origin/main', () => {
     for (const path of ['README.md', 'README.de.md', 'LICENSE', '.planning/ROADMAP.md']) {
-      const committed = execFileSync('git', ['show', `HEAD:${path}`], {
+      const committed = execFileSync('git', ['show', `origin/main:${path}`], {
         cwd: ROOT,
         encoding: 'utf8',
       });
