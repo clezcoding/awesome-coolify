@@ -499,8 +499,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-28T23:49:00.369Z
-Stopped at: Completed 27-03-PLAN.md
+Last session: 2026-07-29T20:59:00.000Z
+Stopped at: v3.2 milestone complete; npm release pending → changeset added
 Resume file: None
 
 ## Operator Next Steps
