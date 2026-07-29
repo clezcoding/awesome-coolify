@@ -14,7 +14,7 @@ progress:
   completed_plans: 18
   percent: 100
 current_phase_name: Branding & Docs Stale Fix
-last_activity_desc: Phase 27 complete
+last_activity_desc: "Completed quick task 260729-6pb: public documentation refresh"
 ---
 
 # Project State
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-27)
 Phase: 27
 Plan: Not started
 Status: Phase 27 shipped — PR #101
-Last activity: 2026-07-29
+Last activity: 2026-07-29 — Completed quick task 260729-6pb: public documentation refresh
 
 ## Performance Metrics
 
@@ -453,6 +453,7 @@ Last activity: 2026-07-29
 | 260725-fx9 | Audit/optimize GitHub Actions CI + milestone-only npm (no per-phase release) | 2026-07-25 | a0b6187 | [260725-fx9-audit-and-optimize-github-actions-ci-cd-](./quick/260725-fx9-audit-and-optimize-github-actions-ci-cd-/) |
 | 260727-4hd | Projektordner aufräumen + .gitignore (nur projektrelevante Dateien) | 2026-07-27 | 2b940cb | [260727-4hd-r-ume-den-projektordner-auf-und-sortiere](./quick/260727-4hd-r-ume-den-projektordner-auf-und-sortiere/) |
 | 260727-codeql | Fix 3 CodeQL alerts in openapi-coverage scripts (ReDoS, logging, markdown escape) | 2026-07-27 | bf91b01 | [260727-codeql-openapi-coverage-fixes](./quick/260727-codeql-openapi-coverage-fixes/) |
+| 260729-6pb | Refresh all public non-README documentation, guides, templates, and skill runbooks | 2026-07-29 | 6b9fc7d | [260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli](./quick/260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli/) |
 
 ### Roadmap Evolution
 
