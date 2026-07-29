@@ -1,55 +1,62 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-28T04:23:00.996Z",
-  "phase": "27",
-  "phase_name": "Branding & Docs Stale Fix",
-  "phase_dir": ".planning/phases/27-branding-docs-stale-fix",
-  "plan": 0,
-  "task": 0,
-  "total_tasks": 0,
+  "timestamp": "2026-07-29T04:01:29.195Z",
+  "phase": null,
+  "phase_name": null,
+  "phase_dir": null,
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
   "status": "paused",
-  "completed_tasks": [],
-  "remaining_tasks": [
-    {"id": "27-00", "name": "Wave 0 RED scaffolds (BRND-01 + DOC-01 tests)", "status": "not_started"},
-    {"id": "27-01", "name": "Tracer: dual icons build pipeline + D-08 version parity", "status": "not_started"},
-    {"id": "27-02", "name": "BRND-02 maintainer verify doc + Cursor UI gate", "status": "not_started"},
-    {"id": "27-03", "name": "DOC-01 public docs parity (PROJECT, README EN/DE)", "status": "not_started"}
+  "context_type": "quick_task",
+  "quick_task_id": "260729-7mc",
+  "quick_task_dir": ".planning/quick/260729-7mc-bereinige-den-lokalen-projektordner-und-",
+  "milestone": "v3.2",
+  "milestone_status": "complete",
+  "completed_tasks": [
+    {"id": 1, "name": "Audit index + purge local ignored artifacts", "status": "done", "commit": null},
+    {"id": 2, "name": "Prune stale merged branches (local + origin)", "status": "done", "commit": null},
+    {"id": 3, "name": "Dependabot baseline, trigger, and fallback", "status": "done", "commit": null},
+    {"id": 4, "name": "Delete orphan gsd/quick-260722-85p branch", "status": "done", "commit": null},
+    {"id": 5, "name": "Ship PR #105 via gsd-ship-post.sh", "status": "done", "commit": "6611373"}
   ],
+  "remaining_tasks": [],
   "blockers": [],
   "async_jobs": [],
   "human_actions_pending": [
     {
-      "action": "Cursor MCP icon UI verify (dist/ + npx paths) during Plan 27-02",
-      "context": "BRND-02 requires maintainer screenshots + initialize dump; client limitation acceptable per D-05",
-      "blocking": false
-    },
-    {
-      "action": "checkpoint:decision approvals during Plans 27-01 (D-01, D-08) and 27-02 (D-04)",
-      "context": "One-way-door decisions gated by REVERSIBILITY_GATES",
-      "blocking": false
+      "action": "Dependabot: open network/updates and click Check for updates",
+      "context": "REST POST /dependency-graph/dependabot-updates and GraphQL mutation both return 404 on this repo/plan",
+      "blocking": false,
+      "url": "https://github.com/clezcoding/awesome-coolify/network/updates"
     }
   ],
   "decisions": [
     {
-      "decision": "Research before planning",
-      "rationale": "User chose research-first for MCP SDK icon + npm packaging unknowns",
-      "phase": "27"
+      "decision": "Skipped .gitignore edits — existing patterns sufficient",
+      "rationale": "260727-4hd rules cover *.tgz, .cursor/*, graphify-out/, coverage/",
+      "phase": "quick-260729-7mc"
     },
     {
-      "decision": "UI-SPEC via /gsd-ui-phase instead of --skip-ui",
-      "rationale": "UI gate blocked planning; user chose full UI contract for branding/docs surfaces",
-      "phase": "27"
+      "decision": "Deleted gsd/quick-260722-85p despite no merged PR",
+      "rationale": "User explicitly requested orphan branch removal after initial policy skip",
+      "phase": "quick-260729-7mc"
     },
     {
-      "decision": "4-plan wave structure 00→01→02→03",
-      "rationale": "Tracer-first: RED scaffolds, icon pipeline, verify doc, docs sweep",
-      "phase": "27"
+      "decision": "Remote branch delete policy: merged-PR heads only (except user override)",
+      "rationale": "Prevents accidental loss of open/unmerged work",
+      "phase": "quick-260729-7mc"
     }
   ],
-  "uncommitted_files": [
-    ".planning/config.json (firecrawl: true — local config tweak, not phase work)",
-    "CURSOR-SETUP-GUIDE.md.draft.md (untracked draft)"
-  ],
-  "next_action": "/gsd-execute-phase 27 — start with Plan 27-00 Wave 0 RED scaffolds",
-  "context_notes": "Planning complete and verified (1 revision). No execution started. Last commit 2ebe739 docs(27). STATE.md shows plan not started."
+  "uncommitted_files": [],
+  "pr_state": {
+    "number": 105,
+    "state": "MERGED",
+    "title": "chore: workspace deep-clean, branch prune, dependabot baseline",
+    "url": "https://github.com/clezcoding/awesome-coolify/pull/105"
+  },
+  "git_branch": "gsd/quick-260729-7mc-bereinige-den-lokalen-projektordner-und-",
+  "origin_branches_remaining": ["main", "changeset-release/main"],
+  "next_action": "git switch main && git pull; then /gsd-new-milestone for v3.3 (service/DB logs) per STATE.md focus",
+  "context_notes": "Milestone v3.2 fully complete. Session was repo hygiene quick task, not phase execution. Local workspace cleaned (~13.5MB). 58+ stale branches pruned. PR #105 merged with automerge. Dependabot weekly schedule active; programmatic trigger unavailable."
 }
