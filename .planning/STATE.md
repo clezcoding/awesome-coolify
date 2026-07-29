@@ -6,7 +6,7 @@ status: Awaiting next milestone
 stopped_at: Completed 27-03-PLAN.md
 last_updated: "2026-07-29T02:23:55.054Z"
 last_activity: 2026-07-29
-last_activity_desc: Milestone v3.2 completed and archived
+last_activity_desc: "Completed quick task 260729-6pb: public documentation refresh"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -15,7 +15,6 @@ progress:
   percent: 100
 current_phase: 27
 current_phase_name: Branding & Docs Stale Fix
-last_activity_desc: "Completed quick task 260729-6el: bilingual README refresh"
 ---
 
 # Project State
@@ -32,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 Phase: Milestone v3.2 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-07-29 — Completed quick task 260729-6el: bilingual README refresh
+Last activity: 2026-07-29 — Completed quick task 260729-6pb: public documentation refresh
 
 ## Performance Metrics
 
@@ -455,6 +454,7 @@ Last activity: 2026-07-29 — Completed quick task 260729-6el: bilingual README 
 | 260727-4hd | Projektordner aufräumen + .gitignore (nur projektrelevante Dateien) | 2026-07-27 | 2b940cb | [260727-4hd-r-ume-den-projektordner-auf-und-sortiere](./quick/260727-4hd-r-ume-den-projektordner-auf-und-sortiere/) |
 | 260727-codeql | Fix 3 CodeQL alerts in openapi-coverage scripts (ReDoS, logging, markdown escape) | 2026-07-27 | bf91b01 | [260727-codeql-openapi-coverage-fixes](./quick/260727-codeql-openapi-coverage-fixes/) |
 | 260729-6el | Rewrite bilingual README with current product truth, polished formatting, assets, and badges | 2026-07-29 | 46c1e7a | [260729-6el-fixe-und-berarbeite-die-readme-des-proje](./quick/260729-6el-fixe-und-berarbeite-die-readme-des-proje/) |
+| 260729-6pb | Refresh all public non-README documentation, guides, templates, and skill runbooks | 2026-07-29 | 6b9fc7d | [260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli](./quick/260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli/) |
 
 ### Roadmap Evolution
 

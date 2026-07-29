@@ -3,6 +3,12 @@ description: Report a bug or unexpected behavior.
 title: "[Bug]: "
 labels: ["type: bug", "status: needs-triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Never paste tokens, credentials, private instance URLs, or unredacted logs.
+        Report vulnerabilities through a [private GitHub Security Advisory](https://github.com/clezcoding/awesome-coolify/security/advisories/new), not this public issue.
+
   - type: textarea
     id: description
     attributes:
@@ -34,17 +40,42 @@ body:
   - type: textarea
     id: actual
     attributes:
-      label: Actual Behavior (include error message / stack trace if available)
+      label: Actual Behavior
+      description: Include sanitized errors or logs if useful. Remove credentials and private URLs.
     validations:
       required: false
 
   - type: input
     id: version
     attributes:
-      label: Version / Commit
-      placeholder: e.g. v0.3.1 or commit hash
+      label: Package Version / Commit
+      placeholder: e.g. 1.0.1 or commit hash
     validations:
-      required: false
+      required: true
+
+  - type: input
+    id: node
+    attributes:
+      label: Node.js Version
+      placeholder: e.g. 24.4.1
+    validations:
+      required: true
+
+  - type: input
+    id: coolify
+    attributes:
+      label: Coolify Version
+      placeholder: e.g. 4.1.x
+    validations:
+      required: true
+
+  - type: input
+    id: client
+    attributes:
+      label: MCP Client
+      placeholder: e.g. Cursor
+    validations:
+      required: true
 
   - type: dropdown
     id: environment
@@ -65,4 +96,6 @@ body:
       label: Checklist
       options:
         - label: I have searched existing issues before opening this one.
+          required: true
+        - label: I removed tokens, credentials, private URLs, and sensitive log data.
           required: true

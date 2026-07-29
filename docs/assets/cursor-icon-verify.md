@@ -1,8 +1,7 @@
 # MCP icon verify — v3.2 workarounds (Phase 27)
 
-**Date:** 2026-07-29  
-**Outcome:** Client limitation (server correct) per D-05  
-**Screenshot:** [cursor-icon-verify.png](./cursor-icon-verify.png) _(screenshot pending)_
+**Date:** 2026-07-29
+**Outcome:** Client limitation (server correct) per D-05
 
 ## Variant tested
 
@@ -92,73 +91,16 @@ Plain `npx` from the `awesome-coolify` repo root collides with the local package
 - Tools listed: visible
 - **Icon:** generic letter **"A"** only — same client limitation as Path A
 
-### Initialize JSON excerpt (Path B)
+### Initialize result (Path B)
 
-Same `serverInfo` shape as Path A (`version` **1.0.1**, `icons[]` length **3**, data URI + 2 CDN URLs). Verified via stdio dump against `npx -y awesome-coolify-mcp@1.0.1` from `/tmp`.
-
-```json
-{
-  "serverInfo": {
-    "name": "awesome-coolify-mcp",
-    "version": "1.0.1",
-    "title": "Awesome Coolify",
-    "description": "MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools",
-    "websiteUrl": "https://github.com/clezcoding/awesome-coolify",
-    "icons": [
-      {
-        "src": "data:image/png;base64,{…}",
-        "mimeType": "image/png",
-        "sizes": ["192x192"]
-      },
-      {
-        "src": "https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/favicon-32.png",
-        "mimeType": "image/png",
-        "sizes": ["32x32"]
-      },
-      {
-        "src": "https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png",
-        "mimeType": "image/png",
-        "sizes": ["192x192"]
-      }
-    ]
-  }
-}
-```
+The published probe returned the same `serverInfo` shape shown for Path A: version
+**1.0.1**, three icon entries, embedded PNG first, then both jsDelivr URLs.
 
 ## Server emits icons correctly
 
-Full `initialize` `serverInfo` shape after Phase 27 BRND-01 (V1 baseline):
-
-```json
-{
-  "serverInfo": {
-    "name": "awesome-coolify-mcp",
-    "version": "1.0.1",
-    "title": "Awesome Coolify",
-    "description": "MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools",
-    "websiteUrl": "https://github.com/clezcoding/awesome-coolify",
-    "icons": [
-      {
-        "src": "data:image/png;base64,{…}",
-        "mimeType": "image/png",
-        "sizes": ["192x192"]
-      },
-      {
-        "src": "https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/favicon-32.png",
-        "mimeType": "image/png",
-        "sizes": ["32x32"]
-      },
-      {
-        "src": "https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon-192.png",
-        "mimeType": "image/png",
-        "sizes": ["192x192"]
-      }
-    ]
-  }
-}
-```
-
-`icons[]` length is 3: one embedded data URI (primary per D-02) plus two jsDelivr CDN PNG entries. Base64 payload is ~42 KB — never paste inline; use placeholder `{…}` in prose and verify via stdio dump.
+The single Path A excerpt above is the canonical initialize sample. `icons[]` length is
+three: one embedded data URI plus two jsDelivr PNG entries. Never paste the Base64 payload
+inline; use `{…}` and verify through the stdio probe.
 
 ### Stdio initialize dump procedure
 

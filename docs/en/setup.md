@@ -8,7 +8,8 @@ Install IDE workflow skills first (optional but recommended):
 npx skills add clezcoding/awesome-coolify -a cursor -a claude-code -a codex
 ```
 
-See also: [Install configurator](../install.html#skills) · [README — Install](../../README.md#-install)
+See also: [Cursor setup](cursor.md) · [Coolify Cloud](cloud.md) ·
+[Install configurator](../install.html#skills) · [README — Install](../../README.md#-install)
 
 ---
 
@@ -167,6 +168,25 @@ setup({
   env_content: "FOO=bar\nBAZ=qux",
 })
 ```
+
+---
+
+## Recipe and operations contract
+
+Greenfield setup requires one recipe:
+
+- `create-git-app` creates an application from a repository and branch.
+- `create-app-db` creates an application plus supported database and wires its
+  connection environment variable.
+- `create-one-click` creates a service from a Coolify template.
+
+After wiring, use `deployment.watch` for bounded monitoring. A timeout is not a terminal
+deployment state; retry watch with the same deployment UUID. For triage, inspect
+`system.version.capabilities`, then use `diagnose` (`app`, `server`, `scan`, or
+application-only `logs`).
+
+Coolify 4.1.x supports application runtime logs, follow, and deployment/build logs. It
+does not expose service/database log endpoints. `diagnose.logs` is application-only.
 
 ---
 

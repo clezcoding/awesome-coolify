@@ -1,6 +1,8 @@
 # Coolify Cloud
 
-Use **awesome-coolify-mcp** with [Coolify Cloud](https://app.coolify.io) — the same **16 domain tools** and **~87 actions** as self-hosted, with team-scoped tokens and structured cloud error codes.
+Use **awesome-coolify-mcp** with [Coolify Cloud](https://app.coolify.io). The server
+exposes **18 tools** and **four prompts**, with team-scoped tokens, per-request routing,
+and structured Cloud errors.
 
 > **Branding:** Icons via `serverInfo.icons` — embedded data URI (primary) + jsDelivr CDN entries (`mcp-icon-192.png`, `favicon-32.png`). See [`docs/assets/README.md`](../assets/README.md) and [maintainer verify record](../assets/cursor-icon-verify.md).
 
@@ -150,12 +152,24 @@ After connect, run this agent-first path to confirm Cloud works:
 
 ## Known limits
 
+Coolify 4.1.x log support is resource-specific:
+
+| Log source | Support |
+| --- | --- |
+| Application runtime logs and follow | Supported through `application.logs` |
+| Deployment/build logs | Supported through `application.logs` with `deployment_uuid` |
+| `diagnose.logs` | Supported for applications only |
+| Service/database logs | Unavailable because Coolify 4.1.x provides no REST endpoints |
+
+Check `system.version.capabilities` before choosing a workflow. Do not infer support from
+the presence of a resource tool.
+
 | Limit | Detail |
 |-------|--------|
 | Server CRUD via API | Cloud does **not** support server create, validate, or delete through the REST API — use the Cloud dashboard for server management. |
 | Self-hosted-only endpoints | Some endpoints available on self-hosted return **404** on Cloud → structured code `COOLIFY_CLOUD_UNSUPPORTED`. |
 | Team-scoped tokens | Tokens are scoped to a team — verify the token's team owns the target resource. |
-| Same tool surface | All 16 MCP domain tools remain available; failures surface as structured errors, not silent stubs. |
+| Same tool surface | All 18 MCP tools remain available; failures surface as structured errors, not silent stubs. |
 
 `cloud-info` `knownLimits` mirrors this list locally — no live capability probe.
 
@@ -191,4 +205,6 @@ Generic codes (`COOLIFY_401`, `COOLIFY_404`, etc.) still apply as fallbacks on n
 
 - [README — Install](../../README.md#-install)
 - [German parity — docs/de/cloud.md](../de/cloud.md)
+- [Cursor setup](cursor.md)
+- [Setup workflow](setup.md)
 - [MCP branding assets](../assets/README.md)

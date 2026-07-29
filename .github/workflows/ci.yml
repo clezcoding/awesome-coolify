@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
@@ -35,6 +37,8 @@ jobs:
         run: pnpm run lint
 
       - name: Tests
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
         run: pnpm test
 
       - name: publint

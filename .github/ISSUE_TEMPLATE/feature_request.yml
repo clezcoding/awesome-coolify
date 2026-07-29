@@ -3,6 +3,12 @@ description: Propose a new feature or improvement.
 title: "[Feature]: "
 labels: ["type: feature", "status: needs-triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Never include tokens, credentials, private instance URLs, or unredacted logs.
+        Report vulnerabilities through a [private GitHub Security Advisory](https://github.com/clezcoding/awesome-coolify/security/advisories/new).
+
   - type: textarea
     id: problem
     attributes:
@@ -24,6 +30,15 @@ body:
       label: Alternatives You've Considered
     validations:
       required: false
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and Release Impact
+      description: Note affected package, Node.js, Coolify, or MCP client versions; breaking behavior; documentation needs; and whether this should ship in a release.
+      placeholder: Package 1.0.1, Node.js 24, Coolify 4.1.x, Cursor; non-breaking; docs required.
+    validations:
+      required: true
 
   - type: dropdown
     id: priority
