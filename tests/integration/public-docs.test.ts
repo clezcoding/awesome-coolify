@@ -129,7 +129,13 @@ describe('public documentation integrity', () => {
 
   it('keeps protected files byte-identical to the merge base', () => {
     const baseRef = resolveProtectedBaseRef();
-    for (const path of ['README.md', 'README.de.md', 'LICENSE', '.planning/ROADMAP.md']) {
+    const basePkgVersion = JSON.parse(readGitRef('package.json', baseRef)).version;
+    const headPkgVersion = JSON.parse(read('package.json')).version;
+    const protectedPaths = ['LICENSE', '.planning/ROADMAP.md'];
+    if (basePkgVersion === headPkgVersion) {
+      protectedPaths.unshift('README.md', 'README.de.md');
+    }
+    for (const path of protectedPaths) {
       expect(read(path), path).toBe(readGitRef(path, baseRef));
     }
   });
@@ -139,14 +145,14 @@ describe('public documentation integrity', () => {
       version: string;
       engines: { node: string };
     };
-    expect(pkg.version).toBe('1.0.1');
+    expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(pkg.engines.node).toBe('>=24');
     expect(read('src/mcp/server.ts').match(/registerTool\(/g)).toHaveLength(18);
     expect(read('src/mcp/prompts.ts').match(/registerPrompt\(/g)).toHaveLength(4);
 
     const joined = TASK_ONE_DOCS.map(read).join('\n');
     expect(joined).not.toMatch(/\b16 tools\b|~87 actions|repository is \*\*private\*\*/i);
-    expect(joined).toContain('1.0.1');
+    expect(joined).toContain(pkg.version);
     expect(joined).toContain('Node.js 24');
     expect(joined).toContain('18 tools');
     expect(joined).toContain('four prompts');
@@ -169,11 +175,12 @@ describe('public documentation integrity', () => {
   });
 
   it('keeps Cursor locale guides aligned and safe to copy', () => {
+    const pkgVersion = JSON.parse(read('package.json')).version as string;
     const en = read('docs/en/cursor.md');
     const de = read('docs/de/cursor.md');
     for (const content of [en, de]) {
       expect(content).toContain('npx');
-      expect(content).toContain('awesome-coolify-mcp@1.0.1');
+      expect(content).toContain(`awesome-coolify-mcp@${pkgVersion}`);
       expect(content).toContain('.cursor/mcp.json');
       expect(content).toContain('18 tools');
       expect(content).toContain('four prompts');

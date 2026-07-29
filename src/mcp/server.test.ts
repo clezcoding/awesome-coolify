@@ -426,7 +426,6 @@ describe('McpServer branding metadata', () => {
       readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'),
     ).version as string;
     expect(readPackageVersion()).toBe(pkgVersion);
-    expect(readPackageVersion()).toBe('1.0.1');
   });
 
   it(

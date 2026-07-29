@@ -1,10 +1,16 @@
 # awesome-coolify-mcp
 
+## 1.1.0
+
+### Minor Changes
+
+- 89c5649: v3.2 Observability & DX: `system.version` capability flags, `deployment.logs`, `application.logs` follow mode with bounded polling, composite `diagnose.logs` triage, incident prompt DX, dual-icon MCP branding, and docs/coverage parity updates.
+
 Release history for the public npm package. Entries follow
 [Keep a Changelog](https://keepachangelog.com/) categories where practical and preserve
 the original Changesets release notes.
 
-Current package: [`awesome-coolify-mcp@1.0.1`](https://www.npmjs.com/package/awesome-coolify-mcp/v/1.0.1).
+Current package: [`awesome-coolify-mcp@1.1.0`](https://www.npmjs.com/package/awesome-coolify-mcp/v/1.1.0).
 See all [GitHub releases](https://github.com/clezcoding/awesome-coolify/releases).
 
 ## 1.0.1

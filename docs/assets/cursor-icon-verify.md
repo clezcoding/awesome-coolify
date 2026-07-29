@@ -41,7 +41,7 @@ Verified via stdio dump (`node dist/index.js`):
 {
   "serverInfo": {
     "name": "awesome-coolify-mcp",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "title": "Awesome Coolify",
     "description": "MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools",
     "websiteUrl": "https://github.com/clezcoding/awesome-coolify",
@@ -66,7 +66,7 @@ Verified via stdio dump (`node dist/index.js`):
 }
 ```
 
-`icons[]` length: **3** (data URI first + 2 CDN entries). Version: **1.0.1**.
+`icons[]` length: **3** (data URI first + 2 CDN entries). Version: **1.1.0**.
 
 ## Path B: npm `npx`
 
@@ -79,7 +79,7 @@ Plain `npx` from the `awesome-coolify` repo root collides with the local package
   "mcpServers": {
     "awesome-coolify-mcp": {
       "command": "sh",
-      "args": ["-c", "cd /tmp && exec npx -y awesome-coolify-mcp@1.0.1"]
+      "args": ["-c", "cd /tmp && exec npx -y awesome-coolify-mcp@1.1.0"]
     }
   }
 }
@@ -94,7 +94,7 @@ Plain `npx` from the `awesome-coolify` repo root collides with the local package
 ### Initialize result (Path B)
 
 The published probe returned the same `serverInfo` shape shown for Path A: version
-**1.0.1**, three icon entries, embedded PNG first, then both jsDelivr URLs.
+**1.1.0**, three icon entries, embedded PNG first, then both jsDelivr URLs.
 
 ## Server emits icons correctly
 
@@ -127,7 +127,7 @@ cp.stdin.write(JSON.stringify({
 "
 ```
 
-**Path B (npm npx):** same probe with `spawn('npx', ['-y', 'awesome-coolify-mcp@1.0.1'], { cwd: '/tmp', … })` — run from outside the `awesome-coolify` repo to avoid package-name collision.
+**Path B (npm npx):** same probe with `spawn('npx', ['-y', 'awesome-coolify-mcp@1.1.0'], { cwd: '/tmp', … })` — run from outside the `awesome-coolify` repo to avoid package-name collision.
 
 ## CDN asset reachable
 
@@ -159,7 +159,7 @@ Phase 16 D-09 documented the same client limitation for CDN-only icons; Phase 27
 |-------|----------------|--------------|
 | `serverInfo.icons` includes data URI | ✓ | ✓ |
 | `serverInfo.icons` includes CDN PNG(s) | ✓ | ✓ |
-| `serverInfo.version` === `1.0.1` | ✓ | ✓ |
+| `serverInfo.version` === `1.1.0` | ✓ | ✓ |
 | jsDelivr PNG 200 | ✓ | ✓ |
 | `title` / tools visible in Cursor | ✓ | ✓ |
 | Custom icon in Cursor MCP list | ✗ (client limitation) | ✗ (client limitation) |
