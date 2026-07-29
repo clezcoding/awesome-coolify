@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 27-branding-docs-stale-fix
 source: 27-00-SUMMARY.md, 27-01-SUMMARY.md, 27-02-SUMMARY.md, 27-03-SUMMARY.md
 started: 2026-07-29T00:00:24Z
-updated: 2026-07-29T01:41:41Z
+updated: 2026-07-29T01:57:51Z
 ---
 
 ## Current Test
 
-number: 2
-name: Cursor MCP-Listen-UI — Path A + Path B
-expected: |
-  cursor-icon-verify.md dokumentiert Path A (dist/) und Path B (npx) mit UI-Beobachtungen und initialize-Auszügen. Cursor MCP-Liste: Verbindung grün, Tools sichtbar; Icon ggf. nur Buchstabe „A“ (Client-Limitierung D-05 akzeptiert).
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -23,7 +19,8 @@ notes: "kill-mcp + npm run build + initialize → version 1.0.1, icons[]=3, data
 
 ### 2. Cursor MCP-Listen-UI — Path A + Path B
 expected: cursor-icon-verify.md dokumentiert Path A (dist/) und Path B (npx) mit UI-Beobachtungen und initialize-Auszügen. Cursor MCP-Liste: Verbindung grün, Tools sichtbar; Icon ggf. nur Buchstabe „A“ (Client-Limitierung D-05 akzeptiert).
-result: [pending]
+result: pass
+notes: "Path A: green connect, 18 tools / 4 prompts, letter A icon only (D-05 client limitation)"
 coverage_id: D1
 rationale: Cursor MCP list UI observation requires maintainer visual check
 
@@ -96,9 +93,9 @@ coverage_id: D3
 ## Summary
 
 total: 13
-passed: 12
+passed: 13
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
