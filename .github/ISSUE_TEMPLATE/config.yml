@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Private Security Report
+    url: https://github.com/clezcoding/awesome-coolify/security/advisories/new
+    about: Report vulnerabilities privately. Never post credentials or vulnerability details in public issues.
   - name: Question / Discussion
     url: https://github.com/clezcoding/awesome-coolify/discussions
     about: For open questions, ideas, or discussions, please use Discussions instead of an issue.

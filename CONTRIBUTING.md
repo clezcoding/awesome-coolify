@@ -1,18 +1,51 @@
 # Contributing
 
-Thanks for your interest in this project! This repo follows the [GSD](https://github.com/open-gsd/gsd-core) workflow (Discuss → Plan → Execute → Verify → Ship). Development itself follows the rules below.
+Contributions are welcome. Use this runbook to keep changes reviewable, safe, and
+consistent with the published package.
 
-## Local Setup
+## Prerequisites
+
+- Git
+- Node.js 24 or newer (`package.json` requires `>=24`)
+- Corepack with pnpm `11.15.1`
+
+## Local setup
 
 ```bash
+git clone https://github.com/<your-account>/awesome-coolify.git
+cd awesome-coolify
+corepack enable
+corepack prepare pnpm@11.15.1 --activate
 pnpm install
+pnpm run build
 pnpm run lint
 pnpm test
 ```
 
-Git hooks (commitlint) are activated automatically via `husky` on `pnpm install`.
+Create a focused branch:
 
-## Live UAT Harness
+```bash
+git switch -c fix/short-description
+```
+
+Run one suite while iterating:
+
+```bash
+pnpm exec vitest run path/to/file.test.ts
+```
+
+`pnpm install` activates Husky, lint-staged, and commitlint hooks.
+
+## Documentation changes
+
+- Write commands that work from repository root and use placeholders for credentials.
+- Keep English/German guide pairs semantically aligned.
+- Update generated `docs/COVERAGE.md` only through
+  `scripts/lib/openapi-coverage-render.mjs`, then run `pnpm run openapi:coverage`.
+- Link readers to the next relevant guide and verify local links and anchors.
+- Never paste tokens, private URLs, or sanitized-looking real logs into docs or issues.
+
+## Live UAT harness
 
 The live UAT harness is a **maintainer-local** CLI for proving all MCP tools against a real Coolify instance before release. It is tracked in git but **never published** in the npm tarball (`files` allowlist ships only `dist`, `.env.example`, and `LICENSE`).
 
@@ -153,7 +186,7 @@ npm publish is intentional and milestone-scoped — not every phase merge trigge
 4. Merge **Version Packages** → `.github/workflows/release.yml` publishes to npm via OIDC (unchanged in this repo).
 5. Prefer one accumulated release at milestone close over leaving Version Packages open for weeks.
 
-#### Trusted Publisher pre-flight (before first 1.0.0)
+#### Trusted Publisher pre-flight
 
 Before merging **Version Packages** for a milestone npm release, confirm on [npmjs.com → awesome-coolify-mcp → Settings → Trusted Publishers](https://www.npmjs.com/package/awesome-coolify-mcp):
 
@@ -191,9 +224,5 @@ For hotfix / out-of-band releases that need an immediate changeset:
 
 That opt-in path creates a Changeset under `.changeset/`, commits + pushes it, then applies ship labels.
 
-Manual / preview: `./scripts/gsd-ship-post.sh <n> --dry-run` (alias: `./scripts/gsd-ship-labels.sh`).  
+Manual / preview: `./scripts/gsd-ship-post.sh <n> --dry-run` (alias: `./scripts/gsd-ship-labels.sh`).
 Opt out of automerge: `./scripts/gsd-pr-labels.sh --pr <n> --mode ship --no-automerge`.
-
-## Project Planning (GSD)
-
-This project uses [GSD](https://github.com/open-gsd/gsd-core) for planning, and keeps planning artifacts (`.planning/`) local-only — they are gitignored and never committed to this repo. If you're contributing via GSD's phase workflow, that's expected: only the shipped code and docs end up in git history, not the planning process behind them.
