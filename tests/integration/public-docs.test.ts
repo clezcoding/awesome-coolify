@@ -42,6 +42,28 @@ function read(path: string): string {
   return readFileSync(resolve(ROOT, path), 'utf8');
 }
 
+function resolveProtectedBaseRef(): string {
+  if (process.env.GITHUB_BASE_SHA) return process.env.GITHUB_BASE_SHA;
+  for (const ref of ['origin/main', 'main']) {
+    try {
+      execFileSync('git', ['rev-parse', '--verify', ref], { cwd: ROOT, stdio: 'pipe' });
+      return ref;
+    } catch {
+      // try next ref
+    }
+  }
+  throw new Error(
+    'No git base ref for protected file parity — fetch origin/main or set GITHUB_BASE_SHA',
+  );
+}
+
+function readGitRef(path: string, ref: string): string {
+  return execFileSync('git', ['show', `${ref}:${path}`], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  });
+}
+
 function stripInlineHtml(text: string): string {
   let out = '';
   let inTag = false;
@@ -105,13 +127,10 @@ describe('public documentation integrity', () => {
     expect(existsSync(resolve(ROOT, 'CURSOR-SETUP-GUIDE.md.draft.md'))).toBe(false);
   });
 
-  it('keeps protected files byte-identical to origin/main', () => {
+  it('keeps protected files byte-identical to the merge base', () => {
+    const baseRef = resolveProtectedBaseRef();
     for (const path of ['README.md', 'README.de.md', 'LICENSE', '.planning/ROADMAP.md']) {
-      const committed = execFileSync('git', ['show', `origin/main:${path}`], {
-        cwd: ROOT,
-        encoding: 'utf8',
-      });
-      expect(read(path), path).toBe(committed);
+      expect(read(path), path).toBe(readGitRef(path, baseRef));
     }
   });
 
