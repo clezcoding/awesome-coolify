@@ -1,6 +1,8 @@
 # Coolify OpenAPI Specification
 
-Canonical Coolify REST API spec for awesome-coolify-mcp coverage tooling. Both formats are tracked in git; provenance lives here, not in the spec `info.version` field.
+Maintainer hub for the pinned Coolify v4.1.2 REST API and awesome-coolify-mcp coverage map.
+Use it when reviewing API client changes, adding tool actions, or updating the pinned
+Coolify version. It is not an end-user setup guide.
 
 ---
 
@@ -15,6 +17,14 @@ Canonical Coolify REST API spec for awesome-coolify-mcp coverage tooling. Both f
 | **Committed artifacts** | [`coolify_openapi.yaml`](./coolify_openapi.yaml) · [`coolify_openapi.json`](./coolify_openapi.json) |
 
 Do not float on `v4.x`, `next`, or `main` without an explicit phase decision to re-pin (D-09).
+
+## Artifact roles
+
+- `coolify_openapi.yaml` — byte-oriented pinned upstream source.
+- `coolify_openapi.json` — parsed input used by coverage tooling.
+- `coverage-map.yaml` — owned mapping from MCP actions to client exports and operations.
+- `coverage-overrides.yaml` — explicit deferrals, out-of-scope entries, and exceptions.
+- [`COVERAGE.md`](./COVERAGE.md) — generated review report; never edit it by hand.
 
 ---
 
@@ -34,7 +44,8 @@ writeFileSync('docs/coolify_openapi.json', JSON.stringify(parse(yaml), null, 2))
 "
 
 pnpm run openapi:coverage
-pnpm test tests/openapi-coverage.test.ts
+pnpm run openapi:coverage -- --check
+pnpm exec vitest run tests/openapi-coverage.test.ts
 ```
 
 Review the diff on `docs/coolify_openapi.{yaml,json}` before committing. Update this file's fetch date and operation count if the upstream spec changed.
@@ -55,6 +66,23 @@ Regenerate the committed gap report:
 pnpm run openapi:coverage          # write docs/COVERAGE.md
 pnpm run openapi:coverage -- --check # CI drift gate
 ```
+
+### Coverage buckets
+
+| Bucket | Meaning |
+| --- | --- |
+| `covered` | Action, client export, and pinned OpenAPI operation are linked. |
+| `deferred` | Known future work with an explicit reason; not a current promise. |
+| `out-of-scope` | Deliberately outside MCP behavior or not represented by REST. |
+| `gap` | Mapping needs maintainer review; it does not automatically mean a shipped feature is broken. |
+
+### Review checklist
+
+1. Confirm every changed client export and `tool.action` has an owned map entry.
+2. Verify operation keys against pinned v4.1.2 artifacts.
+3. Require a concrete reason for overrides.
+4. Regenerate `docs/COVERAGE.md`; do not hand-edit generated rows or prose.
+5. Run the check and OpenAPI coverage test before committing.
 
 ---
 

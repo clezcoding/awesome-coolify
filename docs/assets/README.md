@@ -1,6 +1,7 @@
 # Brand Assets
 
-Official branding for **awesome-coolify-mcp**. Mascot **Hex Robot Helper** (winner).
+Public asset catalog for **awesome-coolify-mcp**. Use the smallest suitable file and
+describe what the image communicates, not its filename.
 
 ## Primary assets (README)
 
@@ -47,6 +48,10 @@ https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/mcp-icon
 
 GitHub Pages serves install assets from `docs/assets/` on the same origin.
 
+jsDelivr `@main` URLs can remain cached after a replacement. Prefer a release tag or
+commit SHA when consumers need immutable bytes; change filenames when an immediate cache
+refresh matters.
+
 ### GitHub Pages
 
 - Landing: `https://clezcoding.github.io/awesome-coolify/`
@@ -59,6 +64,19 @@ GitHub Pages serves install assets from `docs/assets/` on the same origin.
 | `mascot-d2-robot-hex.png` | **Winner** → copied to `logo.png` |
 | `mascot-d1-cloud-plug.png` | Alternate |
 | `mascot-d3-droplet-box.png` | Alternate |
+
+## Selection and alt text
+
+- Use `mcp-icon-192.png` for MCP metadata; use favicons only at their intended sizes.
+- Use `hero-banner.png` for the repository overview and `social-preview.png` for GitHub
+  social metadata.
+- Use transparent assets when the surrounding background is unknown.
+- Decorative images should use empty alt text. Informative images need concise purpose,
+  for example: `Architecture: Cursor calls the MCP server, which routes requests to Coolify`.
+
+The MCP icon source order is embedded 192×192 PNG, CDN 32×32 PNG, then CDN 192×192
+PNG. Cursor may display a letter fallback despite valid metadata; see the
+[verification record](cursor-icon-verify.md).
 
 ## Brand tokens
 

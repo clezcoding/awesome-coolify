@@ -137,6 +137,50 @@ describe('public documentation integrity', () => {
     expect(en.match(/^## /gm)).toHaveLength(de.match(/^## /gm)?.length ?? 0);
   });
 
+  it('keeps Cloud locale guides aligned with current logs and inventory', () => {
+    const en = read('docs/en/cloud.md');
+    const de = read('docs/de/cloud.md');
+    for (const content of [en, de]) {
+      expect(content).toMatch(/18 (?:tools|MCP-Tools)/i);
+      expect(content).toMatch(/four prompts|vier Prompts/i);
+      expect(content).toContain('application.logs');
+      expect(content).toContain('deployment_uuid');
+      expect(content).toContain('diagnose.logs');
+      expect(content).toMatch(/service.?.?database.*(?:unavailable|nicht verfügbar)/i);
+      expect(content).toContain('system.version.capabilities');
+    }
+    expect(en.match(/^## /gm)).toHaveLength(de.match(/^## /gm)?.length ?? 0);
+  });
+
+  it('documents setup, OpenAPI ownership, branding, and generated coverage', () => {
+    const setup = read('docs/en/setup.md');
+    for (const contract of [
+      'preflight',
+      'wire',
+      'resume',
+      'create-git-app',
+      'create-app-db',
+      'create-one-click',
+      'set_env',
+      'env_file',
+      'env_content',
+      'deploy_and_watch',
+      'deployment.watch',
+      'diagnose.logs',
+    ]) {
+      expect(setup).toContain(contract);
+    }
+    expect(read('docs/OPENAPI.md')).toContain('pinned Coolify v4.1.2');
+    expect(read('docs/OPENAPI.md')).toContain('never edit it by hand');
+    expect(read('docs/assets/README.md')).toContain('alt text');
+    expect(read('docs/assets/cursor-icon-verify.md')).not.toContain('screenshot pending');
+
+    const coverage = read('docs/COVERAGE.md');
+    expect(coverage).toContain('## Bucket definitions');
+    expect(coverage).toContain('pnpm run openapi:coverage -- --check');
+    expect(coverage).toContain('[OpenAPI maintenance](./OPENAPI.md)');
+  });
+
   it('keeps safe public-reporting boundaries', () => {
     expect(read('SECURITY.md')).toContain(
       'https://github.com/clezcoding/awesome-coolify/security/advisories/new',
