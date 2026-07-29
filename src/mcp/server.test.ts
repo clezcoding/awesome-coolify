@@ -436,9 +436,10 @@ describe('McpServer branding metadata', () => {
       const icons = buildMcpServerIcons();
       expect(icons[0].src).toMatch(/^data:image\/png;base64,/);
       expect(
-        icons.some(
-          (i) => i.src.includes('jsdelivr.net') && i.src.includes('mcp-icon-192.png'),
-        ),
+        icons.some((i) => {
+          const { hostname, pathname } = new URL(i.src);
+          return hostname === 'cdn.jsdelivr.net' && pathname.endsWith('/mcp-icon-192.png');
+        }),
       ).toBe(true);
     },
   );

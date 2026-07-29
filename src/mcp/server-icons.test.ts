@@ -18,18 +18,24 @@ describe('buildMcpServerIcons', () => {
     const { buildMcpServerIcons } = await import('./server-icons.js');
     const icons = buildMcpServerIcons();
     const urls = icons.map((i) => i.src);
-    expect(urls.some((u) => u.includes('jsdelivr.net') && u.includes('favicon-32.png'))).toBe(
-      true,
-    );
+    expect(
+      urls.some((src) => {
+        const { hostname, pathname } = new URL(src);
+        return hostname === 'cdn.jsdelivr.net' && pathname.endsWith('/favicon-32.png');
+      }),
+    ).toBe(true);
   });
 
   it('includes jsDelivr mcp-icon-192.png CDN entry (D-01)', async () => {
     const { buildMcpServerIcons } = await import('./server-icons.js');
     const icons = buildMcpServerIcons();
     const urls = icons.map((i) => i.src);
-    expect(urls.some((u) => u.includes('jsdelivr.net') && u.includes('mcp-icon-192.png'))).toBe(
-      true,
-    );
+    expect(
+      urls.some((src) => {
+        const { hostname, pathname } = new URL(src);
+        return hostname === 'cdn.jsdelivr.net' && pathname.endsWith('/mcp-icon-192.png');
+      }),
+    ).toBe(true);
   });
 
   it('every entry has mimeType image/png (BRND-01)', async () => {
