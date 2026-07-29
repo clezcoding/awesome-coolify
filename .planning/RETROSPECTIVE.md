@@ -205,6 +205,56 @@
 
 ---
 
+## Milestone: v3.2 — Observability & DX
+
+**Shipped:** 2026-07-29
+**Phases:** 4 (24–27) | **Plans:** 18 | **Tasks:** 43
+
+### What Was Built
+
+- `system.version` capability flags for Coolify 4.1.2 + package-backed `mcpVersion`
+- `deployment.logs` build-log action with shared `processDeploymentBuildLogs` processor
+- `application.logs` follow mode — bounded polling, idle stop, deduped tail, partial logs on API failure
+- `diagnose.logs` composite (triage + bounded runtime tail) + incident prompt rewrite
+- `coolify-setup` App log troubleshooting section with capability discovery
+- Dual-icon MCP branding (data URI + jsDelivr CDN) + npm 1.0.1 docs parity gate
+
+### What Worked
+
+- Nyquist Wave 0 RED scaffolds locked contracts before every implementation wave
+- Split MCP boundary vs handler Zod schemas fixed follow+deployment_uuid validation path
+- Capability flags on `system.version` let agents skip unsupported APIs without trial calls
+- Shared `buildRuntimeLogPayload` extraction avoided duplicate log logic across follow/diagnose
+- doc-version-parity test caught stale "pending Version Packages" wording
+
+### What Was Inefficient
+
+- Phase 25 needed 6 plans (including gap-closure 25-04/25-05) for MCP SDK schema boundary issue
+- No milestone audit run before close — artifact audit passed but formal audit skipped
+- Cursor MCP list icon remains client limitation despite server-side workarounds (D-05)
+
+### Patterns Established
+
+- `zodDefaultFields` strips phantom follow defaults on one-shot `application.logs` paths
+- `application_logs_follow` + `diagnose_logs` as soft capability keys (guidance, not hard Zod gates)
+- Build-time base64 icon embed + runtime `buildMcpServerIcons()` dual-path
+- `readPackageVersion()` single source for McpServer constructor version parity
+
+### Key Lessons
+
+1. MCP SDK strips `superRefine` at boundary — split boundary schema from handler schema when composite validation needed
+2. Log follow needs explicit idle-on-empty + one-bound interval regression tests (WR-01/WR-03)
+3. Composite diagnose+log action reduces agent round-trips without new tool surface
+4. Accept documented client limitations after dual-path verify — don't block ship on UI bugs outside server control
+
+### Cost Observations
+
+- Timeline: ~3 days (2026-07-27 → 2026-07-29)
+- 4 phases, 18 plans, ~42 files / +3.3k LOC
+- yolo mode + verified closeout (artifact audit clear, all phases passed)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -215,6 +265,7 @@
 | v2.0 | 5 | 6 | CRUD + SAF canonical patterns + env/backup layers |
 | v3.0 | 3 | 4 | Multi-instance + cloud + manifest + live UAT harness |
 | v3.1 | 4 | 6 | DX schemas + recipes + watch + setup/skills + OpenAPI coverage |
+| v3.2 | 3 | 4 | Log observability + capabilities + diagnose.logs + branding |
 
 ### Cumulative Quality
 
@@ -224,6 +275,7 @@
 | v2.0 | 835 | green | optional script passed |
 | v3.0 | ~955+ | green | `npm run uat:live` harness shipped |
 | v3.1 | ~1000+ | green | Nyquist 100% on phases 19–23 |
+| v3.2 | ~1050+ | green | Nyquist on phases 24–27; VERIFICATION 10/10 Phase 25 |
 
 ### Top Lessons (Verified Across Milestones)
 

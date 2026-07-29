@@ -8,14 +8,14 @@ Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Clou
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.2 in progress — Phase 26 complete 2026-07-28)
+## Current State (v3.2 shipped 2026-07-29)
 
 | Metric | Value |
 |--------|-------|
 | Package | `awesome-coolify-mcp` **1.0.1** |
 | Tools / Actions | 18 / ~115 |
-| TypeScript LOC | ~35.6k (`src/`) |
-| Milestone | v3.2 Observability & DX — **in progress** (Phases 24–26 complete; 27 pending) |
+| TypeScript LOC | ~36k (`src/`) |
+| Milestone | v3.2 Observability & DX — **shipped** (Phases 24–27) |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | OIDC Release path + pack allowlist verified (PUB-02) |
 | Live UAT | `npm run uat:live` harness (Phase 18) |
@@ -73,22 +73,23 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 </details>
 
-## Current Milestone: v3.2 Observability & DX
+<details>
+<summary>v3.2 milestone metrics (archived)</summary>
 
-**Goal:** App/deployment log observability, capability discovery, incident flows, and MCP branding — compatible with Coolify 4.1.2 (no 4.2.0 service/DB log APIs).
+| Metric | Value |
+|--------|-------|
+| Timeline | 2026-07-27 → 2026-07-29 (~3 days) |
+| Phases | 4 (24–27) |
+| Plans / Tasks | 18 / 43 |
+| Requirements | 11/11 validated |
+| Closeout | `verified_closeout` (all phases verified; artifact audit clear) |
+| Code delta (src/docs/scripts) | ~42 files, +3.3k / −0.4k LOC |
 
-**Target features:**
-- `deployment.logs` action on deployment tool
-- Application log follow/stream (watch-style polling on `application.logs`)
-- `diagnose.logs` shortcut (application-only)
-- `system.version` extended with MCP + Coolify capability flags (4.1.2 set)
-- `incident` MCP prompt + `coolify-setup` skill updates
-- MCP icon workarounds (data URI, multi-size, dev + npm re-verify)
-- Docs/npm stale fixes (package at 1.0.1)
+</details>
 
-## Next Milestone Goals (backlog)
+## Next Milestone Goals
 
-- **v3.3:** SVC-04 service/DB logs when Coolify 4.2.0+ is stable installable
+- **v3.3:** SVC-04/05/06 service/DB/sub-service logs when Coolify 4.2.0+ is stable installable
 - **Backlog:** OpenAPI gap rows in `docs/COVERAGE.md` (~57 paths); cross-instance fan-out (deferred)
 
 ## Requirements
@@ -128,15 +129,16 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Setup wizard + IDE skills + set_env delegation — Phases 22, 23.1 (SETUP-*, SKILL-*)
 - ✓ OpenAPI coverage map + npm pack allowlist + milestone Changeset 1.0.0 — Phase 23 (OAPI-01, OAPI-02, PUB-01, PUB-02)
 
-### Validated (v3.2 — partial)
+### Validated (v3.2)
 
 - ✓ Capabilities + deployment.logs — Phase 24 (CAP-01, CAP-02, OBS-01)
 - ✓ Application log follow — Phase 25 (OBS-02, OBS-03)
 - ✓ diagnose.logs + incident prompt + coolify-setup troubleshooting — Phase 26 (DIAG-01, PROMPT-01, SKILL-01)
+- ✓ MCP icon workarounds + docs parity at 1.0.1 — Phase 27 (BRND-01, BRND-02, DOC-01)
 
-### Active (v3.2)
+### Active
 
-- See `.planning/REQUIREMENTS.md` — remaining BRND / docs-stale (Phase 27)
+(None — run `/gsd-new-milestone` to define v3.3 requirements)
 
 ### Out of Scope
 
@@ -196,6 +198,11 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 | v3.1: npm publish in-milestone | Release workflow, maintainer-triggered | ✓ Good — Changeset 1.0.0 shipped; OIDC publish on Version Packages merge |
 | v3.1: recipes over template forks | Coolify catalog is source of truth | ✓ Good — Phase 20 |
 | Flat schemas for Cursor UX | Mitigate empty `oneOf` parameter panels | ✓ Good — Phase 19 |
+| v3.2: capabilities on system.version only | meta.version stays identity-only; agents discover features before calling | ✓ Good — Phase 24 |
+| v3.2: deployment.logs separate from application.logs | Build logs by deployment_uuid without app routing | ✓ Good — Phase 24 |
+| v3.2: follow via application.logs follow:true | Reuse existing tool; zodDefaultFields strip on one-shot paths | ✓ Good — Phase 25 |
+| v3.2: diagnose.logs composite | Triage + bounded tail in one action; soft-partial on triage fail | ✓ Good — Phase 26 |
+| v3.2: dual data URI + jsDelivr icons | BRND-01 spec workarounds; Cursor UI limitation accepted (D-05) | ✓ Good — Phase 27 |
 
 ## Evolution
 
@@ -215,6 +222,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-**v3.2 in progress:** Phase 26 shipped `diagnose.logs` (triage + bounded tail), incident prompt rewrite, `diagnose_logs` capability, coolify-setup App log troubleshooting. Phase 27 next (branding & docs stale fix).
+**v3.2 shipped:** `system.version` capability flags, `deployment.logs`, `application.logs` follow, `diagnose.logs`, incident prompt + coolify-setup troubleshooting, dual-icon MCP branding, npm 1.0.1 docs parity. Next: v3.3 service/DB logs (Coolify 4.2.0+).
 
-*Last updated: 2026-07-28 — Phase 26 diagnose-logs-incident-dx complete*
+*Last updated: 2026-07-29 after v3.2 milestone*
