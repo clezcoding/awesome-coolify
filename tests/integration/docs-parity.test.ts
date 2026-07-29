@@ -10,6 +10,9 @@ import { describe, expect, it } from 'vitest';
 const ROOT = resolve(import.meta.dirname, '../..');
 const README_EN = resolve(ROOT, 'README.md');
 const README_DE = resolve(ROOT, 'README.de.md');
+const PKG_VERSION = JSON.parse(
+  readFileSync(resolve(ROOT, 'package.json'), 'utf8'),
+).version as string;
 
 const CANONICAL_SECTIONS = [
   { en: '📋 Table of contents', de: '📋 Inhaltsverzeichnis' },
@@ -181,7 +184,7 @@ describe('docs parity (Wave 0)', () => {
 
     for (const content of [en, de]) {
       expect(content).toContain('awesome-coolify-mcp');
-      expect(content).toContain('1.0.1');
+      expect(content).toContain(PKG_VERSION);
       expect(content).toContain('Node.js');
       expect(content).toContain('24');
       expect(content).toContain('Coolify API');

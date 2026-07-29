@@ -8,15 +8,18 @@ import { describe, expect, it } from 'vitest';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const PROJECT_MD = resolve(ROOT, '.planning/PROJECT.md');
+const PKG_VERSION = JSON.parse(
+  readFileSync(resolve(ROOT, 'package.json'), 'utf8'),
+).version as string;
 
 describe('doc version parity', () => {
   it(
-    'PROJECT.md opener reflects 1.0.1 shipped state not pending Version Packages (DOC-01, D-07)',
+    'PROJECT.md opener reflects shipped package version not pending Version Packages (DOC-01, D-07)',
     () => {
       const content = readFileSync(PROJECT_MD, 'utf8');
       const opener = content.split('\n').slice(0, 10).join('\n');
       expect(opener).not.toMatch(/pending Version Packages/i);
-      expect(opener).toContain('1.0.1');
+      expect(opener).toContain(PKG_VERSION);
     },
   );
 });

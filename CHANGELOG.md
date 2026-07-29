@@ -10,7 +10,7 @@ Release history for the public npm package. Entries follow
 [Keep a Changelog](https://keepachangelog.com/) categories where practical and preserve
 the original Changesets release notes.
 
-Current package: [`awesome-coolify-mcp@1.0.1`](https://www.npmjs.com/package/awesome-coolify-mcp/v/1.0.1).
+Current package: [`awesome-coolify-mcp@1.1.0`](https://www.npmjs.com/package/awesome-coolify-mcp/v/1.1.0).
 See all [GitHub releases](https://github.com/clezcoding/awesome-coolify/releases).
 
 ## 1.0.1
