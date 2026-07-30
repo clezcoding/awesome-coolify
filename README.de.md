@@ -729,6 +729,7 @@ Paket **1.1.0** liefert **18 tools** und vier MCP-Prompts für Coolify API **4.1
 | Deployment-Tracking: List / Get / Cancel | ✅ Shipped |
 | Deployment-Watch und begrenzte Build-Logs | ✅ Shipped |
 | Application-Runtime-Logs, begrenzter Follow und `diagnose.logs` | ✅ Shipped |
+| Instanz-Intelligence (`intelligence.scorecard`, `graph`, `impact`, `janitor`, `cleanup`) | ✅ Shipped |
 | Application-, Service- und Database-CRUD | ✅ Shipped |
 | Dynamische One-Click-Type-Discovery und Recipes | ✅ Shipped |
 | Setup-Wizard und vier IDE-Workflow-Skills | ✅ Shipped |
@@ -746,7 +747,7 @@ Paket **1.1.0** liefert **18 tools** und vier MCP-Prompts für Coolify API **4.1
 | Capability-Discovery via `system.version` | ✅ Shipped |
 | Deployment-Build-Logs via `deployment.logs` | ✅ Shipped |
 
-> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für **App-Triage + begrenzten Runtime-Tail** in einem Aufruf: `diagnose({ action: "logs", mode: "full", uuid: "..." })` — prüfe `capabilities.diagnose_logs`. Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
+> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für **App-Triage + begrenzten Runtime-Tail** in einem Aufruf: `diagnose({ action: "logs", mode: "full", uuid: "..." })` — prüfe `capabilities.diagnose_logs`. Für **Instanz-Gesundheit, Dependency-Graph, Impact und Janitor/Cleanup**: `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — prüfe `capabilities.intelligence_scorecard` (und sibling `intelligence_*`-Keys); `cleanup` erfordert `confirm: true`. Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
 
 > [!WARNING]
 > Coolify 4.1.x bietet keine stabilen Service- oder Database-Log-Endpunkte. Dieser Server behauptet oder registriert deshalb keine Service-/Database-Log-Actions. Nutze Application-Runtime-Logs und Deployment-Build-Logs, bis kompatible Upstream-APIs verfügbar sind.
