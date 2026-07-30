@@ -59,6 +59,7 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
     'envs:delete',
     'envs:bulk-update',
     'envs:sync',
+    'envs:promote',
   ],
   deployment: ['list', 'get', 'cancel', 'watch', 'logs'],
   service: [
@@ -108,7 +109,7 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   docs: ['search'],
   emergency: ['stop_all', 'redeploy_project', 'restart_project'],
   instance: ['list', 'get', 'add', 'update', 'delete', 'set-default', 'import-env', 'cloud-info'],
-  manifest: ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff'],
+  manifest: ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff', 'audit'],
   recipe: ['create-git-app', 'create-app-db', 'create-one-click'],
   setup: ['preflight', 'wire', 'resume'],
   intelligence: ['scorecard', 'graph', 'impact', 'janitor', 'cleanup'],

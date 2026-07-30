@@ -395,6 +395,7 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 | `envs:delete` | Delete one env var — **requires `confirm: true`** |
 | `envs:bulk-update` | Patch many env vars at once — **requires `confirm: true`** |
 | `envs:sync` | Diff/apply a local `.env` file or inline content — **application only**; see [Resource env vars](#-resource-environment-variables-envs) |
+| `envs:promote` | Compare and promote env vars between two applications in the **same Coolify instance** (product name: **env.promote**); preview by default — see [Resource env vars](#-resource-environment-variables-envs) |
 
 ### 📈 `deployment` — deploy tracking
 
@@ -458,20 +459,24 @@ Manage Coolify runtime configuration on applications, services, and databases th
 
 | Tool | `envs:*` actions | Notes |
 |------|------------------|-------|
-| `application` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `envs:sync` | Only tool with local `.env` sync |
+| `application` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `envs:sync`, `envs:promote` | Only tool with local `.env` sync and cross-app env promote |
 | `service` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` | No sync — use `application` for `.env` diff/apply |
 | `database` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` | **`is_preview` is not supported** on database env vars (Coolify OpenAPI gap) |
 
-**Confirm gates:** `envs:delete` and `envs:bulk-update` always require `confirm: true` on all three tools. On `application` only, `envs:sync` requires `confirm: true` when applying (`dry_run: false`, the default) or when `prune: true`.
+**Confirm gates:** `envs:delete` and `envs:bulk-update` always require `confirm: true` on all three tools. On `application` only, `envs:sync` requires `confirm: true` when applying (`dry_run: false`, the default) or when `prune: true`. `envs:promote` requires `confirm: true` when applying (`dry_run: false`).
 
 **Reveal policy:** Env values render as `***` by default. Pass `reveal: true` only after the human explicitly asks for plaintext — the agent must not auto-set `reveal: true`.
 
 **`envs:sync` semantics (application only):** Supply exactly one of `env_file` (local path) or `env_content` (inline `.env` text). `dry_run: true` returns a diff (`added`, `updated`, `unchanged`, `removed`, optional `conflicts`) with no API writes; default `dry_run: false` applies changes. Remote keys missing locally are never deleted unless `prune: true` (also requires `confirm: true`). When local and remote values differ, set `conflict_policy` to `overwrite`, `keep_remote`, or `abort` after asking the human — apply with conflicts and no policy returns `COOLIFY_CONFIRM_REQUIRED`.
 
+**`envs:promote` semantics (application only, same instance):** Product docs may say **env.promote**; the implemented action is `application.envs:promote`. Compare env vars between `source_uuid` and `target_uuid` (two applications in one Coolify instance — no cross-instance fan-out). Default `dry_run: true` returns preview buckets (`only_in_source`, `only_in_target`, `value_mismatches`) plus structured `promotion_suggestions` with follow-up tool/action hints; values are masked unless `reveal: true`. Applying copies into the target requires `confirm: true`. Default `conflict_policy` is `keep_remote` — mismatched target keys are skipped unless the human opts into `overwrite` or `abort`.
+
 ```js
 application({ action: "envs:list", uuid: "<app-uuid>" })
 application({ action: "envs:sync", uuid: "<app-uuid>", env_file: "./.env", dry_run: true })
 application({ action: "envs:sync", uuid: "<app-uuid>", env_content: "API_KEY=EXAMPLE_VALUE\n", confirm: true, conflict_policy: "overwrite" })
+application({ action: "envs:promote", source_uuid: "<source-app-uuid>", target_uuid: "<target-app-uuid>", dry_run: true })
+application({ action: "envs:promote", source_uuid: "<source-app-uuid>", target_uuid: "<target-app-uuid>", dry_run: false, confirm: true, conflict_policy: "keep_remote" })
 ```
 
 ### 💾 Database backups (`backup:*`)
@@ -591,13 +596,16 @@ Read/write/sync `.coolify/manifest.json` — a workspace cache, **not** source o
 | `clear` | Wipe the manifest — **requires `confirm: true`** |
 | `sync` | Reconcile cache against live Coolify API (optional `dry_run`, `prune` with `confirm`) |
 | `diff` | Non-destructive diff report — always safe to run |
+| `audit` | **Read-only / advisory** drift audit: severity-tagged `findings[]` with structured remediation hints (which tool/action to call next); optional `diff_support` detail — never mutates manifest or live state |
 
 ```js
 manifest({ action: "sync", dry_run: true })
 manifest({ action: "diff" })
+manifest({ action: "audit" })
 ```
 
 > [!NOTE]
+> `manifest.audit` compares local `.coolify/manifest.json` vs live Coolify inventory for the scoped instance. Findings name follow-up actions such as `manifest.sync` or `manifest.upsert` — hints are advisory only; nothing auto-heals. Keep using `manifest.diff` for the raw structural reconciliation report.
 > Best-effort auto-hooks update the manifest after app/service/DB mutations. Stale UUID 404s elsewhere surface `_meta.manifestWarning` — run `manifest({ action: "sync" })` to reconcile.
 
 ### 🧭 `setup` — guided project wiring
@@ -627,7 +635,9 @@ Destructive **emergency** actions follow a strict two-step pattern:
 
 Regular app/service/database mutations (start, stop, deploy, …) are **not** behind this gate — they simply follow Coolify's own API semantics, since they're scoped to one resource rather than your whole fleet.
 
-**Environment variables:** `envs:delete` and `envs:bulk-update` require `confirm: true` on application, service, and database. `envs:sync` apply (`dry_run: false`) and `envs:sync` with `prune: true` require `confirm: true` on application only. `dry_run: true` sync previews never mutate.
+**Environment variables:** `envs:delete` and `envs:bulk-update` require `confirm: true` on application, service, and database. `envs:sync` apply (`dry_run: false`) and `envs:sync` with `prune: true` require `confirm: true` on application only. `dry_run: true` sync previews never mutate. `envs:promote` apply (`dry_run: false`) requires `confirm: true` on application; default `conflict_policy` is `keep_remote`.
+
+**Drift & heal (read-only audit, preview-first promote):** `manifest.audit` is advisory-only — it never writes manifest or live state. `application.envs:promote` (product name **env.promote**) previews by default; values stay masked unless `reveal: true`. Both stay within one Coolify instance per call.
 
 ### Secret masking
 
@@ -730,6 +740,7 @@ Package **1.1.1** ships **19 tools** and four MCP prompts for Coolify API **4.1.
 | Deployment watch and bounded build logs | ✅ Shipped |
 | Application runtime logs, bounded follow, and `diagnose.logs` | ✅ Shipped |
 | Instance intelligence (`intelligence.scorecard`, `graph`, `impact`, `janitor`, `cleanup`) | ✅ Shipped |
+| Drift & heal (`manifest.audit`, `application.envs:promote` / **env.promote**) | ✅ Shipped |
 | Application, service, and database CRUD | ✅ Shipped |
 | Dynamic one-click type discovery and recipes | ✅ Shipped |
 | Setup wizard and four IDE workflow skills | ✅ Shipped |
@@ -747,7 +758,7 @@ Package **1.1.1** ships **19 tools** and four MCP prompts for Coolify API **4.1.
 | Capability discovery via `system.version` | ✅ Shipped |
 | Deployment build logs via `deployment.logs` | ✅ Shipped |
 
-> **Capability discovery & build logs:** `system({ action: "version" })` returns `coolifyVersion` (replacing the legacy `version` field), `mcpVersion`, and a `capabilities` map of Coolify 4.1.2 feature flags. For **app triage + bounded runtime tail** in one call, use `diagnose({ action: "logs", mode: "full", uuid: "..." })` — check `capabilities.diagnose_logs`. For **instance health, dependency graph, impact, and janitor/cleanup**, use `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — check `capabilities.intelligence_scorecard` (and sibling `intelligence_*` keys); `cleanup` requires `confirm: true`. For deployment **build** logs, prefer `deployment({ action: "logs", deployment_uuid: "..." })` (or `application_uuid` to resolve the newest deployment). The `application.logs` path with `deployment_uuid` still works for back-compat. For **runtime** log follow, use `application({ action: "logs", uuid: "...", follow: true })` — bounded MCP polling until idle or timeout; check `capabilities.application_logs_follow` via `system.version`.
+> **Capability discovery & build logs:** `system({ action: "version" })` returns `coolifyVersion` (replacing the legacy `version` field), `mcpVersion`, and a `capabilities` map of Coolify 4.1.2 feature flags. For **app triage + bounded runtime tail** in one call, use `diagnose({ action: "logs", mode: "full", uuid: "..." })` — check `capabilities.diagnose_logs`. For **instance health, dependency graph, impact, and janitor/cleanup**, use `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — check `capabilities.intelligence_scorecard` (and sibling `intelligence_*` keys); `cleanup` requires `confirm: true`. For **manifest drift audit** and **cross-app env promote**, use `manifest({ action: "audit" })` and `application({ action: "envs:promote", source_uuid, target_uuid, ... })` — check `capabilities.manifest_audit` and `capabilities.envs_promote` (MCP composites over existing reads/env CRUD, not Coolify-native REST endpoints). For deployment **build** logs, prefer `deployment({ action: "logs", deployment_uuid: "..." })` (or `application_uuid` to resolve the newest deployment). The `application.logs` path with `deployment_uuid` still works for back-compat. For **runtime** log follow, use `application({ action: "logs", uuid: "...", follow: true })` — bounded MCP polling until idle or timeout; check `capabilities.application_logs_follow` via `system.version`.
 
 > [!WARNING]
 > Coolify 4.1.x does not expose stable service or database log endpoints. This server therefore does not claim or register service/database log actions. Use application runtime logs and deployment build logs until compatible upstream APIs are available.
