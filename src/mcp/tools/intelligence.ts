@@ -28,6 +28,10 @@ import {
   findDependents,
   findJanitorCandidates,
 } from '../../utils/resource-graph.js';
+import { handleApplicationAction } from './application.js';
+import { handleDatabaseAction } from './database.js';
+import { validateConfirmGate } from './emergency.js';
+import { handleServiceAction } from './service.js';
 import {
   createFlatActionSchema,
   parseWithInstanceRouting,
@@ -578,11 +582,12 @@ export const intelligenceActionSchema = createFlatActionSchema(
       .array(
         z.object({
           type: z.enum(['application', 'service', 'database']),
-          uuid: z.string().uuid(),
+          uuid: z.string().min(1),
         }),
       )
+      .min(1)
       .optional()
-      .describe('Cleanup target list'),
+      .describe('Cleanup target list (explicit UUIDs only)'),
     confirm: z
       .boolean()
       .optional()
@@ -626,15 +631,6 @@ export type IntelligenceAction = z.infer<typeof intelligenceActionSchema>;
 export type IntelligenceActionResult =
   | ReadResponse<unknown>
   | McpErrorResult;
-
-function notImplemented(action: string, pendingPlan: string): never {
-  throw new CoolifyApiError({
-    code: 'COOLIFY_NOT_IMPLEMENTED',
-    message: `intelligence.${action} is not implemented yet (pending ${pendingPlan}).`,
-    recoveryHints: RECOVERY_HINTS.COOLIFY_NOT_IMPLEMENTED,
-    data: { action, pending_plan: pendingPlan },
-  });
-}
 
 async function loadResourceGraph(env: EnvConfig) {
   const resources = await fetchResources(
@@ -806,6 +802,133 @@ export async function handleIntelligenceGraph(
   );
 }
 
+type CleanupTarget = {
+  type: 'application' | 'service' | 'database';
+  uuid: string;
+};
+
+type CleanupItemResult = {
+  type: CleanupTarget['type'];
+  uuid: string;
+  ok: boolean;
+  deleted?: boolean;
+  error?: ReturnType<typeof toStructuredError>;
+};
+
+function isDomainErrorResult(
+  result: unknown,
+): result is McpErrorResult {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'isError' in result &&
+    (result as McpErrorResult).isError === true
+  );
+}
+
+/**
+ * Confirm-gated batch cleanup reusing domain delete handlers (JANI-02, D-13, D-14).
+ * SAF-02: delete_volumes / delete_configurations default false.
+ */
+export async function handleIntelligenceCleanup(
+  parsed: IntelligenceAction,
+  env: EnvConfig,
+): Promise<ReadResponse<unknown>> {
+  const targets = (parsed.targets ?? []) as CleanupTarget[];
+
+  if (targets.length === 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message:
+        "Action 'cleanup' requires a non-empty targets array of {type, uuid}.",
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      data: {
+        action: 'cleanup',
+        hint: 'Call intelligence.janitor first, then pass explicit targets.',
+      },
+    });
+  }
+
+  await validateConfirmGate(
+    'cleanup',
+    parsed.confirm === true,
+    targets.map((t) => ({ uuid: t.uuid, name: t.type })),
+  );
+
+  const deleteVolumes = parsed.delete_volumes ?? false;
+  const deleteConfigurations = parsed.delete_configurations ?? false;
+
+  const results: CleanupItemResult[] = [];
+
+  for (const target of targets) {
+    const deleteArgs = {
+      action: 'delete' as const,
+      uuid: target.uuid,
+      confirm: true as const,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
+      instance: parsed.instance,
+    };
+
+    try {
+      let domainResult: unknown;
+      switch (target.type) {
+        case 'application':
+          domainResult = await handleApplicationAction(deleteArgs, env);
+          break;
+        case 'service':
+          domainResult = await handleServiceAction(deleteArgs, env);
+          break;
+        case 'database':
+          domainResult = await handleDatabaseAction(deleteArgs, env);
+          break;
+        default: {
+          const _exhaustive: never = target.type;
+          throw new Error(`Unknown cleanup target type: ${String(_exhaustive)}`);
+        }
+      }
+
+      if (isDomainErrorResult(domainResult)) {
+        results.push({
+          type: target.type,
+          uuid: target.uuid,
+          ok: false,
+          error: domainResult.structuredContent.error,
+        });
+        continue;
+      }
+
+      results.push({
+        type: target.type,
+        uuid: target.uuid,
+        ok: true,
+        deleted: true,
+      });
+    } catch (error) {
+      results.push({
+        type: target.type,
+        uuid: target.uuid,
+        ok: false,
+        error: toStructuredError(error),
+      });
+    }
+  }
+
+  return buildReadResponse(
+    {
+      ok: results.every((r) => r.ok),
+      results,
+      delete_volumes: deleteVolumes,
+      delete_configurations: deleteConfigurations,
+      hint: 'Prefer intelligence.janitor preview before cleanup mutations.',
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
 export async function handleIntelligenceAction(
   args: unknown,
   env: EnvConfig,
@@ -824,7 +947,7 @@ export async function handleIntelligenceAction(
       case 'janitor':
         return await handleIntelligenceJanitor(parsed, routingEnv);
       case 'cleanup':
-        return notImplemented('cleanup', '28-04');
+        return await handleIntelligenceCleanup(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(

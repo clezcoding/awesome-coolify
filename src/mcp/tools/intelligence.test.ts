@@ -1,6 +1,6 @@
 /**
  * Phase 28 intelligence MCP tool tests.
- * Graph + scorecard/findings/partial/impact/janitor GREEN (Plans 28-01..03); cleanup remains it.fails until 28-04.
+ * Graph + scorecard/findings/partial/impact/janitor/cleanup GREEN (Plans 28-01..04).
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { EnvConfig } from '../../config/env.js';
@@ -530,60 +530,56 @@ describe('janitor (JANI-01, D-11, D-12)', () => {
 });
 
 describe('cleanup (JANI-02, D-13, D-14, T-28-01, T-28-02)', () => {
-  it.fails(
-    'without confirm true → COOLIFY_CONFIRM_REQUIRED and domain delete clients not called (T-28-01)',
-    async () => {
-      const { handleIntelligenceAction, isIntelligenceErrorResult } =
-        await import('./intelligence.js');
+  it('without confirm true → COOLIFY_CONFIRM_REQUIRED and domain delete clients not called (T-28-01)', async () => {
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
 
-      const result = await handleIntelligenceAction(
-        {
-          action: 'cleanup',
-          targets: [{ type: 'application', uuid: 'app-uuid-1' }],
-          confirm: false,
-        },
-        testEnv,
-      );
+    const result = await handleIntelligenceAction(
+      {
+        action: 'cleanup',
+        targets: [{ type: 'application', uuid: 'app-uuid-1' }],
+        confirm: false,
+      },
+      testEnv,
+    );
 
-      expect(isIntelligenceErrorResult(result)).toBe(true);
-      if (!isIntelligenceErrorResult(result)) return;
+    expect(isIntelligenceErrorResult(result)).toBe(true);
+    if (!isIntelligenceErrorResult(result)) return;
 
-      expect(result.structuredContent.error.code).toBe(
-        'COOLIFY_CONFIRM_REQUIRED',
-      );
-      expect(deleteApplication).not.toHaveBeenCalled();
-      expect(deleteService).not.toHaveBeenCalled();
-      expect(deleteDatabase).not.toHaveBeenCalled();
-    },
-  );
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_CONFIRM_REQUIRED',
+    );
+    expect(deleteApplication).not.toHaveBeenCalled();
+    expect(deleteService).not.toHaveBeenCalled();
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
 
-  it.fails(
-    'with confirm true and no delete_volumes/delete_configurations → delete handlers receive both flags false (SAF-02, T-28-02)',
-    async () => {
-      const { handleIntelligenceAction, isIntelligenceErrorResult } =
-        await import('./intelligence.js');
+  it('with confirm true and no delete_volumes/delete_configurations → delete handlers receive both flags false (SAF-02, T-28-02)', async () => {
+    vi.mocked(deleteApplication).mockResolvedValue({ ok: true });
 
-      const result = await handleIntelligenceAction(
-        {
-          action: 'cleanup',
-          targets: [{ type: 'application', uuid: 'app-uuid-1' }],
-          confirm: true,
-        },
-        testEnv,
-      );
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
 
-      expect(isIntelligenceErrorResult(result)).toBe(false);
+    const result = await handleIntelligenceAction(
+      {
+        action: 'cleanup',
+        targets: [{ type: 'application', uuid: 'app-uuid-1' }],
+        confirm: true,
+      },
+      testEnv,
+    );
 
-      expect(deleteApplication).toHaveBeenCalledWith(
-        testEnv.COOLIFY_URL,
-        testEnv.COOLIFY_TOKEN,
-        'app-uuid-1',
-        expect.objectContaining({
-          delete_volumes: false,
-          delete_configurations: false,
-        }),
-        testEnv.COOLIFY_VERIFY_SSL,
-      );
-    },
-  );
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+
+    expect(deleteApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({
+        delete_volumes: false,
+        delete_configurations: false,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
 });
