@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 1
+open_count: 2
 waived_count: 0
 fixed_count: 0
-total_count: 1
-last_updated: 2026-07-30T01:48:17.514Z
+total_count: 2
+last_updated: 2026-07-30T01:58:59.837Z
 ---
 
 # Broken Windows Ledger
@@ -16,6 +16,7 @@ last_updated: 2026-07-30T01:48:17.514Z
 | id | phase | kind | file | line | description | status | reason | recorded_at | resolved_at |
 |----|-------|------|------|------|-------------|--------|--------|-------------|-------------|
 | 1 | 28 | stub | src/mcp/tools/intelligence.ts |  | scorecard/impact/janitor/cleanup throw COOLIFY_NOT_IMPLEMENTED pending 28-02..28-04 | open |  | 2026-07-30T01:48:17.514Z |  |
+| 2 | 28 | deviation | src/mcp/tools/intelligence.ts |  | Combined Task1+2 commit due to husky related-test gate; bracket severity reads | open |  | 2026-07-30T01:58:59.837Z |  |
 
 ````json
 [
@@ -29,6 +30,18 @@ last_updated: 2026-07-30T01:48:17.514Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-07-30T01:48:17.514Z",
+    "resolved_at": null
+  },
+  {
+    "id": 2,
+    "kind": "deviation",
+    "phase": "28",
+    "file": "src/mcp/tools/intelligence.ts",
+    "line": null,
+    "description": "Combined Task1+2 commit due to husky related-test gate; bracket severity reads",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-07-30T01:58:59.837Z",
     "resolved_at": null
   }
 ]

@@ -5,15 +5,15 @@ milestone_name: Agent Intelligence
 current_phase: 28
 current_phase_name: Instance Intelligence
 status: executing
-stopped_at: Completed 28-01-PLAN.md
-last_updated: "2026-07-30T01:48:18.034Z"
+stopped_at: Completed 28-02-PLAN.md
+last_updated: "2026-07-30T01:58:59.553Z"
 last_activity: 2026-07-30
 last_activity_desc: Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 28 of 31 (Instance Intelligence)
-Plan: 2 of 05
+Plan: 3 of 05
 Status: Ready to execute
 Last activity: 2026-07-30 — Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
 
-Progress: [████░░░░░░] 40%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -161,6 +161,7 @@ Progress: [████░░░░░░] 40%
 | Phase 27-branding-docs-stale-fix P03 | 5min | 3 tasks | 7 files |
 | Phase 28 P00 | 4min | 2 tasks | 4 files |
 | Phase 28 P01 | 8min | 2 tasks | 6 files |
+| Phase 28 P02 | 9min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -431,6 +432,8 @@ Progress: [████░░░░░░] 40%
 - [Phase 28-instance-intelligence]: system.test.ts keeps six-key green it; eleven-key intelligence_* is it.fails only until Plan 28-04
 - [Phase ?]: Instance routing via withInstanceRoutingSchema only (no instance in flat schema shape — Zod 4)
 - [Phase ?]: Deferred intelligence actions throw COOLIFY_NOT_IMPLEMENTED naming pending plan
+- [Phase ?]: Scorecard deductive weights: 100/−30 critical/−15 high/−5 info (D-06)
+- [Phase ?]: Scorecard factor failure is whole-factor via allSettled (D-17 partial test)
 
 ### Pending Todos
 
@@ -507,8 +510,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T01:48:18.025Z
-Stopped at: Completed 28-01-PLAN.md
+Last session: 2026-07-30T01:58:59.543Z
+Stopped at: Completed 28-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
