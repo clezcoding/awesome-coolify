@@ -166,6 +166,22 @@ actions:
   - action: environment.delete_preview
     client: [fetchResources, fetchProject, fetchEnvironment]
     openapi: ["GET /resources", "GET /projects/{uuid}", "GET /projects/{uuid}/{environment_name_or_uuid}"]
+  # Phase 28 MCP composites (Wave 0) — regenerate COVERAGE.md in Plan 28-04
+  - action: intelligence.scorecard
+    client: [fetchResources, fetchServers, fetchAppDeployments, fetchDatabaseBackups]
+    openapi: ["GET /resources", "GET /servers", "GET /deployments/applications/{uuid}", "GET /databases/{uuid}/backups"]
+  - action: intelligence.graph
+    client: [fetchResources, fetchService]
+    openapi: ["GET /resources", "GET /services/{uuid}"]
+  - action: intelligence.impact
+    client: [fetchResources, fetchService]
+    openapi: ["GET /resources", "GET /services/{uuid}"]
+  - action: intelligence.janitor
+    client: [fetchResources, fetchService]
+    openapi: ["GET /resources", "GET /services/{uuid}"]
+  - action: intelligence.cleanup
+    client: [deleteApplication, deleteService, deleteDatabase]
+    openapi: ["DELETE /applications/{uuid}", "DELETE /services/{uuid}", "DELETE /databases/{uuid}"]
   - action: instance.list
     client: []
     openapi: []

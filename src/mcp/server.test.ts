@@ -53,17 +53,18 @@ describe('toolOutputSchema', () => {
 });
 
 describe('MCP server tool registration', () => {
-  it('registers system meta resource diagnose application deployment service database private_key instance manifest server project environment and docs tools', () => {
+  it('registers system meta resource diagnose intelligence application deployment service database private_key instance manifest server project environment and docs tools', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
     );
     const matches = source.match(/registerTool\(/g) ?? [];
-    expect(matches.length).toBe(18);
+    expect(matches.length).toBe(19);
     expect(source).toContain("registerTool(\n    'system'");
     expect(source).toContain("registerTool(\n    'meta'");
     expect(source).toContain("registerTool(\n    'resource'");
     expect(source).toContain("registerTool(\n    'diagnose'");
+    expect(source).toContain("registerTool(\n    'intelligence'");
     expect(source).toContain("registerTool(\n    'application'");
     expect(source).toContain("registerTool(\n    'emergency'");
     expect(source).toContain("registerTool(\n    'deployment'");
@@ -82,7 +83,7 @@ describe('MCP server tool registration', () => {
     expect(source).toContain("registerTool(\n    'setup'");
   });
 
-  it('wraps 13 routed tool inputSchemas with withInstanceRoutingSchema (MCP boundary)', () => {
+  it('wraps 14 routed tool inputSchemas with withInstanceRoutingSchema (MCP boundary)', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'src/mcp/server.ts'),
       'utf8',
@@ -94,6 +95,7 @@ describe('MCP server tool registration', () => {
       'systemActionSchema',
       'resourceActionSchema',
       'diagnoseToolSchema',
+      'intelligenceActionSchema',
       'applicationActionMcpSchema',
       'emergencyToolSchema',
       'deploymentToolSchema',
@@ -172,7 +174,7 @@ describe('MCP server tool registration', () => {
     expect(source).toMatch(/'diagnose'[\s\S]*diagnoseActionsCatalog/);
     const diagnoseBlock = source.slice(
       source.indexOf("registerTool(\n    'diagnose'"),
-      source.indexOf("registerTool(\n    'application'"),
+      source.indexOf("registerTool(\n    'intelligence'"),
     );
     expect(diagnoseBlock).not.toMatch(/readOnlyHint:\s*true/);
   });
@@ -248,6 +250,7 @@ describe('MCP server tool registration', () => {
       'meta',
       'resource',
       'diagnose',
+      'intelligence',
       'application',
       'emergency',
       'deployment',

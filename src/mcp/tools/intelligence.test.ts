@@ -1,0 +1,585 @@
+/**
+ * Phase 28 intelligence MCP tool tests.
+ * Graph + scorecard/findings/partial/impact/janitor/cleanup GREEN (Plans 28-01..04).
+ */
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import type { EnvConfig } from '../../config/env.js';
+import { CoolifyApiError } from '../../utils/errors.js';
+import { mockMixedResources, mockMixedServers } from '../../../tests/fixtures/coolify-mixed-health.js';
+
+vi.mock('../../api/client.js', () => ({
+  fetchResources: vi.fn(),
+  fetchServers: vi.fn(),
+  fetchService: vi.fn(),
+  fetchAppDeployments: vi.fn(),
+  fetchDatabaseBackups: vi.fn(),
+  deleteApplication: vi.fn(),
+  deleteService: vi.fn(),
+  deleteDatabase: vi.fn(),
+}));
+
+import {
+  fetchResources,
+  fetchServers,
+  fetchService,
+  fetchAppDeployments,
+  fetchDatabaseBackups,
+  deleteApplication,
+  deleteService,
+  deleteDatabase,
+} from '../../api/client.js';
+
+const testEnv: EnvConfig = {
+  COOLIFY_URL: 'https://coolify.example.com',
+  COOLIFY_TOKEN: 'test-token-value-xyz',
+  COOLIFY_VERIFY_SSL: true,
+  COOLIFY_MCP_LOG: 'info',
+};
+
+const graphFlatResources = [
+  {
+    uuid: 'db-uuid-1',
+    name: 'postgres-main',
+    type: 'database',
+    status: 'running:healthy',
+  },
+  {
+    uuid: 'app-uuid-1',
+    name: 'api',
+    type: 'application',
+    status: 'running:healthy',
+    database_uuid: 'db-uuid-1',
+  },
+  {
+    uuid: 'svc-uuid-1',
+    name: 'wordpress',
+    type: 'service',
+    status: 'running:healthy',
+  },
+  {
+    uuid: 'child-app',
+    name: 'wp-app',
+    type: 'application',
+    status: 'running:healthy',
+    application_uuid: 'app-uuid-1',
+  },
+];
+
+const janitorResources = [
+  {
+    uuid: 'db-stopped',
+    name: 'stopped-postgres',
+    type: 'database',
+    status: 'exited:0',
+    project: { name: 'prod', uuid: 'proj-1' },
+    server: { name: 'online-node', uuid: 'srv-online' },
+    updated_at: '2026-06-01T00:00:00.000Z',
+  },
+  {
+    uuid: 'app-orphan',
+    name: 'lonely-app',
+    type: 'application',
+    status: 'running:healthy',
+    project: { name: 'prod', uuid: 'proj-1' },
+    server: { name: 'online-node', uuid: 'srv-online' },
+    updated_at: '2026-07-12T02:30:00.000Z',
+  },
+  {
+    uuid: 'app-recent-stop',
+    name: 'recent-stop',
+    type: 'application',
+    status: 'stopped',
+    project: { name: 'prod', uuid: 'proj-1' },
+    server: { name: 'online-node', uuid: 'srv-online' },
+    updated_at: new Date().toISOString(),
+  },
+];
+
+beforeEach(() => {
+  vi.mocked(fetchResources).mockReset();
+  vi.mocked(fetchServers).mockReset();
+  vi.mocked(fetchService).mockReset();
+  vi.mocked(fetchAppDeployments).mockReset();
+  vi.mocked(fetchDatabaseBackups).mockReset();
+  vi.mocked(deleteApplication).mockReset();
+  vi.mocked(deleteService).mockReset();
+  vi.mocked(deleteDatabase).mockReset();
+
+  vi.mocked(fetchResources).mockResolvedValue(mockMixedResources);
+  vi.mocked(fetchServers).mockResolvedValue(mockMixedServers);
+  vi.mocked(fetchAppDeployments).mockResolvedValue([
+    {
+      deployment_uuid: 'dep-fail',
+      status: 'failed',
+      created_at: '2026-07-12T02:00:00.000Z',
+      updated_at: '2026-07-12T02:10:00.000Z',
+    },
+  ]);
+  vi.mocked(fetchDatabaseBackups).mockResolvedValue([]);
+  vi.mocked(fetchService).mockResolvedValue({
+    uuid: 'svc-uuid-1',
+    name: 'wordpress',
+    applications: [{ uuid: 'svc-child-app', name: 'wp-app' }],
+    databases: [{ uuid: 'svc-child-db', name: 'wp-db' }],
+  });
+  vi.mocked(deleteApplication).mockResolvedValue({ message: 'Deleted.' });
+  vi.mocked(deleteService).mockResolvedValue({ message: 'Deleted.' });
+  vi.mocked(deleteDatabase).mockResolvedValue({ message: 'Deleted.' });
+});
+
+describe('scorecard (INTEL-01, D-04)', () => {
+  it(
+    'returns factors deployments/backups/exited_resources/diagnose_scan + overall severity',
+    async () => {
+      const { handleIntelligenceAction, isIntelligenceErrorResult } =
+        await import('./intelligence.js');
+
+      const result = await handleIntelligenceAction(
+        { action: 'scorecard' },
+        testEnv,
+      );
+
+      expect(isIntelligenceErrorResult(result)).toBe(false);
+      if (isIntelligenceErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      const factors = data.factors as Record<string, unknown>;
+      expect(factors).toMatchObject({
+        deployments: expect.anything(),
+        backups: expect.anything(),
+        exited_resources: expect.anything(),
+        diagnose_scan: expect.anything(),
+      });
+      expect(['critical', 'high', 'info', 'ok']).toContain(data['severity']);
+    },
+  );
+});
+
+describe('findings (INTEL-02, D-05)', () => {
+  it(
+    'findings[] include severity + FollowUpHint-shaped recovery hints',
+    async () => {
+      const { handleIntelligenceAction, isIntelligenceErrorResult } =
+        await import('./intelligence.js');
+
+      const result = await handleIntelligenceAction(
+        { action: 'scorecard' },
+        testEnv,
+      );
+
+      expect(isIntelligenceErrorResult(result)).toBe(false);
+      if (isIntelligenceErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      const findings = data.findings as Array<Record<string, unknown>>;
+      expect(Array.isArray(findings)).toBe(true);
+      expect(findings.length).toBeGreaterThan(0);
+
+      for (const finding of findings) {
+        expect(['critical', 'high', 'info']).toContain(finding['severity']);
+        const hint = finding.hint ?? finding.suggestion ?? finding.recovery_hint;
+        expect(hint).toMatchObject({
+          tool: expect.any(String),
+          action: expect.any(String),
+          args: expect.any(Object),
+          label: expect.any(String),
+        });
+      }
+    },
+  );
+});
+
+describe('partial (D-17 soft partial)', () => {
+  it(
+    'one factor reject leaves siblings present with failed flag on rejected factor',
+    async () => {
+      vi.mocked(fetchAppDeployments).mockRejectedValue(
+        new CoolifyApiError({
+          code: 'COOLIFY_500',
+          message: 'Coolify API returned HTTP 500',
+          recoveryHints: ['Retry later'],
+          httpStatus: 500,
+        }),
+      );
+
+      const { handleIntelligenceAction, isIntelligenceErrorResult } =
+        await import('./intelligence.js');
+
+      const result = await handleIntelligenceAction(
+        { action: 'scorecard' },
+        testEnv,
+      );
+
+      expect(isIntelligenceErrorResult(result)).toBe(false);
+      if (isIntelligenceErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      const factors = data.factors as Record<string, Record<string, unknown>>;
+      expect(factors.deployments?.failed).toMatchObject({
+        code: expect.any(String),
+      });
+      expect(factors.backups).toBeDefined();
+      expect(factors.exited_resources).toBeDefined();
+      expect(factors.diagnose_scan).toBeDefined();
+      expect(factors.backups).not.toHaveProperty('failed');
+    },
+  );
+});
+
+describe('graph (GRAPH-01, D-07, D-08)', () => {
+  it('edges from database_uuid and application_uuid on flat resources; service nested via fetchService; no fuzzy name edges', async () => {
+    vi.mocked(fetchResources).mockResolvedValue(graphFlatResources);
+    vi.mocked(fetchService).mockResolvedValue({
+      uuid: 'svc-uuid-1',
+      name: 'wordpress',
+      applications: [
+        { uuid: 'svc-child-app', name: 'wp-app', type: 'application' },
+      ],
+      databases: [{ uuid: 'svc-child-db', name: 'wp-db', type: 'database' }],
+    });
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      { action: 'graph' },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const edges = data.edges as Array<Record<string, unknown>>;
+    expect(Array.isArray(edges)).toBe(true);
+
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'database_uuid' &&
+          e.from_uuid === 'app-uuid-1' &&
+          e.to_uuid === 'db-uuid-1',
+      ),
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'application_uuid' &&
+          e.from_uuid === 'child-app' &&
+          e.to_uuid === 'app-uuid-1',
+      ),
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'service_child' &&
+          (e.from_uuid === 'svc-child-app' || e.to_uuid === 'svc-uuid-1'),
+      ),
+    ).toBe(true);
+
+    expect(fetchService).toHaveBeenCalled();
+    expect(
+      edges.every(
+        (e) =>
+          typeof e.from_uuid === 'string' && typeof e.to_uuid === 'string',
+      ),
+    ).toBe(true);
+    expect(edges.every((e) => e.relation !== 'fuzzy_name')).toBe(true);
+
+    const meta = data.meta as Record<string, unknown>;
+    expect(meta.services_enriched).toBe(1);
+  });
+
+  it('meta.services_enriched matches successful fetchService count; empty nested arrays invent no children', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'svc-empty',
+        name: 'bare-service',
+        type: 'service',
+        status: 'running:healthy',
+      },
+      {
+        uuid: 'svc-ok',
+        name: 'ok-service',
+        type: 'service',
+        status: 'running:healthy',
+      },
+    ]);
+    vi.mocked(fetchService).mockImplementation(async (_url, _token, uuid) => {
+      if (uuid === 'svc-empty') {
+        return { uuid: 'svc-empty', name: 'bare-service' };
+      }
+      return {
+        uuid: 'svc-ok',
+        name: 'ok-service',
+        applications: [{ uuid: 'nested-app', name: 'child', type: 'application' }],
+        databases: [],
+      };
+    });
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      { action: 'graph' },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const meta = data.meta as Record<string, unknown>;
+    const edges = data.edges as Array<Record<string, unknown>>;
+    const nodes = data.nodes as Array<Record<string, unknown>>;
+
+    expect(meta.services_enriched).toBe(2);
+    expect(fetchService).toHaveBeenCalledTimes(2);
+
+    expect(
+      edges.filter(
+        (e) => e.relation === 'service_child' && e.to_uuid === 'svc-empty',
+      ),
+    ).toHaveLength(0);
+    expect(nodes.some((n) => n.uuid === 'svc-empty')).toBe(true);
+
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'service_child' &&
+          e.from_uuid === 'nested-app' &&
+          e.to_uuid === 'svc-ok',
+      ),
+    ).toBe(true);
+  });
+
+  it('soft-fails individual fetchService errors into meta without failing whole graph', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'svc-bad',
+        name: 'broken',
+        type: 'service',
+        status: 'running',
+      },
+      {
+        uuid: 'svc-good',
+        name: 'good',
+        type: 'service',
+        status: 'running',
+      },
+      {
+        uuid: 'app-linked',
+        name: 'api',
+        type: 'application',
+        database_uuid: 'db-uuid-1',
+      },
+    ]);
+    vi.mocked(fetchService).mockImplementation(async (_url, _token, uuid) => {
+      if (uuid === 'svc-bad') {
+        throw new CoolifyApiError({
+          code: 'COOLIFY_500',
+          message: 'Coolify API returned HTTP 500',
+          recoveryHints: ['Retry later'],
+          httpStatus: 500,
+        });
+      }
+      return {
+        uuid: 'svc-good',
+        applications: [{ uuid: 'good-child', type: 'application' }],
+      };
+    });
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      { action: 'graph' },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const meta = data.meta as {
+      services_enriched: number;
+      service_fetch_errors?: Array<{ uuid: string; code?: string }>;
+    };
+    const edges = data.edges as Array<Record<string, unknown>>;
+
+    expect(meta.services_enriched).toBe(1);
+    expect(meta.service_fetch_errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          uuid: 'svc-bad',
+          code: 'COOLIFY_500',
+        }),
+      ]),
+    );
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'database_uuid' && e.from_uuid === 'app-linked',
+      ),
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'service_child' && e.from_uuid === 'good-child',
+      ),
+    ).toBe(true);
+  });
+});
+
+describe('impact (GRAPH-02, D-09, D-10)', () => {
+  it('returns direct_dependents then transitive_dependents within max_depth default 3; advisory true; no mutation', async () => {
+    const dbUuid = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const directUuid = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const transitiveUuid = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+
+    vi.mocked(fetchResources).mockResolvedValue([
+      { uuid: dbUuid, name: 'db', type: 'database', status: 'running' },
+      {
+        uuid: directUuid,
+        name: 'direct-child',
+        type: 'application',
+        status: 'running',
+        database_uuid: dbUuid,
+      },
+      {
+        uuid: transitiveUuid,
+        name: 'grand-child',
+        type: 'application',
+        status: 'running',
+        application_uuid: directUuid,
+      },
+    ]);
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      {
+        action: 'impact',
+        uuid: dbUuid,
+        type: 'database',
+        intent: 'delete',
+      },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.advisory).toBe(true);
+    expect(data.depth_cap ?? data.max_depth).toBe(3);
+    expect(data.intent).toBe('delete');
+
+    const direct = data.direct_dependents as Array<{ uuid: string }>;
+    const transitive = data.transitive_dependents as Array<{ uuid: string }>;
+    expect(direct.map((d) => d.uuid)).toContain(directUuid);
+    expect(transitive.map((d) => d.uuid)).toContain(transitiveUuid);
+    expect(direct.map((d) => d.uuid)).not.toContain(transitiveUuid);
+
+    expect(deleteApplication).not.toHaveBeenCalled();
+    expect(deleteService).not.toHaveBeenCalled();
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe('janitor (JANI-01, D-11, D-12)', () => {
+  it('lists stopped/exited, long_exited (stopped_days default 7), orphan; each has FollowUpHint suggestion + preview_only true', async () => {
+    vi.mocked(fetchResources).mockResolvedValue(janitorResources);
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      { action: 'janitor' },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const candidates = (data.candidates ?? data.items) as Array<
+      Record<string, unknown>
+    >;
+    expect(Array.isArray(candidates)).toBe(true);
+
+    const reasons = candidates.map((c) => c.reason);
+    expect(reasons).toEqual(
+      expect.arrayContaining(['stopped', 'long_exited', 'orphan']),
+    );
+
+    for (const candidate of candidates) {
+      expect(candidate.preview_only).toBe(true);
+      expect(candidate.suggestion).toMatchObject({
+        tool: expect.any(String),
+        action: expect.any(String),
+        args: expect.any(Object),
+        label: expect.any(String),
+      });
+    }
+
+    expect(deleteApplication).not.toHaveBeenCalled();
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
+});
+
+describe('cleanup (JANI-02, D-13, D-14, T-28-01, T-28-02)', () => {
+  it('without confirm true → COOLIFY_CONFIRM_REQUIRED and domain delete clients not called (T-28-01)', async () => {
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      {
+        action: 'cleanup',
+        targets: [{ type: 'application', uuid: 'app-uuid-1' }],
+        confirm: false,
+      },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(true);
+    if (!isIntelligenceErrorResult(result)) return;
+
+    expect(result.structuredContent.error.code).toBe(
+      'COOLIFY_CONFIRM_REQUIRED',
+    );
+    expect(deleteApplication).not.toHaveBeenCalled();
+    expect(deleteService).not.toHaveBeenCalled();
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
+
+  it('with confirm true and no delete_volumes/delete_configurations → delete handlers receive both flags false (SAF-02, T-28-02)', async () => {
+    vi.mocked(deleteApplication).mockResolvedValue({ ok: true });
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      {
+        action: 'cleanup',
+        targets: [{ type: 'application', uuid: 'app-uuid-1' }],
+        confirm: true,
+      },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+
+    expect(deleteApplication).toHaveBeenCalledWith(
+      testEnv.COOLIFY_URL,
+      testEnv.COOLIFY_TOKEN,
+      'app-uuid-1',
+      expect.objectContaining({
+        delete_volumes: false,
+        delete_configurations: false,
+      }),
+      testEnv.COOLIFY_VERIFY_SSL,
+    );
+  });
+});

@@ -29,6 +29,31 @@ export const COOLIFY_412_CAPABILITIES = {
     coolify_min_version: '4.1.2',
     note: 'One-shot app diagnose + bounded log tail via diagnose.logs (MCP composite; not a Coolify REST endpoint)',
   },
+  intelligence_scorecard: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite instance health scorecard on Coolify 4.1.x reads (not a Coolify REST endpoint)',
+  },
+  intelligence_graph: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite live dependency graph on Coolify 4.1.x reads (not a Coolify REST endpoint)',
+  },
+  intelligence_impact: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite advisory impact analysis on Coolify 4.1.x reads (not a Coolify REST endpoint)',
+  },
+  intelligence_janitor: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite read-only orphan/stopped cleanup candidates (not a Coolify REST endpoint)',
+  },
+  intelligence_cleanup: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite confirm-gated cleanup reusing domain delete handlers (not a Coolify REST endpoint)',
+  },
 } as const satisfies Record<
   string,
   { supported: boolean; coolify_min_version: string; note?: string }

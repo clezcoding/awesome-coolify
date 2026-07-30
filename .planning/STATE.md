@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.2
-milestone_name: Observability & DX
-status: Awaiting next milestone
-stopped_at: Completed 27-03-PLAN.md
-last_updated: "2026-07-29T03:45:00.000Z"
-last_activity: 2026-07-29
-last_activity_desc: "Completed quick task 260729-7mc: workspace deep-clean, branch prune, Dependabot baseline"
+milestone: v3.3
+milestone_name: Agent Intelligence
+current_phase: 29
+current_phase_name: Drift & Heal
+status: "Phase 28 shipped — PR #108"
+stopped_at: Phase 28 complete — Instance Intelligence verified
+last_updated: "2026-07-30T02:30:23.015Z"
+last_activity: 2026-07-30
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
-current_phase: 27
-current_phase_name: Branding & Docs Stale Fix
+  completed_phases: 1
+  total_plans: 5
+  completed_plans: 5
+  percent: 25
+last_activity_desc: Phase 28 complete, transitioned to Phase 29
 ---
 
 # Project State
@@ -24,20 +24,22 @@ current_phase_name: Branding & Docs Stale Fix
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Planning next milestone (v3.3 service/DB logs)
+**Current focus:** v3.3 Agent Intelligence — Phase 28 Instance Intelligence
 
 ## Current Position
 
-Phase: Milestone v3.2 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-29 — Completed quick task 260729-7mc: workspace deep-clean, branch prune, Dependabot baseline
+Phase: 29 of 31 (Drift & Heal)
+Plan: Not started
+Status: Phase 28 shipped — PR #108
+Last activity: 2026-07-30
+
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 120
+- Total plans completed: 125
 - Average duration: —
 - Total execution time: —
 
@@ -69,6 +71,7 @@ Last activity: 2026-07-29 — Completed quick task 260729-7mc: workspace deep-cl
 | 25 | 6 | - | - |
 | 26 | 4 | - | - |
 | 27 | 4 | - | - |
+| 28 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -157,6 +160,11 @@ Last activity: 2026-07-29 — Completed quick task 260729-7mc: workspace deep-cl
 | Phase 27-branding-docs-stale-fix P01 | 5min | 4 tasks | 7 files |
 | Phase 27-branding-docs-stale-fix P02 | 15min | 3 tasks | 1 files |
 | Phase 27-branding-docs-stale-fix P03 | 5min | 3 tasks | 7 files |
+| Phase 28 P00 | 4min | 2 tasks | 4 files |
+| Phase 28 P01 | 8min | 2 tasks | 6 files |
+| Phase 28 P02 | 9min | 2 tasks | 2 files |
+| Phase 28 P03 | 5min | 2 tasks | 3 files |
+| Phase 28 P04 | 6min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -423,6 +431,17 @@ Last activity: 2026-07-29 — Completed quick task 260729-7mc: workspace deep-cl
 - [Phase ?]: D-05: client limitation accepted — server correct, Cursor UI letter A only
 - [Phase ?]: D-07: PROJECT opener 1.0.1 shipped wording aligned with table L15
 - [Phase ?]: D-09: CHANGELOG and milestone archives untouched during DOC-01 sweep
+- [Phase 28-instance-intelligence]: Dynamic import inside it.fails only for nonexistent intelligence/resource-graph modules (Wave 0)
+- [Phase 28-instance-intelligence]: system.test.ts keeps six-key green it; eleven-key intelligence_* is it.fails only until Plan 28-04
+- [Phase ?]: Instance routing via withInstanceRoutingSchema only (no instance in flat schema shape — Zod 4)
+- [Phase ?]: Deferred intelligence actions throw COOLIFY_NOT_IMPLEMENTED naming pending plan
+- [Phase ?]: Scorecard deductive weights: 100/−30 critical/−15 high/−5 info (D-06)
+- [Phase ?]: Scorecard factor failure is whole-factor via allSettled (D-17 partial test)
+- [Phase ?]: findOrphans uses zero inbound (to_uuid) degree only
+- [Phase ?]: Janitor primary reason priority: long_exited > stopped > orphan
+- [Phase ?]: Impact fixtures use RFC UUIDs for Zod uuid() validation
+- [Phase ?]: D-13 cleanup confirm:true required (auto-approved --auto)
+- [Phase ?]: D-19 five intelligence_* capability keys on system.version
 
 ### Pending Todos
 
@@ -499,13 +518,13 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-29T20:59:00.000Z
-Stopped at: v3.2 milestone complete; npm release pending → changeset added
-Resume file: None
+Last session: 2026-07-30T02:14:07.617Z
+Stopped at: Phase 28 complete — Instance Intelligence verified
+Resume file: .planning/phases/28-instance-intelligence/28-VERIFICATION.md
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 28: `/gsd-plan-phase 28`
 
 ## Rebuild Log
 

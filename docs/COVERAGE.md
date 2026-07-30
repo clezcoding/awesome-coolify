@@ -12,7 +12,7 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 
 | bucket | count |
 | --- | ---: |
-| covered | 87 |
+| covered | 92 |
 | deferred | 2 |
 | out-of-scope | 31 |
 | gap | 57 |
@@ -91,6 +91,11 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 | `instance.list` | — | — | out-of-scope | Local InstanceManager registry — no Coolify REST op |
 | `instance.set-default` | — | — | out-of-scope | Local InstanceManager registry |
 | `instance.update` | — | — | out-of-scope | Local InstanceManager registry |
+| `intelligence.cleanup` | deleteApplication, deleteService, deleteDatabase | DELETE /applications/{uuid}, DELETE /services/{uuid}, DELETE /databases/{uuid} | covered | — |
+| `intelligence.graph` | fetchResources, fetchService | GET /resources, GET /services/{uuid} | covered | — |
+| `intelligence.impact` | fetchResources, fetchService | GET /resources, GET /services/{uuid} | covered | — |
+| `intelligence.janitor` | fetchResources, fetchService | GET /resources, GET /services/{uuid} | covered | — |
+| `intelligence.scorecard` | fetchResources, fetchServers, fetchAppDeployments, fetchDatabaseBackups | GET /resources, GET /servers, GET /deployments/applications/{uuid}, GET /databases/{uuid}/backups | covered | — |
 | `manifest.clear` | — | — | out-of-scope | Local manifest file only |
 | `manifest.diff` | fetchResources, fetchProjects, fetchServers, fetchProject | GET /resources, GET /projects, GET /servers, GET /projects/{uuid} | out-of-scope | Local workspace diff — REST reads are ancillary |
 | `manifest.get` | — | — | out-of-scope | Local workspace file only — no Coolify REST op |

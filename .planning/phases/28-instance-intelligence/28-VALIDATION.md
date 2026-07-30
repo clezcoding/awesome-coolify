@@ -1,0 +1,104 @@
+---
+phase: 28
+slug: instance-intelligence
+# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
+# audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
+created: 2026-07-30
+validated: 2026-07-30
+---
+
+# Phase 28 — Validation Strategy
+
+> Per-phase validation contract for feedback sampling during execution.
+
+---
+
+## Test Infrastructure
+
+| Property | Value |
+|----------|-------|
+| **Framework** | Vitest ^4.1.10 |
+| **Config file** | `vitest.config.ts` |
+| **Quick run command** | `npx vitest run src/mcp/tools/intelligence.test.ts` |
+| **Full suite command** | `npm test` |
+| **Estimated runtime** | ~15–45 seconds (unit); full suite longer |
+
+---
+
+## Sampling Rate
+
+- **After every task commit:** Run `npx vitest run src/mcp/tools/intelligence.test.ts`
+- **After every plan wave:** Run `npm test`
+- **Before `/gsd-verify-work`:** Full suite must be green
+- **Max feedback latency:** 60 seconds
+
+---
+
+## Per-Task Verification Map
+
+| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 28-00-01 | 00 | 0 | INTEL/GRAPH/JANI scaffolds | T-28-01..04 | N/A | unit stubs | `npx vitest run src/mcp/tools/intelligence.test.ts src/utils/resource-graph.test.ts` | ✅ | ✅ green |
+| 28-00-02 | 00 | 0 | D-19 caps/coverage | — | N/A | unit stubs | `npx vitest run src/mcp/tools/system.test.ts` | ✅ | ✅ green |
+| 28-01-01 | 01 | 1 | GRAPH-01 | T-28-04 | UUID-only edges | unit | `npx vitest run src/utils/resource-graph.test.ts src/mcp/tools/intelligence.test.ts -t graph` | ✅ | ✅ green |
+| 28-01-02 | 01 | 1 | GRAPH-01 | T-28-04 | service enrichment | unit | `npx vitest run src/mcp/tools/intelligence.test.ts -t graph` | ✅ | ✅ green |
+| 28-02-01 | 02 | 2 | INTEL-01 | T-28-06 | scorecard factors | unit | `npx vitest run src/mcp/tools/intelligence.test.ts -t scorecard` | ✅ | ✅ green |
+| 28-02-02 | 02 | 2 | INTEL-02 / D-17 | T-28-05 | findings + soft partial | unit | `npx vitest run src/mcp/tools/intelligence.test.ts -t "findings|partial"` | ✅ | ✅ green |
+| 28-03-01 | 03 | 3 | GRAPH-02 | T-28-07 | advisory impact | unit | `npx vitest run src/mcp/tools/intelligence.test.ts -t impact` | ✅ | ✅ green |
+| 28-03-02 | 03 | 3 | JANI-01 | T-28-04 | janitor read-only | unit | `npx vitest run src/mcp/tools/intelligence.test.ts -t janitor` | ✅ | ✅ green |
+| 28-04-02 | 04 | 4 | JANI-02 | T-28-01, T-28-02, T-28-03 | confirm gate + SAF-02 | unit | `npx vitest run src/mcp/tools/intelligence.test.ts -t cleanup` | ✅ | ✅ green |
+| 28-04-03 | 04 | 4 | D-19 | — | capabilities + docs | unit | `npx vitest run src/mcp/tools/system.test.ts src/mcp/tools/intelligence.test.ts` | ✅ | ✅ green |
+
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+---
+
+## Wave 0 Requirements
+
+- [x] `src/mcp/tools/intelligence.test.ts` — stubs for INTEL/GRAPH/JANI behaviors above
+- [x] `src/utils/resource-graph.test.ts` — graph helper stubs
+- [x] Existing Vitest infrastructure covers runner — no new framework
+- [x] `docs/coverage-map.yaml` — intelligence.* rows
+- [x] `system.test.ts` — eleven-key capability test (D-19)
+
+*Existing infrastructure (Vitest + co-located tests) covers all phase requirements.*
+
+---
+
+## Manual-Only Verifications
+
+| Behavior | Requirement | Why Manual | Test Instructions |
+|----------|-------------|------------|-------------------|
+| Live Coolify scorecard against real instance | INTEL-01 | Needs live API + real resources | Point MCP at test instance; call `intelligence.scorecard`; spot-check factors vs dashboard |
+| Live graph edges for one known app↔db pair | GRAPH-01 | Fixture may not mirror nested service payloads | Call `intelligence.graph`; confirm known link present |
+| D-13 confirm-gate decision checkpoint | JANI-02 / D-13 | Human checkpoint before cleanup contract ships (`28-04-01`) | Confirm SAF-01 `confirm:true` + SAF-02 defaults + explicit `targets[]` remain locked; then allow Plan 28-04 Task 2+ |
+
+*Unit tests cover contracts; live spot-check optional at UAT. Checkpoint `28-04-01` is manual — exempt from automated verify.*
+
+---
+
+## Validation Sign-Off
+
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
+
+**Approval:** validated
+
+---
+
+## Validation Audit 2026-07-30
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 10 (draft frontmatter; all per-task rows pending; wave_0_complete false) |
+| Resolved | 10 |
+| Escalated | 0 |
+
+Nyquist audit complete: 24 tests green across `intelligence.test.ts`, `resource-graph.test.ts`, `system.test.ts`; all INTEL/GRAPH/JANI requirements covered; no new tests required.

@@ -72,3 +72,4 @@ coverage/
 
 # Local MCP integration smoke test (uses live credentials)
 scripts/test-mcp-stdio.mjs
+.coolify/

@@ -105,6 +105,13 @@ import {
   diagnoseSafetyFooter,
 } from './tools/diagnose.js';
 import {
+  handleIntelligenceAction,
+  isIntelligenceErrorResult,
+  intelligenceActionSchema,
+  intelligenceActionsCatalog,
+  intelligenceSafetyFooter,
+} from './tools/intelligence.js';
+import {
   handleDeploymentAction,
   isDeploymentErrorResult,
   deploymentToolSchema,
@@ -302,6 +309,40 @@ export function registerCoolifyTools(
     async (args) => {
       const result = await handleDiagnoseAction(args, env);
       if (isDiagnoseErrorResult(result)) {
+        return {
+          ...result,
+          structuredContent: {
+            ok: false,
+            error: result.structuredContent.error,
+          },
+        };
+      }
+      return {
+        content: [{ type: 'text', text: result._formattedText }],
+        structuredContent: {
+          ok: true,
+          data: result.data,
+          _meta: result._meta,
+        },
+      };
+    },
+  );
+
+  server.registerTool(
+    'intelligence',
+    {
+      description: composeToolDescription(
+        'Instance health scorecard, dependency graph, impact analysis, and janitor cleanup.',
+        intelligenceActionsCatalog,
+        intelligenceSafetyFooter,
+      ),
+      inputSchema: withInstanceRoutingSchema(intelligenceActionSchema),
+      outputSchema: toolOutputSchema,
+      annotations: { openWorldHint: true },
+    },
+    async (args) => {
+      const result = await handleIntelligenceAction(args, env);
+      if (isIntelligenceErrorResult(result)) {
         return {
           ...result,
           structuredContent: {

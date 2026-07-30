@@ -1,7 +1,7 @@
 /**
  * docs-parity — README.md / README.de.md structural + content invariants.
  * Decisions: D-11 (structural parity), D-13 (no .planning links), D-14 (fix stale claims), D-09 (full action inventory).
- * Updated for the shipped 18-tool surface and four MCP prompts.
+ * Updated for the shipped 19-tool surface and four MCP prompts.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -111,6 +111,7 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   manifest: ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff'],
   recipe: ['create-git-app', 'create-app-db', 'create-one-click'],
   setup: ['preflight', 'wire', 'resume'],
+  intelligence: ['scorecard', 'graph', 'impact', 'janitor', 'cleanup'],
 };
 
 const STALE_COOLIFY_MCP = /(?<![\w.-])coolify-mcp(?![\w-])/g;
@@ -161,7 +162,7 @@ describe('docs parity (Wave 0)', () => {
     }
   });
 
-  it('D-09: full action inventory — all 18 tools and high-value action literals in both READMEs', () => {
+  it('D-09: full action inventory — all 19 tools and high-value action literals in both READMEs', () => {
     for (const [tool, actions] of Object.entries(TOOL_ACTIONS)) {
       expect(en).toContain(tool);
       expect(de).toContain(tool);
@@ -174,6 +175,8 @@ describe('docs parity (Wave 0)', () => {
 
   it('documents current package, API, tool, and prompt facts without stale counts', () => {
     const staleClaims = [
+      '18 tools',
+      '18 Tools',
       '17 tools',
       '17 Tools',
       '~91 actions',
@@ -189,7 +192,7 @@ describe('docs parity (Wave 0)', () => {
       expect(content).toContain('24');
       expect(content).toContain('Coolify API');
       expect(content).toContain('4.1.x');
-      expect(content).toContain('18 tools');
+      expect(content).toContain('19 tools');
       for (const prompt of ['`deploy`', '`diagnose`', '`new-project`', '`incident`']) {
         expect(content).toContain(prompt);
       }

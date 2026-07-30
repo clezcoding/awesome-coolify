@@ -26,7 +26,7 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D24-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 24" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
-  <img src="https://img.shields.io/badge/MCP-18%20tools-181818?style=flat-square" alt="18 tools" />
+  <img src="https://img.shields.io/badge/MCP-19%20tools-181818?style=flat-square" alt="19 tools" />
   <a href="https://github.com/clezcoding/awesome-coolify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/clezcoding/awesome-coolify/ci.yml?branch=main&style=flat-square&label=CI&color=6b16ed" alt="CI status" /></a>
   <a href="https://github.com/clezcoding/awesome-coolify/releases/latest"><img src="https://img.shields.io/github/v/release/clezcoding/awesome-coolify?style=flat-square&color=6b16ed" alt="Latest GitHub release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-fcd34d?style=flat-square" alt="MIT License" /></a>
@@ -94,7 +94,7 @@
 
 Self-hosted [Coolify](https://coolify.io) is one of the best open-source alternatives to Heroku/Vercel-style PaaS platforms — but wiring it up to an AI coding agent has historically meant piecing together several small, overlapping community MCP integrations, each with its own schema, its own error format, and its own idea of what "safe" looks like.
 
-**awesome-coolify-mcp** **1.1.0** replaces that patchwork with a single, community-maintained MCP server that speaks Coolify's REST API **4.1.x** through a clean, **action-based** tool surface. Source, docs, and npm distribution live in one public repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — while the installable package stays **`awesome-coolify-mcp`**. Instead of memorizing dozens of near-identical tool names, your agent calls one of **18 tools** with an `action` field:
+**awesome-coolify-mcp** **1.1.1** replaces that patchwork with a single, community-maintained MCP server that speaks Coolify's REST API **4.1.x** through a clean, **action-based** tool surface. Source, docs, and npm distribution live in one public repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — while the installable package stays **`awesome-coolify-mcp`**. Instead of memorizing dozens of near-identical tool names, your agent calls one of **19 tools** with an `action` field:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: false })
@@ -115,7 +115,7 @@ Under the hood, every call goes through the same request pipeline: Zod-validated
 | Typical setup without it | With awesome-coolify-mcp |
 |---------------------------|--------------------------|
 | Several overlapping community MCP tools, each with its own schema | **One server, one consistent schema** |
-| Dozens of granular, single-purpose tools per resource | **18 tools** with consistent `action` discriminators |
+| Dozens of granular, single-purpose tools per resource | **19 tools** with consistent `action` discriminators |
 | Ad-hoc error strings that agents have to guess at | Structured codes (`COOLIFY_401`, `COOLIFY_404`, …) + machine-readable recovery hints |
 | Secrets can leak straight into agent context | Default secret masking + confirmation gates on destructive actions |
 | Read a wall of raw JSON to find what changed | Bounded, paginated projections tuned for LLM context windows |
@@ -155,7 +155,7 @@ Today, the shipped surface covers day-2 operations and infrastructure creation: 
 MCP client (Cursor / Claude / VS Code / …)
         │  stdio MCP
         ▼
-awesome-coolify-mcp  (18 tools + action discriminator)
+awesome-coolify-mcp  (19 tools + action discriminator)
         │  optional ~/.coolify-mcp/instances.json resolution
         │  HTTPS + Bearer token
         ▼
@@ -311,7 +311,7 @@ Credentials are read from the process environment (your IDE's MCP `env` block) o
 
 ## ☁️ Coolify Cloud
 
-**awesome-coolify-mcp** works with [Coolify Cloud](https://app.coolify.io) using the same **18 tools** — team-scoped tokens, structured cloud error codes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`), and local `instance` action `cloud-info` for discovery.
+**awesome-coolify-mcp** works with [Coolify Cloud](https://app.coolify.io) using the same **19 tools** — team-scoped tokens, structured cloud error codes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`), and local `instance` action `cloud-info` for discovery.
 
 Run `instance({ action: "cloud-info" })` before your first Cloud session — it returns `isCloud`, resolved `url`, credential `source` (`registry` | `env` | `infer`), `knownLimits`, and a docs link. **No live API call.**
 
@@ -718,7 +718,7 @@ system({ action: "verify" })
 
 ## ✅ Status today
 
-Package **1.1.0** ships **18 tools** and four MCP prompts for Coolify API **4.1.x**:
+Package **1.1.1** ships **19 tools** and four MCP prompts for Coolify API **4.1.x**:
 
 | Capability | Status |
 |------------|--------|
@@ -729,6 +729,7 @@ Package **1.1.0** ships **18 tools** and four MCP prompts for Coolify API **4.1.
 | Deployment tracking: list / get / cancel | ✅ Shipped |
 | Deployment watch and bounded build logs | ✅ Shipped |
 | Application runtime logs, bounded follow, and `diagnose.logs` | ✅ Shipped |
+| Instance intelligence (`intelligence.scorecard`, `graph`, `impact`, `janitor`, `cleanup`) | ✅ Shipped |
 | Application, service, and database CRUD | ✅ Shipped |
 | Dynamic one-click type discovery and recipes | ✅ Shipped |
 | Setup wizard and four IDE workflow skills | ✅ Shipped |
@@ -746,7 +747,7 @@ Package **1.1.0** ships **18 tools** and four MCP prompts for Coolify API **4.1.
 | Capability discovery via `system.version` | ✅ Shipped |
 | Deployment build logs via `deployment.logs` | ✅ Shipped |
 
-> **Capability discovery & build logs:** `system({ action: "version" })` returns `coolifyVersion` (replacing the legacy `version` field), `mcpVersion`, and a `capabilities` map of Coolify 4.1.2 feature flags. For **app triage + bounded runtime tail** in one call, use `diagnose({ action: "logs", mode: "full", uuid: "..." })` — check `capabilities.diagnose_logs`. For deployment **build** logs, prefer `deployment({ action: "logs", deployment_uuid: "..." })` (or `application_uuid` to resolve the newest deployment). The `application.logs` path with `deployment_uuid` still works for back-compat. For **runtime** log follow, use `application({ action: "logs", uuid: "...", follow: true })` — bounded MCP polling until idle or timeout; check `capabilities.application_logs_follow` via `system.version`.
+> **Capability discovery & build logs:** `system({ action: "version" })` returns `coolifyVersion` (replacing the legacy `version` field), `mcpVersion`, and a `capabilities` map of Coolify 4.1.2 feature flags. For **app triage + bounded runtime tail** in one call, use `diagnose({ action: "logs", mode: "full", uuid: "..." })` — check `capabilities.diagnose_logs`. For **instance health, dependency graph, impact, and janitor/cleanup**, use `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — check `capabilities.intelligence_scorecard` (and sibling `intelligence_*` keys); `cleanup` requires `confirm: true`. For deployment **build** logs, prefer `deployment({ action: "logs", deployment_uuid: "..." })` (or `application_uuid` to resolve the newest deployment). The `application.logs` path with `deployment_uuid` still works for back-compat. For **runtime** log follow, use `application({ action: "logs", uuid: "...", follow: true })` — bounded MCP polling until idle or timeout; check `capabilities.application_logs_follow` via `system.version`.
 
 > [!WARNING]
 > Coolify 4.1.x does not expose stable service or database log endpoints. This server therefore does not claim or register service/database log actions. Use application runtime logs and deployment build logs until compatible upstream APIs are available.
