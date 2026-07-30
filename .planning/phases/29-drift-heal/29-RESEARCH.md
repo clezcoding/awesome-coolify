@@ -478,20 +478,20 @@ if (!parsed.dry_run) {
 
 **If planner locks A2:** Document in README that promote `keep_remote` means “skip value mismatches, still add missing keys”.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Server entries in audit findings?**
    - What we know: `Manifest` includes `servers[]`; `fetchRemoteManifest` populates them.
    - What's unclear: D-04 lists resource axes only; servers may be optional stretch.
-   - Recommendation: Include `servers` presence/name drift as `info` findings if cheap; otherwise defer — not required for DRIFT-01 minimum.
+   - Resolution: RESOLVED deferred — server presence/name drift is not required for the DRIFT-01 minimum. Phase 29 plans cover resource presence/type/name/domains/project-environment nesting; server drift can be added as an optional info finding under Claude's discretion without blocking execution.
 
 2. **Promote: bulk-only vs create+fallback?**
    - What we know: `bulkUpdateEnvs` updates existing keys; new keys may need `createEnv`.
-   - Recommendation: Mirror `envs:sync` apply — create for `only_in_source`, bulk for updates; single code path via internal helper extracted from sync if already exists.
+   - Resolution: RESOLVED — mirror `envs:sync` apply semantics in Plan 29-02. Create `only_in_source` keys on target with existing create helper, bulk-update existing mismatch keys only when conflict_policy allows, and keep the code path aligned with current envs:sync helpers.
 
 3. **`instance` field mismatch in manifest vs routed instance?**
    - What we know: Manifest schema has optional `instance` slug.
-   - Recommendation: Emit `info` finding when `manifest.instance` set and differs from `audit` `instance` param — helps multi-instance workspaces.
+   - Resolution: RESOLVED deferred — optional info finding under Claude's discretion, not required for the DRIFT-01 minimum. Core plans do not depend on this finding; implement only if it falls out cheaply while building audit indexes.
 
 ## Environment Availability
 
