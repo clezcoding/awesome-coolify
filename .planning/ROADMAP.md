@@ -82,7 +82,7 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
 
 **Milestone Goal:** Composite intelligence layer on existing Coolify 4.1.x tools — agents reason about risk, drift, dependencies, and remediation without new REST endpoints.
 
-- [ ] **Phase 28: Instance Intelligence** - Scorecard, dependency graph, and safe resource janitor
+- [x] **Phase 28: Instance Intelligence** - Scorecard, dependency graph, and safe resource janitor (completed 2026-07-30)
 - [ ] **Phase 29: Drift & Heal** - Manifest audit, env promotion, and remediation hints
 - [ ] **Phase 30: Deploy Guard** - Preflight checks, risk scoring, and rollback
 - [ ] **Phase 31: Agent Playbooks** - Log brain, ops playbooks, and smart recipes
@@ -102,7 +102,7 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
   4. Agent lists orphaned, stopped, or long-exited resources with safe cleanup suggestions
   5. Janitor destructive cleanup mutations blocked without explicit confirm gate per SAF pattern
 
-**Plans:** 5/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -173,7 +173,7 @@ Plans:
 | 25 | v3.2 | 6/6 | Complete | 2026-07-28 |
 | 26 | v3.2 | 4/4 | Complete | 2026-07-28 |
 | 27 | v3.2 | 4/4 | Complete | 2026-07-29 |
-| 28 | v3.3 | 5/5 | In Progress|  |
+| 28 | v3.3 | 5/5 | Complete    | 2026-07-30 |
 | 29 | v3.3 | 0/TBD | Not started | - |
 | 30 | v3.3 | 0/TBD | Not started | - |
 | 31 | v3.3 | 0/TBD | Not started | - |

@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
-current_phase: 28
-current_phase_name: Instance Intelligence
-status: executing
-stopped_at: Completed 28-04-PLAN.md
-last_updated: "2026-07-30T02:12:28.682Z"
+current_phase: 29
+current_phase_name: Drift & Heal
+status: planning
+stopped_at: Phase 28 complete — Instance Intelligence verified
+last_updated: "2026-07-30T02:14:07.939Z"
 last_activity: 2026-07-30
-last_activity_desc: Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
+last_activity_desc: Phase 28 complete, transitioned to Phase 29
 progress:
   total_phases: 4
   completed_phases: 1
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 
 ## Current Position
 
-Phase: 28 of 31 (Instance Intelligence)
-Plan: 5 of 05
-Status: Ready to execute
-Last activity: 2026-07-30 — Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
+Phase: 29 of 31 (Drift & Heal)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-30 — Phase 28 complete, transitioned to Phase 29
 
 Progress: [██████████] 100%
 
@@ -39,7 +39,7 @@ Progress: [██████████] 100%
 
 **Velocity:**
 
-- Total plans completed: 120
+- Total plans completed: 125
 - Average duration: —
 - Total execution time: —
 
@@ -71,6 +71,7 @@ Progress: [██████████] 100%
 | 25 | 6 | - | - |
 | 26 | 4 | - | - |
 | 27 | 4 | - | - |
+| 28 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -517,9 +518,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T02:12:28.671Z
-Stopped at: Completed 28-04-PLAN.md
-Resume file: None
+Last session: 2026-07-30T02:14:07.617Z
+Stopped at: Phase 28 complete — Instance Intelligence verified
+Resume file: .planning/phases/28-instance-intelligence/28-VERIFICATION.md
 
 ## Operator Next Steps
 
