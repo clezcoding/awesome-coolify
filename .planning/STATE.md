@@ -5,14 +5,14 @@ milestone_name: Agent Intelligence
 current_phase: 29
 current_phase_name: Drift & Heal
 status: "Phase 28 shipped — PR #108"
-stopped_at: Phase 29 planning complete — ready to execute
-last_updated: "2026-07-30T03:14:30.022Z"
+stopped_at: Completed 29-00-PLAN.md
+last_updated: "2026-07-30T03:17:31.461Z"
 last_activity: 2026-07-30
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 6
   percent: 25
 last_activity_desc: Phase 28 complete, transitioned to Phase 29
 ---
@@ -33,7 +33,7 @@ Plan: Not started
 Status: Phase 28 shipped — PR #108
 Last activity: 2026-07-30
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -165,6 +165,7 @@ Progress: [██████████] 100%
 | Phase 28 P02 | 9min | 2 tasks | 2 files |
 | Phase 28 P03 | 5min | 2 tasks | 3 files |
 | Phase 28 P04 | 6min | 3 tasks | 7 files |
+| Phase 29-drift-heal P00 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -442,6 +443,8 @@ Progress: [██████████] 100%
 - [Phase ?]: Impact fixtures use RFC UUIDs for Zod uuid() validation
 - [Phase ?]: D-13 cleanup confirm:true required (auto-approved --auto)
 - [Phase ?]: D-19 five intelligence_* capability keys on system.version
+- [Phase ?]: system.test.ts keeps eleven-key green it; thirteen-key count is it.fails only (Phase 28 pattern)
+- [Phase ?]: envs:promote delete guard asserts successful apply first so scaffold stays RED pre-implementation
 
 ### Pending Todos
 
@@ -518,9 +521,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T03:14:30.009Z
-Stopped at: Phase 29 planning complete — ready to execute
-Resume file: .planning/phases/29-drift-heal/29-00-PLAN.md
+Last session: 2026-07-30T03:17:31.451Z
+Stopped at: Completed 29-00-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

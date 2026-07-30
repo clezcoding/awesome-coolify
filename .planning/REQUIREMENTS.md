@@ -24,9 +24,9 @@ Composite intelligence on Coolify 4.1.x — no new REST endpoints required.
 
 ### Drift & Heal
 
-- [ ] **DRIFT-01**: Agent can run manifest audit comparing local `.coolify/manifest.json` vs live Coolify state with remediation steps
-- [ ] **DRIFT-02**: Agent can compare environment variables across environments and receive promotion suggestions (`env.promote`)
-- [ ] **DRIFT-03**: Audit and drift results include concrete fix hints, not raw diff only
+- [x] **DRIFT-01**: Agent can run manifest audit comparing local `.coolify/manifest.json` vs live Coolify state with remediation steps
+- [x] **DRIFT-02**: Agent can compare environment variables across environments and receive promotion suggestions (`env.promote`)
+- [x] **DRIFT-03**: Audit and drift results include concrete fix hints, not raw diff only
 
 ### Deploy Guard
 
@@ -85,9 +85,9 @@ Deferred until Coolify 4.2.0+ stable.
 | GRAPH-02 | Phase 28 | Complete |
 | JANI-01 | Phase 28 | Complete |
 | JANI-02 | Phase 28 | Complete |
-| DRIFT-01 | Phase 29 | Pending |
-| DRIFT-02 | Phase 29 | Pending |
-| DRIFT-03 | Phase 29 | Pending |
+| DRIFT-01 | Phase 29 | Complete |
+| DRIFT-02 | Phase 29 | Complete |
+| DRIFT-03 | Phase 29 | Complete |
 | GUARD-01 | Phase 30 | Pending |
 | GUARD-02 | Phase 30 | Pending |
 | GUARD-03 | Phase 30 | Pending |
