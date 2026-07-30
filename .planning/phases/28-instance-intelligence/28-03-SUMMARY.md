@@ -127,3 +127,5 @@ None — advisory/read-only surfaces only; mutations remain gated in Plan 28-04 
 - Prohibition checks (no delete clients in intelligence handlers; no env/fuzzy orphan edges) — pass
 
 ## Self-Check: PASSED
+
+**Docs commit:** 5d5b7dc
