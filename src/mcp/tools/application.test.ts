@@ -3457,3 +3457,315 @@ describe('application envs:sync', () => {
     });
   });
 });
+
+const PROMOTE_SOURCE_UUID = 'app-promote-source-uuid';
+const PROMOTE_TARGET_UUID = 'app-promote-target-uuid';
+
+const promoteSourceEnvs = [
+  {
+    uuid: 'promote-src-env-1',
+    key: 'ONLY_IN_SOURCE',
+    value: FAKE_SECRET_VALUE,
+    is_preview: false,
+    is_literal: false,
+    is_multiline: false,
+    is_shown_once: false,
+  },
+  {
+    uuid: 'promote-src-env-2',
+    key: 'SHARED_KEY',
+    value: 'source-value',
+    is_preview: false,
+    is_literal: false,
+    is_multiline: false,
+    is_shown_once: false,
+  },
+];
+
+const promoteTargetEnvs = [
+  {
+    uuid: 'promote-tgt-env-1',
+    key: 'ONLY_IN_TARGET',
+    value: FAKE_SECRET_VALUE,
+    is_preview: false,
+    is_literal: false,
+    is_multiline: false,
+    is_shown_once: false,
+  },
+  {
+    uuid: 'promote-tgt-env-2',
+    key: 'SHARED_KEY',
+    value: 'target-value',
+    is_preview: false,
+    is_literal: false,
+    is_multiline: false,
+    is_shown_once: false,
+  },
+];
+
+function mockPromoteEnvFetches(): void {
+  vi.mocked(fetchEnvs).mockImplementation(async (_type, _url, _token, uuid) => {
+    if (uuid === PROMOTE_SOURCE_UUID) return promoteSourceEnvs;
+    if (uuid === PROMOTE_TARGET_UUID) return promoteTargetEnvs;
+    return [];
+  });
+}
+
+function expectPromoteFollowUpHint(hint: unknown): void {
+  expect(hint).toMatchObject({
+    tool: expect.any(String),
+    action: expect.any(String),
+    args: expect.any(Object),
+    label: expect.any(String),
+    available_in_phase: expect.any(Number),
+  });
+}
+
+/**
+ * Wave 0 Nyquist RED scaffolds for Phase 29 application envs:promote (DRIFT-02, DRIFT-03).
+ * Plan 29-02 flips it.fails → it when promote handler ships.
+ */
+describe('application envs:promote', () => {
+  beforeEach(() => {
+    vi.mocked(fetchEnvs).mockReset();
+    vi.mocked(bulkUpdateEnvs).mockReset();
+    vi.mocked(createEnv).mockReset();
+    vi.mocked(deleteEnv).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    mockPromoteEnvFetches();
+    vi.mocked(fetchResources).mockResolvedValue([]);
+  });
+
+  it.fails(
+    'preview returns only_in_source, only_in_target, value_mismatches, and promotion_suggestions with FollowUpHint shape (DRIFT-02, D-08)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      if (isApplicationErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      expect(data.only_in_source).toEqual(
+        expect.arrayContaining([expect.objectContaining({ key: 'ONLY_IN_SOURCE' })]),
+      );
+      expect(data.only_in_target).toEqual(
+        expect.arrayContaining([expect.objectContaining({ key: 'ONLY_IN_TARGET' })]),
+      );
+      expect(data.value_mismatches).toEqual(
+        expect.arrayContaining([expect.objectContaining({ key: 'SHARED_KEY' })]),
+      );
+
+      const suggestions = data.promotion_suggestions as Array<Record<string, unknown>>;
+      expect(Array.isArray(suggestions)).toBe(true);
+      expect(suggestions.length).toBeGreaterThan(0);
+      for (const suggestion of suggestions) {
+        expectPromoteFollowUpHint(suggestion.hint ?? suggestion);
+      }
+    },
+  );
+
+  it.fails(
+    'preview defaults to dry_run true and does not call bulkUpdateEnvs or createEnv (D-09)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+      expect(createEnv).not.toHaveBeenCalled();
+      if (isApplicationErrorResult(result)) return;
+
+      expect((result.data as Record<string, unknown>).dry_run).toBe(true);
+    },
+  );
+
+  it.fails(
+    'preview masks env values by default (T-29-01, D-08)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      if (isApplicationErrorResult(result)) return;
+
+      expect(JSON.stringify(result.data)).not.toContain(FAKE_SECRET_VALUE);
+    },
+  );
+
+  it.fails(
+    'fetches env lists for both source_uuid and target_uuid (D-11)',
+    async () => {
+      await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+        },
+        testEnv,
+      );
+
+      expect(fetchEnvs).toHaveBeenCalledWith(
+        'application',
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        PROMOTE_SOURCE_UUID,
+        testEnv.COOLIFY_VERIFY_SSL,
+      );
+      expect(fetchEnvs).toHaveBeenCalledWith(
+        'application',
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        PROMOTE_TARGET_UUID,
+        testEnv.COOLIFY_VERIFY_SSL,
+      );
+    },
+  );
+
+  it.fails(
+    'apply without confirm returns COOLIFY_CONFIRM_REQUIRED and performs no writes (D-09, D-16)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+          dry_run: false,
+          confirm: false,
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(true);
+      if (!isApplicationErrorResult(result)) return;
+
+      expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+      expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+      expect(createEnv).not.toHaveBeenCalled();
+    },
+  );
+
+  it.fails(
+    'conflict_policy keep_remote creates only_in_source keys and skips mismatch updates (D-10)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+          dry_run: false,
+          confirm: true,
+          conflict_policy: 'keep_remote',
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      if (isApplicationErrorResult(result)) return;
+
+      expect(createEnv).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        PROMOTE_TARGET_UUID,
+        expect.objectContaining({ key: 'ONLY_IN_SOURCE' }),
+        expect.anything(),
+      );
+      expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+    },
+  );
+
+  it.fails(
+    'conflict_policy overwrite updates mismatched keys on target only (D-10)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+          dry_run: false,
+          confirm: true,
+          conflict_policy: 'overwrite',
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      if (isApplicationErrorResult(result)) return;
+
+      expect(bulkUpdateEnvs).toHaveBeenCalled();
+      expect(deleteEnv).not.toHaveBeenCalled();
+    },
+  );
+
+  it.fails(
+    'apply never deletes only_in_target keys (D-10)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+          dry_run: false,
+          confirm: true,
+          conflict_policy: 'overwrite',
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(false);
+      if (isApplicationErrorResult(result)) return;
+
+      expect(deleteEnv).not.toHaveBeenCalled();
+    },
+  );
+
+  it.fails(
+    'conflict_policy abort with mismatches returns COOLIFY_CONFIRM_REQUIRED with conflict_policy_options (D-10)',
+    async () => {
+      const result = await handleApplicationAction(
+        {
+          action: 'envs:promote',
+          source_uuid: PROMOTE_SOURCE_UUID,
+          target_uuid: PROMOTE_TARGET_UUID,
+          dry_run: false,
+          confirm: true,
+          conflict_policy: 'abort',
+        },
+        testEnv,
+      );
+
+      expect(isApplicationErrorResult(result)).toBe(true);
+      if (!isApplicationErrorResult(result)) return;
+
+      expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+      expect(result.structuredContent.error.data).toMatchObject({
+        conflict_policy_options: expect.arrayContaining([
+          'overwrite',
+          'keep_remote',
+          'abort',
+        ]),
+      });
+      expect(bulkUpdateEnvs).not.toHaveBeenCalled();
+      expect(createEnv).not.toHaveBeenCalled();
+    },
+  );
+});
