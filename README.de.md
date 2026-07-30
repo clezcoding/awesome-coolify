@@ -26,7 +26,7 @@
   <img src="https://img.shields.io/badge/Node.js-%3E%3D24-3c873a?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js >= 24" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
-  <img src="https://img.shields.io/badge/MCP-18%20tools-181818?style=flat-square" alt="18 tools" />
+  <img src="https://img.shields.io/badge/MCP-19%20tools-181818?style=flat-square" alt="19 tools" />
   <a href="https://github.com/clezcoding/awesome-coolify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/clezcoding/awesome-coolify/ci.yml?branch=main&style=flat-square&label=CI&color=6b16ed" alt="CI-Status" /></a>
   <a href="https://github.com/clezcoding/awesome-coolify/releases/latest"><img src="https://img.shields.io/github/v/release/clezcoding/awesome-coolify?style=flat-square&color=6b16ed" alt="Aktuelles GitHub-Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Lizenz-MIT-fcd34d?style=flat-square" alt="MIT Lizenz" /></a>
@@ -94,7 +94,7 @@
 
 Self-hosted [Coolify](https://coolify.io) ist eine der besten Open-Source-Alternativen zu Heroku- oder Vercel-artigen PaaS-Plattformen — aber die Anbindung an einen AI-Coding-Agenten bedeutete bisher oft, mehrere kleine, überlappende Community-MCP-Integrationen zusammenzustecken, jede mit eigenem Schema, eigenem Fehlerformat und eigener Vorstellung davon, was „sicher" bedeutet.
 
-**awesome-coolify-mcp** **1.1.0** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eines von **18 tools** mit einem `action`-Feld auf:
+**awesome-coolify-mcp** **1.1.1** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eines von **19 tools** mit einem `action`-Feld auf:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: false })
@@ -115,7 +115,7 @@ Unter der Haube läuft jeder Call durch dieselbe Pipeline: Zod-validierte Eingab
 | Typisches Setup ohne awesome-coolify-mcp | Mit awesome-coolify-mcp |
 |--------------------------------------------|--------------------------|
 | Mehrere überlappende Community-MCP-Tools, jedes mit eigenem Schema | **Ein Server, ein konsistentes Schema** |
-| Dutzende granulare Einzeltools pro Ressource | **18 tools** mit konsistenten `action`-Discriminators |
+| Dutzende granulare Einzeltools pro Ressource | **19 tools** mit konsistenten `action`-Discriminators |
 | Ad-hoc Fehlermeldungen, die der Agent selbst deuten muss | Strukturierte Codes (`COOLIFY_401`, `COOLIFY_404`, …) + maschinenlesbare Recovery-Hints |
 | Secrets können direkt im Agent-Kontext landen | Default-Maskierung + Confirm-Gates auf destruktiven Actions |
 | Rohes JSON durchwühlen, um zu sehen, was sich geändert hat | Begrenzte, paginierte Projektionen, abgestimmt auf LLM-Context-Fenster |
@@ -155,7 +155,7 @@ Die ausgelieferte Oberfläche deckt Day-2-Operations und Infrastruktur-Erstellun
 MCP-Client (Cursor / Claude / VS Code / …)
         │  stdio MCP
         ▼
-awesome-coolify-mcp  (18 tools + action-Discriminator)
+awesome-coolify-mcp  (19 tools + action-Discriminator)
         │  optional ~/.coolify-mcp/instances.json-Auflösung
         │  HTTPS + Bearer-Token
         ▼
@@ -311,7 +311,7 @@ Credentials werden aus der Prozess-Umgebung gelesen (dem `env`-Block deiner IDE-
 
 ## ☁️ Coolify Cloud
 
-**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben **18 tools** — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
+**awesome-coolify-mcp** funktioniert mit [Coolify Cloud](https://app.coolify.io) mit denselben **19 tools** — team-scoped Tokens, strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`) und lokale `instance`-Action `cloud-info` zur Discovery.
 
 Rufe `instance({ action: "cloud-info" })` vor deiner ersten Cloud-Session auf — liefert `isCloud`, aufgelöste `url`, Credential-`source` (`registry` | `env` | `infer`), `knownLimits` und Docs-Link. **Kein Live-API-Call.**
 
@@ -718,7 +718,7 @@ system({ action: "verify" })
 
 ## ✅ Status heute
 
-Paket **1.1.0** liefert **18 tools** und vier MCP-Prompts für Coolify API **4.1.x**:
+Paket **1.1.1** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1.x**:
 
 | Fähigkeit | Status |
 |-----------|--------|

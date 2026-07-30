@@ -21,7 +21,7 @@ Create `.cursor/mcp.json` in your project:
   "mcpServers": {
     "awesome-coolify-mcp": {
       "command": "npx",
-      "args": ["-y", "awesome-coolify-mcp@1.1.0"],
+      "args": ["-y", "awesome-coolify-mcp@1.1.1"],
       "env": {
         "COOLIFY_URL": "https://coolify.example.com",
         "COOLIFY_TOKEN": "<coolify-api-token>"
@@ -66,7 +66,7 @@ Rebuild after source changes.
 
 ## Reload and verify
 
-Reload the MCP server from Cursor settings, then confirm it exposes **18 tools** and
+Reload the MCP server from Cursor settings, then confirm it exposes **19 tools** and
 **four prompts**. Start with `system.health`, then call `system.version` to inspect the
 Coolify version and capability flags.
 

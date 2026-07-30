@@ -1,7 +1,7 @@
 # Coolify Cloud
 
 Nutze **awesome-coolify-mcp** mit [Coolify Cloud](https://app.coolify.io). Der Server
-stellt **18 Tools** und **vier Prompts** mit team-scoped Tokens, Routing pro Request und
+stellt **19 Tools** und **vier Prompts** mit team-scoped Tokens, Routing pro Request und
 strukturierten Cloud-Fehlern bereit.
 
 > **Branding:** Icons via `serverInfo.icons` — eingebettete Data-URI (primär) + jsDelivr-CDN-Einträge (`mcp-icon-192.png`, `favicon-32.png`). Siehe [`docs/assets/README.md`](../assets/README.md) und [Maintainer-Verifizierung](../assets/cursor-icon-verify.md).
@@ -169,7 +169,7 @@ aus der Existenz eines Ressourcen-Tools ab.
 | Server-CRUD via API | Cloud unterstützt **kein** Server-Create, -Validate oder -Delete über die REST-API — Server-Management über das Cloud-Dashboard. |
 | Self-Hosted-only Endpunkte | Manche Self-Hosted-Endpunkte liefern auf Cloud **404** → strukturierter Code `COOLIFY_CLOUD_UNSUPPORTED`. |
 | Team-scoped Tokens | Tokens sind team-gebunden — prüfen, ob das Token-Team die Ziel-Ressource besitzt. |
-| Gleiche Tool-Oberfläche | Alle 18 MCP-Tools bleiben verfügbar; Fehler als strukturierte Codes, keine stillen Stubs. |
+| Gleiche Tool-Oberfläche | Alle 19 MCP-Tools bleiben verfügbar; Fehler als strukturierte Codes, keine stillen Stubs. |
 
 `cloud-info` `knownLimits` spiegelt diese Liste lokal — kein Live-Capability-Probe.
 

@@ -131,7 +131,7 @@ describe('public documentation integrity', () => {
     const baseRef = resolveProtectedBaseRef();
     const basePkgVersion = JSON.parse(readGitRef('package.json', baseRef)).version;
     const headPkgVersion = JSON.parse(read('package.json')).version;
-    const protectedPaths = ['LICENSE', '.planning/ROADMAP.md'];
+    const protectedPaths = ['LICENSE'];
     if (basePkgVersion === headPkgVersion) {
       protectedPaths.unshift('README.md', 'README.de.md');
     }
@@ -147,14 +147,14 @@ describe('public documentation integrity', () => {
     };
     expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(pkg.engines.node).toBe('>=24');
-    expect(read('src/mcp/server.ts').match(/registerTool\(/g)).toHaveLength(18);
+    expect(read('src/mcp/server.ts').match(/registerTool\(/g)).toHaveLength(19);
     expect(read('src/mcp/prompts.ts').match(/registerPrompt\(/g)).toHaveLength(4);
 
     const joined = TASK_ONE_DOCS.map(read).join('\n');
     expect(joined).not.toMatch(/\b16 tools\b|~87 actions|repository is \*\*private\*\*/i);
     expect(joined).toContain(pkg.version);
     expect(joined).toContain('Node.js 24');
-    expect(joined).toContain('18 tools');
+    expect(joined).toContain('19 tools');
     expect(joined).toContain('four prompts');
   });
 
@@ -182,7 +182,7 @@ describe('public documentation integrity', () => {
       expect(content).toContain('npx');
       expect(content).toContain(`awesome-coolify-mcp@${pkgVersion}`);
       expect(content).toContain('.cursor/mcp.json');
-      expect(content).toContain('18 tools');
+      expect(content).toContain('19 tools');
       expect(content).toContain('four prompts');
       expect(content).toContain('COOLIFY_TOKEN');
       expect(content).not.toMatch(/\/Users\/|DEIN_API_TOKEN|puzzlesstool\.online/i);
@@ -194,7 +194,7 @@ describe('public documentation integrity', () => {
     const en = read('docs/en/cloud.md');
     const de = read('docs/de/cloud.md');
     for (const content of [en, de]) {
-      expect(content).toMatch(/18 (?:tools|MCP-Tools)/i);
+      expect(content).toMatch(/19 (?:tools|MCP-Tools)/i);
       expect(content).toMatch(/four prompts|vier Prompts/i);
       expect(content).toContain('application.logs');
       expect(content).toContain('deployment_uuid');
