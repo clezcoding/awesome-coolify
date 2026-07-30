@@ -228,63 +228,65 @@ describe('partial (D-17 soft partial)', () => {
 });
 
 describe('graph (GRAPH-01, D-07, D-08)', () => {
-  it.fails(
-    'edges from database_uuid and application_uuid on flat resources; service nested via fetchService; no fuzzy name edges',
-    async () => {
-      vi.mocked(fetchResources).mockResolvedValue(graphFlatResources);
-      vi.mocked(fetchService).mockResolvedValue({
-        uuid: 'svc-uuid-1',
-        name: 'wordpress',
-        applications: [{ uuid: 'svc-child-app', name: 'wp-app', type: 'application' }],
-        databases: [{ uuid: 'svc-child-db', name: 'wp-db', type: 'database' }],
-      });
+  it('edges from database_uuid and application_uuid on flat resources; service nested via fetchService; no fuzzy name edges', async () => {
+    vi.mocked(fetchResources).mockResolvedValue(graphFlatResources);
+    vi.mocked(fetchService).mockResolvedValue({
+      uuid: 'svc-uuid-1',
+      name: 'wordpress',
+      applications: [
+        { uuid: 'svc-child-app', name: 'wp-app', type: 'application' },
+      ],
+      databases: [{ uuid: 'svc-child-db', name: 'wp-db', type: 'database' }],
+    });
 
-      const { handleIntelligenceAction, isIntelligenceErrorResult } =
-        await import('./intelligence.js');
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
 
-      const result = await handleIntelligenceAction(
-        { action: 'graph' },
-        testEnv,
-      );
+    const result = await handleIntelligenceAction(
+      { action: 'graph' },
+      testEnv,
+    );
 
-      expect(isIntelligenceErrorResult(result)).toBe(false);
-      if (isIntelligenceErrorResult(result)) return;
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
 
-      const data = result.data as Record<string, unknown>;
-      const edges = data.edges as Array<Record<string, unknown>>;
-      expect(Array.isArray(edges)).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const edges = data.edges as Array<Record<string, unknown>>;
+    expect(Array.isArray(edges)).toBe(true);
 
-      expect(
-        edges.some(
-          (e) =>
-            e.relation === 'database_uuid' &&
-            e.from_uuid === 'app-uuid-1' &&
-            e.to_uuid === 'db-uuid-1',
-        ),
-      ).toBe(true);
-      expect(
-        edges.some(
-          (e) =>
-            e.relation === 'application_uuid' &&
-            e.from_uuid === 'child-app' &&
-            e.to_uuid === 'app-uuid-1',
-        ),
-      ).toBe(true);
-      expect(
-        edges.some(
-          (e) =>
-            e.relation === 'service_child' &&
-            (e.from_uuid === 'svc-child-app' || e.to_uuid === 'svc-uuid-1'),
-        ),
-      ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'database_uuid' &&
+          e.from_uuid === 'app-uuid-1' &&
+          e.to_uuid === 'db-uuid-1',
+      ),
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'application_uuid' &&
+          e.from_uuid === 'child-app' &&
+          e.to_uuid === 'app-uuid-1',
+      ),
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'service_child' &&
+          (e.from_uuid === 'svc-child-app' || e.to_uuid === 'svc-uuid-1'),
+      ),
+    ).toBe(true);
 
-      expect(fetchService).toHaveBeenCalled();
-      expect(edges.every((e) => typeof e.from_uuid === 'string' && typeof e.to_uuid === 'string')).toBe(
-        true,
-      );
-      expect(edges.every((e) => e.relation !== 'fuzzy_name')).toBe(true);
-    },
-  );
+    expect(fetchService).toHaveBeenCalled();
+    expect(
+      edges.every(
+        (e) =>
+          typeof e.from_uuid === 'string' && typeof e.to_uuid === 'string',
+      ),
+    ).toBe(true);
+    expect(edges.every((e) => e.relation !== 'fuzzy_name')).toBe(true);
+  });
 });
 
 describe('impact (GRAPH-02, D-09, D-10)', () => {
