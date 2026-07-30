@@ -5,16 +5,16 @@ milestone_name: Agent Intelligence
 current_phase: 28
 current_phase_name: Instance Intelligence
 status: executing
-stopped_at: Completed 28-00-PLAN.md
-last_updated: "2026-07-30T01:37:36.447Z"
+stopped_at: Completed 28-01-PLAN.md
+last_updated: "2026-07-30T01:48:18.034Z"
 last_activity: 2026-07-30
-last_activity_desc: v3.3 roadmap created (Phases 28–31, 18/18 reqs mapped)
+last_activity_desc: Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
-  percent: 20
+  completed_plans: 2
+  percent: 0
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 28 of 31 (Instance Intelligence)
-Plan: 01 of 05
-Status: Executing
+Plan: 2 of 05
+Status: Ready to execute
 Last activity: 2026-07-30 — Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
 
-Progress: [██░░░░░░░░] 20%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
@@ -160,6 +160,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 27-branding-docs-stale-fix P02 | 15min | 3 tasks | 1 files |
 | Phase 27-branding-docs-stale-fix P03 | 5min | 3 tasks | 7 files |
 | Phase 28 P00 | 4min | 2 tasks | 4 files |
+| Phase 28 P01 | 8min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -428,6 +429,8 @@ Progress: [██░░░░░░░░] 20%
 - [Phase ?]: D-09: CHANGELOG and milestone archives untouched during DOC-01 sweep
 - [Phase 28-instance-intelligence]: Dynamic import inside it.fails only for nonexistent intelligence/resource-graph modules (Wave 0)
 - [Phase 28-instance-intelligence]: system.test.ts keeps six-key green it; eleven-key intelligence_* is it.fails only until Plan 28-04
+- [Phase ?]: Instance routing via withInstanceRoutingSchema only (no instance in flat schema shape — Zod 4)
+- [Phase ?]: Deferred intelligence actions throw COOLIFY_NOT_IMPLEMENTED naming pending plan
 
 ### Pending Todos
 
@@ -504,8 +507,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T01:37:36.434Z
-Stopped at: Completed 28-00-PLAN.md
+Last session: 2026-07-30T01:48:18.025Z
+Stopped at: Completed 28-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
