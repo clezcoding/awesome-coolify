@@ -25,6 +25,7 @@ import { redactSecrets } from '../../utils/redact.js';
 import {
   buildGraph,
   enrichServiceEdges,
+  findDependents,
 } from '../../utils/resource-graph.js';
 import {
   createFlatActionSchema,
@@ -634,15 +635,7 @@ function notImplemented(action: string, pendingPlan: string): never {
   });
 }
 
-/**
- * Live dependency graph from flat /resources UUID links + bounded service enrichment.
- * Response data includes `meta.services_enriched` (successful fetchService count)
- * and optional `meta.service_fetch_errors` when individual enrichment calls fail.
- */
-export async function handleIntelligenceGraph(
-  parsed: IntelligenceAction,
-  env: EnvConfig,
-): Promise<ReadResponse<unknown>> {
+async function loadResourceGraph(env: EnvConfig) {
   const resources = await fetchResources(
     env.COOLIFY_URL,
     env.COOLIFY_TOKEN,
@@ -673,6 +666,132 @@ export async function handleIntelligenceGraph(
     service_fetch_errors: enrichment.service_fetch_errors,
   });
 
+  return { resources, graph };
+}
+
+function impactPreflightHints(
+  type: 'application' | 'service' | 'database',
+  uuid: string,
+  intent: 'delete' | 'restart',
+): FollowUpHint[] {
+  if (intent === 'restart') {
+    return [
+      {
+        tool: type,
+        action: 'restart',
+        args: { uuid },
+        label: `Restart ${type} via domain tool (advisory — impact does not mutate)`,
+        available_in_phase: 4,
+      },
+    ];
+  }
+  return [
+    {
+      tool: type,
+      action: 'delete_preview',
+      args: { uuid },
+      label: `Preview delete for ${type}`,
+      available_in_phase: 4,
+    },
+  ];
+}
+
+/**
+ * Advisory blast-radius preflight (GRAPH-02, D-09, D-10).
+ * Does not call delete/restart handlers.
+ */
+export async function handleIntelligenceImpact(
+  parsed: IntelligenceAction,
+  env: EnvConfig,
+): Promise<ReadResponse<unknown>> {
+  if (parsed.uuid == null || parsed.type == null) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: "intelligence.impact requires 'uuid' and 'type'.",
+      recoveryHints: RECOVERY_HINTS.COOLIFY_VALIDATION_ERROR,
+      data: { action: 'impact' },
+    });
+  }
+
+  const uuid = parsed.uuid;
+  const type = parsed.type;
+  const intent = parsed.intent ?? 'delete';
+  const maxDepth = parsed.max_depth ?? 3;
+
+  const { graph } = await loadResourceGraph(env);
+  const deps = findDependents(graph.edges, uuid, {
+    max_depth: maxDepth,
+    nodes: graph.nodes,
+    intent,
+  });
+
+  return buildReadResponse(
+    {
+      target: { uuid, type },
+      intent,
+      direct_dependents: deps.direct,
+      transitive_dependents: deps.transitive,
+      depth_cap: deps.depth_cap,
+      max_depth: deps.max_depth,
+      advisory: true,
+      suggested_preflight: impactPreflightHints(type, uuid, intent),
+      ...(intent === 'restart'
+        ? {
+            restart_note:
+              'Restart impact tags database_uuid-linked dependents as degraded (may recover when DB is up); other links are outage. Advisory only — use domain restart tools to mutate.',
+          }
+        : {}),
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+/**
+ * Read-only cleanup candidate listing (JANI-01, D-11, D-12).
+ * Never mutates resources.
+ */
+export async function handleIntelligenceJanitor(
+  parsed: IntelligenceAction,
+  env: EnvConfig,
+): Promise<ReadResponse<unknown>> {
+  const stoppedDays = parsed.stopped_days ?? 7;
+  const { resources, graph } = await loadResourceGraph(env);
+  const candidates = findJanitorCandidates(resources, graph, {
+    stopped_days: stoppedDays,
+  });
+
+  return buildReadResponse(
+    {
+      candidates,
+      preview_only: true,
+      mutation: false,
+      stopped_days: stoppedDays,
+      posture:
+        'preview / no mutation — use domain delete_preview or intelligence.cleanup with confirm:true',
+      coverage_note:
+        'Orphan detection uses UUID graph inbound degree only (D-08). Databases linked solely via env vars may appear as orphans — verify before delete.',
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
+/**
+ * Live dependency graph from flat /resources UUID links + bounded service enrichment.
+ * Response data includes `meta.services_enriched` (successful fetchService count)
+ * and optional `meta.service_fetch_errors` when individual enrichment calls fail.
+ */
+export async function handleIntelligenceGraph(
+  parsed: IntelligenceAction,
+  env: EnvConfig,
+): Promise<ReadResponse<unknown>> {
+  const { graph } = await loadResourceGraph(env);
+
   return buildReadResponse(
     {
       nodes: graph.nodes,
@@ -700,7 +819,7 @@ export async function handleIntelligenceAction(
       case 'graph':
         return await handleIntelligenceGraph(parsed, routingEnv);
       case 'impact':
-        return notImplemented('impact', '28-03');
+        return await handleIntelligenceImpact(parsed, routingEnv);
       case 'janitor':
         return notImplemented('janitor', '28-03');
       case 'cleanup':

@@ -30,6 +30,9 @@ export type GraphDependent = {
   uuid: string;
   type: string;
   depth: number;
+  /** Restart advisory: database_uuid-only links are degraded vs outage (D-09). */
+  impact_level?: 'outage' | 'degraded';
+  relation?: GraphRelation;
 };
 
 export type ResourceGraph = {
@@ -294,14 +297,33 @@ export function buildGraph(input: {
   };
 }
 
+function sameScope(
+  target: GraphNode | undefined,
+  candidate: GraphNode | undefined,
+): boolean {
+  if (!target || !candidate) return true;
+  if (target.environment_id && candidate.environment_id) {
+    return target.environment_id === candidate.environment_id;
+  }
+  if (target.project_uuid && candidate.project_uuid) {
+    return target.project_uuid === candidate.project_uuid;
+  }
+  return true;
+}
+
 /**
  * Reverse BFS: edges are child→parent, so dependents of target are nodes
  * with an edge to_uuid === target (and transitive).
+ * Optional nodes scope traversal to same environment/project when set (D-09).
  */
 export function findDependents(
   edges: GraphEdge[],
   targetUuid: string,
-  options: { max_depth?: number } = {},
+  options: {
+    max_depth?: number;
+    nodes?: GraphNode[];
+    intent?: 'delete' | 'restart';
+  } = {},
 ): {
   direct: GraphDependent[];
   transitive: GraphDependent[];
@@ -309,11 +331,23 @@ export function findDependents(
   max_depth: number;
 } {
   const maxDepth = options.max_depth ?? 3;
+  const intent = options.intent ?? 'delete';
+  const nodeByUuid = new Map(
+    (options.nodes ?? []).map((node) => [node.uuid, node]),
+  );
+  const targetNode = nodeByUuid.get(targetUuid);
 
-  const childrenOf = new Map<string, Array<{ uuid: string; type: string }>>();
+  const childrenOf = new Map<
+    string,
+    Array<{ uuid: string; type: string; relation: GraphRelation }>
+  >();
   for (const edge of edges) {
     const list = childrenOf.get(edge.to_uuid) ?? [];
-    list.push({ uuid: edge.from_uuid, type: edge.from_type });
+    list.push({
+      uuid: edge.from_uuid,
+      type: edge.from_type,
+      relation: edge.relation,
+    });
     childrenOf.set(edge.to_uuid, list);
   }
 
@@ -329,12 +363,19 @@ export function findDependents(
     for (const parent of frontier) {
       for (const child of childrenOf.get(parent) ?? []) {
         if (visited.has(child.uuid)) continue;
+        const childNode = nodeByUuid.get(child.uuid);
+        if (!sameScope(targetNode, childNode)) continue;
         visited.add(child.uuid);
         const dep: GraphDependent = {
           uuid: child.uuid,
           type: child.type,
           depth,
+          relation: child.relation,
         };
+        if (intent === 'restart') {
+          dep.impact_level =
+            child.relation === 'database_uuid' ? 'degraded' : 'outage';
+        }
         if (depth === 1) {
           direct.push(dep);
         } else {
@@ -354,15 +395,175 @@ export function findDependents(
   };
 }
 
-/** Nodes that appear in no edge (completely isolated). */
+/**
+ * Nodes with zero inbound dependents (no edge to_uuid === node).
+ * UUID-graph only — env-linked DBs may false-positive as orphans (D-08).
+ */
 export function findOrphans(
   nodes: GraphNode[],
   edges: GraphEdge[],
 ): GraphNode[] {
-  const linked = new Set<string>();
+  const hasInbound = new Set<string>();
   for (const edge of edges) {
-    linked.add(edge.from_uuid);
-    linked.add(edge.to_uuid);
+    hasInbound.add(edge.to_uuid);
   }
-  return nodes.filter((node) => !linked.has(node.uuid));
+  return nodes.filter((node) => !hasInbound.has(node.uuid));
+}
+
+export type JanitorReason = 'stopped' | 'long_exited' | 'orphan';
+
+export type JanitorCandidate = {
+  uuid: string;
+  type: string;
+  name?: string;
+  status?: string;
+  reason: JanitorReason;
+  reasons: JanitorReason[];
+  suggestion: {
+    tool: string;
+    action: string;
+    args: Record<string, unknown>;
+    label: string;
+  };
+  safe_to_delete: boolean;
+  preview_only: true;
+};
+
+function domainToolForType(type: string): string {
+  if (type === 'application' || type === 'service' || type === 'database') {
+    return type;
+  }
+  if (type.startsWith('service-')) return 'service';
+  // Coolify DB raw types (postgresql, mysql, …)
+  return 'database';
+}
+
+function janitorSuggestion(
+  type: string,
+  uuid: string,
+): JanitorCandidate['suggestion'] {
+  const tool = domainToolForType(type);
+  return {
+    tool,
+    action: 'delete_preview',
+    args: { uuid },
+    label: `Preview delete for ${tool} ${uuid}`,
+  };
+}
+
+function parseUpdatedAtMs(value: unknown): number {
+  if (typeof value !== 'string') return 0;
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+/**
+ * Union of stopped/exited, long_exited (updated_at vs stopped_days), and
+ * UUID-graph orphans. Deduped by uuid; primary reason prefers long_exited >
+ * stopped > orphan (D-11, D-12).
+ */
+export function findJanitorCandidates(
+  resources: unknown[],
+  graph: ResourceGraph,
+  options: { stopped_days?: number; now_ms?: number } = {},
+): JanitorCandidate[] {
+  const stoppedDays = options.stopped_days ?? 7;
+  const nowMs = options.now_ms ?? Date.now();
+  const thresholdMs = stoppedDays * 24 * 60 * 60 * 1000;
+
+  const inbound = new Set<string>();
+  for (const edge of graph.edges) {
+    inbound.add(edge.to_uuid);
+  }
+  const orphanUuids = new Set(
+    findOrphans(graph.nodes, graph.edges).map((n) => n.uuid),
+  );
+
+  type JanitorAccum = {
+    uuid: string;
+    type: string;
+    name?: string;
+    status?: string;
+    reasons: Set<JanitorReason>;
+  };
+
+  const byUuid = new Map<string, JanitorAccum>();
+
+  const ensure = (
+    uuid: string,
+    type: string,
+    name?: string,
+    status?: string,
+  ): JanitorAccum => {
+    let entry = byUuid.get(uuid);
+    if (!entry) {
+      entry = {
+        uuid,
+        type,
+        ...(name != null ? { name } : {}),
+        ...(status != null ? { status } : {}),
+        reasons: new Set(),
+      };
+      byUuid.set(uuid, entry);
+    }
+    return entry;
+  };
+
+  for (const item of resources) {
+    if (!isRecord(item)) continue;
+    const uuid = String(item.uuid ?? '');
+    if (!uuid) continue;
+    const type = String(item.type ?? 'unknown');
+    const name = item.name != null ? String(item.name) : undefined;
+    const status = item.status != null ? String(item.status) : undefined;
+    const statusLower = (status ?? '').toLowerCase();
+    const isStopped =
+      statusLower.startsWith('exited') || statusLower.startsWith('stopped');
+
+    if (isStopped) {
+      const entry = ensure(uuid, type, name, status);
+      entry.reasons.add('stopped');
+      const updatedAt = parseUpdatedAtMs(item.updated_at);
+      if (updatedAt > 0 && nowMs - updatedAt >= thresholdMs) {
+        entry.reasons.add('long_exited');
+      }
+    }
+
+    if (orphanUuids.has(uuid)) {
+      const entry = ensure(uuid, type, name, status);
+      entry.reasons.add('orphan');
+    }
+  }
+
+  // Orphans present only as graph nodes (e.g. nested service children)
+  for (const node of graph.nodes) {
+    if (!orphanUuids.has(node.uuid) || byUuid.has(node.uuid)) continue;
+    const entry = ensure(node.uuid, node.type, node.name, node.status);
+    entry.reasons.add('orphan');
+  }
+
+  const primaryReason = (reasons: Set<JanitorReason>): JanitorReason => {
+    if (reasons.has('long_exited')) return 'long_exited';
+    if (reasons.has('stopped')) return 'stopped';
+    return 'orphan';
+  };
+
+  const candidates: JanitorCandidate[] = [];
+  for (const entry of byUuid.values()) {
+    if (entry.reasons.size === 0) continue;
+    const reason = primaryReason(entry.reasons);
+    candidates.push({
+      uuid: entry.uuid,
+      type: entry.type,
+      ...(entry.name != null ? { name: entry.name } : {}),
+      ...(entry.status != null ? { status: entry.status } : {}),
+      reason,
+      reasons: [...entry.reasons],
+      suggestion: janitorSuggestion(entry.type, entry.uuid),
+      safe_to_delete: !inbound.has(entry.uuid),
+      preview_only: true,
+    });
+  }
+
+  return candidates;
 }

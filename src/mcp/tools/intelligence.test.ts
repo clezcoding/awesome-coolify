@@ -1,6 +1,6 @@
 /**
  * Phase 28 intelligence MCP tool tests.
- * Graph + scorecard/findings/partial GREEN (Plans 28-01/02); impact/janitor/cleanup remain it.fails until 28-03..28-04.
+ * Graph + scorecard/findings/partial/impact GREEN (Plans 28-01..03); janitor/cleanup remain it.fails until 28-03..28-04.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { EnvConfig } from '../../config/env.js';
@@ -432,103 +432,101 @@ describe('graph (GRAPH-01, D-07, D-08)', () => {
 });
 
 describe('impact (GRAPH-02, D-09, D-10)', () => {
-  it.fails(
-    'returns direct_dependents then transitive_dependents within max_depth default 3; advisory true; no mutation',
-    async () => {
-      vi.mocked(fetchResources).mockResolvedValue([
-        { uuid: 'db-uuid-1', name: 'db', type: 'database', status: 'running' },
-        {
-          uuid: 'app-direct',
-          name: 'direct-child',
-          type: 'application',
-          status: 'running',
-          database_uuid: 'db-uuid-1',
-        },
-        {
-          uuid: 'app-transitive',
-          name: 'grand-child',
-          type: 'application',
-          status: 'running',
-          application_uuid: 'app-direct',
-        },
-      ]);
+  it('returns direct_dependents then transitive_dependents within max_depth default 3; advisory true; no mutation', async () => {
+    const dbUuid = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const directUuid = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const transitiveUuid = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 
-      const { handleIntelligenceAction, isIntelligenceErrorResult } =
-        await import('./intelligence.js');
+    vi.mocked(fetchResources).mockResolvedValue([
+      { uuid: dbUuid, name: 'db', type: 'database', status: 'running' },
+      {
+        uuid: directUuid,
+        name: 'direct-child',
+        type: 'application',
+        status: 'running',
+        database_uuid: dbUuid,
+      },
+      {
+        uuid: transitiveUuid,
+        name: 'grand-child',
+        type: 'application',
+        status: 'running',
+        application_uuid: directUuid,
+      },
+    ]);
 
-      const result = await handleIntelligenceAction(
-        {
-          action: 'impact',
-          uuid: 'db-uuid-1',
-          type: 'database',
-          intent: 'delete',
-        },
-        testEnv,
-      );
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
 
-      expect(isIntelligenceErrorResult(result)).toBe(false);
-      if (isIntelligenceErrorResult(result)) return;
+    const result = await handleIntelligenceAction(
+      {
+        action: 'impact',
+        uuid: dbUuid,
+        type: 'database',
+        intent: 'delete',
+      },
+      testEnv,
+    );
 
-      const data = result.data as Record<string, unknown>;
-      expect(data.advisory).toBe(true);
-      expect(data.depth_cap ?? data.max_depth).toBe(3);
-      expect(data.intent).toBe('delete');
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
 
-      const direct = data.direct_dependents as Array<{ uuid: string }>;
-      const transitive = data.transitive_dependents as Array<{ uuid: string }>;
-      expect(direct.map((d) => d.uuid)).toContain('app-direct');
-      expect(transitive.map((d) => d.uuid)).toContain('app-transitive');
-      expect(direct.map((d) => d.uuid)).not.toContain('app-transitive');
+    const data = result.data as Record<string, unknown>;
+    expect(data.advisory).toBe(true);
+    expect(data.depth_cap ?? data.max_depth).toBe(3);
+    expect(data.intent).toBe('delete');
 
-      expect(deleteApplication).not.toHaveBeenCalled();
-      expect(deleteService).not.toHaveBeenCalled();
-      expect(deleteDatabase).not.toHaveBeenCalled();
-    },
-  );
+    const direct = data.direct_dependents as Array<{ uuid: string }>;
+    const transitive = data.transitive_dependents as Array<{ uuid: string }>;
+    expect(direct.map((d) => d.uuid)).toContain(directUuid);
+    expect(transitive.map((d) => d.uuid)).toContain(transitiveUuid);
+    expect(direct.map((d) => d.uuid)).not.toContain(transitiveUuid);
+
+    expect(deleteApplication).not.toHaveBeenCalled();
+    expect(deleteService).not.toHaveBeenCalled();
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
 });
 
 describe('janitor (JANI-01, D-11, D-12)', () => {
-  it.fails(
-    'lists stopped/exited, long_exited (stopped_days default 7), orphan; each has FollowUpHint suggestion + preview_only true',
-    async () => {
-      vi.mocked(fetchResources).mockResolvedValue(janitorResources);
+  it.fails('lists stopped/exited, long_exited (stopped_days default 7), orphan; each has FollowUpHint suggestion + preview_only true', async () => {
+    vi.mocked(fetchResources).mockResolvedValue(janitorResources);
 
-      const { handleIntelligenceAction, isIntelligenceErrorResult } =
-        await import('./intelligence.js');
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
 
-      const result = await handleIntelligenceAction(
-        { action: 'janitor' },
-        testEnv,
-      );
+    const result = await handleIntelligenceAction(
+      { action: 'janitor' },
+      testEnv,
+    );
 
-      expect(isIntelligenceErrorResult(result)).toBe(false);
-      if (isIntelligenceErrorResult(result)) return;
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
 
-      const data = result.data as Record<string, unknown>;
-      const candidates = (data.candidates ?? data.items) as Array<
-        Record<string, unknown>
-      >;
-      expect(Array.isArray(candidates)).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const candidates = (data.candidates ?? data.items) as Array<
+      Record<string, unknown>
+    >;
+    expect(Array.isArray(candidates)).toBe(true);
 
-      const reasons = candidates.map((c) => c.reason);
-      expect(reasons).toEqual(
-        expect.arrayContaining(['stopped', 'long_exited', 'orphan']),
-      );
+    const reasons = candidates.map((c) => c.reason);
+    expect(reasons).toEqual(
+      expect.arrayContaining(['stopped', 'long_exited', 'orphan']),
+    );
 
-      for (const candidate of candidates) {
-        expect(candidate.preview_only).toBe(true);
-        expect(candidate.suggestion).toMatchObject({
-          tool: expect.any(String),
-          action: expect.any(String),
-          args: expect.any(Object),
-          label: expect.any(String),
-        });
-      }
+    for (const candidate of candidates) {
+      expect(candidate.preview_only).toBe(true);
+      expect(candidate.suggestion).toMatchObject({
+        tool: expect.any(String),
+        action: expect.any(String),
+        args: expect.any(Object),
+        label: expect.any(String),
+      });
+    }
 
-      expect(deleteApplication).not.toHaveBeenCalled();
-      expect(deleteDatabase).not.toHaveBeenCalled();
-    },
-  );
+    expect(deleteApplication).not.toHaveBeenCalled();
+    expect(deleteDatabase).not.toHaveBeenCalled();
+  });
 });
 
 describe('cleanup (JANI-02, D-13, D-14, T-28-01, T-28-02)', () => {
