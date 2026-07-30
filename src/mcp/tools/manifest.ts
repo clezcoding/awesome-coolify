@@ -14,6 +14,10 @@ import {
   type McpErrorResult,
 } from '../../utils/errors.js';
 import {
+  buildManifestAuditFindings,
+  rollupAuditSeverity,
+} from '../../utils/manifest-audit.js';
+import {
   ManifestManager,
   manifestResourceSchema,
   manifestSchema,
@@ -26,13 +30,13 @@ import { createFlatActionSchema, optionalInstanceParam } from './shared-read-par
 const manifestResourceInputSchema = manifestResourceSchema;
 
 export const manifestActionsCatalog =
-  'Actions: get() · upsert(resource, project_uuid, environment_uuid) · set(manifest) · remove(uuid) · clear(confirm) · sync(dry_run?, confirm?, prune?) · diff()';
+  'Actions: get() · upsert(resource, project_uuid, environment_uuid) · set(manifest) · remove(uuid) · clear(confirm) · sync(dry_run?, confirm?, prune?) · diff() · audit()';
 
 export const manifestSafetyFooter =
   'Safety: confirm for destructive ops · optional instance';
 
 export const manifestActionSchema = createFlatActionSchema(
-  ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff'],
+  ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff', 'audit'],
   {
     resource: manifestResourceInputSchema.optional(),
     project_uuid: z.string().uuid().optional(),
@@ -60,6 +64,7 @@ export const manifestActionSchema = createFlatActionSchema(
     clear: ['confirm'],
     sync: ['instance', 'dry_run', 'confirm', 'prune'],
     diff: ['instance'],
+    audit: ['instance'],
   },
   {
     upsert: ['resource', 'project_uuid', 'environment_uuid'],
@@ -147,21 +152,23 @@ function resourceToManifestEntry(resource: ApiResource): ManifestResource | null
   };
 }
 
-async function fetchRemoteManifest(creds: {
-  url: string;
-  token: string;
-  verifySsl: boolean;
-}): Promise<Manifest> {
-  const { url, token, verifySsl } = creds;
-  const [resources, projects, servers] = await Promise.all([
-    fetchResources(url, token, verifySsl),
-    fetchProjects(url, token, verifySsl),
-    fetchServers(url, token, verifySsl),
-  ]);
+function toPartialFetchError(reason: unknown): { code: string; message: string } {
+  if (reason instanceof CoolifyApiError) {
+    return { code: reason.envelope.code, message: reason.envelope.message };
+  }
+  return { code: 'COOLIFY_UNKNOWN', message: String(reason) };
+}
 
+async function buildManifestFromApiParts(
+  creds: { url: string; token: string; verifySsl: boolean },
+  resources: ApiResource[],
+  projects: { uuid: string; name: string }[],
+  servers: { uuid: string; name: string }[],
+): Promise<Manifest> {
+  const { url, token, verifySsl } = creds;
   const manifestProjects: Manifest['projects'] = [];
 
-  for (const project of projects as { uuid: string; name: string }[]) {
+  for (const project of projects) {
     const projectDetail = (await fetchProject(
       url,
       token,
@@ -184,7 +191,7 @@ async function fetchRemoteManifest(creds: {
     });
   }
 
-  for (const raw of resources as ApiResource[]) {
+  for (const raw of resources) {
     const entry = resourceToManifestEntry(raw);
     if (!entry) continue;
 
@@ -227,10 +234,89 @@ async function fetchRemoteManifest(creds: {
   return {
     version: '1.0.0',
     projects: manifestProjects,
-    servers: (servers as { uuid: string; name: string }[]).map((server) => ({
+    servers: servers.map((server) => ({
       uuid: server.uuid,
       name: server.name,
     })),
+  };
+}
+
+async function fetchRemoteManifest(creds: {
+  url: string;
+  token: string;
+  verifySsl: boolean;
+}): Promise<Manifest> {
+  const { url, token, verifySsl } = creds;
+  const [resources, projects, servers] = await Promise.all([
+    fetchResources(url, token, verifySsl),
+    fetchProjects(url, token, verifySsl),
+    fetchServers(url, token, verifySsl),
+  ]);
+
+  return buildManifestFromApiParts(
+    creds,
+    resources as ApiResource[],
+    projects as { uuid: string; name: string }[],
+    servers as { uuid: string; name: string }[],
+  );
+}
+
+type LiveManifestSnapshot = {
+  manifest: Manifest;
+  partial?: Record<string, { code: string; message: string }>;
+};
+
+async function fetchLiveManifestSnapshot(
+  creds: { url: string; token: string; verifySsl: boolean },
+  options?: { softPartial?: boolean },
+): Promise<LiveManifestSnapshot> {
+  if (!options?.softPartial) {
+    return { manifest: await fetchRemoteManifest(creds) };
+  }
+
+  const { url, token, verifySsl } = creds;
+  const partial: Record<string, { code: string; message: string }> = {};
+
+  const [resourcesR, projectsR, serversR] = await Promise.allSettled([
+    fetchResources(url, token, verifySsl),
+    fetchProjects(url, token, verifySsl),
+    fetchServers(url, token, verifySsl),
+  ]);
+
+  const resources =
+    resourcesR.status === 'fulfilled'
+      ? (resourcesR.value as ApiResource[])
+      : (() => {
+          partial.resources = toPartialFetchError(resourcesR.reason);
+          return [] as ApiResource[];
+        })();
+
+  const projects =
+    projectsR.status === 'fulfilled'
+      ? (projectsR.value as { uuid: string; name: string }[])
+      : (() => {
+          partial.projects = toPartialFetchError(projectsR.reason);
+          return [] as { uuid: string; name: string }[];
+        })();
+
+  const servers =
+    serversR.status === 'fulfilled'
+      ? (serversR.value as { uuid: string; name: string }[])
+      : (() => {
+          partial.servers = toPartialFetchError(serversR.reason);
+          return [] as { uuid: string; name: string }[];
+        })();
+
+  const manifest = await buildManifestFromApiParts(
+    creds,
+    resources,
+    projects,
+    servers,
+  );
+
+  return {
+    manifest,
+    ...(Object.keys(partial).length > 0 ? { partial } : {}),
   };
 }
 
@@ -534,6 +620,56 @@ export async function handleManifestAction(
         return buildReadResponse({
           diff: report,
           destructive: false,
+        });
+      }
+
+      case 'audit': {
+        let creds: { url: string; token: string; verifySsl: boolean };
+        try {
+          creds = resolveSyncCredentials(env, parsed.instance);
+        } catch (error) {
+          if (
+            error instanceof CoolifyApiError &&
+            error.envelope.code === 'COOLIFY_NO_INSTANCE'
+          ) {
+            return wrapMcpError(error);
+          }
+          throw error;
+        }
+
+        if (!ManifestManager.exists()) {
+          throw new CoolifyApiError({
+            code: 'COOLIFY_VALIDATION_ERROR',
+            message: 'Local manifest not found at .coolify/manifest.json',
+            recoveryHints: [
+              'Run manifest.sync to populate the local manifest cache from live Coolify state.',
+              'Or manifest.upsert to add resources manually.',
+            ],
+          });
+        }
+
+        const local = ManifestManager.load();
+        const { manifest: remote, partial } = await fetchLiveManifestSnapshot(
+          creds,
+          { softPartial: true },
+        );
+        const findings = buildManifestAuditFindings(local, remote, {
+          instance: parsed.instance,
+        });
+        const mergeResult = mergeManifests(local, remote, { prune: false });
+        const report = buildReconciliationReport(local, remote, mergeResult);
+
+        return buildReadResponse({
+          severity: rollupAuditSeverity(findings),
+          findings,
+          summary: {
+            local_resource_count: collectResourceUuids(local).size,
+            live_resource_count: collectResourceUuids(remote).size,
+            orphans_local: findings.filter((f) => f.kind === 'local_orphan').length,
+            orphans_live: findings.filter((f) => f.kind === 'remote_only').length,
+          },
+          ...(partial ? { partial } : {}),
+          diff_support: report,
         });
       }
 

@@ -819,7 +819,7 @@ function mockRemoteManifestForAudit(options?: { rejectProjects?: boolean }) {
 }
 
 describe('manifest.audit', () => {
-  it.fails(
+  it(
     'returns findings[] with severity critical|high|info and FollowUpHint-shaped hint per finding (DRIFT-01, D-05)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -846,7 +846,7 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'missing .coolify/manifest.json returns COOLIFY_VALIDATION_ERROR with manifest.sync and manifest.upsert recovery hints (D-07)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -878,7 +878,7 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'without usable credentials returns COOLIFY_NO_INSTANCE with recovery hints (D-07, D-12)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -894,7 +894,7 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'domain drift between local and live surfaces a finding with remediation hint (D-04)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -920,7 +920,7 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'project/environment nesting mismatch surfaces a finding (D-04)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -946,7 +946,7 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'resource type mismatch surfaces a finding (D-04)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -970,7 +970,7 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'one live fetch rejection returns partial metadata and sibling findings (D-06, D-13)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
@@ -993,20 +993,16 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'audit is read-only — never calls ManifestManager.save or upsert (D-06, D-16)',
     async () => {
-      const { ManifestManager } = await import('../../utils/manifest.js');
-      const saveSpy = vi.spyOn(ManifestManager, 'save').mockResolvedValue();
-      const upsertSpy = vi.spyOn(ManifestManager, 'upsert').mockResolvedValue({
-        uuid: RESOURCE_UUID,
-        type: 'application',
-        name: 'noop',
-        domains: [],
-      });
-
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
       await seedAuditInstanceAndManifest();
+
+      const { ManifestManager } = await import('../../utils/manifest.js');
+      const saveSpy = vi.spyOn(ManifestManager, 'save').mockResolvedValue();
+      const upsertSpy = vi.spyOn(ManifestManager, 'upsert').mockResolvedValue();
+
       mockRemoteManifestForAudit();
 
       const result = await handleManifestAction(
@@ -1023,7 +1019,7 @@ describe('manifest.audit', () => {
     },
   );
 
-  it.fails(
+  it(
     'audit returns findings envelope separate from manifest.diff raw report (D-03)',
     async () => {
       const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
