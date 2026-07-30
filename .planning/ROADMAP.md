@@ -102,14 +102,14 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
   4. Agent lists orphaned, stopped, or long-exited resources with safe cleanup suggestions
   5. Janitor destructive cleanup mutations blocked without explicit confirm gate per SAF pattern
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 
 - [x] 28-00-PLAN.md — Wave 0 Nyquist RED scaffolds for INTEL/GRAPH/JANI
 - [x] 28-01-PLAN.md — Tracer: intelligence tool + UUID graph + server registration
 - [x] 28-02-PLAN.md — Scorecard composite factors + findings + soft partials
-- [ ] 28-03-PLAN.md — Advisory impact + read-only janitor
+- [x] 28-03-PLAN.md — Advisory impact + read-only janitor
 - [ ] 28-04-PLAN.md — Confirm-gated cleanup + capabilities/docs (D-13 gate)
 
 ### Phase 29: Drift & Heal
@@ -173,7 +173,7 @@ Plans:
 | 25 | v3.2 | 6/6 | Complete | 2026-07-28 |
 | 26 | v3.2 | 4/4 | Complete | 2026-07-28 |
 | 27 | v3.2 | 4/4 | Complete | 2026-07-29 |
-| 28 | v3.3 | 3/5 | In Progress|  |
+| 28 | v3.3 | 4/5 | In Progress|  |
 | 29 | v3.3 | 0/TBD | Not started | - |
 | 30 | v3.3 | 0/TBD | Not started | - |
 | 31 | v3.3 | 0/TBD | Not started | - |
