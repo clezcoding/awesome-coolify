@@ -3534,9 +3534,19 @@ describe('application envs:promote', () => {
     vi.mocked(fetchResources).mockReset();
     mockPromoteEnvFetches();
     vi.mocked(fetchResources).mockResolvedValue([]);
+    vi.mocked(createEnv).mockResolvedValue({
+      uuid: 'promote-created-env',
+      key: 'ONLY_IN_SOURCE',
+      value: FAKE_SECRET_VALUE,
+      is_preview: false,
+      is_literal: false,
+      is_multiline: false,
+      is_shown_once: false,
+    });
+    vi.mocked(bulkUpdateEnvs).mockResolvedValue({ updated: 1 });
   });
 
-  it.fails(
+  it(
     'preview returns only_in_source, only_in_target, value_mismatches, and promotion_suggestions with FollowUpHint shape (DRIFT-02, D-08)',
     async () => {
       const result = await handleApplicationAction(
@@ -3571,7 +3581,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'preview defaults to dry_run true and does not call bulkUpdateEnvs or createEnv (D-09)',
     async () => {
       const result = await handleApplicationAction(
@@ -3592,7 +3602,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'preview masks env values by default (T-29-01, D-08)',
     async () => {
       const result = await handleApplicationAction(
@@ -3611,7 +3621,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'fetches env lists for both source_uuid and target_uuid (D-11)',
     async () => {
       await handleApplicationAction(
@@ -3640,7 +3650,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'apply without confirm returns COOLIFY_CONFIRM_REQUIRED and performs no writes (D-09, D-16)',
     async () => {
       const result = await handleApplicationAction(
@@ -3663,7 +3673,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'conflict_policy keep_remote creates only_in_source keys and skips mismatch updates (D-10)',
     async () => {
       const result = await handleApplicationAction(
@@ -3693,7 +3703,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'conflict_policy overwrite updates mismatched keys on target only (D-10)',
     async () => {
       const result = await handleApplicationAction(
@@ -3716,7 +3726,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'apply never deletes only_in_target keys (D-10)',
     async () => {
       const result = await handleApplicationAction(
@@ -3738,7 +3748,7 @@ describe('application envs:promote', () => {
     },
   );
 
-  it.fails(
+  it(
     'conflict_policy abort with mismatches returns COOLIFY_CONFIRM_REQUIRED with conflict_policy_options (D-10)',
     async () => {
       const result = await handleApplicationAction(
