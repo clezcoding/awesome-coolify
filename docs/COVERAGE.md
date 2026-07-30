@@ -12,7 +12,7 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 
 | bucket | count |
 | --- | ---: |
-| covered | 92 |
+| covered | 94 |
 | deferred | 2 |
 | out-of-scope | 31 |
 | gap | 57 |
@@ -37,6 +37,7 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 | `application.envs:delete` | deleteEnv | DELETE /applications/{uuid}/envs/{env_uuid} | covered | — |
 | `application.envs:get` | fetchEnvs | GET /applications/{uuid}/envs | covered | — |
 | `application.envs:list` | fetchEnvs | GET /applications/{uuid}/envs | covered | — |
+| `application.envs:promote` | fetchEnvs, bulkUpdateEnvs, createEnv | GET /applications/{uuid}/envs, PATCH /applications/{uuid}/envs/bulk, POST /applications/{uuid}/envs | covered | — |
 | `application.envs:sync` | fetchEnvs, createEnv, updateEnvViaBulk, deleteEnv | GET /applications/{uuid}/envs, POST /applications/{uuid}/envs, PATCH /applications/{uuid}/envs/bulk, DELETE /applications/{uuid}/envs/{env_uuid} | out-of-scope | File↔remote env reconciliation orchestration |
 | `application.envs:update` | fetchEnvs, updateEnvViaBulk | GET /applications/{uuid}/envs, PATCH /applications/{uuid}/envs/bulk | covered | — |
 | `application.get` | fetchApplication | GET /applications/{uuid} | covered | — |
@@ -96,6 +97,7 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 | `intelligence.impact` | fetchResources, fetchService | GET /resources, GET /services/{uuid} | covered | — |
 | `intelligence.janitor` | fetchResources, fetchService | GET /resources, GET /services/{uuid} | covered | — |
 | `intelligence.scorecard` | fetchResources, fetchServers, fetchAppDeployments, fetchDatabaseBackups | GET /resources, GET /servers, GET /deployments/applications/{uuid}, GET /databases/{uuid}/backups | covered | — |
+| `manifest.audit` | fetchResources, fetchProjects, fetchServers, fetchProject | GET /resources, GET /projects, GET /servers, GET /projects/{uuid} | covered | — |
 | `manifest.clear` | — | — | out-of-scope | Local manifest file only |
 | `manifest.diff` | fetchResources, fetchProjects, fetchServers, fetchProject | GET /resources, GET /projects, GET /servers, GET /projects/{uuid} | out-of-scope | Local workspace diff — REST reads are ancillary |
 | `manifest.get` | — | — | out-of-scope | Local workspace file only — no Coolify REST op |
