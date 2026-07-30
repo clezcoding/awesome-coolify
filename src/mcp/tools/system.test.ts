@@ -144,46 +144,38 @@ describe('capabilities', () => {
     'deployment_watch',
     'deploy_watch',
     'diagnose_logs',
+    'envs_promote',
     'intelligence_cleanup',
     'intelligence_graph',
     'intelligence_impact',
     'intelligence_janitor',
     'intelligence_scorecard',
-  ] as const;
-
-  // Phase 29 Wave 0 — manifest_audit + envs_promote (flip GREEN in Plan 29-03)
-  const EXPECTED_DRIFT_CAPABILITY_KEYS = [
-    ...CAPABILITY_KEYS,
     'manifest_audit',
-    'envs_promote',
   ] as const;
 
-  it.fails(
-    'system.version capabilities has exactly thirteen keys including manifest_audit and envs_promote (D-15)',
-    async () => {
-      const result = await handleSystemAction({ action: 'version' }, testEnv);
-      expect(isMcpErrorResult(result)).toBe(false);
-      if (isMcpErrorResult(result)) return;
+  it('system.version capabilities has exactly thirteen keys including manifest_audit and envs_promote (D-15)', async () => {
+    const result = await handleSystemAction({ action: 'version' }, testEnv);
+    expect(isMcpErrorResult(result)).toBe(false);
+    if (isMcpErrorResult(result)) return;
 
-      expect(Object.keys(result.capabilities ?? {}).sort()).toEqual(
-        [...EXPECTED_DRIFT_CAPABILITY_KEYS].sort(),
-      );
+    expect(Object.keys(result.capabilities ?? {}).sort()).toEqual(
+      [...CAPABILITY_KEYS].sort(),
+    );
 
-      const caps = result.capabilities as Record<string, unknown>;
-      expect(caps.manifest_audit).toMatchObject({
-        supported: true,
-        coolify_min_version: '4.1.2',
-        note: expect.any(String),
-      });
-      expect(caps.envs_promote).toMatchObject({
-        supported: true,
-        coolify_min_version: '4.1.2',
-        note: expect.any(String),
-      });
-    },
-  );
+    const caps = result.capabilities as Record<string, unknown>;
+    expect(caps.manifest_audit).toMatchObject({
+      supported: true,
+      coolify_min_version: '4.1.2',
+      note: expect.any(String),
+    });
+    expect(caps.envs_promote).toMatchObject({
+      supported: true,
+      coolify_min_version: '4.1.2',
+      note: expect.any(String),
+    });
+  });
 
-  it('system.version capabilities has exactly eleven keys including five intelligence_* (D-19)', async () => {
+  it('system.version capabilities has exactly thirteen keys including five intelligence_* (D-19)', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;

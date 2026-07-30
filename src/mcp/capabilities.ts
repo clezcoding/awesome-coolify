@@ -54,6 +54,16 @@ export const COOLIFY_412_CAPABILITIES = {
     coolify_min_version: '4.1.2',
     note: 'MCP composite confirm-gated cleanup reusing domain delete handlers (not a Coolify REST endpoint)',
   },
+  manifest_audit: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite manifest drift audit on Coolify 4.1.x reads (not a Coolify REST endpoint)',
+  },
+  envs_promote: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP cross-environment env promotion preview/apply via existing env CRUD (not a Coolify REST endpoint)',
+  },
 } as const satisfies Record<
   string,
   { supported: boolean; coolify_min_version: string; note?: string }
