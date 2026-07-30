@@ -466,15 +466,11 @@ const isLongExited = (status: string, updatedAt: string, days: number) =>
 | A4 | Batch cleanup via sequential delete handler calls is acceptable | Cleanup | Partial batch failure needs per-item error envelope |
 | A5 | No additional UUID link fields beyond database_uuid, application_uuid, service nested | Graph | Missing edges if Coolify adds new link fields |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Capability key granularity**
-   - What we know: D-19 leaves naming to discretion; Phase 24 used per-feature keys (`diagnose_logs`).
-   - Recommendation: Five keys — `intelligence_scorecard`, `intelligence_graph`, `intelligence_impact`, `intelligence_janitor`, `intelligence_cleanup` — all `supported: true`, `coolify_min_version: '4.1.2'`, note "MCP composite".
+1. **Capability key granularity** — RESOLVED: five keys per D-19 discretion — `intelligence_scorecard`, `intelligence_graph`, `intelligence_impact`, `intelligence_janitor`, `intelligence_cleanup` — all `supported: true`, `coolify_min_version: '4.1.2'`, note "MCP composite" (Plans 28-00 / 28-04).
 
-2. **OpenAPI coverage row for intelligence actions**
-   - What we know: D-19 requires catalog + README; openapi-coverage tests exist (Phase 23).
-   - Recommendation: Add intelligence actions to coverage map as MCP-only composite (like `diagnose_logs`), not Coolify REST paths.
+2. **OpenAPI coverage row for intelligence actions** — RESOLVED: coverage-map MCP-composite rows (like `diagnose_logs`), not Coolify REST paths (Plans 28-00 / 28-04).
 
 ## Environment Availability
 
