@@ -73,8 +73,9 @@ created: 2026-07-30
 |----------|-------------|------------|-------------------|
 | Live Coolify scorecard against real instance | INTEL-01 | Needs live API + real resources | Point MCP at test instance; call `intelligence.scorecard`; spot-check factors vs dashboard |
 | Live graph edges for one known app↔db pair | GRAPH-01 | Fixture may not mirror nested service payloads | Call `intelligence.graph`; confirm known link present |
+| D-13 confirm-gate decision checkpoint | JANI-02 / D-13 | Human checkpoint before cleanup contract ships (`28-04-01`) | Confirm SAF-01 `confirm:true` + SAF-02 defaults + explicit `targets[]` remain locked; then allow Plan 28-04 Task 2+ |
 
-*Unit tests cover contracts; live spot-check optional at UAT.*
+*Unit tests cover contracts; live spot-check optional at UAT. Checkpoint `28-04-01` is manual — exempt from automated verify.*
 
 ---
 
