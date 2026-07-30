@@ -1,6 +1,6 @@
 /**
  * Phase 28 intelligence MCP tool tests.
- * Graph path GREEN (Plan 28-01); scorecard/impact/janitor/cleanup remain it.fails until 28-02..28-04.
+ * Graph + scorecard/findings/partial GREEN (Plans 28-01/02); impact/janitor/cleanup remain it.fails until 28-03..28-04.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { EnvConfig } from '../../config/env.js';
@@ -128,7 +128,7 @@ beforeEach(() => {
 });
 
 describe('scorecard (INTEL-01, D-04)', () => {
-  it.fails(
+  it(
     'returns factors deployments/backups/exited_resources/diagnose_scan + overall severity',
     async () => {
       const { handleIntelligenceAction, isIntelligenceErrorResult } =
@@ -150,13 +150,13 @@ describe('scorecard (INTEL-01, D-04)', () => {
         exited_resources: expect.anything(),
         diagnose_scan: expect.anything(),
       });
-      expect(['critical', 'high', 'info', 'ok']).toContain(data.severityity);
+      expect(['critical', 'high', 'info', 'ok']).toContain(data['severity']);
     },
   );
 });
 
 describe('findings (INTEL-02, D-05)', () => {
-  it.fails(
+  it(
     'findings[] include severity + FollowUpHint-shaped recovery hints',
     async () => {
       const { handleIntelligenceAction, isIntelligenceErrorResult } =
@@ -176,7 +176,7 @@ describe('findings (INTEL-02, D-05)', () => {
       expect(findings.length).toBeGreaterThan(0);
 
       for (const finding of findings) {
-        expect(['critical', 'high', 'info']).toContain(finding.severityity);
+        expect(['critical', 'high', 'info']).toContain(finding['severity']);
         const hint = finding.hint ?? finding.suggestion ?? finding.recovery_hint;
         expect(hint).toMatchObject({
           tool: expect.any(String),
@@ -190,7 +190,7 @@ describe('findings (INTEL-02, D-05)', () => {
 });
 
 describe('partial (D-17 soft partial)', () => {
-  it.fails(
+  it(
     'one factor reject leaves siblings present with failed flag on rejected factor',
     async () => {
       vi.mocked(fetchAppDeployments).mockRejectedValue(
