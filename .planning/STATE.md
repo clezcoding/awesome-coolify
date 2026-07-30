@@ -4,17 +4,17 @@ milestone: v3.3
 milestone_name: Agent Intelligence
 current_phase: 29
 current_phase_name: Drift & Heal
-status: planning
+status: "Phase 28 shipped — PR #108"
 stopped_at: Phase 28 complete — Instance Intelligence verified
-last_updated: "2026-07-30T02:14:07.939Z"
+last_updated: "2026-07-30T02:30:23.015Z"
 last_activity: 2026-07-30
-last_activity_desc: Phase 28 complete, transitioned to Phase 29
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 5
   completed_plans: 5
   percent: 25
+last_activity_desc: Phase 28 complete, transitioned to Phase 29
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 
 Phase: 29 of 31 (Drift & Heal)
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-30 — Phase 28 complete, transitioned to Phase 29
+Status: Phase 28 shipped — PR #108
+Last activity: 2026-07-30
 
 Progress: [██████████] 100%
 
