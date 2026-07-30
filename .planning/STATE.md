@@ -14,7 +14,7 @@ progress:
   completed_phases: 0
   total_plans: 5
   completed_plans: 1
-  percent: 0
+  percent: 20
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 28 of 31 (Instance Intelligence)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-07-30 — v3.3 roadmap created (Phases 28–31, 18/18 reqs mapped)
+Plan: 01 of 05
+Status: Executing
+Last activity: 2026-07-30 — Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
 
 Progress: [██░░░░░░░░] 20%
 
@@ -426,8 +426,8 @@ Progress: [██░░░░░░░░] 20%
 - [Phase ?]: D-05: client limitation accepted — server correct, Cursor UI letter A only
 - [Phase ?]: D-07: PROJECT opener 1.0.1 shipped wording aligned with table L15
 - [Phase ?]: D-09: CHANGELOG and milestone archives untouched during DOC-01 sweep
-- [Phase ?]: Dynamic import inside it.fails only for nonexistent intelligence/resource-graph modules (Wave 0)
-- [Phase ?]: system.test.ts keeps six-key green it; eleven-key intelligence_* is it.fails only until Plan 28-04
+- [Phase 28-instance-intelligence]: Dynamic import inside it.fails only for nonexistent intelligence/resource-graph modules (Wave 0)
+- [Phase 28-instance-intelligence]: system.test.ts keeps six-key green it; eleven-key intelligence_* is it.fails only until Plan 28-04
 
 ### Pending Todos
 
