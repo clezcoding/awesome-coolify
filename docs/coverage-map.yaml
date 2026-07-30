@@ -52,6 +52,9 @@ actions:
   - action: application.envs:sync
     client: [fetchEnvs, createEnv, updateEnvViaBulk, deleteEnv]
     openapi: ["GET /applications/{uuid}/envs", "POST /applications/{uuid}/envs", "PATCH /applications/{uuid}/envs/bulk", "DELETE /applications/{uuid}/envs/{env_uuid}"]
+  - action: application.envs:promote
+    client: [fetchEnvs, bulkUpdateEnvs, createEnv]
+    openapi: ["GET /applications/{uuid}/envs", "PATCH /applications/{uuid}/envs/bulk", "POST /applications/{uuid}/envs"]
   - action: database.get
     client: [fetchDatabase]
     openapi: ["GET /databases/{uuid}"]
@@ -225,6 +228,9 @@ actions:
     client: [fetchResources, fetchProjects, fetchServers, fetchProject]
     openapi: ["GET /resources", "GET /projects", "GET /servers", "GET /projects/{uuid}"]
   - action: manifest.diff
+    client: [fetchResources, fetchProjects, fetchServers, fetchProject]
+    openapi: ["GET /resources", "GET /projects", "GET /servers", "GET /projects/{uuid}"]
+  - action: manifest.audit
     client: [fetchResources, fetchProjects, fetchServers, fetchProject]
     openapi: ["GET /resources", "GET /projects", "GET /servers", "GET /projects/{uuid}"]
   - action: meta.version

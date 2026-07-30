@@ -94,7 +94,7 @@
 
 Self-hosted [Coolify](https://coolify.io) ist eine der besten Open-Source-Alternativen zu Heroku- oder Vercel-artigen PaaS-Plattformen — aber die Anbindung an einen AI-Coding-Agenten bedeutete bisher oft, mehrere kleine, überlappende Community-MCP-Integrationen zusammenzustecken, jede mit eigenem Schema, eigenem Fehlerformat und eigener Vorstellung davon, was „sicher" bedeutet.
 
-**awesome-coolify-mcp** **1.1.1** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eines von **19 tools** mit einem `action`-Feld auf:
+**awesome-coolify-mcp** **1.1.2** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eines von **19 tools** mit einem `action`-Feld auf:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: false })
@@ -395,6 +395,7 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `envs:delete` | Eine Env-Var löschen — **erfordert `confirm: true`** |
 | `envs:bulk-update` | Viele Env-Vars auf einmal patchen — **erfordert `confirm: true`** |
 | `envs:sync` | Lokale `.env`-Datei oder Inline-Inhalt diffen/anwenden — **nur Application**; siehe [Ressourcen-Env-Vars](#-ressourcen-umgebungsvariablen-envs) |
+| `envs:promote` | Env-Vars zwischen zwei Applications in **derselben Coolify-Instanz** vergleichen und promoten (Produktname: **env.promote**); standardmäßig Vorschau — siehe [Ressourcen-Env-Vars](#-ressourcen-umgebungsvariablen-envs) |
 
 ### 📈 `deployment` — Deploy-Tracking
 
@@ -458,20 +459,24 @@ Coolify-Laufzeitkonfiguration auf Applications, Services und Datenbanken über `
 
 | Tool | `envs:*`-Actions | Hinweise |
 |------|------------------|----------|
-| `application` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `envs:sync` | Einziges Tool mit lokalem `.env`-Sync |
+| `application` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update`, `envs:sync`, `envs:promote` | Einziges Tool mit lokalem `.env`-Sync und Cross-App-Env-Promote |
 | `service` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` | Kein Sync — `.env`-Diff/Apply nur über `application` |
 | `database` | `envs:list`, `envs:get`, `envs:create`, `envs:update`, `envs:delete`, `envs:bulk-update` | **`is_preview` wird nicht unterstützt** bei Database-Env-Vars (Coolify-OpenAPI-Lücke) |
 
-**Confirm-Gates:** `envs:delete` und `envs:bulk-update` erfordern immer `confirm: true` auf allen drei Tools. Nur auf `application` erfordert `envs:sync` `confirm: true` beim Anwenden (`dry_run: false`, Standard) oder bei `prune: true`.
+**Confirm-Gates:** `envs:delete` und `envs:bulk-update` erfordern immer `confirm: true` auf allen drei Tools. Nur auf `application` erfordert `envs:sync` `confirm: true` beim Anwenden (`dry_run: false`, Standard) oder bei `prune: true`. `envs:promote` erfordert `confirm: true` beim Anwenden (`dry_run: false`).
 
 **Reveal-Richtlinie:** Env-Werte erscheinen standardmäßig als `***`. `reveal: true` nur setzen, wenn der Mensch explizit Klartext will — der Agent darf `reveal: true` nicht automatisch setzen.
 
 **`envs:sync`-Semantik (nur Application):** Genau eines von `env_file` (lokaler Pfad) oder `env_content` (Inline-`.env`-Text). `dry_run: true` liefert einen Diff (`added`, `updated`, `unchanged`, `removed`, optional `conflicts`) ohne API-Writes; Standard `dry_run: false` wendet Änderungen an. Remote-Keys, die lokal fehlen, werden nie gelöscht, außer mit `prune: true` (ebenfalls `confirm: true` nötig). Wenn lokale und Remote-Werte abweichen, nach Rücksprache mit dem Menschen `conflict_policy` auf `overwrite`, `keep_remote` oder `abort` setzen — Apply mit Konflikten ohne Policy liefert `COOLIFY_CONFIRM_REQUIRED`.
 
+**`envs:promote`-Semantik (nur Application, gleiche Instanz):** In Produktdocs ggf. **env.promote**; implementierte Action ist `application.envs:promote`. Vergleicht Env-Vars zwischen `source_uuid` und `target_uuid` (zwei Applications in einer Coolify-Instanz — kein Cross-Instance-Fan-out). Standard `dry_run: true` liefert Vorschau-Buckets (`only_in_source`, `only_in_target`, `value_mismatches`) plus strukturierte `promotion_suggestions` mit Follow-up-Tool/Action-Hints; Werte maskiert, außer `reveal: true`. Anwenden kopiert in die Target-App und erfordert `confirm: true`. Standard-`conflict_policy` ist `keep_remote` — abweichende Target-Keys werden übersprungen, außer der Mensch wählt `overwrite` oder `abort`.
+
 ```js
 application({ action: "envs:list", uuid: "<app-uuid>" })
 application({ action: "envs:sync", uuid: "<app-uuid>", env_file: "./.env", dry_run: true })
 application({ action: "envs:sync", uuid: "<app-uuid>", env_content: "API_KEY=EXAMPLE_VALUE\n", confirm: true, conflict_policy: "overwrite" })
+application({ action: "envs:promote", source_uuid: "<source-app-uuid>", target_uuid: "<target-app-uuid>", dry_run: true })
+application({ action: "envs:promote", source_uuid: "<source-app-uuid>", target_uuid: "<target-app-uuid>", dry_run: false, confirm: true, conflict_policy: "keep_remote" })
 ```
 
 ### 💾 Datenbank-Backups (`backup:*`)
@@ -591,13 +596,16 @@ instance({ action: "cloud-info" })
 | `clear` | Manifest leeren — **erfordert `confirm: true`** |
 | `sync` | Cache gegen live Coolify-API abgleichen (optional `dry_run`, `prune` mit `confirm`) |
 | `diff` | Nicht-destruktiver Diff-Report — immer sicher |
+| `audit` | **Nur-Lesen / beratend** Drift-Audit: `findings[]` mit Severity-Tags und strukturierten Remediation-Hints (welche Tool/Action als Nächstes); optional `diff_support` — mutiert weder Manifest noch Live-State |
 
 ```js
 manifest({ action: "sync", dry_run: true })
 manifest({ action: "diff" })
+manifest({ action: "audit" })
 ```
 
 > [!NOTE]
+> `manifest.audit` vergleicht lokales `.coolify/manifest.json` mit live Coolify-Inventar für die gewählte Instanz. Findings nennen Follow-up-Actions wie `manifest.sync` oder `manifest.upsert` — Hints sind nur beratend; nichts heilt automatisch. `manifest.diff` bleibt der rohe strukturelle Abgleich-Report.
 > Best-Effort-Auto-Hooks aktualisieren das Manifest nach App/Service/DB-Mutationen. Veraltete UUID-404s anderswo liefern `_meta.manifestWarning` — `manifest({ action: "sync" })` zum Abgleichen ausführen.
 
 ### 🧭 `setup` — geführte Projekt-Verdrahtung
@@ -627,7 +635,9 @@ Destruktive **Emergency**-Actions folgen einem strikten Zwei-Schritt-Muster:
 
 Normale App-/Service-/Database-Mutationen (Start, Stop, Deploy, …) liegen **nicht** hinter diesem Gate — sie folgen einfach der Coolify-API-Semantik, da sie auf eine einzelne Ressource statt auf deine ganze Fleet begrenzt sind.
 
-**Umgebungsvariablen:** `envs:delete` und `envs:bulk-update` erfordern `confirm: true` auf Application, Service und Database. `envs:sync`-Apply (`dry_run: false`) und `envs:sync` mit `prune: true` erfordern `confirm: true` nur auf Application. `dry_run: true`-Sync-Vorschauen mutieren nie.
+**Umgebungsvariablen:** `envs:delete` und `envs:bulk-update` erfordern `confirm: true` auf Application, Service und Database. `envs:sync`-Apply (`dry_run: false`) und `envs:sync` mit `prune: true` erfordern `confirm: true` nur auf Application. `dry_run: true`-Sync-Vorschauen mutieren nie. `envs:promote`-Apply (`dry_run: false`) erfordert `confirm: true` auf Application; Standard-`conflict_policy` ist `keep_remote`.
+
+**Drift & Heal (nur-Lesen-Audit, Preview-first-Promote):** `manifest.audit` ist nur beratend — schreibt weder Manifest noch Live-State. `application.envs:promote` (Produktname **env.promote**) standardmäßig Vorschau; Werte maskiert, außer `reveal: true`. Beides bleibt pro Aufruf in einer Coolify-Instanz.
 
 ### Secret-Maskierung
 
@@ -718,7 +728,7 @@ system({ action: "verify" })
 
 ## ✅ Status heute
 
-Paket **1.1.1** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1.x**:
+Paket **1.1.2** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1.x**:
 
 | Fähigkeit | Status |
 |-----------|--------|
@@ -730,6 +740,7 @@ Paket **1.1.1** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1
 | Deployment-Watch und begrenzte Build-Logs | ✅ Shipped |
 | Application-Runtime-Logs, begrenzter Follow und `diagnose.logs` | ✅ Shipped |
 | Instanz-Intelligence (`intelligence.scorecard`, `graph`, `impact`, `janitor`, `cleanup`) | ✅ Shipped |
+| Drift & Heal (`manifest.audit`, `application.envs:promote` / **env.promote**) | ✅ Shipped |
 | Application-, Service- und Database-CRUD | ✅ Shipped |
 | Dynamische One-Click-Type-Discovery und Recipes | ✅ Shipped |
 | Setup-Wizard und vier IDE-Workflow-Skills | ✅ Shipped |
@@ -747,7 +758,7 @@ Paket **1.1.1** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1
 | Capability-Discovery via `system.version` | ✅ Shipped |
 | Deployment-Build-Logs via `deployment.logs` | ✅ Shipped |
 
-> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für **App-Triage + begrenzten Runtime-Tail** in einem Aufruf: `diagnose({ action: "logs", mode: "full", uuid: "..." })` — prüfe `capabilities.diagnose_logs`. Für **Instanz-Gesundheit, Dependency-Graph, Impact und Janitor/Cleanup**: `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — prüfe `capabilities.intelligence_scorecard` (und sibling `intelligence_*`-Keys); `cleanup` erfordert `confirm: true`. Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
+> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für **App-Triage + begrenzten Runtime-Tail** in einem Aufruf: `diagnose({ action: "logs", mode: "full", uuid: "..." })` — prüfe `capabilities.diagnose_logs`. Für **Instanz-Gesundheit, Dependency-Graph, Impact und Janitor/Cleanup**: `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — prüfe `capabilities.intelligence_scorecard` (und sibling `intelligence_*`-Keys); `cleanup` erfordert `confirm: true`. Für **Manifest-Drift-Audit** und **Cross-App-Env-Promote**: `manifest({ action: "audit" })` und `application({ action: "envs:promote", source_uuid, target_uuid, ... })` — prüfe `capabilities.manifest_audit` und `capabilities.envs_promote` (MCP-Composites über bestehende Reads/Env-CRUD, keine Coolify-native REST-Endpoints). Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
 
 > [!WARNING]
 > Coolify 4.1.x bietet keine stabilen Service- oder Database-Log-Endpunkte. Dieser Server behauptet oder registriert deshalb keine Service-/Database-Log-Actions. Nutze Application-Runtime-Logs und Deployment-Build-Logs, bis kompatible Upstream-APIs verfügbar sind.

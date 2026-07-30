@@ -144,14 +144,16 @@ describe('capabilities', () => {
     'deployment_watch',
     'deploy_watch',
     'diagnose_logs',
+    'envs_promote',
     'intelligence_cleanup',
     'intelligence_graph',
     'intelligence_impact',
     'intelligence_janitor',
     'intelligence_scorecard',
+    'manifest_audit',
   ] as const;
 
-  it('system.version capabilities has exactly eleven keys including five intelligence_* (D-19)', async () => {
+  it('system.version capabilities has exactly thirteen keys including manifest_audit, envs_promote, and five intelligence_* (D-15, D-19)', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;
@@ -161,6 +163,16 @@ describe('capabilities', () => {
     );
 
     const caps = result.capabilities as Record<string, unknown>;
+    expect(caps.manifest_audit).toMatchObject({
+      supported: true,
+      coolify_min_version: '4.1.2',
+      note: expect.any(String),
+    });
+    expect(caps.envs_promote).toMatchObject({
+      supported: true,
+      coolify_min_version: '4.1.2',
+      note: expect.any(String),
+    });
     for (const key of [
       'intelligence_scorecard',
       'intelligence_graph',

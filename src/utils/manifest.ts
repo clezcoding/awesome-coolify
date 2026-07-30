@@ -97,6 +97,10 @@ export class ManifestManager {
     return run;
   }
 
+  static exists(): boolean {
+    return existsSync(manifestFilePath());
+  }
+
   static load(): Manifest {
     const filePath = manifestFilePath();
     if (!existsSync(filePath)) {

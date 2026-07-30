@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
-current_phase: 29
-current_phase_name: Drift & Heal
-status: "Phase 28 shipped — PR #108"
-stopped_at: Phase 28 complete — Instance Intelligence verified
-last_updated: "2026-07-30T02:30:23.015Z"
+current_phase: 30
+current_phase_name: Deploy Guard
+status: "Phase 29 shipped — PR #109"
+stopped_at: Phase 29 complete — Drift & Heal verified
+last_updated: "2026-07-30T03:32:01.034Z"
 last_activity: 2026-07-30
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 10
+  completed_plans: 9
   percent: 25
-last_activity_desc: Phase 28 complete, transitioned to Phase 29
+last_activity_desc: Phase 29 complete, transitioned to Phase 30
 ---
 
 # Project State
@@ -28,18 +28,18 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 
 ## Current Position
 
-Phase: 29 of 31 (Drift & Heal)
+Phase: 30 of 31 (Deploy Guard)
 Plan: Not started
-Status: Phase 28 shipped — PR #108
+Status: Phase 29 shipped — PR #109
 Last activity: 2026-07-30
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 125
+- Total plans completed: 129
 - Average duration: —
 - Total execution time: —
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | 26 | 4 | - | - |
 | 27 | 4 | - | - |
 | 28 | 5 | - | - |
+| 29 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -165,6 +166,10 @@ Progress: [██████████] 100%
 | Phase 28 P02 | 9min | 2 tasks | 2 files |
 | Phase 28 P03 | 5min | 2 tasks | 3 files |
 | Phase 28 P04 | 6min | 3 tasks | 7 files |
+| Phase 29-drift-heal P00 | 3min | 2 tasks | 3 files |
+| Phase 29 P01 | 4 | 3 tasks | 4 files |
+| Phase 29-drift-heal P02 | 8min | 2 tasks | 2 files |
+| Phase 29-drift-heal P03 | 4 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -442,6 +447,13 @@ Progress: [██████████] 100%
 - [Phase ?]: Impact fixtures use RFC UUIDs for Zod uuid() validation
 - [Phase ?]: D-13 cleanup confirm:true required (auto-approved --auto)
 - [Phase ?]: D-19 five intelligence_* capability keys on system.version
+- [Phase ?]: system.test.ts keeps eleven-key green it; thirteen-key count is it.fails only (Phase 28 pattern)
+- [Phase ?]: envs:promote delete guard asserts successful apply first so scaffold stays RED pre-implementation
+- [Phase ?]: D-06 advisory-only audit — hints only, no mutation from manifest.audit
+- [Phase ?]: D-09 approve-confirm-required: envs:promote preview dry_run default true; apply requires confirm:true
+- [Phase ?]: Promote apply defaults conflict_policy keep_remote; abort with mismatches returns COOLIFY_CONFIRM_REQUIRED
+- [Phase ?]: D-15 manifest_audit and envs_promote capability keys shipped with MCP composite notes
+- [Phase ?]: README EN/DE drift-heal docs use env.promote product name with application.envs:promote implementation
 
 ### Pending Todos
 
@@ -518,9 +530,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T02:14:07.617Z
-Stopped at: Phase 28 complete — Instance Intelligence verified
-Resume file: .planning/phases/28-instance-intelligence/28-VERIFICATION.md
+Last session: 2026-07-30T03:27:33.145Z
+Stopped at: Phase 29 complete — Drift & Heal verified
+Resume file: .planning/phases/29-drift-heal/29-VERIFICATION.md
 
 ## Operator Next Steps
 

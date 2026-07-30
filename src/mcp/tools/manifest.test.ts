@@ -663,3 +663,387 @@ describe('manifest tool', () => {
     },
   );
 });
+
+/**
+ * Wave 0 Nyquist RED scaffolds for Phase 29 manifest.audit (DRIFT-01, DRIFT-03).
+ * Plans 29-01 flip it.fails → it when audit handler ships.
+ */
+const REMOTE_ONLY_UUID = '00000000-0000-4000-8000-000000000006';
+const TYPE_MISMATCH_UUID = '00000000-0000-4000-8000-000000000007';
+const NEST_MISMATCH_UUID = '00000000-0000-4000-8000-000000000008';
+
+function expectFollowUpHint(hint: unknown): void {
+  expect(hint).toMatchObject({
+    tool: expect.any(String),
+    action: expect.any(String),
+    args: expect.any(Object),
+    label: expect.any(String),
+    available_in_phase: expect.any(Number),
+  });
+}
+
+async function seedAuditInstanceAndManifest() {
+  const { handleInstanceAction } = await import('./instance.js');
+  const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+
+  await handleInstanceAction(
+    {
+      action: 'add',
+      name: 'prod',
+      url: 'https://prod.coolify.example.com',
+      token: 'prod-token',
+      type: 'self-hosted',
+    },
+    testEnv,
+  );
+
+  const upserts = [
+    {
+      resource: {
+        uuid: ORPHAN_UUID,
+        type: 'database' as const,
+        name: 'orphan-db',
+        domains: [] as string[],
+      },
+      project_uuid: PROJECT_UUID,
+      project_name: 'my-project',
+      environment_uuid: ENV_UUID,
+      environment_name: 'production',
+    },
+    {
+      resource: {
+        uuid: RESOURCE_UUID,
+        type: 'application' as const,
+        name: 'local-app',
+        domains: ['https://old.example.com'],
+      },
+      project_uuid: PROJECT_UUID,
+      project_name: 'my-project',
+      environment_uuid: ENV_UUID,
+      environment_name: 'production',
+    },
+    {
+      resource: {
+        uuid: TYPE_MISMATCH_UUID,
+        type: 'application' as const,
+        name: 'type-mismatch',
+        domains: [] as string[],
+      },
+      project_uuid: PROJECT_UUID,
+      project_name: 'my-project',
+      environment_uuid: ENV_UUID,
+      environment_name: 'production',
+    },
+    {
+      resource: {
+        uuid: NEST_MISMATCH_UUID,
+        type: 'service' as const,
+        name: 'nest-mismatch',
+        domains: [] as string[],
+      },
+      project_uuid: PROJECT_UUID,
+      project_name: 'my-project',
+      environment_uuid: ENV_UUID,
+      environment_name: 'production',
+    },
+  ];
+
+  for (const entry of upserts) {
+    const result = await handleManifestAction(
+      { action: 'upsert', ...entry },
+      testEnv,
+    );
+    expect(isManifestErrorResult(result)).toBe(false);
+  }
+}
+
+function mockRemoteManifestForAudit(options?: { rejectProjects?: boolean }) {
+  vi.mocked(fetchResources).mockResolvedValue([
+    {
+      uuid: RESOURCE_UUID,
+      name: 'remote-app',
+      type: 'application',
+      fqdn: 'https://new.example.com',
+      environment: { uuid: ENV_UUID, name: 'production' },
+      project: { uuid: PROJECT_UUID, name: 'my-project' },
+    },
+    {
+      uuid: REMOTE_ONLY_UUID,
+      name: 'remote-only-app',
+      type: 'application',
+      fqdn: 'https://only-remote.example.com',
+      environment: { uuid: ENV_UUID, name: 'production' },
+      project: { uuid: PROJECT_UUID, name: 'my-project' },
+    },
+    {
+      uuid: TYPE_MISMATCH_UUID,
+      name: 'type-mismatch',
+      type: 'service',
+      fqdn: '',
+      environment: { uuid: ENV_UUID, name: 'production' },
+      project: { uuid: PROJECT_UUID, name: 'my-project' },
+    },
+    {
+      uuid: NEST_MISMATCH_UUID,
+      name: 'nest-mismatch',
+      type: 'service',
+      fqdn: '',
+      environment: { uuid: ENV_UUID_B, name: 'staging' },
+      project: { uuid: PROJECT_UUID, name: 'my-project' },
+    },
+  ] as never);
+
+  if (options?.rejectProjects) {
+    vi.mocked(fetchProjects).mockRejectedValue(
+      new CoolifyApiError({
+        code: 'COOLIFY_500',
+        message: 'projects fetch failed',
+        recoveryHints: [],
+        httpStatus: 500,
+      }),
+    );
+  } else {
+    vi.mocked(fetchProjects).mockResolvedValue([
+      { uuid: PROJECT_UUID, name: 'my-project' },
+    ] as never);
+  }
+
+  vi.mocked(fetchProject).mockResolvedValue({
+    uuid: PROJECT_UUID,
+    environments: [
+      { uuid: ENV_UUID, name: 'production' },
+      { uuid: ENV_UUID_B, name: 'staging' },
+    ],
+  } as never);
+  vi.mocked(fetchServers).mockResolvedValue([] as never);
+}
+
+describe('manifest.audit', () => {
+  it(
+    'returns findings[] with severity critical|high|info and FollowUpHint-shaped hint per finding (DRIFT-01, D-05)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedAuditInstanceAndManifest();
+      mockRemoteManifestForAudit();
+
+      const result = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(result)).toBe(false);
+      if (isManifestErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      const findings = data.findings as Array<Record<string, unknown>>;
+      expect(Array.isArray(findings)).toBe(true);
+      expect(findings.length).toBeGreaterThan(0);
+
+      for (const finding of findings) {
+        expect(['critical', 'high', 'info']).toContain(finding.severity);
+        expectFollowUpHint(finding.hint);
+      }
+    },
+  );
+
+  it(
+    'missing .coolify/manifest.json returns COOLIFY_VALIDATION_ERROR with manifest.sync and manifest.upsert recovery hints (D-07)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      const { handleInstanceAction } = await import('./instance.js');
+
+      await handleInstanceAction(
+        {
+          action: 'add',
+          name: 'prod',
+          url: 'https://prod.coolify.example.com',
+          token: 'prod-token',
+          type: 'self-hosted',
+        },
+        testEnv,
+      );
+
+      const result = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(result)).toBe(true);
+      if (!isManifestErrorResult(result)) return;
+
+      expect(result.structuredContent.error?.code).toBe('COOLIFY_VALIDATION_ERROR');
+      const hints = result.structuredContent.error?.recoveryHints ?? [];
+      expect(hints.some((h) => /manifest\.sync/i.test(h))).toBe(true);
+      expect(hints.some((h) => /manifest\.upsert/i.test(h))).toBe(true);
+    },
+  );
+
+  it(
+    'without usable credentials returns COOLIFY_NO_INSTANCE with recovery hints (D-07, D-12)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedManifestViaUpsert();
+
+      const result = await handleManifestAction({ action: 'audit' }, emptyEnv);
+
+      expect(isManifestErrorResult(result)).toBe(true);
+      if (!isManifestErrorResult(result)) return;
+
+      expect(result.structuredContent.error?.code).toBe('COOLIFY_NO_INSTANCE');
+      expect((result.structuredContent.error?.recoveryHints ?? []).length).toBeGreaterThan(0);
+    },
+  );
+
+  it(
+    'domain drift between local and live surfaces a finding with remediation hint (D-04)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedAuditInstanceAndManifest();
+      mockRemoteManifestForAudit();
+
+      const result = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(result)).toBe(false);
+      if (isManifestErrorResult(result)) return;
+
+      const findings = (result.data as Record<string, unknown>).findings as Array<
+        Record<string, unknown>
+      >;
+      const domainFinding = findings.find(
+        (f) => f.uuid === RESOURCE_UUID && /domain/i.test(String(f.kind ?? f.issue ?? '')),
+      );
+      expect(domainFinding).toBeDefined();
+      expectFollowUpHint(domainFinding?.hint);
+    },
+  );
+
+  it(
+    'project/environment nesting mismatch surfaces a finding (D-04)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedAuditInstanceAndManifest();
+      mockRemoteManifestForAudit();
+
+      const result = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(result)).toBe(false);
+      if (isManifestErrorResult(result)) return;
+
+      const findings = (result.data as Record<string, unknown>).findings as Array<
+        Record<string, unknown>
+      >;
+      const nestFinding = findings.find((f) => f.uuid === NEST_MISMATCH_UUID);
+      expect(nestFinding).toBeDefined();
+      expect(/nest|environment/i.test(String(nestFinding?.kind ?? nestFinding?.issue ?? ''))).toBe(
+        true,
+      );
+    },
+  );
+
+  it(
+    'resource type mismatch surfaces a finding (D-04)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedAuditInstanceAndManifest();
+      mockRemoteManifestForAudit();
+
+      const result = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(result)).toBe(false);
+      if (isManifestErrorResult(result)) return;
+
+      const findings = (result.data as Record<string, unknown>).findings as Array<
+        Record<string, unknown>
+      >;
+      const typeFinding = findings.find((f) => f.uuid === TYPE_MISMATCH_UUID);
+      expect(typeFinding).toBeDefined();
+      expect(/type/i.test(String(typeFinding?.kind ?? typeFinding?.issue ?? ''))).toBe(true);
+    },
+  );
+
+  it(
+    'one live fetch rejection returns partial metadata and sibling findings (D-06, D-13)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedAuditInstanceAndManifest();
+      mockRemoteManifestForAudit({ rejectProjects: true });
+
+      const result = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(result)).toBe(false);
+      if (isManifestErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      expect(data.partial).toBeDefined();
+      const findings = data.findings as Array<Record<string, unknown>>;
+      expect(Array.isArray(findings)).toBe(true);
+      expect(findings.length).toBeGreaterThan(0);
+    },
+  );
+
+  it(
+    'audit is read-only — never calls ManifestManager.save or upsert (D-06, D-16)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedAuditInstanceAndManifest();
+
+      const { ManifestManager } = await import('../../utils/manifest.js');
+      const saveSpy = vi.spyOn(ManifestManager, 'save').mockResolvedValue();
+      const upsertSpy = vi.spyOn(ManifestManager, 'upsert').mockResolvedValue();
+
+      mockRemoteManifestForAudit();
+
+      const result = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(result)).toBe(false);
+      expect(saveSpy).not.toHaveBeenCalled();
+      expect(upsertSpy).not.toHaveBeenCalled();
+
+      saveSpy.mockRestore();
+      upsertSpy.mockRestore();
+    },
+  );
+
+  it(
+    'audit returns findings envelope separate from manifest.diff raw report (D-03)',
+    async () => {
+      const { handleManifestAction, isManifestErrorResult } = await loadManifestTool();
+      await seedAuditInstanceAndManifest();
+      mockRemoteManifestForAudit();
+
+      const auditResult = await handleManifestAction(
+        { action: 'audit', instance: 'prod' },
+        testEnv,
+      );
+      const diffResult = await handleManifestAction(
+        { action: 'diff', instance: 'prod' },
+        testEnv,
+      );
+
+      expect(isManifestErrorResult(auditResult)).toBe(false);
+      expect(isManifestErrorResult(diffResult)).toBe(false);
+      if (isManifestErrorResult(auditResult) || isManifestErrorResult(diffResult)) return;
+
+      const auditData = auditResult.data as Record<string, unknown>;
+      const diffData = diffResult.data as Record<string, unknown>;
+      expect(auditData.findings).toBeDefined();
+      expect(diffData.diff).toBeDefined();
+      expect(auditData).not.toEqual(diffData);
+    },
+  );
+});

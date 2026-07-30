@@ -74,7 +74,11 @@ import {
   sharedLogParamsSchema,
   sharedReadParamsFlatShape,
 } from './shared-read-params.js';
-import { generateHints, logsAvailableHint } from '../../utils/diagnose-hints.js';
+import {
+  generateHints,
+  logsAvailableHint,
+  type FollowUpHint,
+} from '../../utils/diagnose-hints.js';
 import { pollDeploymentUntilTerminal } from '../../utils/deploy-poll.js';
 import {
   FIND_MATCH_CAP,
@@ -361,7 +365,8 @@ export const applicationActionsCatalog =
   'create(source_type, server_uuid) · update(uuid) · delete(uuid, confirm) · delete_preview(uuid) · ' +
   'envs:list(uuid) · envs:get(uuid, key) · envs:create(uuid, key, value) · envs:update(uuid, key, value) · ' +
   'envs:delete(uuid, env_uuid, confirm) · envs:bulk-update(uuid, entries, confirm) · ' +
-  'envs:sync(uuid, env_file?, env_content?, dry_run?, confirm?, conflict_policy?)';
+  'envs:sync(uuid, env_file?, env_content?, dry_run?, confirm?, conflict_policy?) · ' +
+  'envs:promote(source_uuid, target_uuid, dry_run?, confirm?, conflict_policy?, reveal?)';
 
 export const applicationSafetyFooter =
   'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
@@ -590,6 +595,28 @@ function applicationExtraRefine(
       });
     }
   }
+  if (data.action === 'envs:promote') {
+    if (
+      typeof data.source_uuid !== 'string' ||
+      data.source_uuid.length === 0 ||
+      typeof data.target_uuid !== 'string' ||
+      data.target_uuid.length === 0
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'envs:promote requires source_uuid and target_uuid',
+        params: { code: 'COOLIFY_VALIDATION_ERROR' },
+      });
+    }
+    if (data.dry_run === false && data.confirm !== true) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          "Action 'envs:promote' requires confirm:true when applying (dry_run:false)",
+        params: { code: 'COOLIFY_CONFIRM_REQUIRED' },
+      });
+    }
+  }
 }
 
 function buildApplicationActionSchema(
@@ -614,6 +641,7 @@ function buildApplicationActionSchema(
     'envs:delete',
     'envs:bulk-update',
     'envs:sync',
+    'envs:promote',
   ],
   {
     uuid: z.string().optional().describe('Application UUID'),
@@ -728,6 +756,14 @@ function buildApplicationActionSchema(
     delete_configurations: z.boolean().optional(),
     docker_cleanup: z.boolean().optional(),
     delete_connected_networks: z.boolean().optional(),
+    source_uuid: z
+      .string()
+      .optional()
+      .describe('Source application UUID for envs:promote'),
+    target_uuid: z
+      .string()
+      .optional()
+      .describe('Target application UUID for envs:promote'),
     env_uuid: z.string().optional().describe('Environment variable UUID'),
     key: z.string().optional().describe('Environment variable key'),
     value: z.string().optional().describe('Environment variable value'),
@@ -940,6 +976,17 @@ function buildApplicationActionSchema(
       'format',
       'max_chars',
     ],
+    'envs:promote': [
+      'source_uuid',
+      'target_uuid',
+      'dry_run',
+      'confirm',
+      'conflict_policy',
+      'reveal',
+      'instance',
+      'format',
+      'max_chars',
+    ],
   },
   {
     get: ['uuid'],
@@ -1140,6 +1187,20 @@ export type ApplicationEnvsSyncResult = ReadResponse<{
   dry_run: boolean;
 }> & { recoveryHints?: string[] };
 
+export type ApplicationEnvsPromoteResult = ReadResponse<{
+  dry_run: boolean;
+  source_uuid: string;
+  target_uuid: string;
+  only_in_source: Array<Record<string, unknown>>;
+  only_in_target: Array<Record<string, unknown>>;
+  value_mismatches: Array<Record<string, unknown>>;
+  promotion_suggestions: Array<Record<string, unknown>>;
+  suggested_entries?: EnvBulkEntry[];
+  kept_remote?: Array<Record<string, unknown>>;
+  applied_creates?: Array<{ key: string; env_uuid: string }>;
+  applied_updates?: string[];
+}> & { recoveryHints?: string[] };
+
 export type ApplicationActionResult =
   | ApplicationGetResult
   | ApplicationMutationResult
@@ -1156,6 +1217,7 @@ export type ApplicationActionResult =
   | ApplicationEnvsDeleteResult
   | ApplicationEnvsBulkUpdateResult
   | ApplicationEnvsSyncResult
+  | ApplicationEnvsPromoteResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1176,6 +1238,7 @@ type EnvsUpdateAction = Extract<ApplicationAction, { action: 'envs:update' }>;
 type EnvsDeleteAction = Extract<ApplicationAction, { action: 'envs:delete' }>;
 type EnvsBulkUpdateAction = Extract<ApplicationAction, { action: 'envs:bulk-update' }>;
 type EnvsSyncAction = Extract<ApplicationAction, { action: 'envs:sync' }>;
+type EnvsPromoteAction = Extract<ApplicationAction, { action: 'envs:promote' }>;
 
 function validateDeleteConfirm(confirm: boolean, uuid: string): void {
   if (confirm === true) {
@@ -3041,6 +3104,270 @@ async function handleApplicationEnvsSync(
   );
 }
 
+function buildPromoteApplyHint(
+  sourceUuid: string,
+  targetUuid: string,
+  key: string,
+  action: 'create' | 'update',
+  conflictPolicy?: ConflictPolicy,
+): FollowUpHint {
+  return {
+    tool: 'application',
+    action: 'envs:promote',
+    args: {
+      source_uuid: sourceUuid,
+      target_uuid: targetUuid,
+      dry_run: false,
+      confirm: true,
+      ...(action === 'update' || conflictPolicy
+        ? { conflict_policy: conflictPolicy ?? 'overwrite' }
+        : {}),
+    },
+    label:
+      action === 'create'
+        ? `Create env key '${key}' on target application`
+        : `Update env key '${key}' on target application`,
+    available_in_phase: 29,
+  };
+}
+
+function maskPromoteValue(value: string, reveal: boolean): string {
+  return reveal ? value : '***';
+}
+
+function buildPromotePreviewData(
+  diff: DiffResult,
+  sourceUuid: string,
+  targetUuid: string,
+  reveal: boolean,
+): ApplicationEnvsPromoteResult['data'] {
+  const only_in_source = diff.added.map((entry) => ({
+    key: entry.key,
+    value: maskPromoteValue(entry.value, reveal),
+  }));
+  const only_in_target = diff.removed.map((entry) => {
+    const masked = maskEnvRecord(entry, reveal);
+    return {
+      key: entry.key,
+      value: masked.value ?? maskPromoteValue(entry.value, reveal),
+    };
+  });
+  const value_mismatches = diff.updated.map((entry) => ({
+    key: entry.key,
+    source_value: maskPromoteValue(entry.localValue, reveal),
+    target_value: maskPromoteValue(entry.remoteValue, reveal),
+  }));
+
+  const promotion_suggestions: Array<Record<string, unknown>> = [];
+  for (const entry of diff.added) {
+    promotion_suggestions.push({
+      key: entry.key,
+      action: 'create',
+      hint: buildPromoteApplyHint(sourceUuid, targetUuid, entry.key, 'create'),
+    });
+  }
+  for (const entry of diff.updated) {
+    promotion_suggestions.push({
+      key: entry.key,
+      action: 'update',
+      hint: buildPromoteApplyHint(
+        sourceUuid,
+        targetUuid,
+        entry.key,
+        'update',
+        'overwrite',
+      ),
+    });
+  }
+
+  const suggested_entries: EnvBulkEntry[] = [
+    ...diff.added.map((entry) =>
+      buildEnvBulkEntry({
+        key: entry.key,
+        value: maskPromoteValue(entry.value, reveal),
+      }),
+    ),
+    ...diff.updated.map((entry) =>
+      buildEnvBulkEntry({
+        key: entry.key,
+        value: maskPromoteValue(entry.localValue, reveal),
+      }),
+    ),
+  ];
+
+  return {
+    dry_run: true,
+    source_uuid: sourceUuid,
+    target_uuid: targetUuid,
+    only_in_source,
+    only_in_target,
+    value_mismatches,
+    promotion_suggestions,
+    ...(suggested_entries.length > 0 ? { suggested_entries } : {}),
+  };
+}
+
+function validatePromoteAbortPolicy(
+  valueMismatches: DiffResult['updated'],
+  conflictPolicy: ConflictPolicy,
+  targetUuid: string,
+): void {
+  if (valueMismatches.length === 0 || conflictPolicy !== 'abort') {
+    return;
+  }
+
+  const conflicts = buildValueConflicts({
+    added: [],
+    updated: valueMismatches,
+    unchanged: [],
+    removed: [],
+  });
+
+  throw new CoolifyApiError({
+    code: 'COOLIFY_CONFIRM_REQUIRED',
+    message: `Action 'envs:promote' on application '${targetUuid}' has value mismatches — set conflict_policy to overwrite, keep_remote, or abort after asking the human.`,
+    recoveryHints: [
+      ASK_HUMAN_CONFLICT_POLICY_HINT,
+      ...RECOVERY_HINTS.COOLIFY_CONFIRM_REQUIRED,
+    ],
+    data: {
+      action: 'envs:promote',
+      uuid: targetUuid,
+      conflicts,
+      conflict_policy_options: ['overwrite', 'keep_remote', 'abort'],
+    },
+  });
+}
+
+async function handleApplicationEnvsPromote(
+  parsed: EnvsPromoteAction,
+  env: EnvConfig,
+): Promise<ApplicationEnvsPromoteResult> {
+  const sourceUuid = parsed.source_uuid!;
+  const targetUuid = parsed.target_uuid!;
+  const dryRun = parsed.dry_run !== false;
+  const reveal = parsed.reveal ?? false;
+
+  const [sourceEnvs, targetEnvs] = await Promise.all([
+    fetchEnvs(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      sourceUuid,
+      env.COOLIFY_VERIFY_SSL,
+    ),
+    fetchEnvs(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      targetUuid,
+      env.COOLIFY_VERIFY_SSL,
+    ),
+  ]);
+
+  const sourceParsed: ParsedEnv[] = sourceEnvs.map((entry) => ({
+    key: entry.key,
+    value: entry.value,
+  }));
+  const diff = diffEnvs(sourceParsed, targetEnvs);
+
+  if (dryRun) {
+    return withRevealRecoveryHints(
+      buildReadResponse(
+        buildPromotePreviewData(diff, sourceUuid, targetUuid, reveal),
+        {
+          format: parsed.format,
+          max_chars: parsed.max_chars,
+        },
+      ),
+      reveal,
+    );
+  }
+
+  validateEnvMutationConfirm(
+    parsed.confirm === true,
+    'envs:promote',
+    targetUuid,
+    'application',
+  );
+
+  const policy: ConflictPolicy = parsed.conflict_policy ?? 'keep_remote';
+  validatePromoteAbortPolicy(diff.updated, policy, targetUuid);
+
+  const targetByKey = new Map(targetEnvs.map((entry) => [entry.key, entry]));
+  const appliedCreates: Array<{ key: string; env_uuid: string }> = [];
+  const appliedUpdates: string[] = [];
+  const kept_remote: Array<Record<string, unknown>> = [];
+  const bulkUpdates: EnvBulkEntry[] = [];
+
+  for (const entry of diff.added) {
+    const created = await createEnv(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      targetUuid,
+      {
+        key: entry.key,
+        value: entry.value,
+        is_preview: false,
+        is_literal: false,
+        is_multiline: false,
+        is_shown_once: false,
+      },
+      env.COOLIFY_VERIFY_SSL,
+    );
+    appliedCreates.push({ key: entry.key, env_uuid: created.uuid });
+  }
+
+  for (const entry of diff.updated) {
+    if (policy === 'keep_remote') {
+      kept_remote.push({ key: entry.key, value: '***' });
+      continue;
+    }
+
+    const targetEntry = targetByKey.get(entry.key);
+    bulkUpdates.push({
+      key: entry.key,
+      value: entry.localValue,
+      is_preview: targetEntry?.is_preview ?? false,
+      is_literal: targetEntry?.is_literal ?? false,
+      is_multiline: targetEntry?.is_multiline ?? false,
+      is_shown_once: targetEntry?.is_shown_once ?? false,
+    });
+    appliedUpdates.push(entry.key);
+  }
+
+  if (bulkUpdates.length > 0) {
+    await bulkUpdateEnvs(
+      'application',
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      targetUuid,
+      bulkUpdates,
+      env.COOLIFY_VERIFY_SSL,
+    );
+  }
+
+  const preview = buildPromotePreviewData(diff, sourceUuid, targetUuid, reveal);
+
+  return withRevealRecoveryHints(
+    buildReadResponse(
+      {
+        ...preview,
+        dry_run: false,
+        ...(appliedCreates.length > 0 ? { applied_creates: appliedCreates } : {}),
+        ...(appliedUpdates.length > 0 ? { applied_updates: appliedUpdates } : {}),
+        ...(kept_remote.length > 0 ? { kept_remote } : {}),
+      },
+      {
+        format: parsed.format,
+        max_chars: parsed.max_chars,
+      },
+    ),
+    reveal,
+  );
+}
+
 export async function handleApplicationAction(
   args: unknown,
   env: EnvConfig,
@@ -3080,6 +3407,8 @@ export async function handleApplicationAction(
         return await handleApplicationEnvsBulkUpdate(parsed, routingEnv);
       case 'envs:sync':
         return await handleApplicationEnvsSync(parsed, routingEnv);
+      case 'envs:promote':
+        return await handleApplicationEnvsPromote(parsed, routingEnv);
       case 'get': {
         const projection = resolveProjection(
           parsed.projection,
