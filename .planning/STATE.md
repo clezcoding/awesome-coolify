@@ -5,14 +5,14 @@ milestone_name: Agent Intelligence
 current_phase: 29
 current_phase_name: Drift & Heal
 status: "Phase 28 shipped — PR #108"
-stopped_at: Completed 29-01-PLAN.md
-last_updated: "2026-07-30T03:20:46.113Z"
+stopped_at: Completed 29-02-PLAN.md
+last_updated: "2026-07-30T03:22:30.463Z"
 last_activity: 2026-07-30
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
   percent: 25
 last_activity_desc: Phase 28 complete, transitioned to Phase 29
 ---
@@ -33,7 +33,7 @@ Plan: Not started
 Status: Phase 28 shipped — PR #108
 Last activity: 2026-07-30
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -167,6 +167,7 @@ Progress: [███████░░░] 70%
 | Phase 28 P04 | 6min | 3 tasks | 7 files |
 | Phase 29-drift-heal P00 | 3min | 2 tasks | 3 files |
 | Phase 29 P01 | 4 | 3 tasks | 4 files |
+| Phase 29-drift-heal P02 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -447,6 +448,8 @@ Progress: [███████░░░] 70%
 - [Phase ?]: system.test.ts keeps eleven-key green it; thirteen-key count is it.fails only (Phase 28 pattern)
 - [Phase ?]: envs:promote delete guard asserts successful apply first so scaffold stays RED pre-implementation
 - [Phase ?]: D-06 advisory-only audit — hints only, no mutation from manifest.audit
+- [Phase ?]: D-09 approve-confirm-required: envs:promote preview dry_run default true; apply requires confirm:true
+- [Phase ?]: Promote apply defaults conflict_policy keep_remote; abort with mismatches returns COOLIFY_CONFIRM_REQUIRED
 
 ### Pending Todos
 
@@ -523,8 +526,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T03:20:46.102Z
-Stopped at: Completed 29-01-PLAN.md
+Last session: 2026-07-30T03:22:30.454Z
+Stopped at: Completed 29-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

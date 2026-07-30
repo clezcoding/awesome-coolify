@@ -123,11 +123,11 @@ Plans:
   2. Agent compares environment variables across environments and receives promotion suggestions via `env.promote`
   3. Audit and drift results include concrete fix hints, not raw diff only
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 - [x] 29-00-PLAN.md
 - [x] 29-01-PLAN.md
-- [ ] 29-02-PLAN.md
+- [x] 29-02-PLAN.md
 - [ ] 29-03-PLAN.md
 
 ### Phase 30: Deploy Guard
@@ -179,7 +179,7 @@ Plans:
 | 26 | v3.2 | 4/4 | Complete | 2026-07-28 |
 | 27 | v3.2 | 4/4 | Complete | 2026-07-29 |
 | 28 | v3.3 | 5/5 | Complete    | 2026-07-30 |
-| 29 | v3.3 | 2/4 | In Progress|  |
+| 29 | v3.3 | 3/4 | In Progress|  |
 | 30 | v3.3 | 0/TBD | Not started | - |
 | 31 | v3.3 | 0/TBD | Not started | - |
 
