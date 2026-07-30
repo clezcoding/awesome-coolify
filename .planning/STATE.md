@@ -5,15 +5,15 @@ milestone_name: Agent Intelligence
 current_phase: 28
 current_phase_name: Instance Intelligence
 status: executing
-stopped_at: Phase 28 context gathered
-last_updated: "2026-07-30T01:27:55.133Z"
+stopped_at: Completed 28-00-PLAN.md
+last_updated: "2026-07-30T01:37:36.447Z"
 last_activity: 2026-07-30
 last_activity_desc: v3.3 roadmap created (Phases 28–31, 18/18 reqs mapped)
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -33,7 +33,7 @@ Plan: —
 Status: Ready to execute
 Last activity: 2026-07-30 — v3.3 roadmap created (Phases 28–31, 18/18 reqs mapped)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -159,6 +159,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 27-branding-docs-stale-fix P01 | 5min | 4 tasks | 7 files |
 | Phase 27-branding-docs-stale-fix P02 | 15min | 3 tasks | 1 files |
 | Phase 27-branding-docs-stale-fix P03 | 5min | 3 tasks | 7 files |
+| Phase 28 P00 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -425,6 +426,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase ?]: D-05: client limitation accepted — server correct, Cursor UI letter A only
 - [Phase ?]: D-07: PROJECT opener 1.0.1 shipped wording aligned with table L15
 - [Phase ?]: D-09: CHANGELOG and milestone archives untouched during DOC-01 sweep
+- [Phase ?]: Dynamic import inside it.fails only for nonexistent intelligence/resource-graph modules (Wave 0)
+- [Phase ?]: system.test.ts keeps six-key green it; eleven-key intelligence_* is it.fails only until Plan 28-04
 
 ### Pending Todos
 
@@ -501,9 +504,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T01:15:42.456Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-instance-intelligence/28-CONTEXT.md
+Last session: 2026-07-30T01:37:36.434Z
+Stopped at: Completed 28-00-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

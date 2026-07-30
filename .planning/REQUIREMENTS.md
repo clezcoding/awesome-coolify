@@ -9,18 +9,18 @@ Composite intelligence on Coolify 4.1.x — no new REST endpoints required.
 
 ### Instance Scorecard
 
-- [ ] **INTEL-01**: Agent can fetch a per-instance health scorecard with factor breakdown (deployments, backups, exited resources, diagnose.scan summary)
-- [ ] **INTEL-02**: Scorecard exposes severity-tagged findings with structured recovery hints
+- [x] **INTEL-01**: Agent can fetch a per-instance health scorecard with factor breakdown (deployments, backups, exited resources, diagnose.scan summary)
+- [x] **INTEL-02**: Scorecard exposes severity-tagged findings with structured recovery hints
 
 ### Dependency Map
 
-- [ ] **GRAPH-01**: Agent can build a dependency graph from live resources (application ↔ database ↔ service links)
-- [ ] **GRAPH-02**: Agent can query impact analysis before delete or restart ("what breaks if resource X goes down")
+- [x] **GRAPH-01**: Agent can build a dependency graph from live resources (application ↔ database ↔ service links)
+- [x] **GRAPH-02**: Agent can query impact analysis before delete or restart ("what breaks if resource X goes down")
 
 ### Resource Janitor
 
-- [ ] **JANI-01**: Agent can list orphaned, stopped, or long-exited resources with safe cleanup suggestions
-- [ ] **JANI-02**: Janitor cleanup mutations require explicit confirm gate per SAF pattern
+- [x] **JANI-01**: Agent can list orphaned, stopped, or long-exited resources with safe cleanup suggestions
+- [x] **JANI-02**: Janitor cleanup mutations require explicit confirm gate per SAF pattern
 
 ### Drift & Heal
 
@@ -79,12 +79,12 @@ Deferred until Coolify 4.2.0+ stable.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INTEL-01 | Phase 28 | Pending |
-| INTEL-02 | Phase 28 | Pending |
-| GRAPH-01 | Phase 28 | Pending |
-| GRAPH-02 | Phase 28 | Pending |
-| JANI-01 | Phase 28 | Pending |
-| JANI-02 | Phase 28 | Pending |
+| INTEL-01 | Phase 28 | Complete |
+| INTEL-02 | Phase 28 | Complete |
+| GRAPH-01 | Phase 28 | Complete |
+| GRAPH-02 | Phase 28 | Complete |
+| JANI-01 | Phase 28 | Complete |
+| JANI-02 | Phase 28 | Complete |
 | DRIFT-01 | Phase 29 | Pending |
 | DRIFT-02 | Phase 29 | Pending |
 | DRIFT-03 | Phase 29 | Pending |
@@ -99,6 +99,7 @@ Deferred until Coolify 4.2.0+ stable.
 | SREC-02 | Phase 31 | Pending |
 
 **Coverage:**
+
 - v3.3 requirements: 18 total
 - Mapped to phases: 18
 - Unmapped: 0 ✓
