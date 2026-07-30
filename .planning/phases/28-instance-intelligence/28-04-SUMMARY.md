@@ -102,7 +102,7 @@ status: complete
 2. **Task 2: Implement cleanup confirm gate + SAF-02 + domain delete reuse** — `28a9fe0` (feat)
 3. **Task 3: Capabilities, coverage-map, README EN+DE** — `80152ca` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `59d498a` (docs: complete plan)
 
 ## Files Created/Modified
 
