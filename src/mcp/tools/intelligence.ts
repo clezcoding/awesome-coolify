@@ -127,6 +127,11 @@ function notImplemented(action: string, pendingPlan: string): never {
   });
 }
 
+/**
+ * Live dependency graph from flat /resources UUID links + bounded service enrichment.
+ * Response data includes `meta.services_enriched` (successful fetchService count)
+ * and optional `meta.service_fetch_errors` when individual enrichment calls fail.
+ */
 export async function handleIntelligenceGraph(
   parsed: IntelligenceAction,
   env: EnvConfig,

@@ -1,7 +1,6 @@
 /**
- * Wave 0 Nyquist RED scaffolds for Phase 28 intelligence tool.
- * Production modules loaded via dynamic import inside it.fails only —
- * intelligence.ts must not exist yet (Plans 28-01..28-04 flip GREEN).
+ * Phase 28 intelligence MCP tool tests.
+ * Graph path GREEN (Plan 28-01); scorecard/impact/janitor/cleanup remain it.fails until 28-02..28-04.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { EnvConfig } from '../../config/env.js';
@@ -286,6 +285,149 @@ describe('graph (GRAPH-01, D-07, D-08)', () => {
       ),
     ).toBe(true);
     expect(edges.every((e) => e.relation !== 'fuzzy_name')).toBe(true);
+
+    const meta = data.meta as Record<string, unknown>;
+    expect(meta.services_enriched).toBe(1);
+  });
+
+  it('meta.services_enriched matches successful fetchService count; empty nested arrays invent no children', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'svc-empty',
+        name: 'bare-service',
+        type: 'service',
+        status: 'running:healthy',
+      },
+      {
+        uuid: 'svc-ok',
+        name: 'ok-service',
+        type: 'service',
+        status: 'running:healthy',
+      },
+    ]);
+    vi.mocked(fetchService).mockImplementation(async (_url, _token, uuid) => {
+      if (uuid === 'svc-empty') {
+        return { uuid: 'svc-empty', name: 'bare-service' };
+      }
+      return {
+        uuid: 'svc-ok',
+        name: 'ok-service',
+        applications: [{ uuid: 'nested-app', name: 'child', type: 'application' }],
+        databases: [],
+      };
+    });
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      { action: 'graph' },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const meta = data.meta as Record<string, unknown>;
+    const edges = data.edges as Array<Record<string, unknown>>;
+    const nodes = data.nodes as Array<Record<string, unknown>>;
+
+    expect(meta.services_enriched).toBe(2);
+    expect(fetchService).toHaveBeenCalledTimes(2);
+
+    expect(
+      edges.filter(
+        (e) => e.relation === 'service_child' && e.to_uuid === 'svc-empty',
+      ),
+    ).toHaveLength(0);
+    expect(nodes.some((n) => n.uuid === 'svc-empty')).toBe(true);
+
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'service_child' &&
+          e.from_uuid === 'nested-app' &&
+          e.to_uuid === 'svc-ok',
+      ),
+    ).toBe(true);
+  });
+
+  it('soft-fails individual fetchService errors into meta without failing whole graph', async () => {
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: 'svc-bad',
+        name: 'broken',
+        type: 'service',
+        status: 'running',
+      },
+      {
+        uuid: 'svc-good',
+        name: 'good',
+        type: 'service',
+        status: 'running',
+      },
+      {
+        uuid: 'app-linked',
+        name: 'api',
+        type: 'application',
+        database_uuid: 'db-uuid-1',
+      },
+    ]);
+    vi.mocked(fetchService).mockImplementation(async (_url, _token, uuid) => {
+      if (uuid === 'svc-bad') {
+        throw new CoolifyApiError({
+          code: 'COOLIFY_500',
+          message: 'Coolify API returned HTTP 500',
+          recoveryHints: ['Retry later'],
+          httpStatus: 500,
+        });
+      }
+      return {
+        uuid: 'svc-good',
+        applications: [{ uuid: 'good-child', type: 'application' }],
+      };
+    });
+
+    const { handleIntelligenceAction, isIntelligenceErrorResult } =
+      await import('./intelligence.js');
+
+    const result = await handleIntelligenceAction(
+      { action: 'graph' },
+      testEnv,
+    );
+
+    expect(isIntelligenceErrorResult(result)).toBe(false);
+    if (isIntelligenceErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const meta = data.meta as {
+      services_enriched: number;
+      service_fetch_errors?: Array<{ uuid: string; code?: string }>;
+    };
+    const edges = data.edges as Array<Record<string, unknown>>;
+
+    expect(meta.services_enriched).toBe(1);
+    expect(meta.service_fetch_errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          uuid: 'svc-bad',
+          code: 'COOLIFY_500',
+        }),
+      ]),
+    );
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'database_uuid' && e.from_uuid === 'app-linked',
+      ),
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.relation === 'service_child' && e.from_uuid === 'good-child',
+      ),
+    ).toBe(true);
   });
 });
 

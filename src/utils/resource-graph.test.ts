@@ -1,7 +1,6 @@
 /**
- * Wave 0 Nyquist RED scaffolds for Phase 28 resource-graph helpers.
- * resource-graph.ts loaded via dynamic import inside it.fails only —
- * production module ships in Plan 28-01.
+ * Phase 28 resource-graph helper tests (GRAPH-01 / GRAPH-02).
+ * GREEN after Plan 28-01 ships resource-graph.ts.
  */
 import { describe, expect, it } from 'vitest';
 
