@@ -5,16 +5,16 @@ milestone_name: Agent Intelligence
 current_phase: 28
 current_phase_name: Instance Intelligence
 status: executing
-stopped_at: Completed 28-03-PLAN.md
-last_updated: "2026-07-30T02:06:00.397Z"
+stopped_at: Completed 28-04-PLAN.md
+last_updated: "2026-07-30T02:12:28.682Z"
 last_activity: 2026-07-30
 last_activity_desc: Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 0
+  completed_plans: 5
+  percent: 25
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 28 of 31 (Instance Intelligence)
-Plan: 4 of 05
+Plan: 5 of 05
 Status: Ready to execute
 Last activity: 2026-07-30 — Completed 28-00-PLAN.md (Wave 0 Nyquist RED)
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -163,6 +163,7 @@ Progress: [████████░░] 80%
 | Phase 28 P01 | 8min | 2 tasks | 6 files |
 | Phase 28 P02 | 9min | 2 tasks | 2 files |
 | Phase 28 P03 | 5min | 2 tasks | 3 files |
+| Phase 28 P04 | 6min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -438,6 +439,8 @@ Progress: [████████░░] 80%
 - [Phase ?]: findOrphans uses zero inbound (to_uuid) degree only
 - [Phase ?]: Janitor primary reason priority: long_exited > stopped > orphan
 - [Phase ?]: Impact fixtures use RFC UUIDs for Zod uuid() validation
+- [Phase ?]: D-13 cleanup confirm:true required (auto-approved --auto)
+- [Phase ?]: D-19 five intelligence_* capability keys on system.version
 
 ### Pending Todos
 
@@ -514,8 +517,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T02:06:00.387Z
-Stopped at: Completed 28-03-PLAN.md
+Last session: 2026-07-30T02:12:28.671Z
+Stopped at: Completed 28-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
