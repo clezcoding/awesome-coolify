@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
-status: planning
-last_updated: "2026-07-30T00:03:25.218Z"
+status: ready_to_plan
+last_updated: "2026-07-30T02:03:00.000Z"
 last_activity: 2026-07-30
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Planning next milestone (v3.3 service/DB logs)
+**Current focus:** v3.3 Agent Intelligence — Phase 28 Instance Intelligence
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 28 of 31 (Instance Intelligence)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-30 — Milestone v3.3 started
+Status: Ready to plan
+Last activity: 2026-07-30 — v3.3 roadmap created (Phases 28–31, 18/18 reqs mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -495,13 +497,13 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-29T20:59:00.000Z
-Stopped at: v3.2 milestone complete; npm release pending → changeset added
+Last session: 2026-07-30T02:03:00.000Z
+Stopped at: v3.3 roadmap created — 4 phases (28–31), 18 requirements mapped
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 28: `/gsd-plan-phase 28`
 
 ## Rebuild Log
 

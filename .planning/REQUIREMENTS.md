@@ -105,4 +105,4 @@ Deferred until Coolify 4.2.0+ stable.
 
 ---
 *Requirements defined: 2026-07-30*
-*Last updated: 2026-07-30 after milestone v3.3 definition*
+*Last updated: 2026-07-30 — v3.3 roadmap created (Phases 28–31)*

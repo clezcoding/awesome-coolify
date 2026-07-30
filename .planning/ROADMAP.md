@@ -7,6 +7,7 @@
 - ✅ **v3.0 Platform Foundation** — Phases 15–18 (shipped 2026-07-23) → [archive](milestones/v3.0-ROADMAP.md)
 - ✅ **v3.1 Setup, Skills & DX** — Phases 19–23 + 23.1 (shipped 2026-07-27) → [archive](milestones/v3.1-ROADMAP.md)
 - ✅ **v3.2 Observability & DX** — Phases 24–27 (shipped 2026-07-29) → [archive](milestones/v3.2-ROADMAP.md)
+- 🚧 **v3.3 Agent Intelligence** — Phases 28–31 (in progress)
 
 ## Phases
 
@@ -77,6 +78,60 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
 
 </details>
 
+### 🚧 v3.3 Agent Intelligence (Phases 28–31)
+
+**Milestone Goal:** Composite intelligence layer on existing Coolify 4.1.x tools — agents reason about risk, drift, dependencies, and remediation without new REST endpoints.
+
+- [ ] **Phase 28: Instance Intelligence** - Scorecard, dependency graph, and safe resource janitor
+- [ ] **Phase 29: Drift & Heal** - Manifest audit, env promotion, and remediation hints
+- [ ] **Phase 30: Deploy Guard** - Preflight checks, risk scoring, and rollback
+- [ ] **Phase 31: Agent Playbooks** - Log brain, ops playbooks, and smart recipes
+
+## Phase Details
+
+### Phase 28: Instance Intelligence
+**Goal**: Agent can assess instance health, map resource dependencies, and identify safe cleanup candidates
+**Depends on**: Phase 27 (v3.2 shipped)
+**Requirements**: INTEL-01, INTEL-02, GRAPH-01, GRAPH-02, JANI-01, JANI-02
+**Success Criteria** (what must be TRUE):
+  1. Agent fetches per-instance health scorecard with factor breakdown (deployments, backups, exited resources, diagnose.scan summary) and severity-tagged findings with recovery hints
+  2. Agent builds live dependency graph from resources showing application ↔ database ↔ service links
+  3. Agent queries impact analysis before delete or restart ("what breaks if resource X goes down")
+  4. Agent lists orphaned, stopped, or long-exited resources with safe cleanup suggestions
+  5. Janitor destructive cleanup mutations blocked without explicit confirm gate per SAF pattern
+**Plans**: TBD
+
+### Phase 29: Drift & Heal
+**Goal**: Agent can detect configuration drift between local manifest and live state and receive actionable remediation guidance
+**Depends on**: Phase 28
+**Requirements**: DRIFT-01, DRIFT-02, DRIFT-03
+**Success Criteria** (what must be TRUE):
+  1. Agent runs manifest audit comparing local `.coolify/manifest.json` vs live Coolify state with remediation steps
+  2. Agent compares environment variables across environments and receives promotion suggestions via `env.promote`
+  3. Audit and drift results include concrete fix hints, not raw diff only
+**Plans**: TBD
+
+### Phase 30: Deploy Guard
+**Goal**: Agent can assess deploy risk before mutation and recover from failed deployments
+**Depends on**: Phase 29
+**Requirements**: GUARD-01, GUARD-02, GUARD-03
+**Success Criteria** (what must be TRUE):
+  1. Agent runs deploy preflight before mutation covering instance health, env completeness, recent deployment failures, and DNS readiness
+  2. Preflight returns deploy risk score with named factor breakdown
+  3. Agent rolls back an application to its last successful deployment
+**Plans**: TBD
+
+### Phase 31: Agent Playbooks
+**Goal**: Agent can analyze logs via rule-based patterns, follow orchestrated playbooks, and get smart stack recommendations
+**Depends on**: Phase 30
+**Requirements**: BRAIN-01, BRAIN-02, PLAY-01, PLAY-02, SREC-01, SREC-02
+**Success Criteria** (what must be TRUE):
+  1. Agent analyzes existing application runtime logs for rule-based patterns (OOM, 5xx spike, crash loop, connection refused) with severity and suggested next actions
+  2. Log analysis links to diagnose and playbook flows — no ML/statistical anomaly detection
+  3. Parameterized MCP prompts exist for incident response, rollback, and maintenance-window flows composing existing atomic tools
+  4. Agent requests stack recommendation (e.g. "Next.js + Postgres") and receives one-click service + env + deploy plan from live `service.list-types` catalog
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -98,9 +153,13 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
 | 25 | v3.2 | 6/6 | Complete | 2026-07-28 |
 | 26 | v3.2 | 4/4 | Complete | 2026-07-28 |
 | 27 | v3.2 | 4/4 | Complete | 2026-07-29 |
+| 28 | v3.3 | 0/TBD | Not started | - |
+| 29 | v3.3 | 0/TBD | Not started | - |
+| 30 | v3.3 | 0/TBD | Not started | - |
+| 31 | v3.3 | 0/TBD | Not started | - |
 
-**Next:** `/gsd-new-milestone` — plan v3.3 (service/DB logs when Coolify 4.2.0+ stable)
+**Next:** `/gsd-plan-phase 28` — Instance Intelligence (scorecard, dependency graph, janitor)
 
 ---
 
-*Last updated: 2026-07-29 — v3.2 Observability & DX shipped (Phases 24–27)*
+*Last updated: 2026-07-30 — v3.3 Agent Intelligence roadmap created (Phases 28–31)*
