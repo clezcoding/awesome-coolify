@@ -108,7 +108,7 @@ Each task was committed atomically:
 1. **Task 1: End-to-end intelligence.graph — UUID edges through util, tool, server** - `726789f` (feat)
 2. **Task 2: Harden graph enrichment meta + empty-service pitfall coverage** - `732e08e` (test)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `b5a83e1` (docs: complete plan)
 
 ## Files Created/Modified
 
