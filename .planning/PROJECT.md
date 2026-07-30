@@ -87,9 +87,23 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 </details>
 
+## Current Milestone: v3.3 Agent Intelligence
+
+**Goal:** Composite intelligence layer on existing Coolify 4.1.x tools — agents reason about risk, drift, dependencies, and remediation without waiting for Coolify 4.2 log endpoints.
+
+**Target features:**
+- Deploy Guard — preflight, risk score, rollback to last green deployment
+- Drift & Heal — manifest.audit vs live state, env.promote, remediation hints
+- Dependency Map — app↔DB↔service graph, impact before delete/restart
+- Log Brain — pattern detection on existing application logs (OOM, 5xx spikes, crash loops)
+- Ops Playbooks — parameterized incident/rollback/maintenance MCP prompts
+- Smart Recipes — stack description → one-click + env + deploy plan
+- Instance Scorecard — per-instance health score with breakdown
+- Resource Janitor — orphaned/stopped/exited resources with safe cleanup suggestions
+
 ## Next Milestone Goals
 
-- **v3.3:** SVC-04/05/06 service/DB/sub-service logs when Coolify 4.2.0+ is stable installable
+- **v3.4 (blocked):** SVC-04/05/06 service/DB/sub-service logs when Coolify 4.2.0+ is stable installable
 - **Backlog:** OpenAPI gap rows in `docs/COVERAGE.md` (~57 paths); cross-instance fan-out (deferred)
 
 ## Requirements
@@ -136,13 +150,13 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ diagnose.logs + incident prompt + coolify-setup troubleshooting — Phase 26 (DIAG-01, PROMPT-01, SKILL-01)
 - ✓ MCP icon workarounds + docs parity at 1.0.1 — Phase 27 (BRND-01, BRND-02, DOC-01)
 
-### Active
+### Active (v3.3)
 
-(None — run `/gsd-new-milestone` to define v3.3 requirements)
+- Deploy Guard, Drift & Heal, Dependency Map, Log Brain, Ops Playbooks, Smart Recipes, Instance Scorecard, Resource Janitor — see `.planning/REQUIREMENTS.md`
 
 ### Out of Scope
 
-- Service/DB bounded log tail — v3.3 (SVC-04, requires Coolify 4.2.0+ stable; 4.1.2 has no endpoints)
+- Service/DB bounded log tail — v3.4 (SVC-04, requires Coolify 4.2.0+ stable; 4.1.2 has no endpoints; deferred from interim v3.3)
 - Own YAML/stack template catalog — Coolify one-click + coolify-examples are source of truth
 - Cursor MCP list icon rendering — v3.2 attempts workarounds; may remain client limitation (D-09)
 - Cross-instance fan-out queries — rate limits / security
@@ -222,6 +236,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-**v3.2 shipped:** `system.version` capability flags, `deployment.logs`, `application.logs` follow, `diagnose.logs`, incident prompt + coolify-setup troubleshooting, dual-icon MCP branding, npm 1.0.1 docs parity. Next: v3.3 service/DB logs (Coolify 4.2.0+).
+**v3.2 shipped:** `system.version` capability flags, `deployment.logs`, `application.logs` follow, `diagnose.logs`, incident prompt + coolify-setup troubleshooting, dual-icon MCP branding, npm 1.0.1 docs parity. **v3.3 in progress:** Agent Intelligence layer (composite smart ops on 4.1.x). Service/DB logs deferred to v3.4 pending Coolify 4.2 stable.
 
-*Last updated: 2026-07-29 after v3.2 milestone*
+*Last updated: 2026-07-30 — milestone v3.3 Agent Intelligence started*

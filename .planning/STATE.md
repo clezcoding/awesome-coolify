@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.2
-milestone_name: Observability & DX
-status: Awaiting next milestone
-stopped_at: Completed 27-03-PLAN.md
-last_updated: "2026-07-29T03:45:00.000Z"
-last_activity: 2026-07-29
-last_activity_desc: "Completed quick task 260729-7mc: workspace deep-clean, branch prune, Dependabot baseline"
+milestone: v3.3
+milestone_name: Agent Intelligence
+status: planning
+last_updated: "2026-07-30T00:03:25.218Z"
+last_activity: 2026-07-30
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
-current_phase: 27
-current_phase_name: Branding & Docs Stale Fix
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 
 ## Current Position
 
-Phase: Milestone v3.2 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-29 — Completed quick task 260729-7mc: workspace deep-clean, branch prune, Dependabot baseline
+Status: Defining requirements
+Last activity: 2026-07-30 — Milestone v3.3 started
 
 ## Performance Metrics
 
