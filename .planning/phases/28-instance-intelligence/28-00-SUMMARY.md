@@ -104,7 +104,7 @@ Each task was committed atomically:
 1. **Task 1: RED scaffolds for intelligence actions + resource-graph** - `c5e602a` (test)
 2. **Task 2: RED scaffolds for capabilities + coverage-map rows** - `40f3c49` (test)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `0a9f786` / `48ae7b9` (docs: complete plan + STATE position fix)
 
 ## Files Created/Modified
 
