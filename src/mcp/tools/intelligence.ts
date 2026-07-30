@@ -26,6 +26,7 @@ import {
   buildGraph,
   enrichServiceEdges,
   findDependents,
+  findJanitorCandidates,
 } from '../../utils/resource-graph.js';
 import {
   createFlatActionSchema,
@@ -821,7 +822,7 @@ export async function handleIntelligenceAction(
       case 'impact':
         return await handleIntelligenceImpact(parsed, routingEnv);
       case 'janitor':
-        return notImplemented('janitor', '28-03');
+        return await handleIntelligenceJanitor(parsed, routingEnv);
       case 'cleanup':
         return notImplemented('cleanup', '28-04');
       default: {

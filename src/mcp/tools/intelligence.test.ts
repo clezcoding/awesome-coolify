@@ -1,6 +1,6 @@
 /**
  * Phase 28 intelligence MCP tool tests.
- * Graph + scorecard/findings/partial/impact GREEN (Plans 28-01..03); janitor/cleanup remain it.fails until 28-03..28-04.
+ * Graph + scorecard/findings/partial/impact/janitor GREEN (Plans 28-01..03); cleanup remains it.fails until 28-04.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { EnvConfig } from '../../config/env.js';
@@ -489,7 +489,7 @@ describe('impact (GRAPH-02, D-09, D-10)', () => {
 });
 
 describe('janitor (JANI-01, D-11, D-12)', () => {
-  it.fails('lists stopped/exited, long_exited (stopped_days default 7), orphan; each has FollowUpHint suggestion + preview_only true', async () => {
+  it('lists stopped/exited, long_exited (stopped_days default 7), orphan; each has FollowUpHint suggestion + preview_only true', async () => {
     vi.mocked(fetchResources).mockResolvedValue(janitorResources);
 
     const { handleIntelligenceAction, isIntelligenceErrorResult } =
