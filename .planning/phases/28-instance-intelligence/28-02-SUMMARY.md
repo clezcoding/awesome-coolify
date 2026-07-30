@@ -97,7 +97,7 @@ Each task was committed atomically:
 1. **Task 1 + Task 2: Scorecard factors + findings/soft partials** - `51df530` (feat)
    - Single commit: husky `vitest related` requires findings/partial flips with implementation (it.fails that now pass otherwise fail the hook)
 
-**Plan metadata:** _(pending docs commit)_
+**Plan metadata:** `fb39d39` (docs: complete plan)
 
 _Note: Separate RED commit blocked by lint-staged (related tests must pass)._
 
