@@ -99,7 +99,14 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
   3. Agent queries impact analysis before delete or restart ("what breaks if resource X goes down")
   4. Agent lists orphaned, stopped, or long-exited resources with safe cleanup suggestions
   5. Janitor destructive cleanup mutations blocked without explicit confirm gate per SAF pattern
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 28-00-PLAN.md — Wave 0 Nyquist RED scaffolds for INTEL/GRAPH/JANI
+- [ ] 28-01-PLAN.md — Tracer: intelligence tool + UUID graph + server registration
+- [ ] 28-02-PLAN.md — Scorecard composite factors + findings + soft partials
+- [ ] 28-03-PLAN.md — Advisory impact + read-only janitor
+- [ ] 28-04-PLAN.md — Confirm-gated cleanup + capabilities/docs (D-13 gate)
 
 ### Phase 29: Drift & Heal
 **Goal**: Agent can detect configuration drift between local manifest and live state and receive actionable remediation guidance
