@@ -148,6 +148,30 @@ Nach dem Connect diesen agent-first Pfad ausführen:
    application({ action: "get", uuid: "<app-uuid>" })
    ```
 
+4. **Optional — Agent Intelligence (v3.3):**
+
+   ```js
+   system({ action: "version" })
+   // capabilities.intelligence_scorecard, deployment_preflight, diagnose_analyze prüfen
+   intelligence({ action: "scorecard" })
+   ```
+
+---
+
+## Agent Intelligence (v3.3)
+
+Auf Coolify 4.1.x funktionieren Composite-Intelligence-Actions auf Cloud wie Self-Hosted (nur lesend, außer `confirm: true`):
+
+| Workflow | Einstiegs-Action |
+| --- | --- |
+| Instanz-Gesundheit | `intelligence({ action: "scorecard" })` |
+| Dependency-Graph | `intelligence({ action: "graph" })` |
+| Manifest-Drift | `manifest({ action: "audit" })` |
+| Deploy-Risiko | `deployment({ action: "preflight", uuid: "<app-uuid>" })` |
+| Log-Muster | `diagnose({ action: "analyze", uuid: "<app-uuid>" })` |
+
+Vor Nutzung `system.version.capabilities` lesen. Rollback, Env-Promote und Janitor-Cleanup erfordern explizite Human-Bestätigung.
+
 ---
 
 ## Bekannte Limits

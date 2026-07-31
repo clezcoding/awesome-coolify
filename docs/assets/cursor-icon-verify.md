@@ -1,6 +1,6 @@
-# MCP icon verify — v3.2 workarounds (Phase 27)
+# MCP icon verify — v3.2 workarounds (Phase 27, re-verified v3.3)
 
-**Date:** 2026-07-29
+**Date:** 2026-07-31
 **Outcome:** Client limitation (server correct) per D-05
 
 ## Variant tested
@@ -41,7 +41,7 @@ Verified via stdio dump (`node dist/index.js`):
 {
   "serverInfo": {
     "name": "awesome-coolify-mcp",
-    "version": "1.1.0",
+    "version": "1.1.4",
     "title": "Awesome Coolify",
     "description": "MCP server for Coolify 4.1.x — deploy, diagnose, and CRUD for keys, servers, projects, and environments via action-based tools",
     "websiteUrl": "https://github.com/clezcoding/awesome-coolify",
@@ -66,7 +66,7 @@ Verified via stdio dump (`node dist/index.js`):
 }
 ```
 
-`icons[]` length: **3** (data URI first + 2 CDN entries). Version: **1.1.0**.
+`icons[]` length: **3** (data URI first + 2 CDN entries). Version: **1.1.4**.
 
 ## Path B: npm `npx`
 
@@ -79,7 +79,7 @@ Plain `npx` from the `awesome-coolify` repo root collides with the local package
   "mcpServers": {
     "awesome-coolify-mcp": {
       "command": "sh",
-      "args": ["-c", "cd /tmp && exec npx -y awesome-coolify-mcp@1.1.0"]
+      "args": ["-c", "cd /tmp && exec npx -y awesome-coolify-mcp@1.1.4"]
     }
   }
 }
@@ -94,7 +94,7 @@ Plain `npx` from the `awesome-coolify` repo root collides with the local package
 ### Initialize result (Path B)
 
 The published probe returned the same `serverInfo` shape shown for Path A: version
-**1.1.0**, three icon entries, embedded PNG first, then both jsDelivr URLs.
+**1.1.4**, three icon entries, embedded PNG first, then both jsDelivr URLs.
 
 ## Server emits icons correctly
 
@@ -127,7 +127,7 @@ cp.stdin.write(JSON.stringify({
 "
 ```
 
-**Path B (npm npx):** same probe with `spawn('npx', ['-y', 'awesome-coolify-mcp@1.1.0'], { cwd: '/tmp', … })` — run from outside the `awesome-coolify` repo to avoid package-name collision.
+**Path B (npm npx):** same probe with `spawn('npx', ['-y', 'awesome-coolify-mcp@1.1.4'], { cwd: '/tmp', … })` — run from outside the `awesome-coolify` repo to avoid package-name collision.
 
 ## CDN asset reachable
 
@@ -139,7 +139,7 @@ curl -I https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/
 # HTTP/2 200 — content-type: image/png
 ```
 
-Both jsDelivr URLs return **HTTP/2 200** `image/png` (verified 2026-07-29).
+Both jsDelivr URLs return **HTTP/2 200** `image/png` (verified 2026-07-29; re-checked 2026-07-31).
 
 ## Spec / SDK alignment
 
@@ -151,7 +151,7 @@ Cursor forum report [Can't get mcp icons to work in cursor ide](https://forum.cu
 
 Earlier related bug: `icons.sizes` array vs string validation ([forum #145029](https://forum.cursor.com/t/mcp-client-icon-sizes-incorrectly-validated-as-string-instead-of-array/145029)) — connection works here (tools load), so this is display-path limitation, not handshake rejection.
 
-Phase 16 D-09 documented the same client limitation for CDN-only icons; Phase 27 refreshes evidence for data URI + multi-size CDN workarounds.
+Phase 16 D-09 documented the same client limitation for CDN-only icons; Phase 27 refreshes evidence for data URI + multi-size CDN workarounds. Re-verified at package **1.1.4** (v3.3 milestone) — same client limitation.
 
 ## Conclusion
 
@@ -159,7 +159,7 @@ Phase 16 D-09 documented the same client limitation for CDN-only icons; Phase 27
 |-------|----------------|--------------|
 | `serverInfo.icons` includes data URI | ✓ | ✓ |
 | `serverInfo.icons` includes CDN PNG(s) | ✓ | ✓ |
-| `serverInfo.version` === `1.1.0` | ✓ | ✓ |
+| `serverInfo.version` === `1.1.4` | ✓ | ✓ |
 | jsDelivr PNG 200 | ✓ | ✓ |
 | `title` / tools visible in Cursor | ✓ | ✓ |
 | Custom icon in Cursor MCP list | ✗ (client limitation) | ✗ (client limitation) |
