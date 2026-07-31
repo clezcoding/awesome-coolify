@@ -44,7 +44,18 @@ created: 2026-07-31
 | 31-00-02 | 00 | 0 | BRAIN-01/02 | T-31-01 | Zod + advisory-only analyze | unit | `npx vitest run src/mcp/tools/diagnose.test.ts -t analyze -x` | ❌ W0 | ⬜ pending |
 | 31-00-03 | 00 | 0 | SREC-01/02 | T-31-03 | Live catalog only; no invent type IDs | unit | `npx vitest run src/mcp/tools/recipe.test.ts -t recommend -x` | ❌ W0 | ⬜ pending |
 | 31-00-04 | 00 | 0 | PLAY-01/02 | T-31-02 | Prompts cite confirm; no auto-confirm | unit | `npx vitest run tests/mcp/prompts.test.ts -x` | ✅ extend | ⬜ pending |
-| 31-W1+ | 01+ | 1+ | (filled by planner) | — | — | unit | per-plan `<automated>` | — | ⬜ pending |
+| 31-01-01 | 01 | 1 | BRAIN-01/02 | T-31-04 | D-06 advisory gate before analyze | checkpoint | context D-06 confirm | ✅ | ⬜ pending |
+| 31-01-02 | 01 | 1 | BRAIN-01/02 | T-31-04 | Tracer analyze→hints→playbook link | unit | `npx vitest run src/utils/log-patterns.test.ts src/mcp/tools/diagnose.test.ts -t analyze -x` | ❌ W0 | ⬜ pending |
+| 31-01-03 | 01 | 1 | BRAIN-01/02 | T-31-01 | Four patterns + soft partial edges | unit | `npx vitest run src/utils/log-patterns.test.ts src/mcp/tools/diagnose.test.ts -t analyze -x` | ❌ W0 | ⬜ pending |
+| 31-02-01 | 02 | 2 | PLAY-01 | T-31-02 | D-09 confirm gate before rollback prompt | checkpoint | context D-09 confirm | ✅ | ⬜ pending |
+| 31-02-02 | 02 | 2 | PLAY-01/02 | T-31-02 | Six prompts; composition cites | unit | `npx vitest run tests/mcp/prompts.test.ts -x` | ✅ extend | ⬜ pending |
+| 31-02-03 | 02 | 2 | PLAY-02 | T-31-07 | Composition hardening asserts | unit | `npx vitest run tests/mcp/prompts.test.ts -x` | ✅ | ⬜ pending |
+| 31-03-01 | 03 | 3 | SREC-01 | T-31-09 | D-14 advisory gate before recommend | checkpoint | context D-14 confirm | ✅ | ⬜ pending |
+| 31-03-02 | 03 | 3 | SREC-01/02 | T-31-03 | Live catalog recommend plan_steps | unit | `npx vitest run src/mcp/tools/recipe.test.ts -t recommend -x` | ❌ W0 | ⬜ pending |
+| 31-03-03 | 03 | 3 | SREC-02 | T-31-03 | Confidence ranking + no invent IDs | unit | `npx vitest run src/mcp/tools/recipe.test.ts -t recommend -x` | ❌ W0 | ⬜ pending |
+| 31-04-01 | 04 | 4 | D-19 | T-31-11 | diagnose_analyze + recipe_recommend caps | unit | `npx vitest run src/mcp/tools/system.test.ts -t capabilities -x` | ✅ | ⬜ pending |
+| 31-04-02 | 04 | 4 | D-18 | T-31-12 | Coverage composite declaration | grep | `rg diagnose.analyze docs/coverage-map.yaml` | ✅ | ⬜ pending |
+| 31-04-03 | 04 | 4 | D-19 | T-31-11 | README EN/DE parity | grep | `rg diagnose.analyze README.md README.de.md` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

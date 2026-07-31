@@ -162,7 +162,14 @@ Plans:
   3. Parameterized MCP prompts exist for incident response, rollback, and maintenance-window flows composing existing atomic tools
   4. Agent requests stack recommendation (e.g. "Next.js + Postgres") and receives one-click service + env + deploy plan from live `service.list-types` catalog
 
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 31-00-PLAN.md — Wave 0 Nyquist RED scaffolds for BRAIN/PLAY/SREC
+- [ ] 31-01-PLAN.md — Tracer: diagnose.analyze + log-patterns (D-06 gate)
+- [ ] 31-02-PLAN.md — Playbooks: incident upgrade + rollback + maintenance-window (D-09 gate)
+- [ ] 31-03-PLAN.md — recipe.recommend from live catalog (D-14 gate)
+- [ ] 31-04-PLAN.md — Capabilities + coverage + README EN/DE
 
 ## Progress
 
@@ -188,7 +195,7 @@ Plans:
 | 28 | v3.3 | 5/5 | Complete    | 2026-07-30 |
 | 29 | v3.3 | 4/4 | Complete   | 2026-07-30 |
 | 30 | v3.3 | 4/4 | Complete    | 2026-07-31 |
-| 31 | v3.3 | 0/TBD | Not started | - |
+| 31 | v3.3 | 0/5 | Planned | - |
 
 **Next:** `/gsd-discuss-phase 31` — Agent Playbooks (log brain, ops playbooks, smart recipes)
 
