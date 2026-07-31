@@ -406,6 +406,22 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 | `watch` | Poll until terminal with bounded timeout, backoff, and jitter |
 | `cancel` | Cancel an in-flight deployment cleanly |
 | `logs` | Bounded deployment build logs by deployment UUID, or newest deployment for an application |
+| `preflight` | **Advisory read-only** deploy risk check: `instance_health`, `env_completeness`, `recent_deployment_failures`, `dns_readiness` → `risk_score` / `risk_level`; env values masked; no live DNS probes |
+| `rollback` | **Confirm-gated** recovery to last `finished` deployment — git apps pin `git_commit_sha` via `updateApplication` then `triggerDeploy`; preview without `confirm: true` |
+
+### 🛡️ Deploy guard (`preflight` + `rollback`)
+
+| Action | Safety |
+|--------|--------|
+| `preflight` | Read-only — never calls deploy/mutate APIs; `advisory: true`; `blocking` when risk is critical or a deploy is in progress |
+| `rollback` | Two-step like emergency ops: omit `confirm` → `COOLIFY_CONFIRM_REQUIRED` + `rollback_target` preview; `confirm: true` → composite pin+deploy (no dedicated Coolify rollback REST endpoint) |
+
+```js
+deployment({ action: "preflight", uuid: "<app-uuid>" })
+// risk acceptable → follow recommended_actions to application.deploy
+deployment({ action: "rollback", uuid: "<app-uuid>" }) // preview
+deployment({ action: "rollback", uuid: "<app-uuid>", confirm: true, wait: true })
+```
 
 ### ⏱️ Watch — bounded deploy monitoring
 
@@ -639,6 +655,8 @@ Regular app/service/database mutations (start, stop, deploy, …) are **not** be
 
 **Drift & heal (read-only audit, preview-first promote):** `manifest.audit` is advisory-only — it never writes manifest or live state. `application.envs:promote` (product name **env.promote**) previews by default; values stay masked unless `reveal: true`. Both stay within one Coolify instance per call.
 
+**Deploy guard (advisory preflight, confirm-gated rollback):** `deployment.preflight` is read-only and returns a `risk_score` with four named factors — no external DNS/HTTP probes. `deployment.rollback` requires `confirm: true` before mutating; git rollbacks PATCH the target commit then POST `/deploy` (MCP composite, not a Coolify rollback API).
+
 ### Secret masking
 
 - Keys matching `password`, `token`, `secret`, `private`, or `env` render as `***` by default in tool output.
@@ -741,6 +759,7 @@ Package **1.1.2** ships **19 tools** and four MCP prompts for Coolify API **4.1.
 | Application runtime logs, bounded follow, and `diagnose.logs` | ✅ Shipped |
 | Instance intelligence (`intelligence.scorecard`, `graph`, `impact`, `janitor`, `cleanup`) | ✅ Shipped |
 | Drift & heal (`manifest.audit`, `application.envs:promote` / **env.promote**) | ✅ Shipped |
+| Deploy guard (`deployment.preflight`, `deployment.rollback`) | ✅ Shipped |
 | Application, service, and database CRUD | ✅ Shipped |
 | Dynamic one-click type discovery and recipes | ✅ Shipped |
 | Setup wizard and four IDE workflow skills | ✅ Shipped |

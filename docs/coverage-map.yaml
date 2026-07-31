@@ -130,6 +130,12 @@ actions:
   - action: deployment.logs
     client: [fetchDeployment, fetchAppDeployments]
     openapi: ["GET /deployments/{uuid}", "GET /deployments/applications/{uuid}"]
+  - action: deployment.preflight
+    client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchResources, fetchServers, fetchServerDomains]
+    openapi: ["GET /applications/{uuid}", "GET /applications/{uuid}/envs", "GET /deployments/applications/{uuid}", "GET /resources", "GET /servers", "GET /servers/{uuid}/domains"]
+  - action: deployment.rollback
+    client: [fetchApplication, fetchAppDeployments, updateApplication, triggerDeploy]
+    openapi: ["GET /applications/{uuid}", "GET /deployments/applications/{uuid}", "PATCH /applications/{uuid}", "GET /deploy"]
   - action: diagnose.logs
     client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchApplicationLogs, fetchDeployment]
     openapi: ["GET /applications/{uuid}", "GET /applications/{uuid}/envs", "GET /deployments/applications/{uuid}", "GET /applications/{uuid}/logs", "GET /deployments/{uuid}"]
