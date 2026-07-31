@@ -5,15 +5,15 @@ milestone_name: Agent Intelligence
 current_phase: 31
 current_phase_name: Agent Playbooks
 status: 31-00 complete — ready for 31-01
-stopped_at: Completed 31-03-PLAN.md
-last_updated: "2026-07-31T02:42:17.316Z"
+stopped_at: Completed 31-04-PLAN.md
+last_updated: "2026-07-31T02:52:19.570Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 19
-  completed_plans: 17
-  percent: 50
+  completed_plans: 18
+  percent: 75
 last_activity_desc: Phase 31 plan 00 Wave 0 RED scaffolds complete
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 31 — Agent Playbooks
-Plan: 4 of 05
+Plan: 5 of 05
 Status: 31-00 complete — Wave 0 RED scaffolds locked
 Last activity: 2026-07-31
 
-Progress: [█████████░] 89%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
@@ -175,6 +175,7 @@ Progress: [█████████░] 89%
 | Phase 31 P01 | 7min | 3 tasks | 4 files |
 | Phase 31 P02 | 4min | 3 tasks | 2 files |
 | Phase 31 P03 | 5min | 3 tasks | 2 files |
+| Phase 31 P04 | 8min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -469,6 +470,8 @@ Progress: [█████████░] 89%
 - [Phase ?]: Playbooks are MCP prompts composing atomics only (PLAY-02); no playbook-runner tool
 - [Phase ?]: D-14 approve-advisory-recommend: recipe.recommend never mutates Coolify
 - [Phase ?]: recommend required field named stack (free-text stack phrase)
+- [Phase ?]: Husky blocks RED-only commits — GREEN shipped with flipped seventeen-key it() + capabilities together
+- [Phase ?]: Phase 31 no-external-API sentence lives in recipe.recommend action_override so regen/--check stay green
 
 ### Pending Todos
 
@@ -545,8 +548,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-31T02:42:17.302Z
-Stopped at: Completed 31-03-PLAN.md
+Last session: 2026-07-31T02:52:19.555Z
+Stopped at: Completed 31-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
