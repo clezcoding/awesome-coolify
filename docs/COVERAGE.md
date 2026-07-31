@@ -12,10 +12,10 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 
 | bucket | count |
 | --- | ---: |
-| covered | 96 |
+| covered | 95 |
 | deferred | 2 |
 | out-of-scope | 31 |
-| gap | 57 |
+| gap | 58 |
 
 ## Bucket definitions
 
@@ -71,7 +71,7 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 | `deployment.list` | fetchAppDeployments | GET /deployments/applications/{uuid} | covered | — |
 | `deployment.logs` | fetchDeployment, fetchAppDeployments | GET /deployments/{uuid}, GET /deployments/applications/{uuid} | covered | — |
 | `deployment.preflight` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchResources, fetchServers, fetchServerDomains | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid}, GET /resources, GET /servers, GET /servers/{uuid}/domains | covered | — |
-| `deployment.rollback` | fetchApplication, fetchAppDeployments, updateApplication, triggerDeploy | GET /applications/{uuid}, GET /deployments/applications/{uuid}, PATCH /applications/{uuid}, GET /deploy | covered | — |
+| `deployment.rollback` | fetchApplication, fetchAppDeployments, updateApplication, triggerDeploy | GET /applications/{uuid}, GET /deployments/applications/{uuid}, PATCH /applications/{uuid}, POST /deploy | gap | Mapped OpenAPI key missing from dereferenced spec |
 | `deployment.watch` | fetchDeployment | GET /deployments/{uuid} | out-of-scope | Polling orchestration over fetchDeployment |
 | `diagnose.app` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid} | covered | — |
 | `diagnose.logs` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchApplicationLogs, fetchDeployment | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid}, GET /applications/{uuid}/logs, GET /deployments/{uuid} | covered | — |
