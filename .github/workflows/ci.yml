@@ -19,15 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@b0f76dfb45f55f8421693e4803ac7bb65143bd34 # v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           # Node 24 = Active LTS (Jul 2026); setup-node resolves latest 24.x
           node-version: 24
@@ -52,18 +52,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      statuses: write
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # Needed for PR diff mode (VALIDATE_ALL_CODEBASE=false)
           fetch-depth: 0
 
       - name: MegaLinter
         id: ml
-        uses: oxsecurity/megalinter/flavors/javascript@v9
+        uses: oxsecurity/megalinter/flavors/javascript@ef3e84b8b836d76db562d0f3ed7da61e8fd538bc # v9
         env:
           # Full scan only on push to main; PRs lint the git diff vs main.
           # https://megalinter.io/latest/install-github/
@@ -75,7 +74,7 @@ jobs:
 
       - name: Archive MegaLinter reports
         if: success() || failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: MegaLinter reports
           include-hidden-files: true
