@@ -46,8 +46,8 @@ Composite intelligence on Coolify 4.1.x — no new REST endpoints required.
 
 ### Smart Recipes
 
-- [ ] **SREC-01**: Agent can request a stack recommendation (e.g. "Next.js + Postgres") and receive a one-click service + env + deploy plan
-- [ ] **SREC-02**: Recommendations use live `service.list-types` catalog data, not hardcoded YAML templates
+- [x] **SREC-01**: Agent can request a stack recommendation (e.g. "Next.js + Postgres") and receive a one-click service + env + deploy plan
+- [x] **SREC-02**: Recommendations use live `service.list-types` catalog data, not hardcoded YAML templates
 
 ## Future Requirements (v3.4+)
 
@@ -95,8 +95,8 @@ Deferred until Coolify 4.2.0+ stable.
 | BRAIN-02 | Phase 31 | Complete |
 | PLAY-01 | Phase 31 | Complete |
 | PLAY-02 | Phase 31 | Complete |
-| SREC-01 | Phase 31 | Pending |
-| SREC-02 | Phase 31 | Pending |
+| SREC-01 | Phase 31 | Complete |
+| SREC-02 | Phase 31 | Complete |
 
 **Coverage:**
 

@@ -5,14 +5,14 @@ milestone_name: Agent Intelligence
 current_phase: 31
 current_phase_name: Agent Playbooks
 status: 31-00 complete — ready for 31-01
-stopped_at: Completed 31-02-PLAN.md
-last_updated: "2026-07-31T02:36:29.957Z"
+stopped_at: Completed 31-03-PLAN.md
+last_updated: "2026-07-31T02:42:17.316Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
   percent: 50
 last_activity_desc: Phase 31 plan 00 Wave 0 RED scaffolds complete
 ---
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 31 — Agent Playbooks
-Plan: 3 of 05
+Plan: 4 of 05
 Status: 31-00 complete — Wave 0 RED scaffolds locked
 Last activity: 2026-07-31
 
-Progress: [████████░░] 84%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -174,6 +174,7 @@ Progress: [████████░░] 84%
 | Phase 31 P00 | 3min | 3 tasks | 6 files |
 | Phase 31 P01 | 7min | 3 tasks | 4 files |
 | Phase 31 P02 | 4min | 3 tasks | 2 files |
+| Phase 31 P03 | 5min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -466,6 +467,8 @@ Progress: [████████░░] 84%
 - [Phase ?]: Instance routing via safeParseWithInstanceRouting — not schema.extend on refined diagnose schema
 - [Phase ?]: D-09 approve-confirm-in-prompt: rollback STOP/human approval before confirm:true
 - [Phase ?]: Playbooks are MCP prompts composing atomics only (PLAY-02); no playbook-runner tool
+- [Phase ?]: D-14 approve-advisory-recommend: recipe.recommend never mutates Coolify
+- [Phase ?]: recommend required field named stack (free-text stack phrase)
 
 ### Pending Todos
 
@@ -542,8 +545,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-31T02:36:29.941Z
-Stopped at: Completed 31-02-PLAN.md
+Last session: 2026-07-31T02:42:17.302Z
+Stopped at: Completed 31-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
