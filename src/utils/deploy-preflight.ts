@@ -507,15 +507,31 @@ export async function buildDeployPreflightReport(
       label: 'Inspect application logs before deploying',
       available_in_phase: 26,
     });
-    recommended_actions.push({
-      tool: 'deployment',
-      action: 'get',
-      args: {
-        deployment_uuid: String(latest?.deployment_uuid ?? ''),
-      },
-      label: 'Inspect in-progress deployment',
-      available_in_phase: 4,
-    });
+    if (latestInProgress && latest?.deployment_uuid != null) {
+      recommended_actions.push({
+        tool: 'deployment',
+        action: 'get',
+        args: {
+          deployment_uuid: String(latest.deployment_uuid),
+        },
+        label: 'Inspect in-progress deployment',
+        available_in_phase: 4,
+      });
+    } else if (
+      latest != null &&
+      String(latest.status ?? '').toLowerCase() === 'failed' &&
+      latest.deployment_uuid != null
+    ) {
+      recommended_actions.push({
+        tool: 'deployment',
+        action: 'get',
+        args: {
+          deployment_uuid: String(latest.deployment_uuid),
+        },
+        label: 'Inspect failed deployment',
+        available_in_phase: 4,
+      });
+    }
   } else {
     recommended_actions.push({
       tool: 'application',
