@@ -141,14 +141,14 @@ Plans:
   2. Preflight returns deploy risk score with named factor breakdown
   3. Agent rolls back an application to its last successful deployment
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans executed
 
 Plans:
 
-- [ ] 30-00-PLAN.md — Wave 0 Nyquist RED scaffolds for GUARD preflight/rollback
-- [ ] 30-01-PLAN.md — Tracer: deployment.preflight + deploy-preflight util (GUARD-01/02)
-- [ ] 30-02-PLAN.md — deployment.rollback composite with confirm gate (GUARD-03)
-- [ ] 30-03-PLAN.md — Capabilities, coverage map, README EN/DE
+- [x] 30-00-PLAN.md — Wave 0 Nyquist RED scaffolds for GUARD preflight/rollback
+- [x] 30-01-PLAN.md — Tracer: deployment.preflight + deploy-preflight util (GUARD-01/02)
+- [x] 30-02-PLAN.md — deployment.rollback composite with confirm gate (GUARD-03)
+- [x] 30-03-PLAN.md — Capabilities, coverage map, README EN/DE
 
 ### Phase 31: Agent Playbooks
 
@@ -187,7 +187,7 @@ Plans:
 | 27 | v3.2 | 4/4 | Complete | 2026-07-29 |
 | 28 | v3.3 | 5/5 | Complete    | 2026-07-30 |
 | 29 | v3.3 | 4/4 | Complete   | 2026-07-30 |
-| 30 | v3.3 | 0/4 | Ready to execute | - |
+| 30 | v3.3 | 4/4 | In Progress|  |
 | 31 | v3.3 | 0/TBD | Not started | - |
 
 **Next:** `/gsd-execute-phase 30` — Deploy Guard (preflight, risk score, rollback)
