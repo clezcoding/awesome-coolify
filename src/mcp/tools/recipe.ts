@@ -1118,6 +1118,20 @@ async function handleRecipeRecommend(
     });
   }
 
+  // D-15: exact/high before suggested; suggested never alone auto-executes (advisory).
+  matches.sort(
+    (a, b) => CONFIDENCE_RANK[b.confidence] - CONFIDENCE_RANK[a.confidence],
+  );
+
+  const ACTION_ORDER: Record<RecommendPlanStep['recipe_action'], number> = {
+    'create-git-app': 1,
+    'create-app-db': 2,
+    'create-one-click': 3,
+  };
+  planSteps.sort(
+    (a, b) => ACTION_ORDER[a.recipe_action] - ACTION_ORDER[b.recipe_action],
+  );
+
   const orderedSteps = planSteps.map((step, index) => ({
     ...step,
     order: index + 1,

@@ -919,4 +919,68 @@ describe('recipe recommend', () => {
       expect((result.data as Record<string, unknown>).advisory).toBe(true);
     },
   );
+
+  it('postgres-style stack yields create-app-db with DATABASE_URL env_keys and prefills (D-15)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(
+      {
+        action: 'recommend',
+        stack: 'Postgres',
+        server_uuid: 'srv-uuid-1',
+        project_uuid: 'proj-uuid-1',
+        environment_name: 'production',
+      } as never,
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    expect(data.advisory).toBe(true);
+    const steps = data.plan_steps as Array<Record<string, unknown>>;
+    const dbStep = steps.find((s) => s.recipe_action === 'create-app-db');
+    expect(dbStep).toBeDefined();
+    expect(dbStep?.env_keys).toEqual(expect.arrayContaining(['DATABASE_URL']));
+    expect(dbStep?.suggested_params).toEqual(
+      expect.objectContaining({
+        server_uuid: 'srv-uuid-1',
+        project_uuid: 'proj-uuid-1',
+        environment_name: 'production',
+        db_engine: 'postgresql',
+      }),
+    );
+    expect(steps.some((s) => s.recipe_action === 'create-one-click')).toBe(
+      false,
+    );
+  });
+
+  it('ranks exact one-click matches ahead of suggested and never invents catalog_id (D-15)', async () => {
+    const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+    const result = await handleRecipeAction(
+      {
+        action: 'recommend',
+        stack: 'gitea + invent-fake-service',
+        server_uuid: 'srv-uuid-1',
+      } as never,
+      testEnv,
+    );
+
+    expect(isRecipeErrorResult(result)).toBe(false);
+    if (isRecipeErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const matches = data.matches as Array<Record<string, unknown>>;
+    expect(matches[0]?.confidence).toBe('exact');
+    expect(matches[0]?.catalog_id).toBe('gitea');
+    for (const match of matches) {
+      if (typeof match.catalog_id === 'string') {
+        expect(Object.hasOwn(serviceTemplates, match.catalog_id)).toBe(true);
+      }
+    }
+    const unmatched = data.unmatched_tokens as string[] | undefined;
+    expect(unmatched).toEqual(expect.arrayContaining(['invent-fake-service']));
+  });
 });
