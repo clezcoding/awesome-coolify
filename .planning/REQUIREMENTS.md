@@ -36,8 +36,8 @@ Composite intelligence on Coolify 4.1.x — no new REST endpoints required.
 
 ### Log Brain
 
-- [ ] **BRAIN-01**: Agent can analyze existing application runtime logs for known patterns (OOM, 5xx spike, crash loop, connection refused)
-- [ ] **BRAIN-02**: Analysis returns severity, matched patterns, and suggested next actions (links to diagnose/playbook flows)
+- [x] **BRAIN-01**: Agent can analyze existing application runtime logs for known patterns (OOM, 5xx spike, crash loop, connection refused)
+- [x] **BRAIN-02**: Analysis returns severity, matched patterns, and suggested next actions (links to diagnose/playbook flows)
 
 ### Ops Playbooks
 
@@ -91,8 +91,8 @@ Deferred until Coolify 4.2.0+ stable.
 | GUARD-01 | Phase 30 | Complete |
 | GUARD-02 | Phase 30 | Complete |
 | GUARD-03 | Phase 30 | Complete |
-| BRAIN-01 | Phase 31 | Pending |
-| BRAIN-02 | Phase 31 | Pending |
+| BRAIN-01 | Phase 31 | Complete |
+| BRAIN-02 | Phase 31 | Complete |
 | PLAY-01 | Phase 31 | Pending |
 | PLAY-02 | Phase 31 | Pending |
 | SREC-01 | Phase 31 | Pending |

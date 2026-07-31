@@ -4,15 +4,15 @@ milestone: v3.3
 milestone_name: Agent Intelligence
 current_phase: 31
 current_phase_name: Agent Playbooks
-status: "31-00 complete — ready for 31-01"
-stopped_at: Completed 31-00-PLAN.md
-last_updated: "2026-07-31T02:18:35.229Z"
+status: 31-00 complete — ready for 31-01
+stopped_at: Completed 31-01-PLAN.md
+last_updated: "2026-07-31T02:30:13.760Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 14
+  completed_plans: 15
   percent: 50
 last_activity_desc: Phase 31 plan 00 Wave 0 RED scaffolds complete
 ---
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 31 — Agent Playbooks
-Plan: 01 of 05
+Plan: 2 of 05
 Status: 31-00 complete — Wave 0 RED scaffolds locked
 Last activity: 2026-07-31
 
-Progress: [███████░░░] 74%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -172,6 +172,7 @@ Progress: [███████░░░] 74%
 | Phase 29-drift-heal P02 | 8min | 2 tasks | 2 files |
 | Phase 29-drift-heal P03 | 4 | 3 tasks | 7 files |
 | Phase 31 P00 | 3min | 3 tasks | 6 files |
+| Phase 31 P01 | 7min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -459,6 +460,9 @@ Progress: [███████░░░] 74%
 - [Phase ?]: Deploy guard extends deployment tool with preflight (read-only) and rollback (confirm-gated composite)
 - [Phase ?]: matchLogPatterns shell returns [] so empty-input green it() locks early in Wave 0
 - [Phase ?]: Four-prompt and fifteen-key greens kept; six-prompt and seventeen-key are it.fails until 01-04
+- [Phase ?]: D-06 approve-advisory-only: diagnose.analyze never mutates Coolify
+- [Phase ?]: 5xx spike ≥5 / crash_loop ≥3 min counts; single noisy line never matches
+- [Phase ?]: Instance routing via safeParseWithInstanceRouting — not schema.extend on refined diagnose schema
 
 ### Pending Todos
 
@@ -535,8 +539,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-31T02:18:35.199Z
-Stopped at: Completed 31-00-PLAN.md
+Last session: 2026-07-31T02:30:13.748Z
+Stopped at: Completed 31-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
