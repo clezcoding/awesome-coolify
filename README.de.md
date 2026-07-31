@@ -407,14 +407,14 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `cancel` | Laufendes Deployment sauber abbrechen |
 | `logs` | Begrenzte Build-Logs per Deployment-UUID oder vom neuesten Deployment einer Application |
 | `preflight` | **Nur beratend / read-only** Deploy-Risiko: `instance_health`, `env_completeness`, `recent_deployment_failures`, `dns_readiness` → `risk_score` / `risk_level`; Env-Werte maskiert; keine Live-DNS-Probes |
-| `rollback` | **Confirm-gated** Recovery auf letztes `finished` Deployment — Git-Apps pinnen `git_commit_sha` via `updateApplication`, dann `triggerDeploy`; Vorschau ohne `confirm: true` |
+| `rollback` | **Confirm-gated** Recovery auf vorheriges erfolgreiches `finished` Deployment, wenn das neueste Deployment bereits `finished` ist; `COOLIFY_ROLLBACK_UNAVAILABLE`, wenn nur ein erfolgreiches Deployment existiert — Git-Apps pinnen `git_commit_sha` via `updateApplication`, dann `triggerDeploy`; Vorschau ohne `confirm: true` |
 
 ### 🛡️ Deploy Guard (`preflight` + `rollback`)
 
 | Action | Sicherheit |
 |--------|------------|
 | `preflight` | Read-only — keine Deploy/Mutate-APIs; `advisory: true`; `blocking` bei kritischem Risiko oder laufendem Deploy |
-| `rollback` | Zwei Schritte wie Emergency-Ops: ohne `confirm` → `COOLIFY_CONFIRM_REQUIRED` + `rollback_target`-Vorschau; `confirm: true` → Composite Pin+Deploy (kein dediziertes Coolify-Rollback-REST) |
+| `rollback` | Zwei Schritte wie Emergency-Ops: ohne `confirm` → `COOLIFY_CONFIRM_REQUIRED` + `rollback_target`-Vorschau (vorheriges erfolgreiches `finished`, nicht die aktuelle Spitze wenn bereits `finished`); `confirm: true` → Composite Pin+Deploy (kein dediziertes Coolify-Rollback-REST) |
 
 ```js
 deployment({ action: "preflight", uuid: "<app-uuid>" })

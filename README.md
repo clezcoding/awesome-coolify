@@ -407,14 +407,14 @@ The tool you reach for when something *feels* wrong but you don't yet know what.
 | `cancel` | Cancel an in-flight deployment cleanly |
 | `logs` | Bounded deployment build logs by deployment UUID, or newest deployment for an application |
 | `preflight` | **Advisory read-only** deploy risk check: `instance_health`, `env_completeness`, `recent_deployment_failures`, `dns_readiness` → `risk_score` / `risk_level`; env values masked; no live DNS probes |
-| `rollback` | **Confirm-gated** recovery to last `finished` deployment — git apps pin `git_commit_sha` via `updateApplication` then `triggerDeploy`; preview without `confirm: true` |
+| `rollback` | **Confirm-gated** recovery to prior successful `finished` deployment when the newest deployment is already `finished`; errors with `COOLIFY_ROLLBACK_UNAVAILABLE` when only one successful deployment exists — git apps pin `git_commit_sha` via `updateApplication` then `triggerDeploy`; preview without `confirm: true` |
 
 ### 🛡️ Deploy guard (`preflight` + `rollback`)
 
 | Action | Safety |
 |--------|--------|
 | `preflight` | Read-only — never calls deploy/mutate APIs; `advisory: true`; `blocking` when risk is critical or a deploy is in progress |
-| `rollback` | Two-step like emergency ops: omit `confirm` → `COOLIFY_CONFIRM_REQUIRED` + `rollback_target` preview; `confirm: true` → composite pin+deploy (no dedicated Coolify rollback REST endpoint) |
+| `rollback` | Two-step like emergency ops: omit `confirm` → `COOLIFY_CONFIRM_REQUIRED` + `rollback_target` preview (prior successful `finished`, not the current tip when already finished); `confirm: true` → composite pin+deploy (no dedicated Coolify rollback REST endpoint) |
 
 ```js
 deployment({ action: "preflight", uuid: "<app-uuid>" })
