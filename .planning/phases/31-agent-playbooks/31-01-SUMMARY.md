@@ -100,7 +100,7 @@ status: complete
 2. **Task 2: End-to-end diagnose.analyze tracer** - `f6d3600` (feat)
 3. **Task 3: Expand remaining pattern fixtures + soft partial edges** - `6fb2ee6` (test)
 
-**Plan metadata:** _(pending docs commit)_
+**Plan metadata:** `dd04b27` (docs: complete plan)
 
 ## Files Created/Modified
 
