@@ -27,7 +27,7 @@ created: 2026-07-31
 
 ## Sampling Rate
 
-- **After every task commit:** Run `pnpm test -- src/mcp/tools/application.test.ts -x`
+- **After every task commit:** Run `npx vitest run src/mcp/tools/deployment.test.ts -x`
 - **After every plan wave:** Run `pnpm test`
 - **Before `/gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 60 seconds
@@ -43,7 +43,7 @@ created: 2026-07-31
 | 30-00-03 | 00 | 0 | GUARD-02 | — | Capability RED for deployment_preflight/deployment_rollback | unit | `npx vitest run src/mcp/tools/system.test.ts -t deployment_preflight -x` | ❌ W0 | ⬜ pending |
 | 30-01-02 | 01 | 1 | GUARD-01/02 | T-30-01 | Preflight read-only; masked env keys | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t preflight -x` | ❌ W0 | ⬜ pending |
 | 30-02-01 | 02 | 2 | GUARD-03 | T-30-02 | Rollback confirm gate + last finished pin | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t rollback -x` | ❌ W0 | ⬜ pending |
-| 30-03-01 | 03 | 2 | GUARD-01/02/03 | — | Capabilities + coverage rows present | unit | `pnpm test -- src/mcp/tools/system.test.ts -x` | ❌ W0 | ⬜ pending |
+| 30-03-01 | 03 | 3 | GUARD-01/02/03 | — | Capabilities + coverage rows present | unit | `npx vitest run src/mcp/tools/system.test.ts -x` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
