@@ -11,10 +11,10 @@ last_activity: 2026-07-31
 last_activity_desc: Phase 30 complete, transitioned to Phase 31
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
   completed_plans: 13
-  percent: 50
+  percent: 75
 ---
 
 # Project State
@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 30 — deploy-guard
+**Current focus:** Phase 31 — Agent Playbooks
 
 ## Current Position
 

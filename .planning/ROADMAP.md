@@ -190,7 +190,7 @@ Plans:
 | 30 | v3.3 | 4/4 | Complete    | 2026-07-31 |
 | 31 | v3.3 | 0/TBD | Not started | - |
 
-**Next:** `/gsd-execute-phase 30` — Deploy Guard (preflight, risk score, rollback)
+**Next:** `/gsd-discuss-phase 31` — Agent Playbooks (log brain, ops playbooks, smart recipes)
 
 ---
 
