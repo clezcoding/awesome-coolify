@@ -94,7 +94,7 @@
 
 Self-hosted [Coolify](https://coolify.io) is one of the best open-source alternatives to Heroku/Vercel-style PaaS platforms — but wiring it up to an AI coding agent has historically meant piecing together several small, overlapping community MCP integrations, each with its own schema, its own error format, and its own idea of what "safe" looks like.
 
-**awesome-coolify-mcp** **1.1.3** replaces that patchwork with a single, community-maintained MCP server that speaks Coolify's REST API **4.1.x** through a clean, **action-based** tool surface. Source, docs, and npm distribution live in one public repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — while the installable package stays **`awesome-coolify-mcp`**. Instead of memorizing dozens of near-identical tool names, your agent calls one of **19 tools** with an `action` field:
+**awesome-coolify-mcp** **1.1.4** replaces that patchwork with a single, community-maintained MCP server that speaks Coolify's REST API **4.1.x** through a clean, **action-based** tool surface. Source, docs, and npm distribution live in one public repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — while the installable package stays **`awesome-coolify-mcp`**. Instead of memorizing dozens of near-identical tool names, your agent calls one of **19 tools** with an `action` field:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: false })
@@ -751,7 +751,7 @@ system({ action: "verify" })
 
 ## ✅ Status today
 
-Package **1.1.3** ships **19 tools** and six MCP prompts for Coolify API **4.1.x**:
+Package **1.1.4** ships **19 tools** and six MCP prompts for Coolify API **4.1.x**:
 
 | Capability | Status |
 |------------|--------|
