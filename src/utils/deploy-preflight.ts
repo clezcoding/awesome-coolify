@@ -744,6 +744,14 @@ export async function executeDeploymentRollback(
         data: { deployment_uuid: deploymentUuid, rolled_back_to },
       });
     }
+    if (status === 'cancelled-by-user') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_DEPLOYMENT_CANCELLED',
+        message: `Rollback deployment was cancelled (status: ${status}).`,
+        recoveryHints: RECOVERY_HINTS.COOLIFY_DEPLOYMENT_CANCELLED,
+        data: { deployment_uuid: deploymentUuid, rolled_back_to },
+      });
+    }
   }
 
   const hints: FollowUpHint[] = [
