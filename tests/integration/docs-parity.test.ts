@@ -40,7 +40,7 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   system: ['health', 'version', 'verify', 'infrastructure_overview'],
   meta: ['version'],
   resource: ['list', 'find'],
-  diagnose: ['app', 'server', 'scan', 'logs'],
+  diagnose: ['app', 'server', 'scan', 'logs', 'analyze'],
   application: [
     'get',
     'start',
@@ -110,7 +110,7 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
   emergency: ['stop_all', 'redeploy_project', 'restart_project'],
   instance: ['list', 'get', 'add', 'update', 'delete', 'set-default', 'import-env', 'cloud-info'],
   manifest: ['get', 'upsert', 'set', 'remove', 'clear', 'sync', 'diff', 'audit'],
-  recipe: ['create-git-app', 'create-app-db', 'create-one-click'],
+  recipe: ['create-git-app', 'create-app-db', 'create-one-click', 'recommend'],
   setup: ['preflight', 'wire', 'resume'],
   intelligence: ['scorecard', 'graph', 'impact', 'janitor', 'cleanup'],
 };
