@@ -255,6 +255,57 @@
 
 ---
 
+## Milestone: v3.3 — Agent Intelligence
+
+**Shipped:** 2026-07-31
+**Phases:** 4 (28–31) | **Plans:** 18 | **Tasks:** 43
+
+### What Was Built
+
+- `intelligence` tool: scorecard, dependency graph, impact analysis, janitor (read-only + confirm-gated cleanup)
+- Manifest audit vs live state + cross-environment `envs:promote` with masked preview
+- Deploy preflight (4 factors, risk_score 0–100) + confirm-gated rollback composite
+- `diagnose.analyze` rule-based log patterns (OOM, 5xx spike, crash loop, connection refused)
+- MCP playbooks: incident, rollback, maintenance-window composing atomic tools
+- `recipe.recommend` stack plans from live Coolify service templates
+- npm **1.1.4**; 19 MCP tools / ~120+ actions
+
+### What Worked
+
+- Composite intelligence layer on existing 4.1.x REST — no stub endpoints
+- Shared UUID resource graph reused across scorecard, impact, janitor
+- Milestone audit + PR #112 closeout caught Nyquist ledger drift and docs-parity gaps before tag
+- Wave 0 `it.fails` RED scaffolds kept husky green across all 4 phases
+- Confirm gates on rollback, env promote, janitor cleanup per SAF pattern
+
+### What Was Inefficient
+
+- Phase 30 needed code-review fix pass (9 issues) before ship
+- Phase 31 branch had duplicate Phase 30 history — required cherry-pick onto fresh main
+- Initial audit flagged tech_debt that closeout PR resolved — audit frontmatter went stale until milestone complete
+
+### Patterns Established
+
+- Advisory composites return FollowUpHint links to playbooks/diagnose — no mutation indirection
+- `deploy-preflight` util with named factors + deterministic risk_score
+- Rollback = select last finished deployment → PATCH commit → POST /deploy (no fake Coolify rollback API)
+- `recipe.recommend` reads live `fetchServiceTemplates` — no hardcoded YAML catalog
+
+### Key Lessons
+
+1. Run `/gsd-validate-phase` on all phases before milestone audit — Nyquist ledger drifts silently
+2. docs-parity `TOOL_ACTIONS` must include every shipped action — low severity but blocks audit pass
+3. Intelligence graph as shared substrate beats per-feature ad-hoc resource walks
+4. Cherry-pick phase-only commits when branch history duplicates prior phases
+
+### Cost Observations
+
+- Timeline: ~2 days (2026-07-30 → 2026-07-31)
+- 4 phases, 18 plans, npm 1.1.3 → 1.1.4
+- yolo mode + verified closeout (audit passed post PR #112)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -266,6 +317,7 @@
 | v3.0 | 3 | 4 | Multi-instance + cloud + manifest + live UAT harness |
 | v3.1 | 4 | 6 | DX schemas + recipes + watch + setup/skills + OpenAPI coverage |
 | v3.2 | 3 | 4 | Log observability + capabilities + diagnose.logs + branding |
+| v3.3 | 2 | 4 | Agent intelligence composites + playbooks + smart recipes |
 
 ### Cumulative Quality
 
@@ -276,6 +328,7 @@
 | v3.0 | ~955+ | green | `npm run uat:live` harness shipped |
 | v3.1 | ~1000+ | green | Nyquist 100% on phases 19–23 |
 | v3.2 | ~1050+ | green | Nyquist on phases 24–27; VERIFICATION 10/10 Phase 25 |
+| v3.3 | ~1100+ | green | Nyquist 28–31; milestone audit passed |
 
 ### Top Lessons (Verified Across Milestones)
 
