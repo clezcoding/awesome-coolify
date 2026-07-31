@@ -129,3 +129,9 @@ None.
 ## Threat Flags
 
 None — discoverability docs / capability advertisement only (T-31-11 accept).
+
+## Self-Check: PASSED
+
+- Files: capabilities.ts, system.test.ts, coverage-map.yaml, COVERAGE.md, README.md, README.de.md, 31-04-SUMMARY.md
+- Commits: `65e67d6`, `2596df2`, `29e9f11`
+- Keys: 17 including `diagnose_analyze` + `recipe_recommend`
