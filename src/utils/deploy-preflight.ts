@@ -56,7 +56,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function deploymentTimestamp(dep: Record<string, unknown>): number {
+export function deploymentTimestamp(dep: Record<string, unknown>): number {
   const candidates = [
     dep.updated_at,
     dep.finished_at,
@@ -418,12 +418,19 @@ async function settleFactor(
   try {
     return await promise;
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     return {
-      severity: 'ok',
-      findings: [],
+      severity: 'info',
+      findings: [
+        {
+          severity: 'info',
+          factor: key,
+          issue: `Could not evaluate ${key.replace(/_/g, ' ')} (${key}): ${message}`,
+        },
+      ],
       partial: true,
-      error: error instanceof Error ? error.message : String(error),
-      counts: { critical: 0, high: 0, info: 0 },
+      error: message,
+      counts: { critical: 0, high: 0, info: 1 },
     };
   }
 }
