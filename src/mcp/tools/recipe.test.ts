@@ -796,8 +796,7 @@ describe('recipe create-one-click', () => {
 });
 
 /**
- * Wave 0 Nyquist RED scaffolds for Phase 31 recipe.recommend (SREC-01/02, D-14/D-15).
- * Plan 31-03 flips it.fails → it when recommend handler ships.
+ * Phase 31 recipe.recommend (SREC-01/02, D-14/D-15).
  */
 describe('recipe recommend', () => {
   beforeEach(() => {
@@ -810,7 +809,7 @@ describe('recipe recommend', () => {
     vi.mocked(fetchVersion).mockResolvedValue({ version: '4.1.2' });
   });
 
-  it.fails(
+  it(
     'Next.js + Postgres returns plan_steps with recipe_action values and catalog_source live (SREC-01/02)',
     async () => {
       const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
@@ -842,7 +841,7 @@ describe('recipe recommend', () => {
     },
   );
 
-  it.fails(
+  it(
     'never invents catalog_id absent from mocked templates (D-15)',
     async () => {
       const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
@@ -873,7 +872,7 @@ describe('recipe recommend', () => {
     },
   );
 
-  it.fails(
+  it(
     'unknown unmappable stack → structured validation error with list-types recovery hint (D-14)',
     async () => {
       const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
@@ -896,7 +895,7 @@ describe('recipe recommend', () => {
     },
   );
 
-  it.fails(
+  it(
     'recommend does not call createService / createApplication (D-14)',
     async () => {
       const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
