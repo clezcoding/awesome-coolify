@@ -4,17 +4,17 @@ milestone: v3.3
 milestone_name: Agent Intelligence
 current_phase: 31
 current_phase_name: Agent Playbooks
-status: "Phase 30 shipped — PR #110"
-stopped_at: Phase 31 plans verified — ready to execute
-last_updated: "2026-07-31T02:12:21.409Z"
+status: "31-00 complete — ready for 31-01"
+stopped_at: Completed 31-00-PLAN.md
+last_updated: "2026-07-31T02:18:35.229Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 13
+  completed_plans: 14
   percent: 50
-last_activity_desc: Phase 30 complete, transitioned to Phase 31
+last_activity_desc: Phase 31 plan 00 Wave 0 RED scaffolds complete
 ---
 
 # Project State
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 31 — Agent Playbooks
-Plan: Not started
-Status: Phase 30 shipped — PR #110
+Plan: 01 of 05
+Status: 31-00 complete — Wave 0 RED scaffolds locked
 Last activity: 2026-07-31
 
-Progress: [█████████░] 93%
+Progress: [███████░░░] 74%
 
 ## Performance Metrics
 
@@ -171,6 +171,7 @@ Progress: [█████████░] 93%
 | Phase 29 P01 | 4 | 3 tasks | 4 files |
 | Phase 29-drift-heal P02 | 8min | 2 tasks | 2 files |
 | Phase 29-drift-heal P03 | 4 | 3 tasks | 7 files |
+| Phase 31 P00 | 3min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -456,6 +457,8 @@ Progress: [█████████░] 93%
 - [Phase ?]: D-15 manifest_audit and envs_promote capability keys shipped with MCP composite notes
 - [Phase ?]: README EN/DE drift-heal docs use env.promote product name with application.envs:promote implementation
 - [Phase ?]: Deploy guard extends deployment tool with preflight (read-only) and rollback (confirm-gated composite)
+- [Phase ?]: matchLogPatterns shell returns [] so empty-input green it() locks early in Wave 0
+- [Phase ?]: Four-prompt and fifteen-key greens kept; six-prompt and seventeen-key are it.fails until 01-04
 
 ### Pending Todos
 
@@ -532,9 +535,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-31T02:12:21.391Z
-Stopped at: Phase 31 plans verified — ready to execute
-Resume file: .planning/phases/31-agent-playbooks/31-00-PLAN.md
+Last session: 2026-07-31T02:18:35.199Z
+Stopped at: Completed 31-00-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
