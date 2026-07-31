@@ -7,27 +7,29 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
-  contents: write
-  pull-requests: write
-  id-token: write # OIDC npm publish (add Trusted Publisher for release.yml on npmjs.com)
+  contents: read
 
 jobs:
   release:
     name: Version PR / Create Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write # OIDC npm publish (add Trusted Publisher for release.yml on npmjs.com)
     env:
       HUSKY: 0 # changesets commits must not hit local commit-msg hooks in CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@b0f76dfb45f55f8421693e4803ac7bb65143bd34 # v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 24
           registry-url: "https://registry.npmjs.org"
@@ -48,7 +50,7 @@ jobs:
       # on npmjs.com must allow workflow filename `release.yml`.
       - name: Changesets
         id: changesets
-        uses: changesets/action@v1.9.0
+        uses: changesets/action@3841a0683d3cfa6dae0f9bb335290003010fe3f0 # v1.9.0
         with:
           version: pnpm run version
           publish: pnpm run changeset:emit-tag

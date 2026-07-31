@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  issues: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: lock-threads
@@ -16,8 +15,11 @@ concurrency:
 jobs:
   lock:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
-      - uses: dessant/lock-threads@v6
+      - uses: dessant/lock-threads@89ae32b08ed1a541efecbab17912962a5e38981c # v6
         with:
           issue-inactive-days: '90'
           pr-inactive-days: '60'
