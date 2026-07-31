@@ -58,6 +58,11 @@ describe('matchLogPatterns', () => {
         expect(spike?.evidence.length).toBeLessThanOrEqual(3);
       },
     );
+
+    it('single noisy 5xx line does not match spike (Pitfall 1)', () => {
+      const matches = matchLogPatterns(['GET /api 500', 'ok 200', 'ok 200']);
+      expect(matches.find((m) => m.id === 'http_5xx_spike')).toBeUndefined();
+    });
   });
 
   describe('crash_loop', () => {
@@ -78,6 +83,15 @@ describe('matchLogPatterns', () => {
         expect(crash?.evidence.length).toBeLessThanOrEqual(3);
       },
     );
+
+    it('single FATAL line does not match crash_loop (Pitfall 1)', () => {
+      const matches = matchLogPatterns([
+        'FATAL: once',
+        'info: heartbeat',
+        'ok',
+      ]);
+      expect(matches.find((m) => m.id === 'crash_loop')).toBeUndefined();
+    });
   });
 
   describe('connection_refused', () => {

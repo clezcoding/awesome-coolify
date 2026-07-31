@@ -1404,4 +1404,115 @@ describe('diagnose analyze', () => {
       expect(data).not.toHaveProperty('restarted');
     },
   );
+
+  it(
+    'optional deployment_uuid scans build logs with source build (D-03)',
+    async () => {
+      vi.mocked(fetchApplicationLogs).mockResolvedValue({
+        logs: 'info: healthy\n',
+      });
+      vi.mocked(fetchDeployment).mockResolvedValue({
+        uuid: 'dep-1',
+        status: 'failed',
+        logs: JSON.stringify([
+          {
+            command: 'build',
+            output: 'Java heap space\nOut of memory: Kill process 9\n',
+            type: 'stderr',
+            timestamp: '2026-01-01T00:00:00Z',
+            hidden: false,
+            batch: 1,
+          },
+        ]),
+      });
+
+      const result = await handleDiagnoseAction(
+        {
+          action: 'analyze',
+          uuid: 'app-unhealthy',
+          deployment_uuid: 'dep-1',
+        } as never,
+        testEnv,
+      );
+
+      expect(isDiagnoseErrorResult(result)).toBe(false);
+      if (isDiagnoseErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      expect(data.deployment_uuid).toBe('dep-1');
+      const matched = data.matched_patterns as Array<Record<string, unknown>>;
+      const oom = matched.find((m) => m.id === 'oom' && m.source === 'build');
+      expect(oom).toBeDefined();
+      expect(data.advisory).toBe(true);
+      expect(fetchDeployment).toHaveBeenCalled();
+    },
+  );
+
+  it(
+    'recommended_actions dedupes pattern hints and includes diagnose.logs (D-05)',
+    async () => {
+      vi.mocked(fetchApplicationLogs).mockResolvedValue({
+        logs: 'Back-off restarting failed container\nRestarting container app-1\nFATAL: worker crashed\n',
+      });
+
+      const result = await handleDiagnoseAction(
+        { action: 'analyze', uuid: 'app-unhealthy' } as never,
+        testEnv,
+      );
+
+      expect(isDiagnoseErrorResult(result)).toBe(false);
+      if (isDiagnoseErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      const actions = data.recommended_actions as Array<Record<string, unknown>>;
+      expect(Array.isArray(actions)).toBe(true);
+      expect(actions.length).toBeGreaterThan(0);
+      const keys = actions.map(
+        (a) => `${a.tool}|${a.action}|${a.label}`,
+      );
+      expect(new Set(keys).size).toBe(keys.length);
+      expect(
+        actions.some(
+          (a) =>
+            a.tool === 'diagnose' &&
+            a.action === 'logs' &&
+            /rollback|incident|raw/i.test(String(a.label ?? '')),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it('all four pattern IDs reachable via analyze handler (BRAIN-01)', async () => {
+    const fixtures: Array<{ logs: string; id: string }> = [
+      {
+        logs: 'container OOMKilled\n',
+        id: 'oom',
+      },
+      {
+        logs: 'GET /a 500\nGET /b 502\nGET /c 503\nGET /d 504\nGET /e 500\n',
+        id: 'http_5xx_spike',
+      },
+      {
+        logs: 'Back-off restarting failed container\nRestarting container x\nFATAL: boom\n',
+        id: 'crash_loop',
+      },
+      {
+        logs: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n',
+        id: 'connection_refused',
+      },
+    ];
+
+    for (const fixture of fixtures) {
+      vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: fixture.logs });
+      const result = await handleDiagnoseAction(
+        { action: 'analyze', uuid: 'app-unhealthy' } as never,
+        testEnv,
+      );
+      expect(isDiagnoseErrorResult(result)).toBe(false);
+      if (isDiagnoseErrorResult(result)) continue;
+      const matched = (result.data as Record<string, unknown>)
+        .matched_patterns as Array<Record<string, unknown>>;
+      expect(matched.some((m) => m.id === fixture.id)).toBe(true);
+    }
+  });
 });
