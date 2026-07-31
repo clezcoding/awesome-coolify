@@ -5,15 +5,15 @@ milestone_name: Agent Intelligence
 current_phase: 31
 current_phase_name: Agent Playbooks
 status: "Phase 30 shipped — PR #110"
-stopped_at: Completed 30-03-PLAN.md
-last_updated: "2026-07-31T01:45:14.932Z"
+stopped_at: Phase 31 context gathered
+last_updated: "2026-07-31T01:58:12.259Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 2
   total_plans: 14
   completed_plans: 13
-  percent: 75
+  percent: 50
 last_activity_desc: Phase 30 complete, transitioned to Phase 31
 ---
 
@@ -532,9 +532,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-31T01:14:06.657Z
-Stopped at: Completed 30-03-PLAN.md
-Resume file: None
+Last session: 2026-07-31T01:58:12.241Z
+Stopped at: Phase 31 context gathered
+Resume file: .planning/phases/31-agent-playbooks/31-CONTEXT.md
 
 ## Operator Next Steps
 
