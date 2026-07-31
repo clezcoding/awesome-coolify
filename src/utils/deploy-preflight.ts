@@ -681,6 +681,11 @@ export async function executeDeploymentRollback(
   );
 
   const deploymentUuid = extractDeploymentUuid(deployRaw);
+  const rolled_back_to: Record<string, unknown> = {
+    deployment_uuid: targetUuid,
+    ...(commit ? { commit } : {}),
+    ...(dockerTag ? { docker_tag: dockerTag } : {}),
+  };
   let terminal: Record<string, unknown> | undefined;
 
   if (options.wait === true) {
@@ -697,13 +702,26 @@ export async function executeDeploymentRollback(
       },
       timeoutMs,
     );
-  }
 
-  const rolled_back_to: Record<string, unknown> = {
-    deployment_uuid: targetUuid,
-    ...(commit ? { commit } : {}),
-    ...(dockerTag ? { docker_tag: dockerTag } : {}),
-  };
+    const status = String(terminal.status ?? '');
+    if (status === 'failed') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_DEPLOYMENT_FAILED',
+        message: `Rollback deployment failed with status: ${status}.`,
+        recoveryHints: RECOVERY_HINTS.COOLIFY_DEPLOYMENT_FAILED,
+        data: { deployment_uuid: deploymentUuid, rolled_back_to },
+      });
+    }
+    if (status === 'timeout') {
+      throw new CoolifyApiError({
+        code: 'COOLIFY_WATCH_TIMEOUT',
+        message:
+          'Rollback watch timed out before deployment reached a terminal state.',
+        recoveryHints: RECOVERY_HINTS.COOLIFY_WATCH_TIMEOUT,
+        data: { deployment_uuid: deploymentUuid, rolled_back_to },
+      });
+    }
+  }
 
   const hints: FollowUpHint[] = [
     {
