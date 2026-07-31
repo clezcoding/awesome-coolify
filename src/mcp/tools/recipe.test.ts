@@ -794,3 +794,130 @@ describe('recipe create-one-click', () => {
     );
   });
 });
+
+/**
+ * Wave 0 Nyquist RED scaffolds for Phase 31 recipe.recommend (SREC-01/02, D-14/D-15).
+ * Plan 31-03 flips it.fails → it when recommend handler ships.
+ */
+describe('recipe recommend', () => {
+  beforeEach(() => {
+    vi.mocked(ofetch).mockReset();
+    vi.mocked(createService).mockReset();
+    vi.mocked(createPublicApplication).mockReset();
+    vi.mocked(createPostgresqlDatabase).mockReset();
+    vi.mocked(fetchVersion).mockReset();
+    vi.mocked(ofetch).mockResolvedValue(serviceTemplates);
+    vi.mocked(fetchVersion).mockResolvedValue({ version: '4.1.2' });
+  });
+
+  it.fails(
+    'Next.js + Postgres returns plan_steps with recipe_action values and catalog_source live (SREC-01/02)',
+    async () => {
+      const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+      const result = await handleRecipeAction(
+        {
+          action: 'recommend',
+          stack: 'Next.js + Postgres',
+          server_uuid: 'srv-uuid-1',
+          project_uuid: 'proj-uuid-1',
+        } as never,
+        testEnv,
+      );
+
+      expect(isRecipeErrorResult(result)).toBe(false);
+      if (isRecipeErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      expect(data.advisory).toBe(true);
+      expect(data.catalog_source).toBe('live');
+      const steps = data.plan_steps as Array<Record<string, unknown>>;
+      expect(Array.isArray(steps)).toBe(true);
+      expect(steps.length).toBeGreaterThan(0);
+      const actions = steps.map((s) => s.recipe_action);
+      expect(actions).toEqual(
+        expect.arrayContaining(['create-git-app', 'create-app-db']),
+      );
+      expect(ofetch).toHaveBeenCalled();
+    },
+  );
+
+  it.fails(
+    'never invents catalog_id absent from mocked templates (D-15)',
+    async () => {
+      const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+      const result = await handleRecipeAction(
+        {
+          action: 'recommend',
+          stack: 'gitea + actualbudget + invent-fake-service',
+          server_uuid: 'srv-uuid-1',
+        } as never,
+        testEnv,
+      );
+
+      expect(isRecipeErrorResult(result)).toBe(false);
+      if (isRecipeErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      const matches = (data.matches ?? []) as Array<Record<string, unknown>>;
+      const steps = (data.plan_steps ?? []) as Array<Record<string, unknown>>;
+      const catalogIds = [
+        ...matches.map((m) => m.catalog_id),
+        ...steps.map((s) => (s.suggested_params as Record<string, unknown> | undefined)?.type),
+      ].filter((id): id is string => typeof id === 'string');
+
+      for (const id of catalogIds) {
+        expect(Object.hasOwn(serviceTemplates, id)).toBe(true);
+      }
+    },
+  );
+
+  it.fails(
+    'unknown unmappable stack → structured validation error with list-types recovery hint (D-14)',
+    async () => {
+      const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+      const result = await handleRecipeAction(
+        {
+          action: 'recommend',
+          stack: 'zzzz-not-a-real-stack-xyzzy',
+        } as never,
+        testEnv,
+      );
+
+      expect(isRecipeErrorResult(result)).toBe(true);
+      if (!isRecipeErrorResult(result)) return;
+
+      expect(result.structuredContent.error.code).toBe('COOLIFY_VALIDATION_ERROR');
+      expect(
+        JSON.stringify(result.structuredContent.error.recoveryHints ?? []),
+      ).toMatch(/list-types/i);
+    },
+  );
+
+  it.fails(
+    'recommend does not call createService / createApplication (D-14)',
+    async () => {
+      const { handleRecipeAction, isRecipeErrorResult } = await import('./recipe.js');
+
+      const result = await handleRecipeAction(
+        {
+          action: 'recommend',
+          stack: 'Next.js + Postgres',
+          server_uuid: 'srv-uuid-1',
+          project_uuid: 'proj-uuid-1',
+        } as never,
+        testEnv,
+      );
+
+      expect(isRecipeErrorResult(result)).toBe(false);
+      if (isRecipeErrorResult(result)) return;
+
+      expect(createService).not.toHaveBeenCalled();
+      expect(createPublicApplication).not.toHaveBeenCalled();
+      expect(createPostgresqlDatabase).not.toHaveBeenCalled();
+      expect((result.data as Record<string, unknown>).advisory).toBe(true);
+    },
+  );
+});
