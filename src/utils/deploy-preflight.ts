@@ -85,10 +85,22 @@ export function findLastSuccessfulDeployment(
   deployments: unknown[],
 ): Record<string, unknown> | null {
   const sorted = sortDeploymentsNewestFirst(deployments);
-  return (
-    sorted.find((dep) => String(dep.status ?? '').toLowerCase() === 'finished') ??
-    null
+  const finished = sorted.filter(
+    (dep) => String(dep.status ?? '').toLowerCase() === 'finished',
   );
+  if (finished.length === 0) return null;
+
+  const newest = sorted[0];
+  const newestIsFinished =
+    newest != null &&
+    String(newest.status ?? '').toLowerCase() === 'finished';
+
+  if (newestIsFinished) {
+    if (finished.length < 2) return null;
+    return finished[1] ?? null;
+  }
+
+  return finished[0] ?? null;
 }
 
 export function computeDeployRiskScore(
@@ -563,9 +575,21 @@ export async function executeDeploymentRollback(
   );
   const target = findLastSuccessfulDeployment(deployments);
   if (!target) {
+    const sorted = sortDeploymentsNewestFirst(deployments);
+    const newest = sorted[0];
+    const newestIsFinished =
+      newest != null &&
+      String(newest.status ?? '').toLowerCase() === 'finished';
+    const finishedCount = sorted.filter(
+      (dep) => String(dep.status ?? '').toLowerCase() === 'finished',
+    ).length;
+    const alreadyOnLast = newestIsFinished && finishedCount === 1;
+
     throw new CoolifyApiError({
       code: 'COOLIFY_ROLLBACK_UNAVAILABLE',
-      message: 'No finished deployment found to roll back to.',
+      message: alreadyOnLast
+        ? 'Application is already on the last successful deployment; no prior version to roll back to.'
+        : 'No finished deployment found to roll back to.',
       recoveryHints: RECOVERY_HINTS.COOLIFY_ROLLBACK_UNAVAILABLE,
     });
   }

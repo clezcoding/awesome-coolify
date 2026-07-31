@@ -59,6 +59,35 @@ describe('findLastSuccessfulDeployment', () => {
     ]);
     expect(target).toBeNull();
   });
+
+  it('skips newest finished and returns prior finished deployment (WR-01)', () => {
+    const target = findLastSuccessfulDeployment([
+      {
+        deployment_uuid: 'dep-current',
+        status: 'finished',
+        git_commit_sha: 'current',
+        created_at: '2026-07-12T03:00:00.000Z',
+      },
+      {
+        deployment_uuid: 'dep-prior',
+        status: 'finished',
+        git_commit_sha: 'prior',
+        created_at: '2026-07-12T02:00:00.000Z',
+      },
+    ]);
+    expect(target?.deployment_uuid).toBe('dep-prior');
+  });
+
+  it('returns null when only one finished exists and it is newest (WR-01)', () => {
+    const target = findLastSuccessfulDeployment([
+      {
+        deployment_uuid: 'dep-only',
+        status: 'finished',
+        created_at: '2026-07-12T03:00:00.000Z',
+      },
+    ]);
+    expect(target).toBeNull();
+  });
 });
 
 describe('computeDeployRiskScore', () => {
