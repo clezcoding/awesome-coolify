@@ -230,6 +230,40 @@ describe('capabilities', () => {
       });
     },
   );
+
+  /**
+   * Wave 0 Nyquist RED — Plan 31-04 flips when capabilities.ts adds diagnose_analyze + recipe_recommend (D-19).
+   */
+  it.fails(
+    'system.version capabilities has exactly seventeen keys including diagnose_analyze and recipe_recommend (D-19)',
+    async () => {
+      const phase31Keys = [
+        ...CAPABILITY_KEYS,
+        'diagnose_analyze',
+        'recipe_recommend',
+      ] as const;
+
+      const result = await handleSystemAction({ action: 'version' }, testEnv);
+      expect(isMcpErrorResult(result)).toBe(false);
+      if (isMcpErrorResult(result)) return;
+
+      expect(Object.keys(result.capabilities ?? {}).sort()).toEqual(
+        [...phase31Keys].sort(),
+      );
+
+      const caps = result.capabilities as Record<string, unknown>;
+      expect(caps.diagnose_analyze).toMatchObject({
+        supported: true,
+        coolify_min_version: '4.1.2',
+        note: expect.any(String),
+      });
+      expect(caps.recipe_recommend).toMatchObject({
+        supported: true,
+        coolify_min_version: '4.1.2',
+        note: expect.any(String),
+      });
+    },
+  );
 });
 
 describe('handleSystemAction verify', () => {

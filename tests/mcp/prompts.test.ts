@@ -123,3 +123,83 @@ describe('MCP prompts registration', () => {
     );
   });
 });
+
+/**
+ * Wave 0 Nyquist RED scaffolds for Phase 31 playbook prompts (PLAY-01/02, D-08..D-10).
+ * Plan 31-02 flips it.fails → it when rollback + maintenance-window ship and incident upgrades.
+ */
+describe('MCP prompts Phase 31 playbooks (RED)', () => {
+  it.fails(
+    'registers exactly six prompts including rollback and maintenance-window (PLAY-01, D-08)',
+    () => {
+      const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+      registerCoolifyPrompts(server);
+      const names = Object.keys(getRegisteredPrompts(server)).sort();
+      expect(names).toEqual([
+        'deploy',
+        'diagnose',
+        'incident',
+        'maintenance-window',
+        'new-project',
+        'rollback',
+      ]);
+    },
+  );
+
+  it.fails(
+    'rollback cites preflight, rollback confirm gate, and COOLIFY_ROLLBACK_UNAVAILABLE (D-09, PLAY-02)',
+    async () => {
+      const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+      registerCoolifyPrompts(server);
+      const prompts = getRegisteredPrompts(server);
+      expect(prompts.rollback).toBeDefined();
+      const result = await prompts.rollback.handler({ uuid: 'app-123' });
+      const content = assistantContent(result);
+
+      expect(content).toMatch(/deployment\(\{\s*action:\s*"preflight"/);
+      expect(content).toMatch(/deployment\(\{\s*action:\s*"rollback"/);
+      expect(content).toMatch(/confirm:\s*false/);
+      expect(content).toMatch(/confirm:\s*true/);
+      expect(content).toMatch(/human approval|approval required|STOP/i);
+      expect(content).toContain('COOLIFY_ROLLBACK_UNAVAILABLE');
+      expect(content).not.toMatch(/\bofetch\b|\baxios\b|\bfetch\(/i);
+    },
+  );
+
+  it.fails(
+    'maintenance-window cites stop then start/restart with confirm language (D-10)',
+    async () => {
+      const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+      registerCoolifyPrompts(server);
+      const prompts = getRegisteredPrompts(server);
+      expect(prompts['maintenance-window']).toBeDefined();
+      const result = await prompts['maintenance-window'].handler({
+        resource_type: 'application',
+        uuid: 'app-123',
+      });
+      const content = assistantContent(result);
+
+      expect(content).toMatch(/action:\s*"stop"/);
+      expect(content).toMatch(/action:\s*"(start|restart)"/);
+      expect(content).toMatch(/application|service|database/);
+      expect(content).toMatch(/confirm/i);
+      expect(content).not.toMatch(/\bofetch\b|\baxios\b|\bfetch\(/i);
+    },
+  );
+
+  it.fails(
+    'upgraded incident cites diagnose.analyze and deployment.preflight (D-08)',
+    async () => {
+      const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+      registerCoolifyPrompts(server);
+      const result = await getRegisteredPrompts(server).incident.handler({
+        uuid: 'app-123',
+      });
+      const content = assistantContent(result);
+
+      expect(content).toMatch(/diagnose\(\{\s*action:\s*"analyze"/);
+      expect(content).toMatch(/deployment\(\{\s*action:\s*"preflight"/);
+      expect(content).not.toMatch(/\bofetch\b|\baxios\b|\bfetch\(/i);
+    },
+  );
+});
