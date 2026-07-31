@@ -2,23 +2,25 @@
 
 ## What This Is
 
-Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` **1.1.4** shipped, public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, Setup-Wizard + IDE-Skills, Recipes, Deploy-Watch, OpenAPI-Coverage-Audit, und Live-UAT gegen echte Coolify-Daten.
+Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` **1.1.4** shipped, public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, Setup-Wizard + IDE-Skills, Recipes, Deploy-Watch, OpenAPI-Coverage-Audit, Live-UAT, und v3.3 Agent Intelligence (scorecard, drift-heal, deploy guard, log brain, playbooks, smart recipes).
 
 ## Core Value
 
-Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
+Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, Risiko/Drift/Dependencies bewerten, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.3 in progress — Phase 30 complete)
+## Current State (v3.3 shipped — 2026-07-31)
 
 | Metric | Value |
 |--------|-------|
 | Package | `awesome-coolify-mcp` **1.1.4** |
 | Tools / Actions | 19 / ~120+ |
 | TypeScript LOC | ~36k (`src/`) |
-| Milestone | v3.3 Agent Intelligence — Phases 28–30 complete; Phase 31 next |
+| Milestone | v3.3 Agent Intelligence — **shipped** (Phases 28–31) |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | OIDC Release path + pack allowlist verified (PUB-02) |
 | Live UAT | `npm run uat:live` harness (Phase 18) |
+
+**v3.3 shipped:** `intelligence` tool (scorecard, graph, impact, janitor); manifest audit + env promote; deploy preflight + rollback; `diagnose.analyze` log brain; incident/rollback/maintenance-window playbooks; `recipe.recommend` from live catalog; npm 1.1.4.
 
 **v3.1 shipped:** Flat MCP schemas + action catalogs + 4 MCP prompts; dynamic `service.list-types` + `recipe` tool; `deployment.watch` with jitter/backoff; setup wizard + 4 IDE skill packs; OpenAPI coverage map (`docs/COVERAGE.md`); npm 1.0.0 Changeset; `set_env` → `envs:sync` delegation (Phase 23.1).
 
@@ -87,19 +89,18 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 
 </details>
 
-## Current Milestone: v3.3 Agent Intelligence
+<details>
+<summary>v3.3 milestone metrics (archived)</summary>
 
-**Goal:** Composite intelligence layer on existing Coolify 4.1.x tools — agents reason about risk, drift, dependencies, and remediation without waiting for Coolify 4.2 log endpoints.
+| Metric | Value |
+|--------|-------|
+| Timeline | 2026-07-30 → 2026-07-31 (~2 days) |
+| Phases | 4 (28–31) |
+| Plans / Tasks | 18 / 43 |
+| Requirements | 18/18 validated |
+| Closeout | `verified_closeout` (milestone audit passed post PR #112) |
 
-**Target features:**
-- Deploy Guard — preflight, risk score, rollback to last green deployment
-- Drift & Heal — manifest.audit vs live state, env.promote, remediation hints
-- Dependency Map — app↔DB↔service graph, impact before delete/restart
-- Log Brain — pattern detection on existing application logs (OOM, 5xx spikes, crash loops)
-- Ops Playbooks — parameterized incident/rollback/maintenance MCP prompts
-- Smart Recipes — stack description → one-click + env + deploy plan
-- Instance Scorecard — per-instance health score with breakdown
-- Resource Janitor — orphaned/stopped/exited resources with safe cleanup suggestions
+</details>
 
 ## Next Milestone Goals
 
@@ -155,10 +156,7 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ Instance scorecard + dependency graph + janitor — Phase 28 (INTEL-*, GRAPH-*, JANI-*)
 - ✓ Manifest audit + env promote — Phase 29 (DRIFT-01, DRIFT-02, DRIFT-03)
 - ✓ Deploy preflight + risk score + rollback — Phase 30 (GUARD-01, GUARD-02, GUARD-03)
-
-### Active (v3.3)
-
-- Log Brain, Ops Playbooks, Smart Recipes — see `.planning/REQUIREMENTS.md` (Phase 31)
+- ✓ Log brain + ops playbooks + smart recipes — Phase 31 (BRAIN-*, PLAY-*, SREC-*)
 
 ### Out of Scope
 

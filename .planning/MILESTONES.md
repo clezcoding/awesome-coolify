@@ -1,5 +1,23 @@
 # Milestones
 
+## v3.3 Agent Intelligence (Shipped: 2026-07-31)
+
+**Closeout:** `verified_closeout` — milestone audit passed; Nyquist reconciled PR #112; docs-parity TOOL_ACTIONS fixed.
+**Phases completed:** 4 phases (28–31), 18 plans, 43 tasks
+**Timeline:** 2026-07-30 → 2026-07-31 (~2 days)
+
+**Key accomplishments:**
+
+- `intelligence` MCP tool: scorecard, UUID dependency graph, impact preflight, read-only janitor
+- Manifest audit + cross-env `envs:promote` with confirm-gated apply and FollowUpHint remediation
+- Deploy preflight (4 factors, risk_score 0–100) + confirm-gated rollback via PATCH+POST composite
+- `diagnose.analyze` rule-based log brain (OOM, 5xx, crash loop, connection refused)
+- Six MCP playbook prompts: incident upgrade + rollback + maintenance-window (D-09 confirm gate)
+- `recipe.recommend` advisory stack plans from live `fetchServiceTemplates` catalog
+- npm **1.1.4**; 18/18 requirements; Nyquist compliant on all 4 phases
+
+---
+
 ## v3.2 Observability & DX (Shipped: 2026-07-29)
 
 **Closeout:** `verified_closeout` — artifact audit clear; all 4 phases verified; 11/11 requirements complete.

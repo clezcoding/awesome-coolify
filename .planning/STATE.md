@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
-current_phase: 31
-status: "Phase 31 shipped — PR #111"
+status: Awaiting next milestone
 stopped_at: Phase 31 verified — ready to ship
-last_updated: "2026-07-31T02:59:11.947Z"
+last_updated: "2026-07-31T03:44:55.834Z"
 last_activity: 2026-07-31
+last_activity_desc: Milestone v3.3 completed and archived
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 19
+  completed_phases: 4
+  total_plans: 18
   completed_plans: 18
-  percent: 75
+  percent: 100
+current_phase: 31
 current_phase_name: Agent Playbooks
-last_activity_desc: Phase 31 complete
 ---
 
 # Project State
@@ -24,16 +24,14 @@ last_activity_desc: Phase 31 complete
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** Phase 31 — Agent Playbooks
+**Current focus:** Awaiting next milestone (`/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 31
-Plan: Not started
-Status: Phase 31 shipped — PR #111
-Last activity: 2026-07-31
-
-Progress: [██████████] 95%
+Phase: Milestone v3.3 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-31 — Milestone v3.3 completed and archived
 
 ## Performance Metrics
 
@@ -555,7 +553,7 @@ Resume file: .planning/phases/31-agent-playbooks/31-VERIFICATION.md
 
 ## Operator Next Steps
 
-- Plan Phase 28: `/gsd-plan-phase 28`
+- Start the next milestone with /gsd-new-milestone
 
 ## Rebuild Log
 
