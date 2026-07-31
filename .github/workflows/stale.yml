@@ -22,7 +22,7 @@ jobs:
           days-before-pr-stale: 60
           stale-issue-label: stale
           stale-pr-label: stale
-          exempt-issue-labels: pinned,security,help wanted
-          exempt-pr-labels: pinned,security,help wanted
+          exempt-issue-labels: 'pinned,security,type: security,help wanted'
+          exempt-pr-labels: 'pinned,security,type: security,help wanted'
           operations-per-run: 30
           remove-stale-when-updated: true

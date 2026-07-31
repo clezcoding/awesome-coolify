@@ -7,6 +7,10 @@ on:
       - ".github/labels.yml"
   workflow_dispatch: {} # manually triggerable from the Actions tab (e.g. first bootstrap)
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   sync:
     name: Sync Labels

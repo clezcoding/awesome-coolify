@@ -4,22 +4,33 @@
 #
 # Correct labeling:
 #   Ready to ship → `gh pr edit <n> --add-label automerge`
-#   Or: ./scripts/setup-kodiak.sh --pr <n>
+#   Or: ./scripts/setup-kodiak.sh --pr <n>  /  ./scripts/gsd-ship-post.sh <n>
 # Do NOT combine with blocking_labels below (e.g. status: needs-review).
+#
+# Per-PR merge method overrides (labels):
+#   kodiak: merge.method = 'squash' | 'merge' | 'rebase'
 
 version = 1
 
 [merge]
 method = "squash"
 automerge_label = "automerge"
-# Only merge PRs that explicitly opt in via the automerge label.
+# Only merge PRs that explicitly opt in via the automerge label
+# (Dependabot patch/minor also opt in via merge.automerge_dependencies below).
 require_automerge_label = true
 delete_branch_on_merge = true
 # On conflict: comment + remove automerge label (needs require_automerge_label).
 notify_on_conflict = true
 # Merge immediately when green instead of waiting in queue.
 prioritize_ready_to_merge = true
+optimistic_updates = true
+# Jump the queue when labeled.
+priority_merge_label = "kodiak: priority"
+# Block WIP / draft-style titles (empty string disables).
+blocking_title_regex = "^(WIP|DRAFT|DO NOT MERGE)([:\\s]|$)"
 blocking_labels = [
+  "do-not-merge",
+  "wip",
   "status: blocked",
   "status: needs-review",
   "status: needs-triage",
@@ -29,10 +40,18 @@ blocking_labels = [
   "gsd: execute",
 ]
 
+# Dependabot / Renovate: auto-merge patch + minor without needing automerge label.
+# Majors still require explicit `automerge` (and human review).
+[merge.automerge_dependencies]
+versions = ["minor", "patch"]
+usernames = ["dependabot", "renovate"]
+
 [merge.message]
 title = "pull_request_title"
 body = "pull_request_body"
 include_pr_number = true
+include_coauthors = true
+include_pull_request_url = true
 body_type = "markdown"
 strip_html_comments = true
 
@@ -41,3 +60,11 @@ strip_html_comments = true
 always = true
 # Updates do NOT require automerge label — merge still does (see merge.require_automerge_label).
 require_automerge_label = false
+# Opt-in update for ignored usernames / selective refresh.
+autoupdate_label = "kodiak: update"
+
+# Solo repo: no required reviews on branch protection. If you later enable
+# required reviews, uncomment so Dependabot can still land:
+# [approve]
+# auto_approve_usernames = ["dependabot", "renovate"]
+# auto_approve_labels = ["dependencies"]

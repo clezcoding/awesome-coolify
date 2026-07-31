@@ -16,6 +16,17 @@ cd "${ROOT}"
 REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 EXPECTED_PAGES="https://clezcoding.github.io/awesome-coolify/"
 EXPECTED_CI_CONTEXTS=("Lint, Test & Build" "MegaLinter")
+EXPECTED_LABELS=(
+  automerge
+  do-not-merge
+  wip
+  stale
+  pinned
+  security
+  "kodiak: priority"
+  "kodiak: update"
+  "kodiak: merge.method = 'squash'"
+)
 
 fail=0
 warn=0
@@ -29,7 +40,7 @@ echo
 
 # --- Workflows active ---
 echo "-- Workflows"
-REQUIRED_WORKFLOWS=(ci.yml labels.yml pages.yml release.yml publish.yml release-drafter.yml)
+REQUIRED_WORKFLOWS=(ci.yml labels.yml pages.yml release.yml publish.yml release-drafter.yml scorecard.yml lock.yml stale.yml)
 for wf in "${REQUIRED_WORKFLOWS[@]}"; do
   state="$(gh workflow list --json name,state,path -q ".[] | select(.path==\".github/workflows/${wf}\") | .state" 2>/dev/null || true)"
   if [[ "${state}" == "active" ]]; then
@@ -37,7 +48,12 @@ for wf in "${REQUIRED_WORKFLOWS[@]}"; do
   elif [[ -n "${state}" ]]; then
     crit "${wf} not active (state: ${state})"
   else
-    crit "${wf} missing or not found"
+    # New workflows only exist after merge — warn until then
+    if [[ -f ".github/workflows/${wf}" ]]; then
+      warn_msg "${wf} present in tree but not registered yet (merge PR first)"
+    else
+      crit "${wf} missing or not found"
+    fi
   fi
 done
 echo
@@ -53,18 +69,55 @@ if gh api "repos/${REPO}/branches/main/protection" >/dev/null 2>&1; then
       crit "main protection missing required check '${ctx}' (found: ${contexts:-none})"
     fi
   done
+  conv="$(gh api "repos/${REPO}/branches/main/protection" -q '.required_conversation_resolution.enabled' 2>/dev/null || echo false)"
+  if [[ "${conv}" == "true" ]]; then
+    pass "conversation resolution required"
+  else
+    warn_msg "conversation resolution off — run scripts/setup-branch-protection.sh"
+  fi
+  admins="$(gh api "repos/${REPO}/branches/main/protection/enforce_admins" -q '.enabled' 2>/dev/null || echo false)"
+  if [[ "${admins}" == "true" ]]; then
+    pass "enforce_admins enabled"
+  else
+    crit "enforce_admins disabled"
+  fi
 else
   crit "main branch protection not configured — run scripts/setup-branch-protection.sh"
 fi
 echo
 
+# --- Rulesets ---
+echo "-- Rulesets"
+ruleset_names="$(gh api "repos/${REPO}/rulesets" -q '.[].name' 2>/dev/null || true)"
+for rs in "protect tags" "main — block force/delete"; do
+  if grep -qx "${rs}" <<<"${ruleset_names}"; then
+    pass "ruleset '${rs}'"
+  else
+    warn_msg "ruleset '${rs}' missing — run ./scripts/setup-repo.sh"
+  fi
+done
+echo
+
+# --- Repo settings ---
+echo "-- Repo settings"
+repo_json="$(gh api "repos/${REPO}" --jq '{delete: .delete_branch_on_merge, squash: .allow_squash_merge, merge: .allow_merge_commit, rebase: .allow_rebase_merge, auto: .allow_auto_merge, discussions: .has_discussions, private: .private}')"
+echo "${repo_json}" | jq -e '.delete == true' >/dev/null && pass "delete_branch_on_merge" || crit "delete_branch_on_merge off"
+echo "${repo_json}" | jq -e '.squash == true and .merge == false and .rebase == false' >/dev/null && pass "squash-only merges" || warn_msg "expected squash-only (merge/rebase off)"
+echo "${repo_json}" | jq -e '.auto == true' >/dev/null && pass "allow_auto_merge" || warn_msg "allow_auto_merge off"
+echo "${repo_json}" | jq -e '.discussions == true' >/dev/null && pass "Discussions enabled" || warn_msg "Discussions off"
+echo "${repo_json}" | jq -e '.private == false' >/dev/null && pass "repo is public" || warn_msg "repo is private (branch protection needs public on Free)"
+echo
+
 # --- Labels ---
 echo "-- Labels"
-if gh label list --limit 500 --json name -q '.[].name' | grep -qx 'automerge'; then
-  pass "automerge label present"
-else
-  crit "automerge label missing — run: gh workflow run labels.yml"
-fi
+label_names="$(gh label list --limit 500 --json name -q '.[].name')"
+for lbl in "${EXPECTED_LABELS[@]}"; do
+  if grep -qx "${lbl}" <<<"${label_names}"; then
+    pass "label '${lbl}'"
+  else
+    crit "label '${lbl}' missing — edit .github/labels.yml + gh workflow run labels.yml"
+  fi
+done
 echo
 
 # --- Recent CI ---
@@ -108,6 +161,16 @@ echo
 
 # --- Kodiak ---
 echo "-- Kodiak"
+if [[ -f .kodiak.toml ]]; then
+  pass ".kodiak.toml present"
+  if grep -q 'automerge_dependencies' .kodiak.toml; then
+    pass "Dependabot patch/minor automerge configured"
+  else
+    warn_msg ".kodiak.toml missing merge.automerge_dependencies"
+  fi
+else
+  crit ".kodiak.toml missing"
+fi
 if gh pr list --limit 1 --json number -q '.[0].number' 2>/dev/null | grep -q .; then
   pr_num="$(gh pr list --limit 1 --json number -q '.[0].number')"
   if gh pr checks "${pr_num}" 2>/dev/null | grep -q 'kodiakhq'; then
@@ -118,21 +181,17 @@ if gh pr list --limit 1 --json number -q '.[0].number' 2>/dev/null | grep -q .; 
 else
   warn_msg "No open PRs — Kodiak app install not verified via checks"
 fi
-if [[ -f .kodiak.toml ]]; then
-  pass ".kodiak.toml present"
-else
-  crit ".kodiak.toml missing"
-fi
 echo
 
-# --- Manual follow-ups (warnings only) ---
+# --- Manual follow-ups ---
 echo "-- Manual follow-ups"
 warn_msg "Label ready PRs with automerge for Kodiak squash-merge after CI passes"
+warn_msg "Confirm Kodiak app installed: https://github.com/marketplace/kodiakhq"
 echo
 
 echo "==> Summary"
 if [[ "${fail}" -ne 0 ]]; then
-  echo "FAILED: ${fail} critical issue(s) — fix repo-side config before release." >&2
+  echo "FAILED: critical issue(s) — fix repo-side config before release." >&2
   exit 1
 fi
 

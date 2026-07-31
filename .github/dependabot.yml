@@ -9,6 +9,9 @@ updates:
     labels:
       - "dependencies"
       - "type: chore"
+      - "npm"
+    # Kodiak auto-merges patch/minor via merge.automerge_dependencies
+    # (majors still need an explicit `automerge` label).
     ignore:
       # Hold TS 6/7 until explicit migration — stay on TS 5.x
       - dependency-name: "typescript"
@@ -28,6 +31,7 @@ updates:
     labels:
       - "dependencies"
       - "type: chore"
+      - "github-actions"
     commit-message:
       prefix: "chore"
       include: "scope"
