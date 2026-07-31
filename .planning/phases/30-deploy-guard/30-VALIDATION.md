@@ -1,10 +1,11 @@
 ---
 phase: 30
 slug: deploy-guard
-status: ready-for-verify
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-07-31
+validated: 2026-07-31
 ---
 
 # Phase 30 — Validation Strategy
@@ -19,7 +20,7 @@ created: 2026-07-31
 |----------|-------|
 | **Framework** | Vitest ^4.1.10 |
 | **Config file** | `vitest.config.ts` |
-| **Quick run command** | `npx vitest run src/mcp/tools/deployment.test.ts -x` |
+| **Quick run command** | `npx vitest run src/mcp/tools/deployment.test.ts src/utils/deploy-preflight.test.ts` |
 | **Full suite command** | `pnpm test` |
 | **Estimated runtime** | ~45 seconds (application tests subset) |
 
@@ -27,7 +28,7 @@ created: 2026-07-31
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npx vitest run src/mcp/tools/deployment.test.ts -x`
+- **After every task commit:** Run `npx vitest run src/mcp/tools/deployment.test.ts src/utils/deploy-preflight.test.ts`
 - **After every plan wave:** Run `pnpm test`
 - **Before `/gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 60 seconds
@@ -38,12 +39,12 @@ created: 2026-07-31
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 30-00-01 | 00 | 0 | GUARD-01 | T-30-01 | Preflight RED scaffolds lock four factors | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t preflight -x` | ❌ W0 | ⬜ pending |
-| 30-00-02 | 00 | 0 | GUARD-03 | T-30-02 | Rollback RED scaffolds lock confirm+pin+deploy | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t rollback -x` | ❌ W0 | ⬜ pending |
-| 30-00-03 | 00 | 0 | GUARD-02 | — | Capability RED for deployment_preflight/deployment_rollback | unit | `npx vitest run src/mcp/tools/system.test.ts -t deployment_preflight -x` | ❌ W0 | ⬜ pending |
-| 30-01-02 | 01 | 1 | GUARD-01/02 | T-30-01 | Preflight read-only; masked env keys | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t preflight -x` | ❌ W0 | ⬜ pending |
-| 30-02-01 | 02 | 2 | GUARD-03 | T-30-02 | Rollback confirm gate + last finished pin | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t rollback -x` | ❌ W0 | ⬜ pending |
-| 30-03-01 | 03 | 3 | GUARD-01/02/03 | — | Capabilities + coverage rows present | unit | `npx vitest run src/mcp/tools/system.test.ts -x` | ❌ W0 | ⬜ pending |
+| 30-00-01 | 00 | 0 | GUARD-01 | T-30-01 | Preflight RED scaffolds lock four factors | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t preflight` | ✅ | ✅ green |
+| 30-00-02 | 00 | 0 | GUARD-03 | T-30-02 | Rollback RED scaffolds lock confirm+pin+deploy | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t rollback` | ✅ | ✅ green |
+| 30-00-03 | 00 | 0 | GUARD-02 | — | Capability RED for deployment_preflight/deployment_rollback | unit | `npx vitest run src/mcp/tools/system.test.ts -t deployment_preflight` | ✅ | ✅ green |
+| 30-01-02 | 01 | 1 | GUARD-01/02 | T-30-01 | Preflight read-only; masked env keys | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t preflight` | ✅ | ✅ green |
+| 30-02-01 | 02 | 2 | GUARD-03 | T-30-02 | Rollback confirm gate + last finished pin | unit | `npx vitest run src/mcp/tools/deployment.test.ts -t rollback` | ✅ | ✅ green |
+| 30-03-01 | 03 | 3 | GUARD-01/02/03 | — | Capabilities + coverage rows present | unit | `npx vitest run src/mcp/tools/system.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,10 +52,10 @@ created: 2026-07-31
 
 ## Wave 0 Requirements
 
-- [ ] `src/mcp/tools/deployment.test.ts` — `it.fails` for preflight (four factors, risk_score, soft partial)
-- [ ] `src/mcp/tools/deployment.test.ts` — `it.fails` for rollback (confirm gate, pin+deploy, no target)
-- [ ] `src/mcp/tools/system.test.ts` — capability RED for `deployment_preflight` and `deployment_rollback`
-- [ ] `src/utils/deploy-preflight.test.ts` — unit scaffolds for `findLastSuccessfulDeployment` and `computeDeployRiskScore`
+- [x] `src/mcp/tools/deployment.test.ts` — `it.fails` for preflight (four factors, risk_score, soft partial)
+- [x] `src/mcp/tools/deployment.test.ts` — `it.fails` for rollback (confirm gate, pin+deploy, no target)
+- [x] `src/mcp/tools/system.test.ts` — capability RED for `deployment_preflight` and `deployment_rollback`
+- [x] `src/utils/deploy-preflight.test.ts` — unit scaffolds for `findLastSuccessfulDeployment` and `computeDeployRiskScore`
 
 ---
 
@@ -68,11 +69,23 @@ created: 2026-07-31
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags in verify commands
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags in verify commands
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated
+
+---
+
+## Validation Audit 2026-07-31
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 6 (per-task rows pending; ready-for-verify frontmatter) |
+| Resolved | 6 |
+| Escalated | 0 |
+
+Nyquist audit complete: 56 tests green across `deployment.test.ts` and `deploy-preflight.test.ts`; VERIFICATION.md 18/18 passed; GUARD-01/02/03 COVERED; no new tests required.
