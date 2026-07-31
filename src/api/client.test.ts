@@ -529,7 +529,7 @@ describe('triggerDeploy fetchDeployment', () => {
     vi.unstubAllGlobals();
   });
 
-  it('triggerDeploy POST /deploy?uuid=&force=false', async () => {
+  it('triggerDeploy POST /deploy?uuid= without force when false', async () => {
     const deployResp = {
       deployments: [
         {
@@ -553,7 +553,7 @@ describe('triggerDeploy fetchDeployment', () => {
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('/api/v1/deploy');
     expect(url).toContain('uuid=app-uuid-1');
-    expect(url).toContain('force=false');
+    expect(url).not.toContain('force=');
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST');
     expect(result).toEqual(deployResp);
   });
@@ -596,7 +596,7 @@ describe('triggerDeploy fetchDeployment', () => {
     expect(result).toEqual(deployment);
   });
 
-  it.fails('triggerDeploy omits force query param when false (Pitfall 4)', async () => {
+  it('triggerDeploy omits force query param when false (Pitfall 4)', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({ deployments: [] }, { status: 200 }),
     );
@@ -613,7 +613,7 @@ describe('triggerDeploy fetchDeployment', () => {
     expect(url).not.toContain('force=');
   });
 
-  it.fails('triggerDeploy passes docker_tag query param when provided', async () => {
+  it('triggerDeploy passes docker_tag query param when provided', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({ deployments: [] }, { status: 200 }),
     );

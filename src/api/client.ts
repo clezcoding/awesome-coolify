@@ -1053,9 +1053,17 @@ export async function triggerDeploy(
   uuid: string,
   force = false,
   verifySsl = true,
+  options?: { dockerTag?: string },
 ): Promise<unknown> {
   const client = createCoolifyClient(url, token, verifySsl);
-  return client('/deploy', { method: 'POST', query: { uuid, force } });
+  const query: Record<string, string> = { uuid };
+  if (force) {
+    query.force = 'true';
+  }
+  if (options?.dockerTag) {
+    query.docker_tag = options.dockerTag;
+  }
+  return client('/deploy', { method: 'POST', query });
 }
 
 export async function fetchDeployment(
