@@ -85,7 +85,7 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
 - [x] **Phase 28: Instance Intelligence** - Scorecard, dependency graph, and safe resource janitor (completed 2026-07-30)
 - [x] **Phase 29: Drift & Heal** - Manifest audit, env promotion, and remediation hints (completed 2026-07-30)
 - [x] **Phase 30: Deploy Guard** - Preflight checks, risk scoring, and rollback (completed 2026-07-31)
-- [ ] **Phase 31: Agent Playbooks** - Log brain, ops playbooks, and smart recipes
+- [x] **Phase 31: Agent Playbooks** - Log brain, ops playbooks, and smart recipes (completed 2026-07-31)
 
 ## Phase Details
 
@@ -162,7 +162,7 @@ Plans:
   3. Parameterized MCP prompts exist for incident response, rollback, and maintenance-window flows composing existing atomic tools
   4. Agent requests stack recommendation (e.g. "Next.js + Postgres") and receives one-click service + env + deploy plan from live `service.list-types` catalog
 
-**Plans:** 5/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -196,7 +196,7 @@ Plans:
 | 28 | v3.3 | 5/5 | Complete    | 2026-07-30 |
 | 29 | v3.3 | 4/4 | Complete   | 2026-07-30 |
 | 30 | v3.3 | 4/4 | Complete    | 2026-07-31 |
-| 31 | v3.3 | 5/5 | In Progress|  |
+| 31 | v3.3 | 5/5 | Complete    | 2026-07-31 |
 
 **Next:** `/gsd-discuss-phase 31` — Agent Playbooks (log brain, ops playbooks, smart recipes)
 
