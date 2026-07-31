@@ -644,6 +644,16 @@ export async function executeDeploymentRollback(
     });
   }
 
+  if (buildPack !== 'dockerimage' && !commit) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_ROLLBACK_UNAVAILABLE',
+      message:
+        'Rollback target deployment has no git_commit_sha; cannot pin git rollback.',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_ROLLBACK_UNAVAILABLE,
+      data: preview as unknown as Record<string, unknown>,
+    });
+  }
+
   if (buildPack !== 'dockerimage' && commit) {
     if (!GIT_COMMIT_SHA_RE.test(commit)) {
       throw new CoolifyApiError({
