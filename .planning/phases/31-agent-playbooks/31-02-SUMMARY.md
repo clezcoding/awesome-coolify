@@ -100,7 +100,7 @@ status: complete
 2. **Task 2: Upgrade incident + add rollback and maintenance-window** — `f8d77a9` (feat)
 3. **Task 3: PLAY-02 composition hardening asserts** — `7e4665c` (test)
 
-**Plan metadata:** _(pending final docs commit)_
+**Plan metadata:** `28abf4c` (docs: complete plan)
 
 ## Files Created/Modified
 
