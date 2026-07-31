@@ -6,6 +6,7 @@ import {
 } from './diagnose.js';
 import type { EnvConfig } from '../../config/env.js';
 import { CoolifyApiError } from '../../utils/errors.js';
+import { safeParseWithInstanceRouting } from './shared-read-params.js';
 
 vi.mock('../../api/client.js', () => ({
   fetchApplication: vi.fn(),
@@ -1283,10 +1284,10 @@ describe('diagnose analyze', () => {
     vi.mocked(fetchResources).mockResolvedValue(mockMixedResources);
   });
 
-  it.fails(
+  it(
     'schema accepts analyze with uuid and optional deployment_uuid, lines, offset, max_chars, instance (D-02/D-03)',
     () => {
-      const result = diagnoseToolSchema.safeParse({
+      const result = safeParseWithInstanceRouting(diagnoseToolSchema, {
         action: 'analyze',
         uuid: 'app-1',
         deployment_uuid: undefined,
@@ -1298,10 +1299,11 @@ describe('diagnose analyze', () => {
       expect(result.success).toBe(true);
       if (!result.success) return;
       expect(result.data.action).toBe('analyze');
+      expect(result.data.instance).toBe('default');
     },
   );
 
-  it.fails(
+  it(
     'OOM fixture returns matched_patterns with severity + FollowUpHint linking diagnose/playbooks (BRAIN-02, D-05)',
     async () => {
       vi.mocked(fetchApplicationLogs).mockResolvedValue({
@@ -1331,7 +1333,7 @@ describe('diagnose analyze', () => {
     },
   );
 
-  it.fails(
+  it(
     'empty logs returns matched_patterns [] and empty-log hint spirit (D-06)',
     async () => {
       vi.mocked(fetchApplicationLogs).mockResolvedValue({ logs: '' });
@@ -1352,7 +1354,7 @@ describe('diagnose analyze', () => {
     },
   );
 
-  it.fails(
+  it(
     'fetch failure returns soft partial analyze_failed without crash (D-06/D-17)',
     async () => {
       vi.mocked(fetchApplicationLogs).mockRejectedValueOnce(
@@ -1379,7 +1381,7 @@ describe('diagnose analyze', () => {
     },
   );
 
-  it.fails(
+  it(
     'response includes advisory true and does not call mutation clients (D-06)',
     async () => {
       vi.mocked(fetchApplicationLogs).mockResolvedValue({

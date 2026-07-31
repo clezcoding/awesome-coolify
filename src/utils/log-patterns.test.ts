@@ -17,7 +17,7 @@ describe('matchLogPatterns', () => {
   });
 
   describe('oom', () => {
-    it.fails(
+    it(
       'detects oom with severity critical and capped evidence (BRAIN-01)',
       () => {
         const lines = [
@@ -39,7 +39,7 @@ describe('matchLogPatterns', () => {
   });
 
   describe('http_5xx_spike', () => {
-    it.fails(
+    it(
       'detects ≥5 status-like 5xx lines as http_5xx_spike high (BRAIN-01)',
       () => {
         const lines = [
@@ -61,7 +61,7 @@ describe('matchLogPatterns', () => {
   });
 
   describe('crash_loop', () => {
-    it.fails(
+    it(
       'detects ≥3 restart/fatal lines as crash_loop high (BRAIN-01)',
       () => {
         const lines = [
@@ -81,7 +81,7 @@ describe('matchLogPatterns', () => {
   });
 
   describe('connection_refused', () => {
-    it.fails(
+    it(
       'detects connection_refused with severity high (BRAIN-01)',
       () => {
         const lines = [
