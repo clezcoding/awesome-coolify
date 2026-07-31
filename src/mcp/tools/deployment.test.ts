@@ -1118,4 +1118,60 @@ describe('deployment.rollback', () => {
       );
     },
   );
+
+  it(
+    'wait true returns COOLIFY_DEPLOYMENT_FAILED when rollback deployment fails (IN-01)',
+    async () => {
+      vi.mocked(fetchDeployment).mockResolvedValue({
+        deployment_uuid: 'dep-new',
+        status: 'failed',
+      });
+
+      const result = await handleDeploymentAction(
+        { action: 'rollback', uuid: preflightAppUuid, confirm: true, wait: true },
+        testEnv,
+      );
+
+      expect(isDeploymentErrorResult(result)).toBe(true);
+      if (!isDeploymentErrorResult(result)) return;
+      expect(result.structuredContent.error.code).toBe('COOLIFY_DEPLOYMENT_FAILED');
+    },
+  );
+
+  it(
+    'wait true returns COOLIFY_WATCH_TIMEOUT when rollback watch times out (IN-01)',
+    async () => {
+      vi.useFakeTimers();
+      try {
+        vi.mocked(fetchDeployment).mockResolvedValue({
+          deployment_uuid: 'dep-new',
+          status: 'in_progress',
+        });
+
+        const resultPromise = handleDeploymentAction(
+          {
+            action: 'rollback',
+            uuid: preflightAppUuid,
+            confirm: true,
+            wait: true,
+            timeout: 10,
+          },
+          testEnv,
+        );
+
+        for (let i = 0; i < 12; i++) {
+          await vi.advanceTimersByTimeAsync(1000);
+        }
+
+        const result = await resultPromise;
+
+        expect(isDeploymentErrorResult(result)).toBe(true);
+        if (!isDeploymentErrorResult(result)) return;
+        expect(result.structuredContent.error.code).toBe('COOLIFY_WATCH_TIMEOUT');
+      } finally {
+        vi.useRealTimers();
+      }
+    },
+    15000,
+  );
 });
