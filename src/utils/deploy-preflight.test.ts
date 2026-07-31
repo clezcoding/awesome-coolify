@@ -44,7 +44,7 @@ describe('sortDeploymentsNewestFirst', () => {
 });
 
 describe('findLastSuccessfulDeployment', () => {
-  it.fails(
+  it(
     'returns newest finished deployment skipping failed, in_progress, queued, cancelled (GUARD-03)',
     () => {
       const target = findLastSuccessfulDeployment(mixedDeployments);
@@ -52,7 +52,7 @@ describe('findLastSuccessfulDeployment', () => {
     },
   );
 
-  it.fails('returns null when no finished deployment exists (GUARD-03)', () => {
+  it('returns null when no finished deployment exists (GUARD-03)', () => {
     const target = findLastSuccessfulDeployment([
       { deployment_uuid: 'd1', status: 'failed', created_at: '2026-01-01T00:00:00.000Z' },
       { deployment_uuid: 'd2', status: 'in_progress', created_at: '2026-01-02T00:00:00.000Z' },
@@ -62,7 +62,7 @@ describe('findLastSuccessfulDeployment', () => {
 });
 
 describe('computeDeployRiskScore', () => {
-  it.fails(
+  it(
     'applies critical −30, high −15, info −5 deductions clamped 0–100 (GUARD-02)',
     () => {
       const findings: DeployPreflightFinding[] = [
@@ -80,14 +80,14 @@ describe('computeDeployRiskScore', () => {
     },
   );
 
-  it.fails('risk_level critical when any critical finding (GUARD-02)', () => {
+  it('risk_level critical when any critical finding (GUARD-02)', () => {
     const result = computeDeployRiskScore([
       { severity: 'critical', factor: 'instance_health', issue: 'down' },
     ]);
     expect(result.risk_level).toBe('critical');
   });
 
-  it.fails('risk_level high when score below 70 without critical (GUARD-02)', () => {
+  it('risk_level high when score below 70 without critical (GUARD-02)', () => {
     const result = computeDeployRiskScore([
       { severity: 'high', factor: 'env_completeness', issue: 'a' },
       { severity: 'high', factor: 'recent_deployment_failures', issue: 'b' },
@@ -97,15 +97,16 @@ describe('computeDeployRiskScore', () => {
     expect(result.risk_level).toBe('high');
   });
 
-  it.fails('risk_level medium when score below 85 (GUARD-02)', () => {
+  it('risk_level medium when score below 85 (GUARD-02)', () => {
     const result = computeDeployRiskScore([
       { severity: 'high', factor: 'env_completeness', issue: 'a' },
+      { severity: 'info', factor: 'dns_readiness', issue: 'b' },
     ]);
-    expect(result.risk_score).toBe(85);
+    expect(result.risk_score).toBe(80);
     expect(result.risk_level).toBe('medium');
   });
 
-  it.fails('risk_level low when score 85+ (GUARD-02)', () => {
+  it('risk_level low when score 85+ (GUARD-02)', () => {
     const result = computeDeployRiskScore([
       { severity: 'info', factor: 'dns_readiness', issue: 'hint only' },
     ]);

@@ -870,7 +870,7 @@ describe('deployment.preflight', () => {
     mockPreflightFetches();
   });
 
-  it.fails(
+  it(
     'returns four factor keys with risk_score, risk_level, advisory, and score_breakdown (GUARD-01, GUARD-02)',
     async () => {
       const result = await handleDeploymentAction(
@@ -898,7 +898,7 @@ describe('deployment.preflight', () => {
     },
   );
 
-  it.fails('findings entries include FollowUpHint shape (GUARD-02)', async () => {
+  it('findings entries include FollowUpHint shape (GUARD-02)', async () => {
     const result = await handleDeploymentAction(
       { action: 'preflight', uuid: preflightAppUuid },
       testEnv,
@@ -914,18 +914,23 @@ describe('deployment.preflight', () => {
     }
   });
 
-  it.fails('blocking true when latest deployment in_progress (GUARD-02)', async () => {
+  it('blocking true when latest deployment in_progress (GUARD-02)', async () => {
     const result = await handleDeploymentAction(
       { action: 'preflight', uuid: preflightAppUuid },
       testEnv,
     );
-    expect(isDeploymentErrorResult(result)).toBe(false);
-    if (isDeploymentErrorResult(result)) return;
+    if (isDeploymentErrorResult(result)) {
+      throw new Error(JSON.stringify(result.structuredContent.error));
+    }
 
     expect((result.data as Record<string, unknown>).blocking).toBe(true);
   });
 
-  it.fails('never calls triggerDeploy, updateApplication, or cancelDeployment (read-only)', async () => {
+  it('never calls triggerDeploy, updateApplication, or cancelDeployment (read-only)', async () => {
+    vi.mocked(triggerDeploy).mockClear();
+    vi.mocked(updateApplication).mockClear();
+    vi.mocked(cancelDeployment).mockClear();
+
     const result = await handleDeploymentAction(
       { action: 'preflight', uuid: preflightAppUuid },
       testEnv,
@@ -938,7 +943,7 @@ describe('deployment.preflight', () => {
     expect(cancelDeployment).not.toHaveBeenCalled();
   });
 
-  it.fails('masks env values on preflight path (T-30-01)', async () => {
+  it('masks env values on preflight path (T-30-01)', async () => {
     const result = await handleDeploymentAction(
       { action: 'preflight', uuid: preflightAppUuid },
       testEnv,
@@ -951,7 +956,7 @@ describe('deployment.preflight', () => {
     expect(payload).toContain('***');
   });
 
-  it.fails('soft partial when one factor fetch rejects (D-17)', async () => {
+  it('soft partial when one factor fetch rejects (D-17)', async () => {
     mockPreflightFetches({ rejectEnvs: true });
     const result = await handleDeploymentAction(
       { action: 'preflight', uuid: preflightAppUuid },
@@ -1011,7 +1016,7 @@ describe('deployment.rollback', () => {
     });
   });
 
-  it.fails(
+  it(
     'without confirm returns COOLIFY_CONFIRM_REQUIRED with rollback_target preview (GUARD-03, SAF-01)',
     async () => {
       const result = await handleDeploymentAction(
@@ -1033,7 +1038,7 @@ describe('deployment.rollback', () => {
     },
   );
 
-  it.fails(
+  it(
     'confirm true on git app calls updateApplication before triggerDeploy (GUARD-03)',
     async () => {
       const callOrder: string[] = [];
@@ -1070,7 +1075,7 @@ describe('deployment.rollback', () => {
     },
   );
 
-  it.fails(
+  it(
     'no finished deployment returns COOLIFY_ROLLBACK_UNAVAILABLE with no mutations',
     async () => {
       vi.mocked(fetchAppDeployments).mockResolvedValue([
@@ -1090,7 +1095,7 @@ describe('deployment.rollback', () => {
     },
   );
 
-  it.fails(
+  it(
     'dockerimage build_pack passes docker_tag to triggerDeploy when supported',
     async () => {
       vi.mocked(fetchApplication).mockResolvedValue({

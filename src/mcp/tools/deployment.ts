@@ -6,6 +6,11 @@ import {
   fetchDeployment,
 } from '../../api/client.js';
 import {
+  buildDeployPreflightReport,
+  executeDeploymentRollback,
+} from '../../utils/deploy-preflight.js';
+import { resolveAppMutationUuid } from './application.js';
+import {
   projectDeploymentFull,
   projectDeploymentSummary,
   resolveProjection,
@@ -35,10 +40,10 @@ import {
 } from './shared-read-params.js';
 
 export const deploymentActionsCatalog =
-  'Actions: list(application_uuid, format?, page?, per_page?) · get(deployment_uuid, format?, projection?, reveal?) · cancel(deployment_uuid, format?, max_chars?) · watch(deployment_uuid, timeout?, min_interval?, max_interval?, include_logs?, format?, max_chars?, instance?) · logs(deployment_uuid|application_uuid, lines?, offset?, include_hidden?, type?, format?, max_chars?, instance?)';
+  'Actions: list(application_uuid, format?, page?, per_page?) · get(deployment_uuid, format?, projection?, reveal?) · cancel(deployment_uuid, format?, max_chars?) · watch(deployment_uuid, timeout?, min_interval?, max_interval?, include_logs?, format?, max_chars?, instance?) · logs(deployment_uuid|application_uuid, lines?, offset?, include_hidden?, type?, format?, max_chars?, instance?) · preflight(uuid|name|fqdn, format?, max_chars?, instance?) · rollback(uuid|name|fqdn, confirm?, force?, wait?, timeout?, format?, max_chars?, instance?)';
 
 export const deploymentSafetyFooter =
-  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+  'Safety: confirm for destructive ops · preflight is advisory read-only · rollback requires confirm:true · optional instance · reveal opt-in only';
 
 const deploymentReadParamKeys = [
   'format',
@@ -61,16 +66,28 @@ const deploymentListReadParamKeys = [
 ] as const;
 
 export const deploymentToolSchema = createFlatActionSchema(
-  ['list', 'get', 'cancel', 'watch', 'logs'],
+  ['list', 'get', 'cancel', 'watch', 'logs', 'preflight', 'rollback'],
   {
     application_uuid: z
       .string()
       .optional()
       .describe('Application UUID to list deployments for'),
+    uuid: z.string().optional().describe('Application UUID for preflight/rollback'),
+    name: z.string().optional().describe('Application name for preflight/rollback'),
+    fqdn: z.string().optional().describe('Application FQDN for preflight/rollback'),
     deployment_uuid: z
       .string()
       .optional()
       .describe('Deployment UUID'),
+    confirm: z
+      .boolean()
+      .optional()
+      .describe('Required true for rollback mutations'),
+    force: z.boolean().optional().describe('Force deploy on rollback (default false)'),
+    wait: z
+      .boolean()
+      .optional()
+      .describe('Poll rollback deployment until terminal (rollback)'),
     offset: z
       .number()
       .int()
@@ -130,6 +147,19 @@ export const deploymentToolSchema = createFlatActionSchema(
       'offset',
       'include_hidden',
       'type',
+      'format',
+      'max_chars',
+      'instance',
+    ],
+    preflight: ['uuid', 'name', 'fqdn', 'format', 'max_chars', 'instance'],
+    rollback: [
+      'uuid',
+      'name',
+      'fqdn',
+      'confirm',
+      'force',
+      'wait',
+      'timeout',
       'format',
       'max_chars',
       'instance',
@@ -195,6 +225,21 @@ export const deploymentToolSchema = createFlatActionSchema(
         });
       }
     }
+
+    if (data.action === 'preflight' || data.action === 'rollback') {
+      const hasUuid = !!data.uuid || !!data.application_uuid;
+      const hasName = !!data.name;
+      const hasFqdn = !!data.fqdn;
+      if (!hasUuid && !hasName && !hasFqdn) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'preflight and rollback require uuid, name, or fqdn to identify the application',
+          path: ['uuid'],
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+    }
   },
   {
     timeout: 300,
@@ -217,6 +262,8 @@ type DeploymentGetAction = Extract<DeploymentAction, { action: 'get' }>;
 type DeploymentCancelAction = Extract<DeploymentAction, { action: 'cancel' }>;
 type DeploymentWatchAction = Extract<DeploymentAction, { action: 'watch' }>;
 type DeploymentLogsAction = Extract<DeploymentAction, { action: 'logs' }>;
+type DeploymentPreflightAction = Extract<DeploymentAction, { action: 'preflight' }>;
+type DeploymentRollbackAction = Extract<DeploymentAction, { action: 'rollback' }>;
 
 export type DeploymentListResult = ReadResponse<DeploymentSummary[]>;
 
@@ -239,12 +286,22 @@ export type DeploymentLogsResult = ReadResponse<
   ReturnType<typeof processDeploymentBuildLogs>
 >;
 
+export type DeploymentPreflightResult = ReadResponse<
+  Awaited<ReturnType<typeof buildDeployPreflightReport>>
+>;
+
+export type DeploymentRollbackResult = ReadResponse<
+  Awaited<ReturnType<typeof executeDeploymentRollback>>
+>;
+
 export type DeploymentActionResult =
   | DeploymentListResult
   | DeploymentGetResult
   | DeploymentCancelResult
   | DeploymentWatchResult
   | DeploymentLogsResult
+  | DeploymentPreflightResult
+  | DeploymentRollbackResult
   | McpErrorResult;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -538,6 +595,49 @@ async function handleDeploymentLogs(
   });
 }
 
+async function handleDeploymentPreflight(
+  parsed: DeploymentPreflightAction,
+  env: EnvConfig,
+): Promise<DeploymentPreflightResult> {
+  const appUuid = await resolveAppMutationUuid(
+    {
+      uuid: parsed.uuid ?? parsed.application_uuid,
+      name: parsed.name,
+      fqdn: parsed.fqdn,
+    },
+    env,
+  );
+  const report = await buildDeployPreflightReport(env, appUuid);
+  return buildReadResponse(report, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
+async function handleDeploymentRollback(
+  parsed: DeploymentRollbackAction,
+  env: EnvConfig,
+): Promise<DeploymentRollbackResult> {
+  const appUuid = await resolveAppMutationUuid(
+    {
+      uuid: parsed.uuid ?? parsed.application_uuid,
+      name: parsed.name,
+      fqdn: parsed.fqdn,
+    },
+    env,
+  );
+  const result = await executeDeploymentRollback(env, appUuid, {
+    confirm: parsed.confirm,
+    force: parsed.force,
+    wait: parsed.wait,
+    timeout: parsed.timeout,
+  });
+  return buildReadResponse(result, {
+    format: parsed.format,
+    max_chars: parsed.max_chars,
+  });
+}
+
 export async function handleDeploymentAction(
   args: DeploymentAction,
   env: EnvConfig,
@@ -557,6 +657,10 @@ export async function handleDeploymentAction(
         return await handleDeploymentWatch(parsed, routingEnv);
       case 'logs':
         return await handleDeploymentLogs(parsed, routingEnv);
+      case 'preflight':
+        return await handleDeploymentPreflight(parsed, routingEnv);
+      case 'rollback':
+        return await handleDeploymentRollback(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown deployment action: ${String(_exhaustive)}`);
