@@ -121,7 +121,7 @@ status: complete
 2. **Task 2: diagnose.analyze and recipe.recommend RED scaffolds** - `fd63f12` (test)
 3. **Task 3: prompts 6-name set and capability key RED scaffolds** - `6511fee` (test)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `0d238d6` (docs: complete plan)
 
 ## Files Created/Modified
 
