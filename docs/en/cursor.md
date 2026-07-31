@@ -21,7 +21,7 @@ Create `.cursor/mcp.json` in your project:
   "mcpServers": {
     "awesome-coolify-mcp": {
       "command": "npx",
-      "args": ["-y", "awesome-coolify-mcp@1.1.2"],
+      "args": ["-y", "awesome-coolify-mcp@1.1.3"],
       "env": {
         "COOLIFY_URL": "https://coolify.example.com",
         "COOLIFY_TOKEN": "<coolify-api-token>"

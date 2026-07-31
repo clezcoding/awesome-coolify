@@ -20,6 +20,7 @@ import {
   type FollowUpHint,
 } from '../../utils/diagnose-hints.js';
 import { classifyIssues } from '../../utils/issue-classifier.js';
+import { sortDeploymentsNewestFirst, deploymentTimestamp } from '../../utils/deploy-preflight.js';
 import { isDatabaseRawType } from '../../utils/projections.js';
 import { redactSecrets } from '../../utils/redact.js';
 import {
@@ -126,22 +127,6 @@ async function mapPool<T, R>(
   const workers = Math.min(Math.max(1, concurrency), items.length);
   await Promise.all(Array.from({ length: workers }, () => worker()));
   return results;
-}
-
-function deploymentTimestamp(dep: Record<string, unknown>): number {
-  const raw =
-    dep.updated_at ?? dep.finished_at ?? dep.created_at ?? dep.createdAt;
-  const ms = typeof raw === 'string' ? Date.parse(raw) : NaN;
-  return Number.isFinite(ms) ? ms : 0;
-}
-
-function sortDeploymentsNewestFirst(
-  deployments: unknown[],
-): Record<string, unknown>[] {
-  return deployments
-    .filter(isRecord)
-    .slice()
-    .sort((a, b) => deploymentTimestamp(b) - deploymentTimestamp(a));
 }
 
 function deployHint(uuid: string, deploymentUuid?: string): FollowUpHint {

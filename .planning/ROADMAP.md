@@ -84,7 +84,7 @@ Full phase details: [milestones/v3.2-ROADMAP.md](milestones/v3.2-ROADMAP.md)
 
 - [x] **Phase 28: Instance Intelligence** - Scorecard, dependency graph, and safe resource janitor (completed 2026-07-30)
 - [x] **Phase 29: Drift & Heal** - Manifest audit, env promotion, and remediation hints (completed 2026-07-30)
-- [ ] **Phase 30: Deploy Guard** - Preflight checks, risk scoring, and rollback
+- [x] **Phase 30: Deploy Guard** - Preflight checks, risk scoring, and rollback (completed 2026-07-31)
 - [ ] **Phase 31: Agent Playbooks** - Log brain, ops playbooks, and smart recipes
 
 ## Phase Details
@@ -141,7 +141,14 @@ Plans:
   2. Preflight returns deploy risk score with named factor breakdown
   3. Agent rolls back an application to its last successful deployment
 
-**Plans**: TBD
+**Plans**: 4/4 plans executed
+
+Plans:
+
+- [x] 30-00-PLAN.md — Wave 0 Nyquist RED scaffolds for GUARD preflight/rollback
+- [x] 30-01-PLAN.md — Tracer: deployment.preflight + deploy-preflight util (GUARD-01/02)
+- [x] 30-02-PLAN.md — deployment.rollback composite with confirm gate (GUARD-03)
+- [x] 30-03-PLAN.md — Capabilities, coverage map, README EN/DE
 
 ### Phase 31: Agent Playbooks
 
@@ -180,10 +187,10 @@ Plans:
 | 27 | v3.2 | 4/4 | Complete | 2026-07-29 |
 | 28 | v3.3 | 5/5 | Complete    | 2026-07-30 |
 | 29 | v3.3 | 4/4 | Complete   | 2026-07-30 |
-| 30 | v3.3 | 0/TBD | Not started | - |
+| 30 | v3.3 | 4/4 | Complete    | 2026-07-31 |
 | 31 | v3.3 | 0/TBD | Not started | - |
 
-**Next:** `/gsd-plan-phase 28` — Instance Intelligence (scorecard, dependency graph, janitor)
+**Next:** `/gsd-discuss-phase 31` — Agent Playbooks (log brain, ops playbooks, smart recipes)
 
 ---
 

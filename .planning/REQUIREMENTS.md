@@ -30,9 +30,9 @@ Composite intelligence on Coolify 4.1.x — no new REST endpoints required.
 
 ### Deploy Guard
 
-- [ ] **GUARD-01**: Agent can run deploy preflight before mutation (instance health, env completeness, recent deployment failures, DNS readiness)
-- [ ] **GUARD-02**: Preflight returns a deploy risk score with named factor breakdown
-- [ ] **GUARD-03**: Agent can roll back an application to its last successful deployment
+- [x] **GUARD-01**: Agent can run deploy preflight before mutation (instance health, env completeness, recent deployment failures, DNS readiness)
+- [x] **GUARD-02**: Preflight returns a deploy risk score with named factor breakdown
+- [x] **GUARD-03**: Agent can roll back an application to its last successful deployment
 
 ### Log Brain
 
@@ -88,9 +88,9 @@ Deferred until Coolify 4.2.0+ stable.
 | DRIFT-01 | Phase 29 | Complete |
 | DRIFT-02 | Phase 29 | Complete |
 | DRIFT-03 | Phase 29 | Complete |
-| GUARD-01 | Phase 30 | Pending |
-| GUARD-02 | Phase 30 | Pending |
-| GUARD-03 | Phase 30 | Pending |
+| GUARD-01 | Phase 30 | Complete |
+| GUARD-02 | Phase 30 | Complete |
+| GUARD-03 | Phase 30 | Complete |
 | BRAIN-01 | Phase 31 | Pending |
 | BRAIN-02 | Phase 31 | Pending |
 | PLAY-01 | Phase 31 | Pending |

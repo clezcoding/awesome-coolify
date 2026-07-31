@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
-current_phase: 30
-current_phase_name: Deploy Guard
-status: "Phase 29 shipped — PR #109"
-stopped_at: Phase 29 complete — Drift & Heal verified
-last_updated: "2026-07-30T03:32:01.034Z"
-last_activity: 2026-07-30
+current_phase: 31
+current_phase_name: Agent Playbooks
+status: "Phase 30 shipped — PR #110"
+stopped_at: Completed 30-03-PLAN.md
+last_updated: "2026-07-31T01:45:14.932Z"
+last_activity: 2026-07-31
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 10
-  completed_plans: 9
-  percent: 25
-last_activity_desc: Phase 29 complete, transitioned to Phase 30
+  completed_phases: 3
+  total_plans: 14
+  completed_plans: 13
+  percent: 75
+last_activity_desc: Phase 30 complete, transitioned to Phase 31
 ---
 
 # Project State
@@ -24,22 +24,22 @@ last_activity_desc: Phase 29 complete, transitioned to Phase 30
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** v3.3 Agent Intelligence — Phase 28 Instance Intelligence
+**Current focus:** Phase 31 — Agent Playbooks
 
 ## Current Position
 
-Phase: 30 of 31 (Deploy Guard)
+Phase: 31 — Agent Playbooks
 Plan: Not started
-Status: Phase 29 shipped — PR #109
-Last activity: 2026-07-30
+Status: Phase 30 shipped — PR #110
+Last activity: 2026-07-31
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 129
+- Total plans completed: 133
 - Average duration: —
 - Total execution time: —
 
@@ -73,6 +73,7 @@ Progress: [█████████░] 90%
 | 27 | 4 | - | - |
 | 28 | 5 | - | - |
 | 29 | 4 | - | - |
+| 30 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -454,6 +455,7 @@ Progress: [█████████░] 90%
 - [Phase ?]: Promote apply defaults conflict_policy keep_remote; abort with mismatches returns COOLIFY_CONFIRM_REQUIRED
 - [Phase ?]: D-15 manifest_audit and envs_promote capability keys shipped with MCP composite notes
 - [Phase ?]: README EN/DE drift-heal docs use env.promote product name with application.envs:promote implementation
+- [Phase ?]: Deploy guard extends deployment tool with preflight (read-only) and rollback (confirm-gated composite)
 
 ### Pending Todos
 
@@ -530,9 +532,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-30T03:27:33.145Z
-Stopped at: Phase 29 complete — Drift & Heal verified
-Resume file: .planning/phases/29-drift-heal/29-VERIFICATION.md
+Last session: 2026-07-31T01:14:06.657Z
+Stopped at: Completed 30-03-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

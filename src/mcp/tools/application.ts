@@ -1311,7 +1311,7 @@ type AppIdentifierInput = {
   fqdn?: string;
 };
 
-async function resolveAppMutationUuid(
+export async function resolveAppMutationUuid(
   parsed: AppIdentifierInput,
   env: EnvConfig,
 ): Promise<string> {

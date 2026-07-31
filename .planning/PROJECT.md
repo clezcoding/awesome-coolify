@@ -2,20 +2,20 @@
 
 ## What This Is
 
-Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` **1.1.2** shipped, public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, Setup-Wizard + IDE-Skills, Recipes, Deploy-Watch, OpenAPI-Coverage-Audit, und Live-UAT gegen echte Coolify-Daten.
+Open-Source MCP-Server für Coolify (API 4.1.x) — self-hosted und Coolify Cloud. Package `awesome-coolify-mcp` **1.1.3** shipped, public repo `clezcoding/awesome-coolify`. Agent kann deployen, Logs lesen, diagnostizieren, Emergency-Ops, volle Infrastruktur-CRUD, Multi-Instance-Routing, lokale Manifest-Caches, Setup-Wizard + IDE-Skills, Recipes, Deploy-Watch, OpenAPI-Coverage-Audit, und Live-UAT gegen echte Coolify-Daten.
 
 ## Core Value
 
 Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierten MCP-Server Coolify-Instanzen operieren — deployen, Logs lesen, Probleme diagnostizieren, und Infrastruktur von Grund auf anlegen — ohne Workarounds oder drei parallele MCP-Implementierungen.
 
-## Current State (v3.2 shipped 2026-07-29)
+## Current State (v3.3 in progress — Phase 30 complete)
 
 | Metric | Value |
 |--------|-------|
-| Package | `awesome-coolify-mcp` **1.1.1** |
-| Tools / Actions | 19 / ~120 |
+| Package | `awesome-coolify-mcp` **1.1.3** |
+| Tools / Actions | 19 / ~120+ |
 | TypeScript LOC | ~36k (`src/`) |
-| Milestone | v3.2 Observability & DX — **shipped** (Phases 24–27) |
+| Milestone | v3.3 Agent Intelligence — Phases 28–30 complete; Phase 31 next |
 | Repo | Single public `clezcoding/awesome-coolify` |
 | Distribution | OIDC Release path + pack allowlist verified (PUB-02) |
 | Live UAT | `npm run uat:live` harness (Phase 18) |
@@ -150,9 +150,15 @@ Ein AI-Agent (Cursor, Claude, etc.) kann über einen einzigen, gut dokumentierte
 - ✓ diagnose.logs + incident prompt + coolify-setup troubleshooting — Phase 26 (DIAG-01, PROMPT-01, SKILL-01)
 - ✓ MCP icon workarounds + docs parity at 1.0.1 — Phase 27 (BRND-01, BRND-02, DOC-01)
 
+### Validated (v3.3)
+
+- ✓ Instance scorecard + dependency graph + janitor — Phase 28 (INTEL-*, GRAPH-*, JANI-*)
+- ✓ Manifest audit + env promote — Phase 29 (DRIFT-01, DRIFT-02, DRIFT-03)
+- ✓ Deploy preflight + risk score + rollback — Phase 30 (GUARD-01, GUARD-02, GUARD-03)
+
 ### Active (v3.3)
 
-- Deploy Guard, Drift & Heal, Dependency Map, Log Brain, Ops Playbooks, Smart Recipes, Instance Scorecard, Resource Janitor — see `.planning/REQUIREMENTS.md`
+- Log Brain, Ops Playbooks, Smart Recipes — see `.planning/REQUIREMENTS.md` (Phase 31)
 
 ### Out of Scope
 
@@ -236,6 +242,6 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-**v3.2 shipped:** `system.version` capability flags, `deployment.logs`, `application.logs` follow, `diagnose.logs`, incident prompt + coolify-setup troubleshooting, dual-icon MCP branding, npm 1.0.1 docs parity. **v3.3 in progress:** Agent Intelligence layer (composite smart ops on 4.1.x). Service/DB logs deferred to v3.4 pending Coolify 4.2 stable.
+**v3.2 shipped:** `system.version` capability flags, `deployment.logs`, `application.logs` follow, `diagnose.logs`, incident prompt + coolify-setup troubleshooting, dual-icon MCP branding, npm 1.0.1 docs parity. **v3.3 in progress:** Phases 28–30 complete (intelligence, drift-heal, deploy guard); Phase 31 Agent Playbooks next. Service/DB logs deferred to v3.4 pending Coolify 4.2 stable.
 
-*Last updated: 2026-07-30 — milestone v3.3 Agent Intelligence started*
+*Last updated: 2026-07-31 — Phase 30 Deploy Guard complete*

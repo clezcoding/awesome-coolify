@@ -28,7 +28,8 @@ export type CoolifyErrorCode =
   | 'COOLIFY_SETUP_PAUSED'
   | 'COOLIFY_DEPLOYMENT_FAILED'
   | 'COOLIFY_DEPLOYMENT_CANCELLED'
-  | 'COOLIFY_NO_DEPLOYMENTS';
+  | 'COOLIFY_NO_DEPLOYMENTS'
+  | 'COOLIFY_ROLLBACK_UNAVAILABLE';
 
 export interface CoolifyErrorEnvelope {
   code: CoolifyErrorCode;
@@ -159,6 +160,10 @@ export const RECOVERY_HINTS: Record<CoolifyErrorCode, string[]> = {
   COOLIFY_NO_DEPLOYMENTS: [
     'Trigger a deploy first via application.deploy (or application action deploy with wait: false).',
     'List existing deployments via deployment.list with the same application_uuid.',
+  ],
+  COOLIFY_ROLLBACK_UNAVAILABLE: [
+    'No finished deployment exists — deploy successfully before attempting rollback.',
+    'List deployments via deployment.list to inspect history.',
   ],
 };
 

@@ -61,7 +61,7 @@ const TOOL_ACTIONS: Record<string, readonly string[]> = {
     'envs:sync',
     'envs:promote',
   ],
-  deployment: ['list', 'get', 'cancel', 'watch', 'logs'],
+  deployment: ['list', 'get', 'cancel', 'watch', 'logs', 'preflight', 'rollback'],
   service: [
     'get',
     'list-types',

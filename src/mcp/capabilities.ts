@@ -59,6 +59,16 @@ export const COOLIFY_412_CAPABILITIES = {
     coolify_min_version: '4.1.2',
     note: 'MCP composite manifest drift audit on Coolify 4.1.x reads (not a Coolify REST endpoint)',
   },
+  deployment_preflight: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite deploy preflight with four risk factors (not a Coolify REST endpoint)',
+  },
+  deployment_rollback: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'MCP composite rollback via git pin + triggerDeploy (not a dedicated Coolify rollback REST endpoint)',
+  },
   envs_promote: {
     supported: true,
     coolify_min_version: '4.1.2',

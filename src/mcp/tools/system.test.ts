@@ -151,9 +151,11 @@ describe('capabilities', () => {
     'intelligence_janitor',
     'intelligence_scorecard',
     'manifest_audit',
+    'deployment_preflight',
+    'deployment_rollback',
   ] as const;
 
-  it('system.version capabilities has exactly thirteen keys including manifest_audit, envs_promote, and five intelligence_* (D-15, D-19)', async () => {
+  it('system.version capabilities has exactly fifteen keys including deployment guard composites (D-15, D-19)', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;
@@ -207,6 +209,27 @@ describe('capabilities', () => {
       });
     }
   });
+
+  it(
+    'system.version capabilities includes deployment_preflight and deployment_rollback (Phase 30)',
+    async () => {
+      const result = await handleSystemAction({ action: 'version' }, testEnv);
+      expect(isMcpErrorResult(result)).toBe(false);
+      if (isMcpErrorResult(result)) return;
+
+      const caps = result.capabilities as Record<string, unknown>;
+      expect(caps.deployment_preflight).toMatchObject({
+        supported: true,
+        coolify_min_version: '4.1.2',
+        note: expect.any(String),
+      });
+      expect(caps.deployment_rollback).toMatchObject({
+        supported: true,
+        coolify_min_version: '4.1.2',
+        note: expect.any(String),
+      });
+    },
+  );
 });
 
 describe('handleSystemAction verify', () => {
