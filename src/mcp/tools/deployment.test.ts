@@ -11,12 +11,26 @@ vi.mock('../../api/client.js', () => ({
   fetchAppDeployments: vi.fn(),
   fetchDeployment: vi.fn(),
   cancelDeployment: vi.fn(),
+  fetchApplication: vi.fn(),
+  fetchApplicationEnvs: vi.fn(),
+  fetchResources: vi.fn(),
+  fetchServers: vi.fn(),
+  fetchServerDomains: vi.fn(),
+  updateApplication: vi.fn(),
+  triggerDeploy: vi.fn(),
 }));
 
 import {
   fetchAppDeployments,
   fetchDeployment,
   cancelDeployment,
+  fetchApplication,
+  fetchApplicationEnvs,
+  fetchResources,
+  fetchServers,
+  fetchServerDomains,
+  updateApplication,
+  triggerDeploy,
 } from '../../api/client.js';
 
 const testEnv: EnvConfig = {
@@ -791,4 +805,312 @@ describe('deployment logs', () => {
       'COOLIFY_403_SENSITIVE_REQUIRED',
     );
   });
+});
+
+function expectFollowUpHint(hint: unknown): void {
+  expect(hint).toMatchObject({
+    tool: expect.any(String),
+    action: expect.any(String),
+    args: expect.any(Object),
+    label: expect.any(String),
+    available_in_phase: expect.any(Number),
+  });
+}
+
+const preflightAppUuid = 'app-preflight-uuid';
+const preflightMockApp = {
+  uuid: preflightAppUuid,
+  name: 'preflight-app',
+  type: 'application',
+  status: 'running:healthy',
+  server_id: 1,
+  fqdn: 'https://app.example.com',
+  build_pack: 'nixpacks',
+  git_repository: 'https://github.com/org/repo',
+};
+
+function mockPreflightFetches(options?: { rejectEnvs?: boolean }) {
+  vi.mocked(fetchApplication).mockResolvedValue(preflightMockApp);
+  if (options?.rejectEnvs) {
+    vi.mocked(fetchApplicationEnvs).mockRejectedValue(new Error('envs down'));
+  } else {
+    vi.mocked(fetchApplicationEnvs).mockResolvedValue([
+      {
+        uuid: 'env-1',
+        key: 'DATABASE_URL',
+        value: 'postgres://secret',
+        is_preview: false,
+      },
+    ]);
+  }
+  vi.mocked(fetchAppDeployments).mockResolvedValue(mockDeployments);
+  vi.mocked(fetchResources).mockResolvedValue([
+    preflightMockApp,
+    { uuid: 'srv-1', type: 'server', settings: { is_reachable: true } },
+  ]);
+  vi.mocked(fetchServers).mockResolvedValue([
+    { uuid: 'srv-1', settings: { is_reachable: true } },
+  ]);
+  vi.mocked(fetchServerDomains).mockResolvedValue([]);
+}
+
+/**
+ * Wave 0 Nyquist RED scaffolds for Phase 30 deployment.preflight (GUARD-01, GUARD-02).
+ * Plan 30-01 flips it.fails → it when preflight handler ships.
+ */
+describe('deployment.preflight', () => {
+  beforeEach(() => {
+    vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchApplicationEnvs).mockReset();
+    vi.mocked(fetchResources).mockReset();
+    vi.mocked(fetchServers).mockReset();
+    vi.mocked(fetchServerDomains).mockReset();
+    vi.mocked(updateApplication).mockReset();
+    vi.mocked(triggerDeploy).mockReset();
+    mockPreflightFetches();
+  });
+
+  it.fails(
+    'returns four factor keys with risk_score, risk_level, advisory, and score_breakdown (GUARD-01, GUARD-02)',
+    async () => {
+      const result = await handleDeploymentAction(
+        { action: 'preflight', uuid: preflightAppUuid },
+        testEnv,
+      );
+
+      expect(isDeploymentErrorResult(result)).toBe(false);
+      if (isDeploymentErrorResult(result)) return;
+
+      const data = result.data as Record<string, unknown>;
+      expect(data.application_uuid).toBe(preflightAppUuid);
+      expect(data.advisory).toBe(true);
+      expect(typeof data.risk_score).toBe('number');
+      expect(data.risk_level).toMatch(/^(low|medium|high|critical)$/);
+      expect(data.score_breakdown).toBeTruthy();
+
+      const factors = data.factors as Record<string, unknown>;
+      expect(Object.keys(factors).sort()).toEqual([
+        'dns_readiness',
+        'env_completeness',
+        'instance_health',
+        'recent_deployment_failures',
+      ]);
+    },
+  );
+
+  it.fails('findings entries include FollowUpHint shape (GUARD-02)', async () => {
+    const result = await handleDeploymentAction(
+      { action: 'preflight', uuid: preflightAppUuid },
+      testEnv,
+    );
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    const data = result.data as Record<string, unknown>;
+    const findings = data.findings as Array<Record<string, unknown>>;
+    expect(Array.isArray(findings)).toBe(true);
+    if (findings.length > 0) {
+      expectFollowUpHint(findings[0]?.hint);
+    }
+  });
+
+  it.fails('blocking true when latest deployment in_progress (GUARD-02)', async () => {
+    const result = await handleDeploymentAction(
+      { action: 'preflight', uuid: preflightAppUuid },
+      testEnv,
+    );
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect((result.data as Record<string, unknown>).blocking).toBe(true);
+  });
+
+  it.fails('never calls triggerDeploy, updateApplication, or cancelDeployment (read-only)', async () => {
+    const result = await handleDeploymentAction(
+      { action: 'preflight', uuid: preflightAppUuid },
+      testEnv,
+    );
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    expect(triggerDeploy).not.toHaveBeenCalled();
+    expect(updateApplication).not.toHaveBeenCalled();
+    expect(cancelDeployment).not.toHaveBeenCalled();
+  });
+
+  it.fails('masks env values on preflight path (T-30-01)', async () => {
+    const result = await handleDeploymentAction(
+      { action: 'preflight', uuid: preflightAppUuid },
+      testEnv,
+    );
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    const payload = JSON.stringify(result.data);
+    expect(payload).not.toContain('postgres://secret');
+    expect(payload).toContain('***');
+  });
+
+  it.fails('soft partial when one factor fetch rejects (D-17)', async () => {
+    mockPreflightFetches({ rejectEnvs: true });
+    const result = await handleDeploymentAction(
+      { action: 'preflight', uuid: preflightAppUuid },
+      testEnv,
+    );
+    expect(isDeploymentErrorResult(result)).toBe(false);
+    if (isDeploymentErrorResult(result)) return;
+
+    const factors = (result.data as Record<string, unknown>).factors as Record<
+      string,
+      { partial?: boolean }
+    >;
+    expect(factors.env_completeness?.partial).toBe(true);
+    expect(factors.instance_health).toBeTruthy();
+  });
+});
+
+const rollbackFinishedDep = {
+  deployment_uuid: 'dep-rollback-ok',
+  status: 'finished',
+  git_commit_sha: 'deadbeef1234567890deadbeef1234567890deadbeef',
+  docker_registry_image_tag: 'v1.2.3',
+  created_at: '2026-07-12T01:00:00.000Z',
+  finished_at: '2026-07-12T01:05:00.000Z',
+};
+
+/**
+ * Wave 0 Nyquist RED scaffolds for Phase 30 deployment.rollback (GUARD-03, SAF-01).
+ * Plan 30-02 flips it.fails → it when rollback handler ships.
+ */
+describe('deployment.rollback', () => {
+  beforeEach(() => {
+    vi.mocked(fetchApplication).mockReset();
+    vi.mocked(fetchAppDeployments).mockReset();
+    vi.mocked(updateApplication).mockReset();
+    vi.mocked(triggerDeploy).mockReset();
+    vi.mocked(fetchResources).mockResolvedValue([
+      {
+        uuid: preflightAppUuid,
+        name: 'rollback-app',
+        type: 'application',
+        status: 'running:healthy',
+      },
+    ]);
+    vi.mocked(fetchApplication).mockResolvedValue({
+      uuid: preflightAppUuid,
+      build_pack: 'nixpacks',
+      git_repository: 'https://github.com/org/repo',
+    });
+    vi.mocked(fetchAppDeployments).mockResolvedValue([
+      { deployment_uuid: 'dep-fail', status: 'failed', created_at: '2026-07-12T03:00:00.000Z' },
+      rollbackFinishedDep,
+    ]);
+    vi.mocked(updateApplication).mockResolvedValue({});
+    vi.mocked(triggerDeploy).mockResolvedValue({
+      deployments: [{ deployment_uuid: 'dep-new', message: 'queued' }],
+    });
+  });
+
+  it.fails(
+    'without confirm returns COOLIFY_CONFIRM_REQUIRED with rollback_target preview (GUARD-03, SAF-01)',
+    async () => {
+      const result = await handleDeploymentAction(
+        { action: 'rollback', uuid: preflightAppUuid },
+        testEnv,
+      );
+
+      expect(isDeploymentErrorResult(result)).toBe(true);
+      if (!isDeploymentErrorResult(result)) return;
+
+      expect(result.structuredContent.error.code).toBe('COOLIFY_CONFIRM_REQUIRED');
+      expect(result.structuredContent.error.data).toMatchObject({
+        rollback_target: expect.objectContaining({
+          deployment_uuid: rollbackFinishedDep.deployment_uuid,
+        }),
+      });
+      expect(updateApplication).not.toHaveBeenCalled();
+      expect(triggerDeploy).not.toHaveBeenCalled();
+    },
+  );
+
+  it.fails(
+    'confirm true on git app calls updateApplication before triggerDeploy (GUARD-03)',
+    async () => {
+      const callOrder: string[] = [];
+      vi.mocked(updateApplication).mockImplementation(async () => {
+        callOrder.push('updateApplication');
+        return {};
+      });
+      vi.mocked(triggerDeploy).mockImplementation(async () => {
+        callOrder.push('triggerDeploy');
+        return { deployments: [{ deployment_uuid: 'dep-new' }] };
+      });
+
+      const result = await handleDeploymentAction(
+        {
+          action: 'rollback',
+          uuid: preflightAppUuid,
+          confirm: true,
+        },
+        testEnv,
+      );
+
+      expect(isDeploymentErrorResult(result)).toBe(false);
+      if (isDeploymentErrorResult(result)) return;
+      expect(callOrder).toEqual(['updateApplication', 'triggerDeploy']);
+      expect(updateApplication).toHaveBeenCalledWith(
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        preflightAppUuid,
+        expect.objectContaining({
+          git_commit_sha: rollbackFinishedDep.git_commit_sha,
+        }),
+        testEnv.COOLIFY_VERIFY_SSL,
+      );
+    },
+  );
+
+  it.fails(
+    'no finished deployment returns COOLIFY_ROLLBACK_UNAVAILABLE with no mutations',
+    async () => {
+      vi.mocked(fetchAppDeployments).mockResolvedValue([
+        { deployment_uuid: 'd1', status: 'failed', created_at: '2026-01-01T00:00:00.000Z' },
+      ]);
+
+      const result = await handleDeploymentAction(
+        { action: 'rollback', uuid: preflightAppUuid, confirm: true },
+        testEnv,
+      );
+
+      expect(isDeploymentErrorResult(result)).toBe(true);
+      if (!isDeploymentErrorResult(result)) return;
+      expect(result.structuredContent.error.code).toBe('COOLIFY_ROLLBACK_UNAVAILABLE');
+      expect(updateApplication).not.toHaveBeenCalled();
+      expect(triggerDeploy).not.toHaveBeenCalled();
+    },
+  );
+
+  it.fails(
+    'dockerimage build_pack passes docker_tag to triggerDeploy when supported',
+    async () => {
+      vi.mocked(fetchApplication).mockResolvedValue({
+        uuid: preflightAppUuid,
+        build_pack: 'dockerimage',
+      });
+
+      await handleDeploymentAction(
+        { action: 'rollback', uuid: preflightAppUuid, confirm: true },
+        testEnv,
+      );
+
+      expect(triggerDeploy).toHaveBeenCalledWith(
+        testEnv.COOLIFY_URL,
+        testEnv.COOLIFY_TOKEN,
+        preflightAppUuid,
+        false,
+        testEnv.COOLIFY_VERIFY_SSL,
+        expect.objectContaining({ dockerTag: rollbackFinishedDep.docker_registry_image_tag }),
+      );
+    },
+  );
 });
