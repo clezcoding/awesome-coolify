@@ -3,11 +3,10 @@ gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
 current_phase: 31
-status: completed
+status: "Phase 31 shipped — PR #111"
 stopped_at: Phase 31 verified — ready to ship
-last_updated: "2026-07-31T02:55:13.178Z"
+last_updated: "2026-07-31T02:59:11.947Z"
 last_activity: 2026-07-31
-last_activity_desc: Phase 31 complete
 progress:
   total_phases: 4
   completed_phases: 3
@@ -15,6 +14,7 @@ progress:
   completed_plans: 18
   percent: 75
 current_phase_name: Agent Playbooks
+last_activity_desc: Phase 31 complete
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 
 Phase: 31
 Plan: Not started
-Status: All phases complete
-Last activity: 2026-07-31 — Phase 31 complete
+Status: Phase 31 shipped — PR #111
+Last activity: 2026-07-31
 
 Progress: [██████████] 95%
 
