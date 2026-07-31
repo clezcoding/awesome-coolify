@@ -143,6 +143,7 @@ describe('capabilities', () => {
     'deployment_logs',
     'deployment_watch',
     'deploy_watch',
+    'diagnose_analyze',
     'diagnose_logs',
     'envs_promote',
     'intelligence_cleanup',
@@ -153,9 +154,10 @@ describe('capabilities', () => {
     'manifest_audit',
     'deployment_preflight',
     'deployment_rollback',
+    'recipe_recommend',
   ] as const;
 
-  it('system.version capabilities has exactly fifteen keys including deployment guard composites (D-15, D-19)', async () => {
+  it('system.version capabilities has exactly seventeen keys including diagnose_analyze and recipe_recommend (D-19)', async () => {
     const result = await handleSystemAction({ action: 'version' }, testEnv);
     expect(isMcpErrorResult(result)).toBe(false);
     if (isMcpErrorResult(result)) return;
@@ -190,6 +192,16 @@ describe('capabilities', () => {
     }
 
     expect(caps.diagnose_logs).toMatchObject({
+      supported: true,
+      coolify_min_version: '4.1.2',
+      note: expect.any(String),
+    });
+    expect(caps.diagnose_analyze).toMatchObject({
+      supported: true,
+      coolify_min_version: '4.1.2',
+      note: expect.any(String),
+    });
+    expect(caps.recipe_recommend).toMatchObject({
       supported: true,
       coolify_min_version: '4.1.2',
       note: expect.any(String),

@@ -94,7 +94,7 @@
 
 Self-hosted [Coolify](https://coolify.io) ist eine der besten Open-Source-Alternativen zu Heroku- oder Vercel-artigen PaaS-Plattformen — aber die Anbindung an einen AI-Coding-Agenten bedeutete bisher oft, mehrere kleine, überlappende Community-MCP-Integrationen zusammenzustecken, jede mit eigenem Schema, eigenem Fehlerformat und eigener Vorstellung davon, was „sicher" bedeutet.
 
-**awesome-coolify-mcp** **1.1.3** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eines von **19 tools** mit einem `action`-Feld auf:
+**awesome-coolify-mcp** **1.1.4** ersetzt diesen Flickenteppich durch einen einzigen, community-gepflegten MCP-Server, der mit Coolifys REST API **4.1.x** über eine klare, **aktionsbasierte** Tool-Oberfläche spricht. Quellcode, Docs und npm-Distribution leben in einem öffentlichen Repo — [`clezcoding/awesome-coolify`](https://github.com/clezcoding/awesome-coolify) — während das installierbare Paket **`awesome-coolify-mcp`** heißt. Statt Dutzende fast identischer Tool-Namen zu merken, ruft dein Agent eines von **19 tools** mit einem `action`-Feld auf:
 
 ```js
 application({ action: "deploy", uuid: "<app-uuid>", wait: false })
@@ -321,16 +321,18 @@ Vollständiges Setup, Smoke-Test und bekannte Limits → **[docs/de/cloud.md](do
 
 ## 💬 MCP-Prompts
 
-Vier parametrisierte Workflow-Prompts liefern nummerierte Schritt-für-Schritt-Anleitungen (englische Texte), die bestehende Tools orchestrieren. Alle Argumente sind optional — jeder Prompt öffnet ohne Prefill.
+Sechs parametrisierte Workflow-Prompts liefern nummerierte Schritt-für-Schritt-Anleitungen (englische Texte), die bestehende Tools orchestrieren. Die meisten Argumente sind optional — jeder Prompt öffnet ohne Prefill.
 
-| Prompt | Args (alle optional) | Zweck |
+| Prompt | Args (alle optional außer wo vermerkt) | Zweck |
 |--------|----------------------|-------|
 | `deploy` | `instance?`, `uuid?`, `force?` | Application deployen und bis Terminal-Status überwachen |
-| `diagnose` | `instance?`, `uuid?` | App-, Server- oder Fleet-weite Probleme untersuchen |
+| `diagnose` | `instance?`, `uuid?` | App-, Server- oder Fleet-weite Probleme untersuchen (inkl. `diagnose.analyze`) |
 | `new-project` | `instance?`, `name?`, `server_uuid?` | Projekt, Environment und optional Server-Verknüpfung anlegen |
-| `incident` | `instance?`, `uuid?`, `project_uuid?` | Triage mit diagnose, logs, restart oder emergency redeploy |
+| `incident` | `instance?`, `uuid?`, `project_uuid?` | Triage mit `diagnose.analyze`, logs, restart oder emergency redeploy |
+| `rollback` | `instance?`, `uuid?`, `name?` | Vorschau, dann Confirm-gated `deployment.rollback` (STOP für Human-Approval) |
+| `maintenance-window` | `instance?`, `uuid?`, `resource_type` | Geführtes Change-Window über bestehende Confirm-gated Mutationen |
 
-Prompt-Handler lesen `.coolify/manifest.json` nie vom Disk — sie leiten den Agenten an, UUIDs aus dem Manifest zu lösen oder den User zu fragen.
+Prompt-Handler lesen `.coolify/manifest.json` nie vom Disk — sie leiten den Agenten an, UUIDs aus dem Manifest zu lösen oder den User zu fragen. Playbooks setzen `confirm: true` nie automatisch.
 
 ---
 
@@ -381,6 +383,7 @@ Das Tool, zu dem du greifst, wenn sich etwas falsch *anfühlt*, du aber noch nic
 | `server` | Server-Ressourcen, Domains und Erreichbarkeit |
 | `scan` | Fleet-weite Issues nach Severity gruppiert — der „Was brennt gerade"-Button |
 | `logs` | Application auflösen, Triage-Kontext liefern und optional begrenzte Runtime- oder Deployment-Logs einbeziehen |
+| `analyze` | **Log Brain** — regelbasierte Pattern-Triage auf Runtime- (und optional Build-)Logs; nur advisory (`crash_loop`, OOM, …) |
 
 ### 🚀 `application` — App-Ops
 
@@ -458,13 +461,15 @@ Ein MCP-Call für häufige Workload-Muster — App+DB-Verdrahtung, Git-Apps oder
 | `create-git-app` | Git-Application mit lokaler `build_pack`-Erkennung (`Dockerfile` / `Dockerfile.*`-Glob) |
 | `create-app-db` | Datenbank + Application erstellen und `DATABASE_URL` (oder `env_key`) verdrahten |
 | `create-one-click` | One-Click-Service nach Validierung von `type` gegen live service-templates |
+| `recommend` | **Advisory** Stack-Vorschlag aus dem live service-templates-Katalog — erzeugt keine Ressourcen |
 
-**Safety:** Recipe-Creates sind intentional — **kein Confirm-Gate**. Kein Dry-Run / Preview. Teilfehler **ohne** Auto-Rollback; erzeugte UUIDs in `error.data`. Connection Strings maskiert, außer `reveal: true`.
+**Safety:** Recipe-Creates sind intentional — **kein Confirm-Gate**. Kein Dry-Run / Preview. Teilfehler **ohne** Auto-Rollback; erzeugte UUIDs in `error.data`. Connection Strings maskiert, außer `reveal: true`. `recommend` ist read-only / advisory.
 
 ```js
 recipe({ action: "create-git-app", server_uuid, git_repository, git_branch, repo_path: "/path/to/repo" })
 recipe({ action: "create-app-db", server_uuid, app_name, db_name, db_engine: "postgresql" })
 recipe({ action: "create-one-click", server_uuid, type: "gitea" })
+recipe({ action: "recommend", stack: "Next.js + Postgres" })
 ```
 
 Nutze `service.list-types`, um gültige One-Click-Type-IDs vor `create-one-click` zu laden.
@@ -746,13 +751,14 @@ system({ action: "verify" })
 
 ## ✅ Status heute
 
-Paket **1.1.3** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1.x**:
+Paket **1.1.4** liefert **19 tools** und sechs MCP-Prompts für Coolify API **4.1.x**:
 
 | Fähigkeit | Status |
 |-----------|--------|
 | Connectivity prüfen + Infrastructure-Overview | ✅ Shipped |
 | Discovery: `resource.list` / `resource.find` | ✅ Shipped |
 | Diagnose: App, Server, Fleet-weiter Scan + Follow-Up-Hints | ✅ Shipped |
+| Log Brain (`diagnose.analyze`) + Playbooks (`incident`, `rollback`, `maintenance-window`) | ✅ Shipped |
 | Deploy-Lifecycle: Start/Stop/Restart, Deploy mit Wait-Mode + Force-Rebuild | ✅ Shipped |
 | Deployment-Tracking: List / Get / Cancel | ✅ Shipped |
 | Deployment-Watch und begrenzte Build-Logs | ✅ Shipped |
@@ -761,7 +767,7 @@ Paket **1.1.3** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1
 | Drift & Heal (`manifest.audit`, `application.envs:promote` / **env.promote**) | ✅ Shipped |
 | Deploy Guard (`deployment.preflight`, `deployment.rollback`) | ✅ Shipped |
 | Application-, Service- und Database-CRUD | ✅ Shipped |
-| Dynamische One-Click-Type-Discovery und Recipes | ✅ Shipped |
+| Dynamische One-Click-Type-Discovery, Recipes und `recipe.recommend` | ✅ Shipped |
 | Setup-Wizard und vier IDE-Workflow-Skills | ✅ Shipped |
 | Emergency-Ops: Stop-All, Projekt-Redeploy/Restart, hinter Confirm-Gate | ✅ Shipped |
 | SSH-Key-CRUD (`private_key`) mit PEM-Maskierung | ✅ Shipped |
@@ -777,7 +783,7 @@ Paket **1.1.3** liefert **19 tools** und vier MCP-Prompts für Coolify API **4.1
 | Capability-Discovery via `system.version` | ✅ Shipped |
 | Deployment-Build-Logs via `deployment.logs` | ✅ Shipped |
 
-> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für **App-Triage + begrenzten Runtime-Tail** in einem Aufruf: `diagnose({ action: "logs", mode: "full", uuid: "..." })` — prüfe `capabilities.diagnose_logs`. Für **Instanz-Gesundheit, Dependency-Graph, Impact und Janitor/Cleanup**: `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — prüfe `capabilities.intelligence_scorecard` (und sibling `intelligence_*`-Keys); `cleanup` erfordert `confirm: true`. Für **Manifest-Drift-Audit** und **Cross-App-Env-Promote**: `manifest({ action: "audit" })` und `application({ action: "envs:promote", source_uuid, target_uuid, ... })` — prüfe `capabilities.manifest_audit` und `capabilities.envs_promote` (MCP-Composites über bestehende Reads/Env-CRUD, keine Coolify-native REST-Endpoints). Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
+> **Capability-Discovery & Build-Logs:** `system({ action: "version" })` liefert `coolifyVersion` (ersetzt das bisherige Feld `version`), `mcpVersion` und eine `capabilities`-Map mit Coolify-4.1.2-Feature-Flags. Für **App-Triage + begrenzten Runtime-Tail** in einem Aufruf: `diagnose({ action: "logs", mode: "full", uuid: "..." })` — prüfe `capabilities.diagnose_logs`. Für **Log-Brain-Pattern-Triage**: `diagnose({ action: "analyze", uuid: "..." })` — prüfe `capabilities.diagnose_analyze`. Für **advisory Stack-Vorschläge aus dem Live-Katalog**: `recipe({ action: "recommend", stack: "..." })` — prüfe `capabilities.recipe_recommend`. Für **Instanz-Gesundheit, Dependency-Graph, Impact und Janitor/Cleanup**: `intelligence({ action: "scorecard" | "graph" | "impact" | "janitor" | "cleanup", ... })` — prüfe `capabilities.intelligence_scorecard` (und sibling `intelligence_*`-Keys); `cleanup` erfordert `confirm: true`. Für **Manifest-Drift-Audit** und **Cross-App-Env-Promote**: `manifest({ action: "audit" })` und `application({ action: "envs:promote", source_uuid, target_uuid, ... })` — prüfe `capabilities.manifest_audit` und `capabilities.envs_promote` (MCP-Composites über bestehende Reads/Env-CRUD, keine Coolify-native REST-Endpoints). Für Deployment-**Build**-Logs bevorzugt `deployment({ action: "logs", deployment_uuid: "..." })` (oder `application_uuid` für das neueste Deployment). Der `application.logs`-Pfad mit `deployment_uuid` bleibt aus Back-Compat-Gründen verfügbar. Für **Runtime**-Log-Follow: `application({ action: "logs", uuid: "...", follow: true })` — begrenztes MCP-Polling bis Idle oder Timeout; prüfe `capabilities.application_logs_follow` via `system.version`.
 
 > [!WARNING]
 > Coolify 4.1.x bietet keine stabilen Service- oder Database-Log-Endpunkte. Dieser Server behauptet oder registriert deshalb keine Service-/Database-Log-Actions. Nutze Application-Runtime-Logs und Deployment-Build-Logs, bis kompatible Upstream-APIs verfügbar sind.

@@ -97,7 +97,10 @@ Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deploymen
 4. Fleet scan path — call \`diagnose\` with action \`scan\`:
    diagnose({ action: "scan"${instanceSuffix} })
 
-5. Summarize findings by severity and recommend the next remediation step.`,
+5. For bounded log-pattern triage, call \`diagnose.analyze\` (or use the \`incident\` / \`rollback\` playbooks when remediation is next):
+   diagnose({ action: "analyze", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
+
+6. Summarize findings by severity and recommend the next remediation step.`,
           },
         ],
       };
@@ -157,7 +160,7 @@ Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deploymen
     {
       title: 'Incident Response',
       description:
-        'Triage an incident with diagnose, logs, restart, or emergency redeploy steps.',
+        'Triage an incident with diagnose.analyze, logs, restart, or emergency redeploy steps.',
       argsSchema: z.object({
         instance: optionalInstance,
         uuid: z.string().optional().describe('Affected application UUID'),
@@ -169,6 +172,7 @@ Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deploymen
     },
     async ({ instance, uuid, project_uuid }) => {
       const instanceSuffix = optionalInstanceSuffix(instance);
+      const uuidValue = uuid ?? '<uuid>';
       return {
         messages: [
           {
@@ -181,25 +185,144 @@ Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deploymen
 
 1. Resolve application UUID${uuid ? ` (${uuid})` : ''} from args, \`.coolify/manifest.json\`, or ask the user.${manifestSoftNote(Boolean(uuid))}
 
-2. Triage + logs in one call — \`diagnose.logs\` with \`mode: "full"\`:
-   diagnose({ action: "logs", mode: "full", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
+2. Pattern triage — \`diagnose.analyze\` for matched log patterns + next-action hints:
+   diagnose({ action: "analyze", uuid: "${uuidValue}"${instanceSuffix} })
+
+3. Triage + logs in one call — \`diagnose.logs\` with \`mode: "full"\`:
+   diagnose({ action: "logs", mode: "full", uuid: "${uuidValue}"${instanceSuffix} })
    Check \`capabilities.diagnose_logs\` via \`system({ action: "version" })\` when unsure.
 
-3. If a live symptom persists, follow runtime logs (check \`capabilities.application_logs_follow\`):
-   application({ action: "logs", uuid: "${uuid ?? '<uuid>'}", follow: true${instanceSuffix} })
+4. If a live symptom persists, follow runtime logs (check \`capabilities.application_logs_follow\`):
+   application({ action: "logs", uuid: "${uuidValue}", follow: true${instanceSuffix} })
 
-4. On build/deploy suspicion or after failed \`deployment.watch\`, fetch build logs:
+5. On build/deploy suspicion or after failed \`deployment.watch\`, fetch build logs:
    deployment({ action: "logs", deployment_uuid: "<deployment-uuid>"${instanceSuffix} })
    App-only: do not attempt service/DB log tools — unavailable on Coolify 4.1.2.
+   When deploy or rollback is under consideration, run advisory preflight first:
+   deployment({ action: "preflight", uuid: "${uuidValue}"${instanceSuffix} })
+   On \`crash_loop\` or failed deploy patterns, switch to the \`rollback\` playbook prompt — do not auto-set confirm true.
 
-5. Attempt non-destructive recovery — \`application\` restart:
-   application({ action: "restart", uuid: "${uuid ?? '<uuid>'}"${instanceSuffix} })
+6. Attempt non-destructive recovery — \`application\` restart:
+   application({ action: "restart", uuid: "${uuidValue}"${instanceSuffix} })
 
-6. If restart is insufficient, ask the human before destructive actions. Preview then confirm emergency redeploy:
+7. If restart is insufficient, ask the human before destructive actions. Preview then confirm emergency redeploy:
    emergency({ action: "redeploy_project", project_uuid: "${project_uuid ?? '<project-uuid>'}", confirm: false${instanceSuffix} })
-   Retry with \`confirm: true\` only after explicit human approval.
+   Retry with \`confirm: true\` only after explicit human approval. Never auto-set confirm true from analyze/recommend/playbooks.
 
-7. Report incident status, actions taken, and recommended follow-up.`,
+8. Report incident status, actions taken, and recommended follow-up.`,
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerPrompt(
+    'rollback',
+    {
+      title: 'Rollback Application',
+      description:
+        'Safely preview then confirm a Coolify application rollback via deployment tools.',
+      argsSchema: z.object({
+        instance: optionalInstance,
+        uuid: z.string().optional().describe('Target application UUID'),
+        name: z.string().optional().describe('Application name to resolve'),
+        fqdn: z.string().optional().describe('Application FQDN to resolve'),
+      }),
+    },
+    async ({ instance, uuid, name, fqdn }) => {
+      const instanceSuffix = optionalInstanceSuffix(instance);
+      const uuidValue = uuid ?? '<uuid>';
+      const resolveHints = [
+        uuid ? `uuid ${uuid}` : null,
+        name ? `name "${name}"` : null,
+        fqdn ? `fqdn ${fqdn}` : null,
+      ]
+        .filter(Boolean)
+        .join(', ');
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: `Guide me through rolling back ${resolveHints || 'an application'}${instance ? ` on instance ${instance}` : ''}.`,
+          },
+          {
+            role: 'assistant',
+            content: `Rollback workflow (composes existing deployment atomic tools only — guidance text, not an auto-executing runner):
+
+1. Resolve application UUID${uuid ? ` (${uuid})` : ''} from args (\`uuid\` / \`name\` / \`fqdn\`), \`.coolify/manifest.json\`, or ask the user.${manifestSoftNote(Boolean(uuid))}
+
+2. Advisory risk check — \`deployment.preflight\` before any rollback mutation:
+   deployment({ action: "preflight", uuid: "${uuidValue}"${instanceSuffix} })
+
+3. Preview rollback target (no mutation) — \`deployment.rollback\` with \`confirm: false\`:
+   deployment({ action: "rollback", uuid: "${uuidValue}", confirm: false${instanceSuffix} })
+   Surface \`rollback_target\` / preview data to the human. Do not skip this tool-level confirm gate.
+
+4. STOP — human approval required (SAF-01). Do not proceed to \`confirm: true\` until the human explicitly approves the previewed rollback. Analyze/recommend/playbooks never auto-set confirm true.
+
+5. After explicit human approval only, mutate with \`confirm: true\` (optional \`wait: true\` then \`deployment.watch\`):
+   deployment({ action: "rollback", uuid: "${uuidValue}", confirm: true${instanceSuffix} })
+   deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300${instanceSuffix} })
+
+6. On \`COOLIFY_ROLLBACK_UNAVAILABLE\` — explain no finished prior deployment / git-only path; do not invent a second rollback client. Offer \`deployment.list\` / redeploy alternatives after human agreement.
+
+7. Report rollback outcome and next monitoring steps.`,
+          },
+        ],
+      };
+    },
+  );
+
+  server.registerPrompt(
+    'maintenance-window',
+    {
+      title: 'Maintenance Window',
+      description:
+        'Stop a resource, perform maintenance work, then start/restart with confirm gates.',
+      argsSchema: z.object({
+        instance: optionalInstance,
+        resource_type: z
+          .enum(['application', 'service', 'database'])
+          .describe('Resource kind to maintain (required — no silent default)'),
+        uuid: z.string().optional().describe('Target resource UUID'),
+        name: z.string().optional().describe('Resource name to resolve'),
+      }),
+    },
+    async ({ instance, resource_type, uuid, name }) => {
+      const instanceSuffix = optionalInstanceSuffix(instance);
+      const uuidValue = uuid ?? '<uuid>';
+      const tool = resource_type;
+      return {
+        messages: [
+          {
+            role: 'user',
+            content: `Guide me through a maintenance window for ${resource_type}${uuid ? ` ${uuid}` : name ? ` "${name}"` : ''}${instance ? ` on instance ${instance}` : ''}.`,
+          },
+          {
+            role: 'assistant',
+            content: `Maintenance-window workflow (single-instance scope — no cross-instance fan-out):
+
+1. Confirm maintenance scope with the human: resource_type \`${resource_type}\`, UUID${uuid ? ` (${uuid})` : name ? ` / name "${name}"` : ''}, and optional instance. Ask if UUID is missing.${manifestSoftNote(Boolean(uuid))}
+
+2. If a deploy is planned during the window, run advisory preflight first:
+   deployment({ action: "preflight", uuid: "${uuidValue}"${instanceSuffix} })
+
+3. Stop the resource via the matching lifecycle tool:
+   ${tool}({ action: "stop", uuid: "${uuidValue}"${instanceSuffix} })
+   Use \`application\` | \`service\` | \`database\` matching \`resource_type\` — never invent a parallel client.
+
+4. Work phase (agent-guided): env updates, \`manifest({ action: "audit"${instanceSuffix} })\`, \`recipe({ action: "recommend", ... })\`, patches — keep mutations on existing confirm-gated actions.
+
+5. Bring the resource back — \`start\` or \`restart\`:
+   ${tool}({ action: "start", uuid: "${uuidValue}"${instanceSuffix} })
+   ${tool}({ action: "restart", uuid: "${uuidValue}"${instanceSuffix} })
+   Optional application redeploy with watch:
+   application({ action: "deploy", uuid: "${uuidValue}", wait: false${instanceSuffix} })
+   deployment({ action: "watch", deployment_uuid: "<deployment_uuid>", timeout: 300${instanceSuffix} })
+
+6. Destructive deletes / emergency ops — never without existing confirm gates. Preview with \`confirm: false\`, then \`confirm: true\` only after explicit human approval. Playbooks never auto-set confirm true.
+
+7. Report window outcome, resource status, and follow-up.`,
           },
         ],
       };

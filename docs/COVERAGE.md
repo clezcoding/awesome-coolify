@@ -12,9 +12,9 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 
 | bucket | count |
 | --- | ---: |
-| covered | 96 |
+| covered | 97 |
 | deferred | 2 |
-| out-of-scope | 31 |
+| out-of-scope | 32 |
 | gap | 57 |
 
 ## Bucket definitions
@@ -73,6 +73,7 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 | `deployment.preflight` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchResources, fetchServers, fetchServerDomains | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid}, GET /resources, GET /servers, GET /servers/{uuid}/domains | covered | — |
 | `deployment.rollback` | fetchApplication, fetchAppDeployments, updateApplication, triggerDeploy | GET /applications/{uuid}, GET /deployments/applications/{uuid}, PATCH /applications/{uuid}, GET /deploy | covered | — |
 | `deployment.watch` | fetchDeployment | GET /deployments/{uuid} | out-of-scope | Polling orchestration over fetchDeployment |
+| `diagnose.analyze` | fetchResources, fetchApplicationLogs, fetchDeployment | GET /resources, GET /applications/{uuid}/logs, GET /deployments/{uuid} | covered | MCP composite log-pattern triage on existing Coolify log/deployment reads (Phase 31) |
 | `diagnose.app` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid} | covered | — |
 | `diagnose.logs` | fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchApplicationLogs, fetchDeployment | GET /applications/{uuid}, GET /applications/{uuid}/envs, GET /deployments/applications/{uuid}, GET /applications/{uuid}/logs, GET /deployments/{uuid} | covered | — |
 | `diagnose.scan` | fetchServers, fetchResources | GET /servers, GET /resources | out-of-scope | Cross-resource scan orchestration |
@@ -123,6 +124,7 @@ Generated action-to-API review for the pinned Coolify v4.1.2 specification.
 | `recipe.create-app-db` | createPostgresqlDatabase, createMysqlDatabase, createMariadbDatabase, createMongodbDatabase, createRedisDatabase, createClickhouseDatabase, createDragonflyDatabase, createKeydbDatabase, triggerDatabaseStart, createPublicApplication, fetchDatabase, bulkUpdateEnvs, triggerDeploy | POST /databases/postgresql, POST /databases/mysql, POST /databases/mariadb, POST /databases/mongodb, POST /databases/redis, POST /databases/clickhouse, POST /databases/dragonfly, POST /databases/keydb, GET /databases/{uuid}/start, POST /applications/public, GET /databases/{uuid}, PATCH /applications/{uuid}/envs/bulk, GET /deploy | out-of-scope | Multi-resource orchestration (database + application + env) |
 | `recipe.create-git-app` | createPublicApplication, triggerDeploy | POST /applications/public, GET /deploy | out-of-scope | Orchestration wrapper over application.create + deploy |
 | `recipe.create-one-click` | fetchVersion, createService | GET /version, POST /services | out-of-scope | Orchestration wrapper over service.create |
+| `recipe.recommend` | fetchVersion | GET /version | out-of-scope | No external API integration: Phase 31 extends diagnose/recipe/prompts using existing Coolify client paths; no new third-party API surface. |
 | `resource.find` | fetchResources | GET /resources | covered | — |
 | `resource.list` | fetchResources, fetchServers, fetchProjects | GET /resources, GET /servers, GET /projects | covered | — |
 | `server.create` | createServer, validateServer, pollServerUntilReachable, fetchServer | POST /servers, GET /servers/{uuid}/validate, GET /servers/{uuid} | covered | — |

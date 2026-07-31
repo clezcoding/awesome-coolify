@@ -1,7 +1,7 @@
 # Coolify Cloud
 
 Nutze **awesome-coolify-mcp** mit [Coolify Cloud](https://app.coolify.io). Der Server
-stellt **19 Tools** und **vier Prompts** mit team-scoped Tokens, Routing pro Request und
+stellt **19 Tools** und **sechs Prompts** mit team-scoped Tokens, Routing pro Request und
 strukturierten Cloud-Fehlern bereit.
 
 > **Branding:** Icons via `serverInfo.icons` — eingebettete Data-URI (primär) + jsDelivr-CDN-Einträge (`mcp-icon-192.png`, `favicon-32.png`). Siehe [`docs/assets/README.md`](../assets/README.md) und [Maintainer-Verifizierung](../assets/cursor-icon-verify.md).

@@ -24,6 +24,11 @@ export const COOLIFY_412_CAPABILITIES = {
     coolify_min_version: '4.1.2',
     note: 'Bounded runtime log follow via application.logs follow:true (MCP polling on GET /applications/{uuid}/logs)',
   },
+  diagnose_analyze: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'Rule-based runtime log pattern analysis via diagnose.analyze (MCP composite; not a Coolify REST endpoint)',
+  },
   diagnose_logs: {
     supported: true,
     coolify_min_version: '4.1.2',
@@ -73,6 +78,11 @@ export const COOLIFY_412_CAPABILITIES = {
     supported: true,
     coolify_min_version: '4.1.2',
     note: 'MCP cross-environment env promotion preview/apply via existing env CRUD (not a Coolify REST endpoint)',
+  },
+  recipe_recommend: {
+    supported: true,
+    coolify_min_version: '4.1.2',
+    note: 'Advisory stack recommendation from live service-templates catalog via recipe.recommend (MCP composite)',
   },
 } as const satisfies Record<
   string,

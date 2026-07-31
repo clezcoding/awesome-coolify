@@ -25,6 +25,7 @@ import {
 } from '../../utils/project-lookup.js';
 import { fetchServiceTemplates } from '../../utils/service-templates.js';
 import { buildReadResponse, type ReadResponse } from '../../utils/formatters.js';
+import type { FollowUpHint } from '../../utils/diagnose-hints.js';
 import {
   CoolifyApiError,
   RECOVERY_HINTS,
@@ -61,7 +62,7 @@ function rethrowGitAppApiErrorWithManifestHint(error: unknown): never {
 }
 
 export const recipeActionsCatalog =
-  'Actions: create-git-app(server_uuid, git_repository, git_branch, repo_path?, build_pack?) · create-app-db(server_uuid, app_name, db_name, db_engine, env_key?) · create-one-click(server_uuid, type, instant_deploy?)';
+  'Actions: create-git-app(server_uuid, git_repository, git_branch, repo_path?, build_pack?) · create-app-db(server_uuid, app_name, db_name, db_engine, env_key?) · create-one-click(server_uuid, type, instant_deploy?) · recommend(stack, server_uuid?, project_uuid?, environment_name?)';
 
 export const recipeSafetyFooter =
   'Safety: optional instance · reveal opt-in only';
@@ -107,7 +108,7 @@ function rejectDockercomposeBuildPack(
 }
 
 export const recipeActionSchema = createFlatActionSchema(
-  ['create-git-app', 'create-app-db', 'create-one-click'],
+  ['create-git-app', 'create-app-db', 'create-one-click', 'recommend'],
   {
     server_uuid: z.string().optional().describe('Target server UUID'),
     project_uuid: z.string().optional().describe('Project UUID'),
@@ -149,6 +150,12 @@ export const recipeActionSchema = createFlatActionSchema(
       .optional()
       .describe('Start immediately (default true)'),
     reveal: z.boolean().optional().describe('Reveal masked values'),
+    stack: z
+      .string()
+      .optional()
+      .describe(
+        'Free-text stack description for recommend (e.g. "Next.js + Postgres")',
+      ),
     ...sharedReadParamsFlatShape,
     ...mutationResponseParamsFlatShape,
   },
@@ -193,11 +200,21 @@ export const recipeActionSchema = createFlatActionSchema(
       'format',
       'max_chars',
     ],
+    recommend: [
+      'stack',
+      'server_uuid',
+      'project_uuid',
+      'environment_name',
+      'environment_uuid',
+      'format',
+      'max_chars',
+    ],
   },
   {
     'create-git-app': ['server_uuid', 'git_repository', 'git_branch'],
     'create-app-db': ['server_uuid', 'app_name', 'db_name', 'db_engine'],
     'create-one-click': ['server_uuid', 'type'],
+    recommend: ['stack'],
   },
   (data, ctx) => {
     if (data.action === 'create-git-app') {
@@ -218,6 +235,16 @@ export const recipeActionSchema = createFlatActionSchema(
     if (data.action === 'create-one-click') {
       requireProjectAndEnvironment(data, ctx, 'create-one-click');
     }
+    if (data.action === 'recommend') {
+      if (typeof data.stack === 'string' && data.stack.trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'stack must be a non-empty stack description',
+          path: ['stack'],
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }
   },
 );
 
@@ -229,6 +256,7 @@ type CreateOneClickAction = Extract<
   RecipeAction,
   { action: 'create-one-click' }
 >;
+type RecommendAction = Extract<RecipeAction, { action: 'recommend' }>;
 
 export type RecipeActionResult = ReadResponse<Record<string, unknown>> | McpErrorResult;
 
@@ -263,7 +291,8 @@ function throwValidationError(error: z.ZodError, args: unknown): never {
     isRecord(args) &&
     (args.action === 'create-git-app' ||
       args.action === 'create-app-db' ||
-      args.action === 'create-one-click')
+      args.action === 'create-one-click' ||
+      args.action === 'recommend')
   ) {
     code = 'COOLIFY_VALIDATION_ERROR';
   }
@@ -816,6 +845,316 @@ async function handleCreateOneClick(
   );
 }
 
+const GIT_APP_KEYWORDS = new Set([
+  'next.js',
+  'nextjs',
+  'react',
+  'vue',
+  'nuxt',
+  'remix',
+  'node',
+  'python',
+  'django',
+  'fastapi',
+]);
+
+const DB_ENGINE_RULES: Array<{
+  tokens: string[];
+  engine: 'postgresql' | 'mysql' | 'mariadb' | 'mongodb' | 'redis';
+}> = [
+  { tokens: ['postgres', 'postgresql'], engine: 'postgresql' },
+  { tokens: ['mysql'], engine: 'mysql' },
+  { tokens: ['mariadb'], engine: 'mariadb' },
+  { tokens: ['mongo', 'mongodb'], engine: 'mongodb' },
+  { tokens: ['redis'], engine: 'redis' },
+];
+
+type RecommendConfidence = 'exact' | 'high' | 'suggested';
+type RecommendMatchKind = 'git_app' | 'database' | 'one_click';
+
+type RecommendMatch = {
+  kind: RecommendMatchKind;
+  catalog_id?: string;
+  label: string;
+  confidence: RecommendConfidence;
+};
+
+type RecommendPlanStep = {
+  order: number;
+  recipe_action: 'create-git-app' | 'create-app-db' | 'create-one-click';
+  summary: string;
+  suggested_params: Record<string, unknown>;
+  env_keys?: string[];
+  follow_up_hint: FollowUpHint;
+};
+
+function tokenizeStack(stack: string): string[] {
+  return stack
+    .toLowerCase()
+    .split(/[+,&]|\s+and\s+/i)
+    .flatMap((part) => part.trim().split(/[\s/]+/))
+    .map((token) => token.replace(/^[^a-z0-9.]+|[^a-z0-9.]+$/gi, ''))
+    .filter((token) => token.length > 0);
+}
+
+function normalizeGitToken(token: string): string {
+  return token === 'nextjs' ? 'next.js' : token;
+}
+
+function recommendPrefills(parsed: RecommendAction): Record<string, unknown> {
+  return omitUndefined({
+    server_uuid: parsed.server_uuid,
+    project_uuid: parsed.project_uuid,
+    environment_name: parsed.environment_name,
+    environment_uuid: parsed.environment_uuid,
+  });
+}
+
+function recipeFollowUpHint(
+  action: RecommendPlanStep['recipe_action'],
+  args: Record<string, unknown>,
+  label: string,
+): FollowUpHint {
+  return {
+    tool: 'recipe',
+    action,
+    args,
+    label,
+    available_in_phase: 20,
+  };
+}
+
+function scoreOneClickMatch(
+  token: string,
+  catalogId: string,
+  details: { name?: string; description?: string },
+): RecommendConfidence | null {
+  const id = catalogId.toLowerCase();
+  const name = (details.name ?? '').toLowerCase();
+  const compactToken = token.replace(/\./g, '');
+  const compactId = id.replace(/[^a-z0-9]/g, '');
+  const compactName = name.replace(/[^a-z0-9]/g, '');
+
+  if (id === token || name === token) {
+    return 'exact';
+  }
+  if (
+    compactId === compactToken ||
+    compactName === compactToken ||
+    (name.length > 0 && name.split(/\s+/).every((part) => token.includes(part)))
+  ) {
+    return 'high';
+  }
+  if (
+    id.includes(token) ||
+    token.includes(id) ||
+    (name.length > 0 && (name.includes(token) || token.includes(name)))
+  ) {
+    return 'suggested';
+  }
+  if (
+    compactId.includes(compactToken) ||
+    compactToken.includes(compactId) ||
+    (compactName.length > 0 &&
+      (compactName.includes(compactToken) ||
+        compactToken.includes(compactName)))
+  ) {
+    return 'suggested';
+  }
+  return null;
+}
+
+const CONFIDENCE_RANK: Record<RecommendConfidence, number> = {
+  exact: 3,
+  high: 2,
+  suggested: 1,
+};
+
+async function handleRecipeRecommend(
+  parsed: RecommendAction,
+  env: EnvConfig,
+): Promise<ReadResponse<Record<string, unknown>>> {
+  const stackDescription = parsed.stack!.trim();
+  const templates = await fetchServiceTemplates(env);
+  const tokens = tokenizeStack(stackDescription);
+  const prefills = recommendPrefills(parsed);
+
+  const matches: RecommendMatch[] = [];
+  const planSteps: RecommendPlanStep[] = [];
+  const unmatchedTokens: string[] = [];
+  const consumed = new Set<string>();
+
+  for (const rawToken of tokens) {
+    const token = normalizeGitToken(rawToken);
+    if (GIT_APP_KEYWORDS.has(token) || GIT_APP_KEYWORDS.has(rawToken)) {
+      const label = token === 'next.js' ? 'Next.js' : token;
+      matches.push({
+        kind: 'git_app',
+        label,
+        confidence: 'exact',
+      });
+      const suggested_params = {
+        ...prefills,
+        build_pack: 'nixpacks' as const,
+      };
+      planSteps.push({
+        order: 0,
+        recipe_action: 'create-git-app',
+        summary: `Create git application for ${label} (nixpacks)`,
+        suggested_params,
+        follow_up_hint: recipeFollowUpHint(
+          'create-git-app',
+          suggested_params,
+          `Run recipe.create-git-app for ${label}`,
+        ),
+      });
+      consumed.add(rawToken);
+      consumed.add(token);
+    }
+  }
+
+  for (const rawToken of tokens) {
+    if (consumed.has(rawToken)) continue;
+    const rule = DB_ENGINE_RULES.find((entry) =>
+      entry.tokens.includes(rawToken),
+    );
+    if (!rule) continue;
+    matches.push({
+      kind: 'database',
+      label: rule.engine,
+      confidence: 'exact',
+    });
+    const suggested_params = {
+      ...prefills,
+      db_engine: rule.engine,
+      env_key: 'DATABASE_URL',
+    };
+    planSteps.push({
+      order: 0,
+      recipe_action: 'create-app-db',
+      summary: `Create ${rule.engine} database and wire DATABASE_URL`,
+      suggested_params,
+      env_keys: ['DATABASE_URL'],
+      follow_up_hint: recipeFollowUpHint(
+        'create-app-db',
+        suggested_params,
+        `Run recipe.create-app-db (${rule.engine})`,
+      ),
+    });
+    consumed.add(rawToken);
+  }
+
+  for (const rawToken of tokens) {
+    if (consumed.has(rawToken) || consumed.has(normalizeGitToken(rawToken))) {
+      continue;
+    }
+
+    let best:
+      | {
+          catalog_id: string;
+          label: string;
+          confidence: RecommendConfidence;
+        }
+      | undefined;
+
+    for (const [catalogId, details] of Object.entries(templates)) {
+      if (!Object.hasOwn(templates, catalogId)) continue;
+      const confidence = scoreOneClickMatch(
+        rawToken,
+        catalogId,
+        isRecord(details) ? details : {},
+      );
+      if (!confidence) continue;
+      const label =
+        isRecord(details) && typeof details.name === 'string'
+          ? details.name
+          : catalogId;
+      if (
+        !best ||
+        CONFIDENCE_RANK[confidence] > CONFIDENCE_RANK[best.confidence]
+      ) {
+        best = { catalog_id: catalogId, label, confidence };
+      }
+    }
+
+    if (!best || !Object.hasOwn(templates, best.catalog_id)) {
+      unmatchedTokens.push(rawToken);
+      continue;
+    }
+
+    matches.push({
+      kind: 'one_click',
+      catalog_id: best.catalog_id,
+      label: best.label,
+      confidence: best.confidence,
+    });
+    const suggested_params = {
+      ...prefills,
+      type: best.catalog_id,
+    };
+    planSteps.push({
+      order: 0,
+      recipe_action: 'create-one-click',
+      summary: `Create one-click service '${best.catalog_id}' (${best.confidence})`,
+      suggested_params,
+      follow_up_hint: recipeFollowUpHint(
+        'create-one-click',
+        suggested_params,
+        `Run recipe.create-one-click type=${best.catalog_id}`,
+      ),
+    });
+    consumed.add(rawToken);
+  }
+
+  if (planSteps.length === 0) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_VALIDATION_ERROR',
+      message: `Unable to map stack '${stackDescription}' to known recipe actions or live one-click types. Call service.list-types for valid IDs.`,
+      recoveryHints: [
+        'Run service action list-types to fetch valid one-click type IDs.',
+        'Provide a clearer stack phrase (e.g. "Next.js + Postgres" or an exact catalog type like "gitea").',
+        MANIFEST_HINT,
+      ],
+    });
+  }
+
+  // D-15: exact/high before suggested; suggested never alone auto-executes (advisory).
+  matches.sort(
+    (a, b) => CONFIDENCE_RANK[b.confidence] - CONFIDENCE_RANK[a.confidence],
+  );
+
+  const ACTION_ORDER: Record<RecommendPlanStep['recipe_action'], number> = {
+    'create-git-app': 1,
+    'create-app-db': 2,
+    'create-one-click': 3,
+  };
+  planSteps.sort(
+    (a, b) => ACTION_ORDER[a.recipe_action] - ACTION_ORDER[b.recipe_action],
+  );
+
+  const orderedSteps = planSteps.map((step, index) => ({
+    ...step,
+    order: index + 1,
+  }));
+
+  return buildReadResponse(
+    {
+      stack_description: stackDescription,
+      advisory: true,
+      catalog_source: 'live',
+      matches,
+      plan_steps: orderedSteps,
+      ...(unmatchedTokens.length > 0
+        ? { unmatched_tokens: unmatchedTokens }
+        : {}),
+    },
+    {
+      format: parsed.format,
+      max_chars: parsed.max_chars,
+    },
+  );
+}
+
 export async function handleRecipeAction(
   args: unknown,
   env: EnvConfig,
@@ -831,6 +1170,8 @@ export async function handleRecipeAction(
         return await handleCreateAppDb(parsed, routingEnv);
       case 'create-one-click':
         return await handleCreateOneClick(parsed, routingEnv);
+      case 'recommend':
+        return await handleRecipeRecommend(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown recipe action: ${String(_exhaustive)}`);

@@ -48,6 +48,13 @@ import {
   processDeploymentBuildLogs,
 } from '../../utils/log-helpers.js';
 import {
+  dedupeHints,
+  enrichPatternHints,
+  matchLogPatterns,
+  type LogPatternMatch,
+} from '../../utils/log-patterns.js';
+import type { FollowUpHint } from '../../utils/diagnose-hints.js';
+import {
   FIND_MATCH_CAP,
   matchesExplicitFields,
   matchesQuery,
@@ -78,10 +85,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export const diagnoseActionsCatalog =
-  'Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?) · logs(query?, uuid?, name?, domain?, mode?, deployment_uuid?, lines?, offset?, include_hidden?, type?, format?, max_chars?, instance?)';
+  'Actions: app(query?, uuid?, name?, domain?, limit?) · server(query?, uuid?, name?, ip?, trigger_validate?) · scan(format?, page?, per_page?) · logs(query?, uuid?, name?, domain?, mode?, deployment_uuid?, lines?, offset?, include_hidden?, type?, format?, max_chars?, instance?) · analyze(query?, uuid?, name?, domain?, deployment_uuid?, lines?, offset?, max_chars?, instance?) — pattern triage on runtime logs (advisory)';
 
 export const diagnoseSafetyFooter =
-  'Safety: confirm for destructive ops · optional instance · reveal opt-in only';
+  'Safety: confirm for destructive ops · analyze is advisory-only (no restart/redeploy/rollback) · optional instance · reveal opt-in only';
 
 const diagnoseReadParamKeys = [
   'format',
@@ -102,7 +109,7 @@ const diagnoseLogsReadParamKeys = [
 ] as const;
 
 export const diagnoseToolSchema = createFlatActionSchema(
-  ['app', 'server', 'scan', 'logs'],
+  ['app', 'server', 'scan', 'logs', 'analyze'],
   {
     query: z
       .string()
@@ -187,6 +194,16 @@ export const diagnoseToolSchema = createFlatActionSchema(
       'type',
       ...diagnoseLogsReadParamKeys,
     ],
+    analyze: [
+      'query',
+      'uuid',
+      'name',
+      'domain',
+      'deployment_uuid',
+      'lines',
+      'offset',
+      ...diagnoseLogsReadParamKeys,
+    ],
   },
   undefined,
   (data, ctx) => {
@@ -236,6 +253,23 @@ export const diagnoseToolSchema = createFlatActionSchema(
         });
       }
     }
+    if (data.action === 'analyze') {
+      if (!hasAtLeastOneIdentifier(data, APP_IDENTIFIER_FIELDS)) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            'At least one identifier (query|uuid|name|domain) required for action analyze',
+          params: { code: 'COOLIFY_422' },
+        });
+      }
+      if (data.format === 'table') {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'format table is not supported for analyze — use pretty or json',
+          params: { code: 'COOLIFY_VALIDATION_ERROR' },
+        });
+      }
+    }
   },
   {
     mode: 'full',
@@ -254,6 +288,7 @@ type DiagnoseAppAction = Extract<DiagnoseAction, { action: 'app' }>;
 type DiagnoseServerAction = Extract<DiagnoseAction, { action: 'server' }>;
 type DiagnoseScanAction = Extract<DiagnoseAction, { action: 'scan' }>;
 type DiagnoseLogsAction = Extract<DiagnoseAction, { action: 'logs' }>;
+type DiagnoseAnalyzeAction = Extract<DiagnoseAction, { action: 'analyze' }>;
 
 type DiagnoseAppIdentifierParams = Pick<
   DiagnoseAppAction,
@@ -292,12 +327,32 @@ export type DiagnoseLogsResult = ReadResponse<{
     | ReturnType<typeof processDeploymentBuildLogs>;
 }>;
 
+export type EnrichedLogPattern = LogPatternMatch & {
+  name: string;
+  hint: FollowUpHint;
+};
+
+export type DiagnoseAnalyzeResult = ReadResponse<{
+  application_uuid?: string;
+  deployment_uuid?: string;
+  logs_meta: {
+    total_lines: number;
+    logs_truncated: boolean;
+    hint?: string;
+  };
+  matched_patterns: EnrichedLogPattern[];
+  recommended_actions: FollowUpHint[];
+  advisory: true;
+  analyze_failed?: { code: string; message: string };
+}>;
+
 export type DiagnoseActionResult =
   | DiagnoseMatchResult
   | DiagnoseAppResult
   | DiagnoseServerResult
   | DiagnoseScanResult
   | DiagnoseLogsResult
+  | DiagnoseAnalyzeResult
   | McpErrorResult;
 
 async function resolveAppUuid(
@@ -618,6 +673,145 @@ async function handleDiagnoseLogs(
   );
 }
 
+async function handleDiagnoseAnalyze(
+  parsed: DiagnoseAnalyzeAction,
+  env: EnvConfig,
+): Promise<DiagnoseMatchResult | DiagnoseAnalyzeResult> {
+  const lines = parsed.lines ?? 100;
+  const offset = parsed.offset ?? 0;
+  const maxChars = parsed.max_chars ?? 20000;
+
+  const resolution = await resolveAppUuid(parsed, env);
+
+  if (resolution.kind === 'zero') {
+    return buildReadResponse(
+      { matches: [], hint: MULTI_MATCH_HINT },
+      { format: parsed.format, max_chars: maxChars },
+    );
+  }
+
+  if (resolution.kind === 'multi') {
+    return buildReadResponse(
+      { matches: resolution.matches, hint: MULTI_MATCH_HINT },
+      { format: parsed.format, max_chars: maxChars },
+    );
+  }
+
+  const appUuid = resolution.uuid;
+  let analyze_failed: { code: string; message: string } | undefined;
+  let runtimeLines: string[] = [];
+  let logs_meta: {
+    total_lines: number;
+    logs_truncated: boolean;
+    hint?: string;
+  } = { total_lines: 0, logs_truncated: false };
+
+  try {
+    const raw = await fetchApplicationLogs(
+      env.COOLIFY_URL,
+      env.COOLIFY_TOKEN,
+      appUuid,
+      lines + offset,
+      env.COOLIFY_VERIFY_SSL,
+    );
+    const logsStr =
+      isRecord(raw) && typeof raw.logs === 'string' ? raw.logs : '';
+    const payload = buildRuntimeLogPayload(appUuid, logsStr, {
+      lines,
+      offset,
+      max_chars: maxChars,
+    });
+    runtimeLines = payload.logs_lines;
+    logs_meta = {
+      total_lines: payload.total_lines,
+      logs_truncated: payload.logs_truncated,
+      ...(payload.logs_lines.length === 0
+        ? { hint: EMPTY_RUNTIME_LOGS_HINT }
+        : payload.hint
+          ? { hint: payload.hint }
+          : {}),
+    };
+  } catch (err) {
+    const envelope =
+      err instanceof CoolifyApiError ? err.envelope : toStructuredError(err);
+    analyze_failed = {
+      code: envelope.code,
+      message: redactSecrets(envelope.message),
+    };
+  }
+
+  const allFindings: LogPatternMatch[] = [];
+  if (!analyze_failed) {
+    for (const m of matchLogPatterns(runtimeLines)) {
+      allFindings.push({ ...m, source: 'runtime' });
+    }
+  }
+
+  if (parsed.deployment_uuid && !analyze_failed) {
+    try {
+      const raw = await fetchDeployment(
+        env.COOLIFY_URL,
+        env.COOLIFY_TOKEN,
+        parsed.deployment_uuid,
+        env.COOLIFY_VERIFY_SSL,
+      );
+      const rec = isRecord(raw) ? raw : {};
+      const buildPayload = processDeploymentBuildLogs(
+        parsed.deployment_uuid,
+        rec,
+        {
+          lines,
+          offset,
+          include_hidden: false,
+          type: 'all',
+          max_chars: maxChars,
+        },
+      );
+      for (const m of matchLogPatterns(buildPayload.logs_lines)) {
+        allFindings.push({ ...m, source: 'build' });
+      }
+    } catch (err) {
+      // Soft: keep runtime matches; note build fetch failure on analyze_failed only if no runtime yet
+      if (allFindings.length === 0 && !analyze_failed) {
+        const envelope =
+          err instanceof CoolifyApiError ? err.envelope : toStructuredError(err);
+        analyze_failed = {
+          code: envelope.code,
+          message: redactSecrets(envelope.message),
+        };
+      }
+    }
+  }
+
+  const matched_patterns = enrichPatternHints(allFindings, appUuid);
+  const logsHint: FollowUpHint = {
+    tool: 'diagnose',
+    action: 'logs',
+    args: { uuid: appUuid, mode: 'logs-only', lines },
+    label: 'Fetch raw runtime log tail',
+    available_in_phase: 26,
+  };
+  const recommended_actions = dedupeHints([
+    ...matched_patterns.map((p) => p.hint),
+    logsHint,
+  ]);
+
+  return buildReadResponse(
+    {
+      application_uuid: appUuid,
+      ...(parsed.deployment_uuid
+        ? { deployment_uuid: parsed.deployment_uuid }
+        : {}),
+      logs_meta,
+      matched_patterns,
+      recommended_actions,
+      advisory: true as const,
+      ...(analyze_failed ? { analyze_failed } : {}),
+    },
+    { format: parsed.format, max_chars: maxChars },
+  );
+}
+
 async function handleDiagnoseServer(
   parsed: DiagnoseServerAction,
   env: EnvConfig,
@@ -760,6 +954,8 @@ export async function handleDiagnoseAction(
         return await handleDiagnoseScan(parsed, routingEnv);
       case 'logs':
         return await handleDiagnoseLogs(parsed, routingEnv);
+      case 'analyze':
+        return await handleDiagnoseAnalyze(parsed, routingEnv);
       default: {
         const _exhaustive: never = parsed;
         throw new Error(`Unknown diagnose action: ${String(_exhaustive)}`);

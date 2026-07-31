@@ -56,6 +56,12 @@ action_overrides:
   - action: recipe.create-one-click
     bucket: out-of-scope
     reason: "Orchestration wrapper over service.create"
+  - action: recipe.recommend
+    bucket: out-of-scope
+    reason: "No external API integration: Phase 31 extends diagnose/recipe/prompts using existing Coolify client paths; no new third-party API surface."
+  - action: diagnose.analyze
+    bucket: covered
+    reason: "MCP composite log-pattern triage on existing Coolify log/deployment reads (Phase 31)"
   - action: instance.list
     bucket: out-of-scope
     reason: "Local InstanceManager registry — no Coolify REST op"

@@ -139,6 +139,9 @@ actions:
   - action: diagnose.logs
     client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments, fetchApplicationLogs, fetchDeployment]
     openapi: ["GET /applications/{uuid}", "GET /applications/{uuid}/envs", "GET /deployments/applications/{uuid}", "GET /applications/{uuid}/logs", "GET /deployments/{uuid}"]
+  - action: diagnose.analyze
+    client: [fetchResources, fetchApplicationLogs, fetchDeployment]
+    openapi: ["GET /resources", "GET /applications/{uuid}/logs", "GET /deployments/{uuid}"]
   - action: diagnose.app
     client: [fetchApplication, fetchApplicationEnvs, fetchAppDeployments]
     openapi: ["GET /applications/{uuid}", "GET /applications/{uuid}/envs", "GET /deployments/applications/{uuid}"]
@@ -287,6 +290,9 @@ actions:
   - action: recipe.create-one-click
     client: [fetchVersion, createService]
     openapi: ["GET /version", "POST /services"]
+  - action: recipe.recommend
+    client: [fetchVersion]
+    openapi: ["GET /version"]
   - action: resource.list
     client: [fetchResources, fetchServers, fetchProjects]
     openapi: ["GET /resources", "GET /servers", "GET /projects"]

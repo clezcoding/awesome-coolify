@@ -36,18 +36,18 @@ Composite intelligence on Coolify 4.1.x — no new REST endpoints required.
 
 ### Log Brain
 
-- [ ] **BRAIN-01**: Agent can analyze existing application runtime logs for known patterns (OOM, 5xx spike, crash loop, connection refused)
-- [ ] **BRAIN-02**: Analysis returns severity, matched patterns, and suggested next actions (links to diagnose/playbook flows)
+- [x] **BRAIN-01**: Agent can analyze existing application runtime logs for known patterns (OOM, 5xx spike, crash loop, connection refused)
+- [x] **BRAIN-02**: Analysis returns severity, matched patterns, and suggested next actions (links to diagnose/playbook flows)
 
 ### Ops Playbooks
 
-- [ ] **PLAY-01**: Parameterized MCP prompts exist for incident response, rollback, and maintenance-window flows
-- [ ] **PLAY-02**: Playbooks compose existing atomic tools — no duplicate API client implementations
+- [x] **PLAY-01**: Parameterized MCP prompts exist for incident response, rollback, and maintenance-window flows
+- [x] **PLAY-02**: Playbooks compose existing atomic tools — no duplicate API client implementations
 
 ### Smart Recipes
 
-- [ ] **SREC-01**: Agent can request a stack recommendation (e.g. "Next.js + Postgres") and receive a one-click service + env + deploy plan
-- [ ] **SREC-02**: Recommendations use live `service.list-types` catalog data, not hardcoded YAML templates
+- [x] **SREC-01**: Agent can request a stack recommendation (e.g. "Next.js + Postgres") and receive a one-click service + env + deploy plan
+- [x] **SREC-02**: Recommendations use live `service.list-types` catalog data, not hardcoded YAML templates
 
 ## Future Requirements (v3.4+)
 
@@ -91,12 +91,12 @@ Deferred until Coolify 4.2.0+ stable.
 | GUARD-01 | Phase 30 | Complete |
 | GUARD-02 | Phase 30 | Complete |
 | GUARD-03 | Phase 30 | Complete |
-| BRAIN-01 | Phase 31 | Pending |
-| BRAIN-02 | Phase 31 | Pending |
-| PLAY-01 | Phase 31 | Pending |
-| PLAY-02 | Phase 31 | Pending |
-| SREC-01 | Phase 31 | Pending |
-| SREC-02 | Phase 31 | Pending |
+| BRAIN-01 | Phase 31 | Complete |
+| BRAIN-02 | Phase 31 | Complete |
+| PLAY-01 | Phase 31 | Complete |
+| PLAY-02 | Phase 31 | Complete |
+| SREC-01 | Phase 31 | Complete |
+| SREC-02 | Phase 31 | Complete |
 
 **Coverage:**
 

@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
 current_phase: 31
-current_phase_name: Agent Playbooks
-status: "Phase 30 shipped — PR #110"
-stopped_at: Completed 30-03-PLAN.md
-last_updated: "2026-07-31T01:45:14.932Z"
+status: "Phase 31 shipped — PR #111"
+stopped_at: Phase 31 verified — ready to ship
+last_updated: "2026-07-31T02:59:11.947Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 14
-  completed_plans: 13
+  total_plans: 19
+  completed_plans: 18
   percent: 75
-last_activity_desc: Phase 30 complete, transitioned to Phase 31
+current_phase_name: Agent Playbooks
+last_activity_desc: Phase 31 complete
 ---
 
 # Project State
@@ -28,18 +28,18 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 
 ## Current Position
 
-Phase: 31 — Agent Playbooks
+Phase: 31
 Plan: Not started
-Status: Phase 30 shipped — PR #110
+Status: Phase 31 shipped — PR #111
 Last activity: 2026-07-31
 
-Progress: [█████████░] 93%
+Progress: [██████████] 95%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 133
+- Total plans completed: 138
 - Average duration: —
 - Total execution time: —
 
@@ -74,6 +74,7 @@ Progress: [█████████░] 93%
 | 28 | 5 | - | - |
 | 29 | 4 | - | - |
 | 30 | 4 | - | - |
+| 31 | 5 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
@@ -171,6 +172,11 @@ Progress: [█████████░] 93%
 | Phase 29 P01 | 4 | 3 tasks | 4 files |
 | Phase 29-drift-heal P02 | 8min | 2 tasks | 2 files |
 | Phase 29-drift-heal P03 | 4 | 3 tasks | 7 files |
+| Phase 31 P00 | 3min | 3 tasks | 6 files |
+| Phase 31 P01 | 7min | 3 tasks | 4 files |
+| Phase 31 P02 | 4min | 3 tasks | 2 files |
+| Phase 31 P03 | 5min | 3 tasks | 2 files |
+| Phase 31 P04 | 8min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -456,6 +462,17 @@ Progress: [█████████░] 93%
 - [Phase ?]: D-15 manifest_audit and envs_promote capability keys shipped with MCP composite notes
 - [Phase ?]: README EN/DE drift-heal docs use env.promote product name with application.envs:promote implementation
 - [Phase ?]: Deploy guard extends deployment tool with preflight (read-only) and rollback (confirm-gated composite)
+- [Phase ?]: matchLogPatterns shell returns [] so empty-input green it() locks early in Wave 0
+- [Phase ?]: Four-prompt and fifteen-key greens kept; six-prompt and seventeen-key are it.fails until 01-04
+- [Phase ?]: D-06 approve-advisory-only: diagnose.analyze never mutates Coolify
+- [Phase ?]: 5xx spike ≥5 / crash_loop ≥3 min counts; single noisy line never matches
+- [Phase ?]: Instance routing via safeParseWithInstanceRouting — not schema.extend on refined diagnose schema
+- [Phase ?]: D-09 approve-confirm-in-prompt: rollback STOP/human approval before confirm:true
+- [Phase ?]: Playbooks are MCP prompts composing atomics only (PLAY-02); no playbook-runner tool
+- [Phase ?]: D-14 approve-advisory-recommend: recipe.recommend never mutates Coolify
+- [Phase ?]: recommend required field named stack (free-text stack phrase)
+- [Phase ?]: Husky blocks RED-only commits — GREEN shipped with flipped seventeen-key it() + capabilities together
+- [Phase ?]: Phase 31 no-external-API sentence lives in recipe.recommend action_override so regen/--check stay green
 
 ### Pending Todos
 
@@ -532,9 +549,9 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-31T01:14:06.657Z
-Stopped at: Completed 30-03-PLAN.md
-Resume file: None
+Last session: 2026-07-31T02:55:12.925Z
+Stopped at: Phase 31 verified — ready to ship
+Resume file: .planning/phases/31-agent-playbooks/31-VERIFICATION.md
 
 ## Operator Next Steps
 

@@ -21,7 +21,7 @@ Lege `.cursor/mcp.json` im Projekt an:
   "mcpServers": {
     "awesome-coolify-mcp": {
       "command": "npx",
-      "args": ["-y", "awesome-coolify-mcp@1.1.3"],
+      "args": ["-y", "awesome-coolify-mcp@1.1.4"],
       "env": {
         "COOLIFY_URL": "https://coolify.example.com",
         "COOLIFY_TOKEN": "<coolify-api-token>"
@@ -67,7 +67,7 @@ Baue nach Änderungen am Quellcode erneut.
 ## Neu laden und prüfen
 
 Lade den MCP-Server in Cursors Einstellungen neu. Prüfe danach, ob **19 tools** und
-**four prompts** verfügbar sind. Beginne mit `system.health` und rufe anschließend
+**sechs Prompts** verfügbar sind. Beginne mit `system.health` und rufe anschließend
 `system.version` für Coolify-Version und Capability-Flags auf.
 
 Cursor zeigt eventuell einen Buchstaben statt des gelieferten MCP-Icons. Diese bekannte
