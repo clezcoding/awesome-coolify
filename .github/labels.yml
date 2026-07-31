@@ -97,6 +97,53 @@
   color: "0E8A16"
   description: "Kodiak: squash-merge when required checks pass (.kodiak.toml)"
 
+- name: "do-not-merge"
+  color: "b60205"
+  description: "Kodiak blocking — do not merge until this label is removed"
+
+- name: "wip"
+  color: "fbca04"
+  description: "Work in progress — Kodiak will not merge (.kodiak.toml blocking_labels)"
+
+# =============================================================================
+# Kodiak — merge-method overrides + queue / update helpers
+# See https://kodiakhq.com/docs/config-reference#configuration-labels
+# =============================================================================
+- name: "kodiak: merge.method = 'squash'"
+  color: "0E8A16"
+  description: "Override merge method to squash for this PR only"
+
+- name: "kodiak: merge.method = 'merge'"
+  color: "5319e7"
+  description: "Override merge method to merge commit for this PR only"
+
+- name: "kodiak: merge.method = 'rebase'"
+  color: "0052cc"
+  description: "Override merge method to rebase for this PR only"
+
+- name: "kodiak: priority"
+  color: "d93f0b"
+  description: "Kodiak: jump to front of merge queue (merge.priority_merge_label)"
+
+- name: "kodiak: update"
+  color: "c5def5"
+  description: "Kodiak: keep this PR branch updated (update.autoupdate_label)"
+
+# =============================================================================
+# Hygiene — stale bot + community (stale.yml exempts pinned/security)
+# =============================================================================
+- name: "stale"
+  color: "ffffff"
+  description: "Marked inactive by the Stale bot — comment or remove to reopen"
+
+- name: "pinned"
+  color: "0e8a16"
+  description: "Exempt from Stale bot — keep open indefinitely"
+
+- name: "security"
+  color: "e11d21"
+  description: "Security-related — exempt from Stale bot (also see type: security)"
+
 # =============================================================================
 # GSD phase — project planning lifecycle (Discuss → Plan → Execute → Verify → Ship)
 # Used when work is tracked via GSD; planning artifacts stay local-only.

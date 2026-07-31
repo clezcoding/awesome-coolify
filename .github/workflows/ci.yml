@@ -10,6 +10,9 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lint-test-build:
     name: Lint, Test & Build
@@ -47,6 +50,10 @@ jobs:
   megalinter:
     name: MegaLinter
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
