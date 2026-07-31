@@ -41,8 +41,8 @@ Composite intelligence on Coolify 4.1.x — no new REST endpoints required.
 
 ### Ops Playbooks
 
-- [ ] **PLAY-01**: Parameterized MCP prompts exist for incident response, rollback, and maintenance-window flows
-- [ ] **PLAY-02**: Playbooks compose existing atomic tools — no duplicate API client implementations
+- [x] **PLAY-01**: Parameterized MCP prompts exist for incident response, rollback, and maintenance-window flows
+- [x] **PLAY-02**: Playbooks compose existing atomic tools — no duplicate API client implementations
 
 ### Smart Recipes
 
@@ -93,8 +93,8 @@ Deferred until Coolify 4.2.0+ stable.
 | GUARD-03 | Phase 30 | Complete |
 | BRAIN-01 | Phase 31 | Complete |
 | BRAIN-02 | Phase 31 | Complete |
-| PLAY-01 | Phase 31 | Pending |
-| PLAY-02 | Phase 31 | Pending |
+| PLAY-01 | Phase 31 | Complete |
+| PLAY-02 | Phase 31 | Complete |
 | SREC-01 | Phase 31 | Pending |
 | SREC-02 | Phase 31 | Pending |
 

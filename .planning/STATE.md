@@ -5,14 +5,14 @@ milestone_name: Agent Intelligence
 current_phase: 31
 current_phase_name: Agent Playbooks
 status: 31-00 complete — ready for 31-01
-stopped_at: Completed 31-01-PLAN.md
-last_updated: "2026-07-31T02:30:13.760Z"
+stopped_at: Completed 31-02-PLAN.md
+last_updated: "2026-07-31T02:36:29.957Z"
 last_activity: 2026-07-31
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 19
-  completed_plans: 15
+  completed_plans: 16
   percent: 50
 last_activity_desc: Phase 31 plan 00 Wave 0 RED scaffolds complete
 ---
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 31 — Agent Playbooks
-Plan: 2 of 05
+Plan: 3 of 05
 Status: 31-00 complete — Wave 0 RED scaffolds locked
 Last activity: 2026-07-31
 
-Progress: [████████░░] 79%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
@@ -173,6 +173,7 @@ Progress: [████████░░] 79%
 | Phase 29-drift-heal P03 | 4 | 3 tasks | 7 files |
 | Phase 31 P00 | 3min | 3 tasks | 6 files |
 | Phase 31 P01 | 7min | 3 tasks | 4 files |
+| Phase 31 P02 | 4min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -463,6 +464,8 @@ Progress: [████████░░] 79%
 - [Phase ?]: D-06 approve-advisory-only: diagnose.analyze never mutates Coolify
 - [Phase ?]: 5xx spike ≥5 / crash_loop ≥3 min counts; single noisy line never matches
 - [Phase ?]: Instance routing via safeParseWithInstanceRouting — not schema.extend on refined diagnose schema
+- [Phase ?]: D-09 approve-confirm-in-prompt: rollback STOP/human approval before confirm:true
+- [Phase ?]: Playbooks are MCP prompts composing atomics only (PLAY-02); no playbook-runner tool
 
 ### Pending Todos
 
@@ -539,8 +542,8 @@ Items acknowledged at v3.1 milestone close on 2026-07-27 (`closeout_type=verifie
 
 ## Session Continuity
 
-Last session: 2026-07-31T02:30:13.748Z
-Stopped at: Completed 31-01-PLAN.md
+Last session: 2026-07-31T02:36:29.941Z
+Stopped at: Completed 31-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
