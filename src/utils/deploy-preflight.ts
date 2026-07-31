@@ -420,17 +420,17 @@ async function settleFactor(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return {
-      severity: 'info',
+      severity: 'high',
       findings: [
         {
-          severity: 'info',
+          severity: 'high',
           factor: key,
           issue: `Could not evaluate ${key.replace(/_/g, ' ')} (${key}): ${message}`,
         },
       ],
       partial: true,
       error: message,
-      counts: { critical: 0, high: 0, info: 1 },
+      counts: { critical: 0, high: 1, info: 0 },
     };
   }
 }
@@ -492,6 +492,10 @@ export async function buildDeployPreflightReport(
     dns_readiness,
   };
 
+  const partial_factors = Object.entries(factors)
+    .filter(([, factor]) => factor.partial)
+    .map(([key]) => key);
+
   const allFindings = Object.values(factors).flatMap((f) => f.findings);
   const { risk_score, risk_level, score_breakdown } =
     computeDeployRiskScore(allFindings);
@@ -503,7 +507,10 @@ export async function buildDeployPreflightReport(
       String(latest.status ?? '').toLowerCase(),
     );
 
-  const blocking = risk_level === 'critical' || latestInProgress;
+  const blocking =
+    risk_level === 'critical' ||
+    latestInProgress ||
+    partial_factors.length > 0;
 
   const recommended_actions: FollowUpHint[] = [];
   if (blocking) {
@@ -548,10 +555,6 @@ export async function buildDeployPreflightReport(
       available_in_phase: 4,
     });
   }
-
-  const partial_factors = Object.entries(factors)
-    .filter(([, factor]) => factor.partial)
-    .map(([key]) => key);
 
   return {
     application_uuid: appUuid,
