@@ -247,7 +247,7 @@ Note: \`application.deploy wait:true\` is legacy back-compat; prefer \`deploymen
           },
           {
             role: 'assistant',
-            content: `Rollback workflow (composes existing deployment tools only — no playbook-runner):
+            content: `Rollback workflow (composes existing deployment atomic tools only — guidance text, not an auto-executing runner):
 
 1. Resolve application UUID${uuid ? ` (${uuid})` : ''} from args (\`uuid\` / \`name\` / \`fqdn\`), \`.coolify/manifest.json\`, or ask the user.${manifestSoftNote(Boolean(uuid))}
 

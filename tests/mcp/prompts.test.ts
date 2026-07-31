@@ -207,4 +207,60 @@ describe('MCP prompts Phase 31 playbooks', () => {
     expect(content).toMatch(/deployment\(\{\s*action:\s*"preflight"/);
     expect(content).not.toMatch(/\bofetch\b|\baxios\b|\bfetch\(/i);
   });
+
+  it('playbooks compose atomic tool shapes only and never skip rollback confirm (PLAY-02, D-11, D-20)', async () => {
+    const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+    registerCoolifyPrompts(server);
+    const prompts = getRegisteredPrompts(server);
+
+    const incident = assistantContent(
+      await prompts.incident.handler({ uuid: 'app-123' }),
+    );
+    const rollback = assistantContent(
+      await prompts.rollback.handler({ uuid: 'app-123' }),
+    );
+    const maintenance = assistantContent(
+      await prompts['maintenance-window'].handler({
+        resource_type: 'service',
+        uuid: 'svc-1',
+      }),
+    );
+
+    expect(incident).toMatch(/diagnose\(\{/);
+    expect(incident).toMatch(/deployment\(\{/);
+    expect(incident).toMatch(/application\(\{/);
+    expect(incident).toMatch(/rollback/i);
+
+    expect(rollback).toMatch(/deployment\(\{/);
+    expect(rollback).toMatch(/confirm:\s*false/);
+    expect(rollback).toMatch(/STOP|human approval/i);
+    expect(rollback).not.toMatch(
+      /skip (the )?confirm|without (human )?approval.*confirm:\s*true/i,
+    );
+    expect(rollback).toMatch(/Do not skip this tool-level confirm gate/);
+
+    expect(maintenance).toMatch(/service\(\{\s*action:\s*"stop"/);
+    expect(maintenance).toMatch(
+      /service\(\{\s*action:\s*"(start|restart)"/,
+    );
+    expect(maintenance).toMatch(/application|service|database/);
+
+    const names = Object.keys(prompts);
+    expect(names).not.toContain('playbook');
+    expect(names).not.toContain('playbook-runner');
+    expect(names).not.toContain('playbook_runner');
+
+    for (const content of [incident, rollback, maintenance]) {
+      expect(content).not.toMatch(/\bofetch\b|\baxios\b|\bfetch\(/i);
+    }
+  });
+
+  it('diagnose prompt cross-links diagnose.analyze for pattern triage', async () => {
+    const server = new McpServer({ name: 'test-server', version: '1.0.0' });
+    registerCoolifyPrompts(server);
+    const content = assistantContent(
+      await getRegisteredPrompts(server).diagnose.handler({ uuid: 'app-123' }),
+    );
+    expect(content).toMatch(/diagnose\(\{\s*action:\s*"analyze"/);
+  });
 });
