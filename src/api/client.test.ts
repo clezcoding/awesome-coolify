@@ -595,6 +595,41 @@ describe('triggerDeploy fetchDeployment', () => {
     expect(fetchMock.mock.calls[0][1]?.method).toBe('GET');
     expect(result).toEqual(deployment);
   });
+
+  it.fails('triggerDeploy omits force query param when false (Pitfall 4)', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ deployments: [] }, { status: 200 }),
+    );
+
+    await triggerDeploy(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      false,
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('uuid=app-uuid-1');
+    expect(url).not.toContain('force=');
+  });
+
+  it.fails('triggerDeploy passes docker_tag query param when provided', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json({ deployments: [] }, { status: 200 }),
+    );
+
+    await triggerDeploy(
+      'https://coolify.example.com',
+      'test-token',
+      'app-uuid-1',
+      false,
+      true,
+      { dockerTag: 'v1.2.3' },
+    );
+
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('docker_tag=v1.2.3');
+  });
 });
 
 describe('cancelDeployment', () => {

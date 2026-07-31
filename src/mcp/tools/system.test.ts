@@ -207,6 +207,27 @@ describe('capabilities', () => {
       });
     }
   });
+
+  it.fails(
+    'system.version capabilities includes deployment_preflight and deployment_rollback (Phase 30)',
+    async () => {
+      const result = await handleSystemAction({ action: 'version' }, testEnv);
+      expect(isMcpErrorResult(result)).toBe(false);
+      if (isMcpErrorResult(result)) return;
+
+      const caps = result.capabilities as Record<string, unknown>;
+      expect(caps.deployment_preflight).toMatchObject({
+        supported: true,
+        coolify_min_version: '4.1.2',
+        note: expect.any(String),
+      });
+      expect(caps.deployment_rollback).toMatchObject({
+        supported: true,
+        coolify_min_version: '4.1.2',
+        note: expect.any(String),
+      });
+    },
+  );
 });
 
 describe('handleSystemAction verify', () => {
