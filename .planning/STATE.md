@@ -4,17 +4,17 @@ milestone: v3.3
 milestone_name: Agent Intelligence
 current_phase: 31
 current_phase_name: Agent Playbooks
-status: planning
+status: "Phase 30 shipped — PR #110"
 stopped_at: Completed 30-03-PLAN.md
-last_updated: "2026-07-31T01:22:17.215Z"
+last_updated: "2026-07-31T01:45:14.932Z"
 last_activity: 2026-07-31
-last_activity_desc: Phase 30 complete, transitioned to Phase 31
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 14
   completed_plans: 13
   percent: 75
+last_activity_desc: Phase 30 complete, transitioned to Phase 31
 ---
 
 # Project State
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 
 Phase: 31 — Agent Playbooks
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-07-31 — Phase 30 complete, transitioned to Phase 31
+Status: Phase 30 shipped — PR #110
+Last activity: 2026-07-31
 
 Progress: [█████████░] 93%
 
