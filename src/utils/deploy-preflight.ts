@@ -634,6 +634,16 @@ export async function executeDeploymentRollback(
   const app = isRecord(appRaw) ? appRaw : {};
   const buildPack = String(app.build_pack ?? '').toLowerCase();
 
+  if (buildPack === 'dockerimage' && !dockerTag) {
+    throw new CoolifyApiError({
+      code: 'COOLIFY_ROLLBACK_UNAVAILABLE',
+      message:
+        'Rollback target deployment has no docker_registry_image_tag; cannot pin docker rollback.',
+      recoveryHints: RECOVERY_HINTS.COOLIFY_ROLLBACK_UNAVAILABLE,
+      data: preview as unknown as Record<string, unknown>,
+    });
+  }
+
   if (buildPack !== 'dockerimage' && commit) {
     if (!GIT_COMMIT_SHA_RE.test(commit)) {
       throw new CoolifyApiError({
