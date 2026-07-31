@@ -2,16 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.3
 milestone_name: Agent Intelligence
-current_phase: 30
-current_phase_name: Deploy Guard
-status: Phase 30 complete — ready for verify-work
-last_activity_desc: Phase 30 Deploy Guard execution complete
+current_phase: 31
+current_phase_name: Agent Playbooks
+status: planning
+stopped_at: Completed 30-03-PLAN.md
+last_updated: "2026-07-31T01:22:17.215Z"
+last_activity: 2026-07-31
+last_activity_desc: Phase 30 complete, transitioned to Phase 31
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 14
   completed_plans: 13
-  percent: 93
+  percent: 50
 ---
 
 # Project State
@@ -21,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** AI agent manages Coolify instances — deploy, logs, diagnose, create infrastructure — via one MCP server.
-**Current focus:** v3.3 Agent Intelligence — Phase 28 Instance Intelligence
+**Current focus:** Phase 30 — deploy-guard
 
 ## Current Position
 
-Phase: 30 of 31 (Deploy Guard)
-Plan: 30-03 complete
-Status: Phase 30 complete — 4/4 plans
-Last activity: 2026-07-31 — Phase 30 Deploy Guard execution complete
+Phase: 31 — Agent Playbooks
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-31 — Phase 30 complete, transitioned to Phase 31
 
 Progress: [█████████░] 93%
 
@@ -36,7 +39,7 @@ Progress: [█████████░] 93%
 
 **Velocity:**
 
-- Total plans completed: 129
+- Total plans completed: 133
 - Average duration: —
 - Total execution time: —
 
@@ -70,6 +73,7 @@ Progress: [█████████░] 93%
 | 27 | 4 | - | - |
 | 28 | 5 | - | - |
 | 29 | 4 | - | - |
+| 30 | 4 | - | - |
 **Per-Plan Metrics:**
 
 | Plan | Duration | Tasks | Files |
