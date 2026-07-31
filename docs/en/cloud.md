@@ -148,6 +148,30 @@ After connect, run this agent-first path to confirm Cloud works:
    application({ action: "get", uuid: "<app-uuid>" })
    ```
 
+4. **Optional — agent intelligence (v3.3):**
+
+   ```js
+   system({ action: "version" })
+   // Check capabilities.intelligence_scorecard, deployment_preflight, diagnose_analyze
+   intelligence({ action: "scorecard" })
+   ```
+
+---
+
+## Agent intelligence (v3.3)
+
+On Coolify 4.1.x, composite intelligence actions work on Cloud the same as self-hosted (read-only unless `confirm: true`):
+
+| Workflow | Entry action |
+| --- | --- |
+| Instance health | `intelligence({ action: "scorecard" })` |
+| Dependency map | `intelligence({ action: "graph" })` |
+| Manifest drift | `manifest({ action: "audit" })` |
+| Deploy risk | `deployment({ action: "preflight", uuid: "<app-uuid>" })` |
+| Log patterns | `diagnose({ action: "analyze", uuid: "<app-uuid>" })` |
+
+Always read `system.version.capabilities` before assuming support. Rollback, env promote, and janitor cleanup require explicit human confirmation.
+
 ---
 
 ## Known limits
@@ -169,7 +193,7 @@ the presence of a resource tool.
 | Server CRUD via API | Cloud does **not** support server create, validate, or delete through the REST API — use the Cloud dashboard for server management. |
 | Self-hosted-only endpoints | Some endpoints available on self-hosted return **404** on Cloud → structured code `COOLIFY_CLOUD_UNSUPPORTED`. |
 | Team-scoped tokens | Tokens are scoped to a team — verify the token's team owns the target resource. |
-| Same tool surface | All 18 MCP tools remain available; failures surface as structured errors, not silent stubs. |
+| Same tool surface | All 19 MCP tools remain available; failures surface as structured errors, not silent stubs. |
 
 `cloud-info` `knownLimits` mirrors this list locally — no live capability probe.
 

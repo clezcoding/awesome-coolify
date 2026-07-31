@@ -1,5 +1,29 @@
 # awesome-coolify-mcp
 
+## 1.1.4
+
+### Patch Changes
+
+- 5c99983: Phase 31 Agent Playbooks — `diagnose.analyze` rule-based log brain, upgraded `incident` plus `rollback` and `maintenance-window` MCP prompts, `recipe.recommend` from live service templates, capabilities and bilingual README parity (six prompts).
+
+## 1.1.3
+
+### Patch Changes
+
+- 8284f79: Phase 30 Deploy Guard — advisory `deployment.preflight` (four factors, `risk_score` 0–100), confirm-gated `deployment.rollback` composite, capabilities and coverage-map docs.
+
+## 1.1.2
+
+### Patch Changes
+
+- 8298512: Phase 29 Drift & Heal — advisory `manifest.audit`, `application.envs:promote` preview/apply with confirm gate, remediation FollowUpHints and bilingual safety docs.
+
+## 1.1.1
+
+### Patch Changes
+
+- a99432d: Phase 28 Instance Intelligence — new `intelligence` tool (`scorecard`, `graph`, `impact`, `janitor`, confirm-gated `cleanup`), 19-tool surface and docs-parity sync.
+
 ## 1.1.0
 
 ### Minor Changes
@@ -10,7 +34,7 @@ Release history for the public npm package. Entries follow
 [Keep a Changelog](https://keepachangelog.com/) categories where practical and preserve
 the original Changesets release notes.
 
-Current package: [`awesome-coolify-mcp@1.1.0`](https://www.npmjs.com/package/awesome-coolify-mcp/v/1.1.0).
+Current package: [`awesome-coolify-mcp@1.1.4`](https://www.npmjs.com/package/awesome-coolify-mcp/v/1.1.4).
 See all [GitHub releases](https://github.com/clezcoding/awesome-coolify/releases).
 
 ## 1.0.1
