@@ -28,7 +28,6 @@
   <img src="https://img.shields.io/badge/Coolify%20API-4.1.x-6b16ed?style=flat-square" alt="Coolify API 4.1.x" />
   <img src="https://img.shields.io/badge/MCP-19%20tools-181818?style=flat-square" alt="19 tools" />
   <a href="https://github.com/clezcoding/awesome-coolify/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/clezcoding/awesome-coolify/ci.yml?branch=main&style=flat-square&label=CI&color=6b16ed" alt="CI status" /></a>
-  <a href="https://api.scorecard.dev/projects/github.com/clezcoding/awesome-coolify/badge"><img src="https://api.scorecard.dev/projects/github.com/clezcoding/awesome-coolify/badge" alt="OpenSSF Scorecard" /></a>
   <a href="https://github.com/clezcoding/awesome-coolify/releases/latest"><img src="https://img.shields.io/github/v/release/clezcoding/awesome-coolify?style=flat-square&color=6b16ed" alt="Latest GitHub release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-fcd34d?style=flat-square" alt="MIT License" /></a>
 </p>
