@@ -130,7 +130,7 @@ Die ausgelieferte Oberfläche deckt Day-2-Operations und Infrastruktur-Erstellun
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/features.png" alt="Feature-Highlights: aktionsbasierte Tools, Safety Gates, Diagnose, Deploy und Logs" width="100%" />
 </p>
 
-- **18 aktionsbasierte Tools** — z. B. `application({ action: "deploy", uuid })` statt Dutzende granulare Tool-Namen zu durchsuchen. Registriert sind `system`, `meta`, `resource`, `diagnose`, `application`, `emergency`, `deployment`, `service`, `database`, `private_key`, `instance`, `manifest`, `server`, `project`, `environment`, `docs`, `recipe` und `setup`.
+- **19 aktionsbasierte Tools** — z. B. `application({ action: "deploy", uuid })` statt Dutzende granulare Tool-Namen zu durchsuchen. Registriert sind `system`, `meta`, `resource`, `diagnose`, `application`, `emergency`, `deployment`, `service`, `database`, `private_key`, `instance`, `manifest`, `server`, `project`, `environment`, `docs`, `recipe`, `setup` und `intelligence`.
 - **Multi-Instance-Registry & Routing** — jede Coolify-Instanz in `~/.coolify-mcp/instances.json` via `instance`-Tool registrieren; Credential-Auflösung pro Call ohne Cross-Instance-Leaks.
 - **Coolify-Cloud-fähig** — `instance({ action: "cloud-info" })` für lokale Discovery, team-scoped Tokens und strukturierte Cloud-Fehlercodes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`).
 - **Lokaler Manifest-Cache** — `.coolify/manifest.json`-Sync via `manifest({ action: "sync" })`, Best-Effort-Auto-Hooks bei App/Service/DB-Mutationen und `_meta.manifestWarning` bei veraltetem Cache.

@@ -178,6 +178,8 @@ describe('docs parity (Wave 0)', () => {
     const staleClaims = [
       '18 tools',
       '18 Tools',
+      '18 action-based tools',
+      '18 aktionsbasierte Tools',
       '17 tools',
       '17 Tools',
       '~91 actions',
