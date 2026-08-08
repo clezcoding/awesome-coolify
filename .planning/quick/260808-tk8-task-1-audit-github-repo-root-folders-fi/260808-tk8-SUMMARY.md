@@ -91,7 +91,7 @@ status: complete
 
 1. **Task 1: Classify tracked root entries** — `1c0f542` (docs)
 2. **Task 2: Verify index vs .gitignore** — `e0e9122` (docs)
-3. **Task 3: Recommendations + SUMMARY** — `b9c2429` (docs)
+3. **Task 3: Recommendations + SUMMARY** — `1289b99` (docs)
 
 ## Verification
 
@@ -126,4 +126,4 @@ Nächster Schritt — bitte Option wählen (oder Kombination beschreiben):
 - FOUND: `.planning/quick/260808-tk8-task-1-audit-github-repo-root-folders-fi/260808-tk8-SUMMARY.md`
 - FOUND: commit `1c0f542`
 - FOUND: commit `e0e9122`
-- FOUND: commit `b9c2429`
+- FOUND: commit `1289b99`
