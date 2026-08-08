@@ -101,4 +101,15 @@ describe('install configurator (Pages)', () => {
     expect(installHtml).toMatch(/No Claude Desktop.*mcpb.*packaging/i);
     expect(installHtml).not.toMatch(/\.mcpb\b/);
   });
+
+  it('keeps GitHub Pages copy aligned with current package surface (19 tools, six prompts)', () => {
+    for (const content of [installHtml, indexHtml]) {
+      expect(content).toContain('19');
+      expect(content).toMatch(/six prompts|6 prompts/i);
+      expect(content).toContain('awesome-coolify-mcp');
+      expect(content).not.toMatch(
+        /\b16 domain tools\b|~87 actions|~91 actions|v3\.0 Platform Foundation/i,
+      );
+    }
+  });
 });

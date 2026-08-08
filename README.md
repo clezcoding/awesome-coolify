@@ -130,7 +130,7 @@ Today, the shipped surface covers day-2 operations and infrastructure creation: 
   <img src="https://cdn.jsdelivr.net/gh/clezcoding/awesome-coolify@main/docs/assets/features.png" alt="Feature highlights: action-based tools, safety gates, diagnose, deploy and logs" width="100%" />
 </p>
 
-- **18 action-based tools** — call `application({ action: "deploy", uuid })` instead of hunting through dozens of granular tool names. The registered surface is `system`, `meta`, `resource`, `diagnose`, `application`, `emergency`, `deployment`, `service`, `database`, `private_key`, `instance`, `manifest`, `server`, `project`, `environment`, `docs`, `recipe`, and `setup`.
+- **19 action-based tools** — call `application({ action: "deploy", uuid })` instead of hunting through dozens of granular tool names. The registered surface is `system`, `meta`, `resource`, `diagnose`, `application`, `emergency`, `deployment`, `service`, `database`, `private_key`, `instance`, `manifest`, `server`, `project`, `environment`, `docs`, `recipe`, `setup`, and `intelligence`.
 - **Multi-instance registry & routing** — register every Coolify instance you own in `~/.coolify-mcp/instances.json` via the `instance` tool; per-call credential resolution with no cross-instance leakage.
 - **Coolify Cloud aware** — `instance({ action: "cloud-info" })` for local discovery, team-scoped tokens, and structured cloud error codes (`COOLIFY_CLOUD_FORBIDDEN`, `COOLIFY_CLOUD_UNSUPPORTED`).
 - **Local manifest cache** — `.coolify/manifest.json` sync via `manifest({ action: "sync" })`, best-effort auto-hooks on app/service/DB mutations, and `_meta.manifestWarning` when the cache is stale.
