@@ -4,9 +4,9 @@ milestone: v3.3
 milestone_name: Agent Intelligence
 status: Awaiting next milestone
 stopped_at: Phase 31 verified — ready to ship
-last_updated: "2026-07-31T03:44:55.834Z"
-last_activity: 2026-07-31
-last_activity_desc: Milestone v3.3 completed and archived
+last_updated: "2026-08-08T14:45:00.000Z"
+last_activity: 2026-08-08
+last_activity_desc: Completed quick task 260808-mxu — fix GitHub security issues (Dependabot #4 + Scorecard #58)
 progress:
   total_phases: 4
   completed_phases: 4
@@ -504,6 +504,7 @@ Last activity: 2026-07-31 — Milestone v3.3 completed and archived
 | 260729-6el | Rewrite bilingual README with current product truth, polished formatting, assets, and badges | 2026-07-29 | 46c1e7a | [260729-6el-fixe-und-berarbeite-die-readme-des-proje](./quick/260729-6el-fixe-und-berarbeite-die-readme-des-proje/) |
 | 260729-6pb | Refresh all public non-README documentation, guides, templates, and skill runbooks | 2026-07-29 | 6b9fc7d | [260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli](./quick/260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli/) |
 | 260729-7mc | Bereinige lokalen Projektordner + GitHub Repo, .gitignore, stale branches, Dependabot | 2026-07-29 | 831864d | [260729-7mc-bereinige-den-lokalen-projektordner-und-](./quick/260729-7mc-bereinige-den-lokalen-projektordner-und-/) |
+| 260808-mxu | Fix 2 GitHub security issues: Dependabot fast-uri CVE-2026-18446 and Scorecard OSV vulnerabilities alert #58 | 2026-08-08 | 71724e9 | [260808-mxu-fix-2-github-security-issues-dependabot-](./quick/260808-mxu-fix-2-github-security-issues-dependabot-/) |
 
 ### Roadmap Evolution
 
