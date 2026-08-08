@@ -10,6 +10,10 @@ minimumReleaseAgeExclude:
 
 # Security: force latest when parent ranges block (ajv→fast-uri ^3; tsup→esbuild ^0.27).
 # Prefer direct dep bumps (see postcss) when ranges already allow latest.
+# Also: fast-uri (GHSA-7p8r-x3mc-p8w7), js-yaml@3/@4 (GHSA-5p4m-2wfm-xmqj), nanoid (GHSA-2v37-7h3g-55p8).
 overrides:
-  fast-uri: ">=4.1.1"
+  fast-uri: ">=4.1.2"
+  "js-yaml@3": ">=3.15.1"
+  js-yaml: ">=4.3.1"
+  nanoid: ">=3.3.17"
   esbuild: ">=0.28.1"
