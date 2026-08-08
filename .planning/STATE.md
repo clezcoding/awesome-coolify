@@ -505,7 +505,7 @@ Last activity: 2026-07-31 — Milestone v3.3 completed and archived
 | 260729-6pb | Refresh all public non-README documentation, guides, templates, and skill runbooks | 2026-07-29 | 6b9fc7d | [260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli](./quick/260729-6pb-fixe-und-berarbeite-alle-anderen-ffentli/) |
 | 260729-7mc | Bereinige lokalen Projektordner + GitHub Repo, .gitignore, stale branches, Dependabot | 2026-07-29 | 831864d | [260729-7mc-bereinige-den-lokalen-projektordner-und-](./quick/260729-7mc-bereinige-den-lokalen-projektordner-und-/) |
 | 260808-mxu | Fix 2 GitHub security issues: Dependabot fast-uri CVE-2026-18446 and Scorecard OSV vulnerabilities alert #58 | 2026-08-08 | 71724e9 | [260808-mxu-fix-2-github-security-issues-dependabot-](./quick/260808-mxu-fix-2-github-security-issues-dependabot-/) |
-| 260808-q73 | Docs + GitHub Pages + README freshness audit (19 tools, six prompts, Pages drift) | 2026-08-08 | — | [260808-q73-docs-github-pages-readme-audit](./quick/260808-q73-docs-github-pages-readme-audit/) |
+| 260808-q73 | Docs + GitHub Pages + README freshness audit (19 tools, six prompts, Pages drift) | 2026-08-08 | 50a3a8d | [260808-q73-docs-github-pages-readme-audit](./quick/260808-q73-docs-github-pages-readme-audit/) |
 
 ### Roadmap Evolution
 
