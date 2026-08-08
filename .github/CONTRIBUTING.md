@@ -151,7 +151,7 @@ Checked locally via a git hook (`commitlint`) before the commit is even created.
 
 ## Branches
 
-- `main` is protected (classic branch protection + rulesets — see `scripts/setup-repo.sh` / `scripts/setup-branch-protection.sh`) — only mergeable via pull request once CI is green.
+- `main` is protected (classic branch protection + rulesets) — only mergeable via pull request once CI is green.
 - Squash-only merges; head branches delete on merge; conversation resolution required.
 - Branch names: `feat/<short-description>`, `fix/<short-description>`, `chore/<short-description>`.
 
@@ -171,7 +171,7 @@ This repo uses [Kodiak](https://kodiakhq.com/) to update PR branches and squash-
 
 **Dependabot:** patch and minor updates auto-merge via Kodiak (`merge.automerge_dependencies`) once CI is green — majors still need an explicit `automerge` label.
 
-Config lives in `.kodiak.toml`. One-time app install + full repo harden: `./scripts/setup-repo.sh` / `./scripts/setup-kodiak.sh`. Kodiak will **not** merge PRs with blocking labels such as `do-not-merge`, `wip`, `status: needs-review`, or `gsd: plan`.
+Config lives in `.kodiak.toml`. Install the [Kodiak GitHub App](https://github.com/marketplace/kodiakhq) on the repo if missing. Kodiak will **not** merge PRs with blocking labels such as `do-not-merge`, `wip`, `status: needs-review`, or `gsd: plan`.
 
 Optional Kodiak labels: `kodiak: priority` (jump queue), `kodiak: update` (force branch update), `kodiak: merge.method = '…'` (per-PR method override).
 

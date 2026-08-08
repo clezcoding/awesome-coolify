@@ -3,7 +3,7 @@
 # Format: https://github.com/EndBug/label-sync
 #
 # Do NOT create labels manually in the GitHub UI — edit this file and push to main.
-# See CONTRIBUTING.md § Labels.
+# See .github/CONTRIBUTING.md § Labels.
 
 # =============================================================================
 # Type — what kind of change or issue is this?

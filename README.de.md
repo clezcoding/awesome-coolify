@@ -815,10 +815,10 @@ pnpm run dev      # Watch-Modus
 
 Logs gehen ausschließlich auf **stderr** — stdout ist für das MCP-Protokoll reserviert.
 
-Der Maintainer-Publish-Flow (`build` → `pack --dry-run` → `publish`) ist in [CONTRIBUTING.md](CONTRIBUTING.md) dokumentiert.
+Der Maintainer-Publish-Flow (`build` → `pack --dry-run` → `publish`) ist in [CONTRIBUTING.md](.github/CONTRIBUTING.md) dokumentiert.
 
 > [!NOTE]
-> Maintainer können Live-UAT gegen eine echte Coolify-Instanz mit `npm run uat:live` ausführen. Siehe [CONTRIBUTING.md — Live UAT Harness](CONTRIBUTING.md#live-uat-harness) für Voraussetzungen und Report-Output — Runbook hier nicht duplizieren.
+> Maintainer können Live-UAT gegen eine echte Coolify-Instanz mit `npm run uat:live` ausführen. Siehe [CONTRIBUTING.md — Live UAT Harness](.github/CONTRIBUTING.md#live-uat-harness) für Voraussetzungen und Report-Output — Runbook hier nicht duplizieren.
 
 ---
 
@@ -833,7 +833,7 @@ Der Maintainer-Publish-Flow (`build` → `pack --dry-run` → `publish`) ist in 
 | Coolify | [coolify.io](https://coolify.io) |
 | MCP-Spezifikation | [modelcontextprotocol.io](https://modelcontextprotocol.io) |
 | Issues & Feature-Requests | [GitHub Issues](https://github.com/clezcoding/awesome-coolify/issues) |
-| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Contributing | [CONTRIBUTING.md](.github/CONTRIBUTING.md) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
-| Security-Policy | [SECURITY.md](SECURITY.md) |
+| Security-Policy | [SECURITY.md](.github/SECURITY.md) |
 | Lizenz | [MIT](LICENSE) |

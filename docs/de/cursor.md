@@ -100,5 +100,5 @@ prüfe `system.version.capabilities`.
 
 - [Coolify Cloud](cloud.md)
 - [Englischer Setup-Ablauf](../en/setup.md)
-- [Sicherheitsrichtlinie](../../SECURITY.md)
-- [Mitwirken](../../CONTRIBUTING.md)
+- [Sicherheitsrichtlinie](../../.github/SECURITY.md)
+- [Mitwirken](../../.github/CONTRIBUTING.md)
