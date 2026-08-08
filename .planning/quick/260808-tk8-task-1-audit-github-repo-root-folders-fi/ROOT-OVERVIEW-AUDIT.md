@@ -63,3 +63,22 @@
 - **`.planning` is keep-but-noisy, not candidate-untrack** in this task — `commit_docs: true` locks core planning artifacts as tracked; declutter requires explicit policy change (see Recommendations section, Task 3).
 - **Tooling dotfiles** (`.markdownlint.json`, `.mega-linter.yml`, `.yamllint.yml`, `.kodiak.toml`) stay **keep** because MegaLinter/CI/husky depend on them at repo root; untracking would not meaningfully shrink GitHub folder list (files remain visible) but would break gates.
 - **`.cursor`** folder name dominates visual clutter despite only 3 tracked blobs — widening ignore without losing ship hooks is a future policy tweak, not done here.
+
+## Leakage check
+
+**Method:** `git ls-files -ci --exclude-standard` (tracked paths that match active ignore rules)
+
+**Date:** 2026-08-08  
+**Result:** **0 leakages** — index is clean relative to `.gitignore`.
+
+No `git rm --cached` or additive `.gitignore` changes required in this task. Prior quick tasks (260727-4hd, 260729-7mc) already removed ephemeral `.planning` paths, `dev-docs/`, and confirmed zero tracked ignore matches.
+
+**Spot-checked ignore families (all clear):**
+
+| Ignore rule family | Example paths | Tracked leak? |
+|--------------------|---------------|---------------|
+| Ephemeral `.planning/` | `forensics/`, `spikes/`, `research/.cache/` | No |
+| Local-only docs | `dev-docs/` | No |
+| Build artifacts | `dist/`, `node_modules/`, `coverage/` | No |
+| Agent/local IDE | `.agents/`, `.cursor/rules/*` (except ship) | No |
+| Generated analysis | `graphify-out/` | No |
