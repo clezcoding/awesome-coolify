@@ -132,7 +132,10 @@ describe('public documentation integrity', () => {
     const basePkgVersion = JSON.parse(readGitRef('package.json', baseRef)).version;
     const headPkgVersion = JSON.parse(read('package.json')).version;
     const protectedPaths = ['LICENSE'];
-    if (basePkgVersion === headPkgVersion) {
+    const readmeUnchangedOnBranch =
+      read('README.md') === readGitRef('README.md', baseRef) &&
+      read('README.de.md') === readGitRef('README.de.md', baseRef);
+    if (basePkgVersion === headPkgVersion && readmeUnchangedOnBranch) {
       protectedPaths.unshift('README.md', 'README.de.md');
     }
     for (const path of protectedPaths) {
