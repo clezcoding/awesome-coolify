@@ -82,3 +82,19 @@ No `git rm --cached` or additive `.gitignore` changes required in this task. Pri
 | Build artifacts | `dist/`, `node_modules/`, `coverage/` | No |
 | Agent/local IDE | `.agents/`, `.cursor/rules/*` (except ship) | No |
 | Generated analysis | `graphify-out/` | No |
+
+## Recommendations (no policy change this task)
+
+These are **opt-in follow-ups** — none applied here. Each trades GitHub root clarity against GSD workflow or contributor ergonomics.
+
+| # | Recommendation | Overview benefit | GSD / workflow tradeoff |
+|---|----------------|------------------|-------------------------|
+| R1 | **Status quo** — keep `commit_docs: true`, core `.planning/` tracked | Full agent continuity; ship traceability in-repo | GitHub root stays dominated by `.planning/` (~604 files) |
+| R2 | Add more **ephemeral `.planning` subpaths** to `.gitignore` if new local-only dirs appear | Slightly fewer accidental tracks | Must not ignore STATE/ROADMAP/phases/quick; audit found **no new leakages** today |
+| R3 | **`commit_docs: false` + untrack `.planning/`** (explicit policy flip) | Largest root declutter; visitors see product-first tree | GSD STATE/ROADMAP/phases leave git history; agents need alternate doc sync or private planning repo |
+| R4 | **Untrack `skills/`** (candidate-untrack) | One fewer root folder; cleaner for npm consumers | Cursor/agent contributors lose repo-bundled skill runbooks unless mirrored in docs or personal skills dir |
+| R5 | **Narrow `.cursor` tracking further** (only if ship hooks relocated) | `.cursor` folder less prominent if empty on GitHub | Risk to gsd-ship-post hook + Kodiak label rule unless hooks move to `.github/` or `scripts/` |
+| R6 | **Move planning history to private docs repo**; keep slim public `.planning/` stub | Public repo reads as MCP product; history archived elsewhere | Cross-repo links; agent bootstrap must resolve planning location |
+| R7 | **Root `docs/` only on Pages branch** (advanced) | Root file count drops | Complicates single-branch workflow; Pages source already `docs/` — low ROI vs `.planning` noise |
+
+**Not recommended without CI audit:** untracking `.mega-linter.yml`, `.markdownlint.json`, `.yamllint.yml`, `.kodiak.toml`, `scripts/`, or `.github/` — all are **keep** because MegaLinter/husky/Kodiak depend on them.
