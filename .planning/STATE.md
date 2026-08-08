@@ -6,7 +6,7 @@ status: Awaiting next milestone
 stopped_at: Completed quick-260808-tk8
 last_updated: "2026-08-08T19:21:52.885Z"
 last_activity: 2026-08-08
-last_activity_desc: Completed quick task 260808-q73 — docs/GitHub Pages/README freshness audit + drift fixes
+last_activity_desc: Completed quick task 260808-tk8 — GitHub root overview audit (keep vs ignore)
 progress:
   total_phases: 0
   completed_phases: 0
@@ -506,6 +506,7 @@ Last activity: 2026-07-31 — Milestone v3.3 completed and archived
 | 260729-7mc | Bereinige lokalen Projektordner + GitHub Repo, .gitignore, stale branches, Dependabot | 2026-07-29 | 831864d | [260729-7mc-bereinige-den-lokalen-projektordner-und-](./quick/260729-7mc-bereinige-den-lokalen-projektordner-und-/) |
 | 260808-mxu | Fix 2 GitHub security issues: Dependabot fast-uri CVE-2026-18446 and Scorecard OSV vulnerabilities alert #58 | 2026-08-08 | 71724e9 | [260808-mxu-fix-2-github-security-issues-dependabot-](./quick/260808-mxu-fix-2-github-security-issues-dependabot-/) |
 | 260808-q73 | Docs + GitHub Pages + README freshness audit (19 tools, six prompts, Pages drift) | 2026-08-08 | 222ce23 | [260808-q73-docs-github-pages-readme-audit](./quick/260808-q73-docs-github-pages-readme-audit/) |
+| 260808-tk8 | Task 1: Audit GitHub repo root folders/files for overview clutter — classify keep vs gitignore+remove | 2026-08-08 | 265e26b | [260808-tk8-task-1-audit-github-repo-root-folders-fi](./quick/260808-tk8-task-1-audit-github-repo-root-folders-fi/) |
 
 ### Roadmap Evolution
 
