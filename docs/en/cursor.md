@@ -100,5 +100,5 @@ check `system.version.capabilities` instead.
 
 - [Setup workflow](setup.md)
 - [Coolify Cloud](cloud.md)
-- [Security policy](../../SECURITY.md)
-- [Contributing](../../CONTRIBUTING.md)
+- [Security policy](../../.github/SECURITY.md)
+- [Contributing](../../.github/CONTRIBUTING.md)

@@ -6,8 +6,8 @@ import { describe, expect, it } from 'vitest';
 const ROOT = resolve(import.meta.dirname, '../..');
 const PUBLIC_DOCS = [
   'CHANGELOG.md',
-  'CONTRIBUTING.md',
-  'SECURITY.md',
+  '.github/CONTRIBUTING.md',
+  '.github/SECURITY.md',
   'docs/COVERAGE.md',
   'docs/OPENAPI.md',
   'docs/assets/README.md',
@@ -29,8 +29,8 @@ const PUBLIC_DOCS = [
 const MARKDOWN_DOCS = PUBLIC_DOCS.filter((path) => extname(path) === '.md');
 const TASK_ONE_DOCS = [
   'CHANGELOG.md',
-  'CONTRIBUTING.md',
-  'SECURITY.md',
+  '.github/CONTRIBUTING.md',
+  '.github/SECURITY.md',
   'docs/en/cursor.md',
   'docs/de/cursor.md',
   '.github/PULL_REQUEST_TEMPLATE.md',
@@ -238,7 +238,7 @@ describe('public documentation integrity', () => {
   });
 
   it('keeps safe public-reporting boundaries', () => {
-    expect(read('SECURITY.md')).toContain(
+    expect(read('.github/SECURITY.md')).toContain(
       'https://github.com/clezcoding/awesome-coolify/security/advisories/new',
     );
     for (const path of [

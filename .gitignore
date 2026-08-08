@@ -73,3 +73,12 @@ coverage/
 # Local MCP integration smoke test (uses live credentials)
 scripts/test-mcp-stdio.mjs
 .coolify/
+
+# Maintainer-only scripts (local DX / one-time GitHub harden — not CI/build/ship)
+scripts/setup-repo.sh
+scripts/setup-kodiak.sh
+scripts/setup-branch-protection.sh
+scripts/verify-github-setup.sh
+scripts/fix-higgsfield.sh
+scripts/mcp-spy.mjs
+scripts/pin-github-actions.sh

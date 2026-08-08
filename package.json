@@ -15,7 +15,6 @@
     "lint": "tsup",
     "test": "vitest run",
     "prepublishOnly": "pnpm run build",
-    "higgsfield:fix": "bash scripts/fix-higgsfield.sh",
     "gsd:fix-verification": "node scripts/gsd-ensure-verification-fresh.mjs",
     "prepare": "husky",
     "version": "changeset version",
