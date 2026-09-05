@@ -38,8 +38,8 @@ importers:
         specifier: ^21.2.0
         version: 21.2.0
       '@scalar/openapi-parser':
-        specifier: ^0.28.10
-        version: 0.28.16
+        specifier: ^0.29.0
+        version: 0.29.0
       '@scalar/openapi-types':
         specifier: ^0.9.3
         version: 0.9.3
@@ -871,16 +871,20 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@scalar/helpers@0.11.1':
-    resolution: {integrity: sha512-Knwbe0IYqFk0PPDoOKLasqglBHfyf9/zwWWqFsSNi/AtdjM29wSZXN6p8DFid6iB5B9epYH9YiSgJ6tpD00TEw==}
+  '@scalar/helpers@0.11.2':
+    resolution: {integrity: sha512-IgHW/hIj1XAvsPIBKiOgmK87qbyDjaQQg9S/auXU4MUtvnwKKpOeIOJc0NC71FkMdr4Mok0SSVI748cmlptoXQ==}
     engines: {node: '>=22'}
 
-  '@scalar/json-magic@0.13.2':
-    resolution: {integrity: sha512-T8rQw5u7+MSTDpUcd5ShX1taOUxpZMv2b/P6xsahdlv/u68VX/Bq/+uzuAf2xW8IIOy7BEP4MBggle/vMDgAXw==}
+  '@scalar/json-magic@0.13.3':
+    resolution: {integrity: sha512-ONbveMHPl8ashCnTH/IzF2skr7CKUAC97m2tWQpbWJXhkUvc/B9vSRirjM0IqPCDURn4WZWAQFoaehDiEJICWA==}
     engines: {node: '>=22'}
 
-  '@scalar/openapi-parser@0.28.16':
-    resolution: {integrity: sha512-zHEQExXo58Nk7/Tju4y4HLVJ+B5nnDmR7vPhhHLVinL0z99aGrd6S/8HREupVpfAsim326pfzIbSM+UOvEbnOw==}
+  '@scalar/json-schema-validator@0.1.0':
+    resolution: {integrity: sha512-3mOin8TlRqhH9CndcZeOGFicb+/WSPmclko7vnaTIIa8vqrwZ6ZtwLdsZQpU1xzM5NqMgumF35ii3KEPS7kNDA==}
+    engines: {node: '>=22'}
+
+  '@scalar/openapi-parser@0.29.0':
+    resolution: {integrity: sha512-RVPVidIG5ohEUqPdB70kabhvAP1wq54iWwwdD9TKfJC73OSGUW2+7sHPFEwAD2MIwX9iDMOtxlSIHIk8Lidwdw==}
     engines: {node: '>=22'}
 
   '@scalar/openapi-types@0.9.3':
@@ -893,6 +897,14 @@ packages:
 
   '@scalar/openapi-upgrader@0.2.15':
     resolution: {integrity: sha512-yqROK9U96ElasEL4Wl/+PIjQZlqrQXVUUpXk9PA6xBnrp8KdEv7at8pR5gsZkvddJfYVwLILPlctyqUg4u4YZA==}
+    engines: {node: '>=22'}
+
+  '@scalar/openapi-validator@0.1.0':
+    resolution: {integrity: sha512-ZwUibJj0nPCdhRXCdgOvWme3EcywDPIwsfKCh912AMOWjSw4EF5Iv9MfAsKC+y8k8vrQEZ3JRcVvJcq3OwWtQQ==}
+    engines: {node: '>=22'}
+
+  '@scalar/types@0.18.3':
+    resolution: {integrity: sha512-hPLLxVt/ah4RpCVp5UrLEpnBEgTwf+RvPtRiSEty3QqfBJUfADMXHz+oWK6UAa/vALg2AWuJLCD8hRlyQ2ET9w==}
     engines: {node: '>=22'}
 
   '@simple-libs/child-process-utils@2.0.0':
@@ -1354,14 +1366,6 @@ packages:
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
 
-  jsonpointer@5.0.1:
-    resolution: {integrity: sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ==}
-    engines: {node: '>=0.10.0'}
-
-  leven@4.1.0:
-    resolution: {integrity: sha512-KZ9W9nWDT7rF7Dazg8xyLHGLrmpgq2nVNFUckhqdW3szVP6YhCpp/RAnpmVExA9JvrMynjwSLVrEj3AepHR6ew==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
-
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
     engines: {node: '>= 12.0.0'}
@@ -1739,6 +1743,10 @@ packages:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
 
+  tagged-tag@1.0.0:
+    resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
+    engines: {node: '>=20'}
+
   term-size@2.2.1:
     resolution: {integrity: sha512-wK0Ri4fOGjv/XPy8SBHZChl8CM7uMc5VML7SqiQ0zG7+J5Vr+RMQDoHa2CNT6KHUnTGIXH34UDMkPzAUyapBZg==}
     engines: {node: '>=8'}
@@ -1809,6 +1817,10 @@ packages:
     resolution: {integrity: sha512-BL5MGkRln6aDYhb0xbQlEAGw743BaZYWdbWtdJOBriYJboKgUUYCadFp2/FpBBZquBC/ezNBn7wMMPx7FDZUDw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
+
+  type-fest@5.9.0:
+    resolution: {integrity: sha512-yANm3Jr3GiJ1qgJlxGAVxTOIcEOk1rhQHamlXtnrCK7EHP4HeM9OGxtMg/W7HFdrVzw/ZWJKGVIJusVH85sLtw==}
+    engines: {node: '>=20'}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -2606,25 +2618,31 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
-  '@scalar/helpers@0.11.1': {}
+  '@scalar/helpers@0.11.2': {}
 
-  '@scalar/json-magic@0.13.2':
+  '@scalar/json-magic@0.13.3':
     dependencies:
-      '@scalar/helpers': 0.11.1
+      '@scalar/helpers': 0.11.2
       pathe: 2.0.3
       yaml: 2.9.0
 
-  '@scalar/openapi-parser@0.28.16':
+  '@scalar/json-schema-validator@0.1.0':
     dependencies:
-      '@scalar/helpers': 0.11.1
-      '@scalar/json-magic': 0.13.2
-      '@scalar/openapi-types': 0.9.5
-      '@scalar/openapi-upgrader': 0.2.15
+      '@scalar/helpers': 0.11.2
+      '@scalar/types': 0.18.3
       ajv: 8.20.0
       ajv-draft-04: 1.0.0(ajv@8.20.0)
       ajv-formats: 3.0.1(ajv@8.20.0)
-      jsonpointer: 5.0.1
-      leven: 4.1.0
+      yaml: 2.9.0
+
+  '@scalar/openapi-parser@0.29.0':
+    dependencies:
+      '@scalar/helpers': 0.11.2
+      '@scalar/json-magic': 0.13.3
+      '@scalar/openapi-types': 0.9.5
+      '@scalar/openapi-upgrader': 0.2.15
+      '@scalar/openapi-validator': 0.1.0
+      '@scalar/types': 0.18.3
       yaml: 2.9.0
 
   '@scalar/openapi-types@0.9.3': {}
@@ -2634,6 +2652,20 @@ snapshots:
   '@scalar/openapi-upgrader@0.2.15':
     dependencies:
       '@scalar/openapi-types': 0.9.5
+
+  '@scalar/openapi-validator@0.1.0':
+    dependencies:
+      '@scalar/helpers': 0.11.2
+      '@scalar/json-schema-validator': 0.1.0
+      '@scalar/types': 0.18.3
+      yaml: 2.9.0
+
+  '@scalar/types@0.18.3':
+    dependencies:
+      '@scalar/helpers': 0.11.2
+      nanoid: 6.0.1
+      type-fest: 5.9.0
+      zod: 4.5.4
 
   '@simple-libs/child-process-utils@2.0.0':
     dependencies:
@@ -3089,10 +3121,6 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
-  jsonpointer@5.0.1: {}
-
-  leven@4.1.0: {}
-
   lightningcss-android-arm64@1.32.0:
     optional: true
 
@@ -3444,6 +3472,8 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
 
+  tagged-tag@1.0.0: {}
+
   term-size@2.2.1: {}
 
   thenify-all@1.6.0:
@@ -3513,6 +3543,10 @@ snapshots:
       esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
+
+  type-fest@5.9.0:
+    dependencies:
+      tagged-tag: 1.0.0
 
   typescript@5.9.3: {}
 
