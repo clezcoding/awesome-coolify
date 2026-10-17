@@ -26,7 +26,7 @@ importers:
         version: 2.9.1
       zod:
         specifier: ^4.4.3
-        version: 4.6.5
+        version: 4.6.7
     devDependencies:
       '@changesets/cli':
         specifier: ^2.31.1
@@ -1973,8 +1973,8 @@ packages:
     resolution: {integrity: sha512-2rAgRKu54VsHkqI0/tYkmluGXHD4KW7yZoycuqDQ15QOTnc2VVfy0nN/1eMhnQLO00A+dwtK20xuCnc1YGeUyg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=23}
 
-  zod@4.6.5:
-    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
 snapshots:
 
@@ -2481,12 +2481,12 @@ snapshots:
 
   '@modelcontextprotocol/core@2.3.1':
     dependencies:
-      zod: 4.6.5
+      zod: 4.6.7
 
   '@modelcontextprotocol/server@2.3.1':
     dependencies:
       '@modelcontextprotocol/core': 2.3.1
-      zod: 4.6.5
+      zod: 4.6.7
 
   '@napi-rs/wasm-runtime@1.1.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
     dependencies:
@@ -2686,7 +2686,7 @@ snapshots:
       '@scalar/helpers': 0.11.2
       nanoid: 6.0.1
       type-fest: 5.9.0
-      zod: 4.6.5
+      zod: 4.6.7
 
   '@simple-libs/child-process-utils@2.0.0':
     dependencies:
@@ -3664,4 +3664,4 @@ snapshots:
       y18n: 5.0.8
       yargs-parser: 22.0.0
 
-  zod@4.6.5: {}
+  zod@4.6.7: {}
